@@ -60,7 +60,7 @@ subprojects {
                     }
                 }
 
-                System.out.println("Registered artifact publication: '${group}:${artifactId}:${project.version}'")
+                System.out.println("Registered artifact publication: '${group}:${artifactId}:${project.version}' -> $project.projectDescription")
             }
         }
     }
