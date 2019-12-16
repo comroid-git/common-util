@@ -3,7 +3,7 @@
 
 # Ignore IDEA Platform directories
 .idea/
-out/
+**/out/**
 
 ### Gradle ###
 .gradle
