@@ -1,0 +1,122 @@
+buildscript {
+    repositories.gradlePluginPortal()
+    dependencies.classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.1"
+}
+
+apply plugin: 'java-library'
+
+group 'de.comroid'
+version '0' // build number
+
+apply from: 'gradle/vars.gradle'
+
+tasks.findByName('wrapper').configure {
+    gradleVersion = '5.6'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
+allprojects {
+    tasks.withType(Javadoc) {
+        source = sourceSets.main.java
+
+        options {
+            encoding = 'UTF-8'
+            links = [
+                    "https://docs.oracle.com/javase/8/docs/api/",
+                    "https://docs.oracle.com/javaee/7/api/"
+            ]
+        }
+    }
+}
+
+sourceSets {
+    main.java.srcDirs = []
+    main.resources.srcDirs = []
+    test.java.srcDirs = []
+    test.resources.srcDirs = []
+}
+
+subprojects {
+    apply plugin: 'java-library'
+
+    group rootProject.group
+
+    sourceCompatibility = 11
+    targetCompatibility = 11
+
+    task sourcesJar(type: Jar) {
+        from sourceSets.main.allJava
+
+        try {
+            archiveClassifier.set 'sources'
+        } catch (MissingPropertyException ignored) {
+            classifier = "sources"
+        }
+    }
+
+    task javadocJar(type: Jar) {
+        dependsOn 'javadoc'
+
+        from javadoc.destinationDir
+
+        try {
+            archiveClassifier.set 'javadoc'
+        } catch (MissingPropertyException ignored) {
+            classifier = "javadoc"
+        }
+    }
+
+    compileJava.options.encoding = 'UTF-8'
+    repositories.jcenter()
+
+    dependencies {
+        implementation 'com.google.flogger:flogger:0.4'
+
+        compileOnly 'org.jetbrains:annotations:18.0.0'
+
+        runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+
+        testImplementation 'junit:junit:4.12'
+        testImplementation 'org.easymock:easymock:4.1'
+        testCompileOnly 'org.codehaus.groovy:groovy:3.0.0-rc-2'
+    }
+}
+
+project(":trie") {
+    version = '0.0.0-SNAPSHOT'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    ext {
+        projectDescription = "Trie Map implementation for Java 8"
+    }
+}
+
+project(":proxerface") {
+    version = '0.0.0-SNAPSHOT'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    ext {
+        projectDescription = "Interface Proxy Manager for Java 8"
+    }
+
+    dependencies {
+        implementation project(':trie')
+    }
+}
+
+task allJavadoc(type: Javadoc) {
+    source exportedProjects.collect { //noinspection GroovyAssignabilityCheck
+        project(it).sourceSets.main.allJava
+    }
+    classpath = files(exportedProjects.collect { //noinspection GroovyAssignabilityCheck
+        project(it).sourceSets.main.compileClasspath
+    })
+    options.encoding = 'UTF-8'
+    options.destinationDirectory(file("./docs/"))
+}
+
+apply from: 'gradle/publishing.gradle'

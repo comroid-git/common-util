@@ -1,0 +1,16 @@
+import static java.lang.System.getenv
+
+ext {
+    artifactName = 'common-util'
+    userbase = 'comroid-git'
+    projectDescription = "Collection of helpful Artifacts and Utilities"
+
+    exportedProjects = rootProject.subprojects.collect { it.name }
+
+    snapshot = project.version.endsWith("-SNAPSHOT")
+
+    spaceUsername = getenv("SPACE_USERNAME")
+    spacePassword = getenv("SPACE_PASSWORD")
+}
+
+ext."signing.gnupg.passphrase" = getenv("GPG_PASSWORD")
