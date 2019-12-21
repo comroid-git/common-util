@@ -16,10 +16,12 @@ allprojects {
 
         options {
             encoding = 'UTF-8'
+            /*
             links = [
                     "https://docs.oracle.com/javase/8/docs/api/",
                     "https://docs.oracle.com/javaee/7/api/"
             ]
+            */
         }
     }
 }
@@ -78,7 +80,7 @@ subprojects {
 }
 
 project(":trie") {
-    version = '0.0.0-SNAPSHOT'
+    version = '0.1.0-SNAPSHOT'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
