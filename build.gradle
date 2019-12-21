@@ -1,8 +1,3 @@
-buildscript {
-    repositories.gradlePluginPortal()
-    dependencies.classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.1"
-}
-
 apply plugin: 'java-library'
 
 group 'de.comroid'
