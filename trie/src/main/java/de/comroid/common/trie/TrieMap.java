@@ -52,7 +52,9 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
         if (!(key instanceof CharSequence))
             throw new ClassCastException(String.format("Unsupported key type: %s", key.getClass()));
 
-        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!").toString().toCharArray();
+        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!")
+                .toString()
+                .toCharArray();
 
         return baseStages.computeIfAbsent(chars[0], each -> new TrieStage<>())
                 .get(chars, 1);
@@ -61,7 +63,9 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
     @Override
     @Contract(mutates = "this")
     public @Nullable V put(@NotNull K key, @Nullable V value) {
-        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!").toString().toCharArray();
+        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!")
+                .toString()
+                .toCharArray();
 
         return baseStages.computeIfAbsent(chars[0], each -> new TrieStage<>())
                 .set(chars, 1, value);
@@ -73,9 +77,10 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
         if (!(key instanceof CharSequence))
             throw new ClassCastException(String.format("Unsupported key type: %s", key.getClass()));
 
-        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!").toString().toCharArray();
+        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!")
+                .toString()
+                .toCharArray();
 
-        @SuppressWarnings("unchecked") final K it = (K) key;
         return baseStages.computeIfAbsent(chars[0], each -> new TrieStage<>())
                 .remove(chars, 1);
     }
