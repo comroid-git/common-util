@@ -1,4 +1,4 @@
-package de.comroid.common.trie;
+package org.comroid.common.trie;
 
 import java.util.Map;
 import java.util.Objects;

@@ -1,4 +1,4 @@
-package de.comroid.common.trie;
+package org.comroid.common.trie;
 
 import org.junit.Before;
 import org.junit.Test;

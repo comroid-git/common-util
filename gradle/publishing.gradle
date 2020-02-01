@@ -5,7 +5,7 @@ subprojects {
     publishing {
         repositories {
             maven {
-                url = "https://maven.jetbrains.space/comroid/maven"
+                url = "https://maven.jetbrains.space/comroid/repo"
                 name = "Space"
 
                 credentials {

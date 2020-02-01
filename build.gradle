@@ -1,6 +1,6 @@
 apply plugin: 'java-library'
 
-group 'de.comroid'
+group 'org.comroid'
 version '0' // build number
 
 apply from: 'gradle/vars.gradle'
@@ -90,14 +90,14 @@ project(":trie") {
     }
 }
 
-project(":proxerface") {
+project(":spellbind") {
     version = '0.0.0-SNAPSHOT'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
     ext {
-        projectDescription = "Interface Proxy Manager for Java 8"
+        projectDescription = "Blackmagic Proxies"
     }
 
     dependencies {
