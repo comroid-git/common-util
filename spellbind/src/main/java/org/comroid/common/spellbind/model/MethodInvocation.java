@@ -5,20 +5,17 @@ import java.lang.reflect.Method;
 
 import org.jetbrains.annotations.Nullable;
 
-public class Invocation {
+public class MethodInvocation implements Invocable {
     public final Object target;
     public final Method method;
 
-    public Invocation(Object target, Method method) {
+    public MethodInvocation(Object target, Method method) {
         this.target = target;
         this.method = method;
     }
 
+    @Override
     public @Nullable Object invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
-        return invoke(target, args);
-    }
-
-    public @Nullable Object invoke(Object target, Object... args) throws InvocationTargetException, IllegalAccessException {
         return method.invoke(target, args);
     }
 }

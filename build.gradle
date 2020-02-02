@@ -91,7 +91,7 @@ project(":trie") {
 }
 
 project(":spellbind") {
-    version = '0.9.1-SNAPSHOT'
+    version = '0.9.1'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8

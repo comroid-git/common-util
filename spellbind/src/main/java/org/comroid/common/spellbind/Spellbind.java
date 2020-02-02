@@ -2,13 +2,16 @@ package org.comroid.common.spellbind;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-import org.comroid.common.spellbind.model.Invocation;
+import org.comroid.common.spellbind.model.Invocable;
+import org.comroid.common.spellbind.model.MethodInvocation;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -25,13 +28,17 @@ public final class Spellbind {
 
     public static class Builder<T> {
         private final Class<T> mainInterface;
-        private final Map<String, Invocation> methodBinds;
+        private final Map<String, Invocable> methodBinds;
+        private final Collection<Class<?>> interfaces;
         private Object coreObject;
         private ClassLoader classLoader;
 
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
             this.methodBinds = new ConcurrentHashMap<>(); // TODO use TrieMap when it's working
+            this.interfaces = new ArrayList<>(1);
+
+            interfaces.add(mainInterface);
         }
 
         public Builder<T> coreObject(Object coreObject) {
@@ -51,7 +58,9 @@ public final class Spellbind {
                     .forEach(method -> Stream.of(asInterface.getMethods())
                             .filter(other -> matchFootprint(other, method))
                             .findAny()
-                            .ifPresent(value -> methodBinds.put(methodString(value), new Invocation(sub, method))));
+                            .ifPresent(value -> methodBinds.put(methodString(value), new MethodInvocation(sub, method))));
+
+            interfaces.add(asInterface);
 
             return this;
         }
@@ -68,20 +77,20 @@ public final class Spellbind {
             final SpellCore spellCore = new SpellCore(coreObject, methodBinds);
 
             //noinspection unchecked
-            return (T) Proxy.newProxyInstance(classLoader, new Class[]{mainInterface}, spellCore);
+            return (T) Proxy.newProxyInstance(classLoader, interfaces.stream().distinct().toArray(Class[]::new), spellCore);
         }
 
-        private void populateBinds(Method[] methods, Object implementationSource, Map<String, Invocation> map) {
+        private void populateBinds(Method[] methods, Object implementationSource, Map<String, Invocable> map) {
             for (Method method : methods) {
                 final int mod = method.getModifiers();
 
                 Method implMethod;
-                if ((implMethod = getMethodImplementation(method, implementationSource.getClass())) != null)
-                    map.put(methodString(method), new Invocation(implementationSource, implMethod));
+                if ((implMethod = findMatchingMethod(method, implementationSource.getClass())) != null)
+                    map.put(methodString(method), new MethodInvocation(implementationSource, implMethod));
             }
         }
 
-        private static @Nullable Method getMethodImplementation(Method abstractMethod, Class<?> inClass) {
+        static @Nullable Method findMatchingMethod(Method abstractMethod, Class<?> inClass) {
             for (Method method : inClass.getMethods())
                 if (matchFootprint(abstractMethod, method))
                     return method;

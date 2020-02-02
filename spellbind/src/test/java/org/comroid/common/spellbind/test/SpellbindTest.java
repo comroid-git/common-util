@@ -1,6 +1,7 @@
 package org.comroid.common.spellbind.test;
 
 import org.comroid.common.spellbind.Spellbind;
+import org.comroid.test.model.AnotherPartialAbstract;
 import org.comroid.test.model.FullAbstract;
 import org.comroid.test.model.NonAbstract;
 import org.comroid.test.model.PartialAbstract;
@@ -33,7 +34,7 @@ public class SpellbindTest {
 
         HyperInterface proxy = Spellbind.builder(HyperInterface.class)
                 .coreObject(implementingClass)
-                .subImplement(new HyperInterface.SubImpl(), CharSequence.class)
+                .subImplement(new HyperInterface.SubImpl(), HyperInterface.class)
                 .build();
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class).isPresent());
@@ -50,9 +51,13 @@ public class SpellbindTest {
         Assert.assertEquals('e', proxy.charAt(1));
         Assert.assertEquals('l', proxy.charAt(3));
         Assert.assertEquals("ello", proxy.subSequence(1, 5));
+
+        Assert.assertTrue(proxy instanceof AnotherPartialAbstract);
+        Assert.assertEquals(6.2d, proxy.getAnother(), 0.0d);
+        Assert.assertEquals(-6d, proxy.sub(0.2d), 0.0d);
     }
 
-    public interface HyperInterface extends MainInterface, CharSequence {
+    public interface HyperInterface extends MainInterface, CharSequence, AnotherPartialAbstract {
         @SuppressWarnings("NullableProblems")
         class SubImpl extends ImplementingClass implements HyperInterface {
             @Override
@@ -68,6 +73,11 @@ public class SpellbindTest {
             @Override
             public CharSequence subSequence(int start, int end) {
                 return "hello".subSequence(start, end);
+            }
+
+            @Override
+            public double getAnother() {
+                return 6.2d;
             }
         }
     }

@@ -1,23 +1,26 @@
 package org.comroid.common.spellbind;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.comroid.common.spellbind.model.Invocation;
+import org.comroid.common.spellbind.model.Invocable;
+import org.comroid.common.spellbind.model.MethodInvocation;
 
 import org.jetbrains.annotations.Nullable;
 
 public class SpellCore implements InvocationHandler {
     private final Object coreObject;
-    private final Map<String, Invocation> methodBinds;
+    private final Map<String, Invocable> methodBinds;
 
-    SpellCore(Object coreObject, Map<String, Invocation> methodBinds) {
+    SpellCore(Object coreObject, Map<String, Invocable> methodBinds) {
         this.coreObject = coreObject;
         this.methodBinds = methodBinds;
     }
@@ -25,21 +28,51 @@ public class SpellCore implements InvocationHandler {
     @Override
     public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         final String methodString = methodString(method);
-        final Invocation impl = methodBinds.get(methodString);
+        final Invocable invoc = methodBinds.get(methodString);
 
-        if (impl == null || Modifier.isAbstract(impl.method.getModifiers()))
-            if (!Modifier.isAbstract(method.getModifiers()))
-                method.invoke(args);
-            else throw$unimplemented(methodString);
+        if (invoc instanceof MethodInvocation) {
+            MethodInvocation methodInvocation = (MethodInvocation) invoc;
 
-        if (impl == null)
-            throw$unimplemented(methodString);
+            if (Modifier.isAbstract(methodInvocation.method.getModifiers()))
+                if (!Modifier.isAbstract(method.getModifiers())) {
+                    try {
+                        invokeDefault(method, args);
+                    } catch (IllegalArgumentException | NoSuchElementException e) {
+                        throw new InvocationTargetException(e, String.format("Could not invoke method %s: CoreObject is not of its type", methodString));
+                    }
+                } else throw$unimplemented(methodString, null);
 
-        return impl.invoke(args);
+            return methodInvocation.invoke(args);
+        }
+
+        if (invoc == null) {
+            try {
+                return invokeDefault(method, args);
+            } catch (Throwable e) {
+                throw$unimplemented(methodString, e);
+            }
+        }
+
+        assert invoc != null;
+        return invoc.invoke(args);
     }
 
-    private void throw$unimplemented(Object methodString) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy", methodString));
+    private @Nullable Object invokeDefault(Method method, Object[] args) throws IllegalAccessException, InvocationTargetException {
+        final Optional<Object> possibleTarget = methodBinds.values()
+                .stream()
+                .filter(MethodInvocation.class::isInstance)
+                .map(MethodInvocation.class::cast)
+                .filter(mic -> Spellbind.Builder.findMatchingMethod(method, mic.target.getClass()) != null)
+                .findAny()
+                .map(mic -> mic.target);
+
+        return method.invoke(possibleTarget.orElseThrow(() -> new NoSuchElementException("Could not find a matching target!")), args);
+    }
+
+    private void throw$unimplemented(Object methodString, @Nullable Throwable e) throws UnsupportedOperationException {
+        throw e == null
+                ? new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy", methodString))
+                : new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy", methodString), e);
     }
 
     public static String methodString(@Nullable Method method) {
