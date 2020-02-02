@@ -1,9 +1,18 @@
 package org.comroid.common.spellbind;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
-import org.comroid.common.spellbind.bound.SpellCore;
+import org.comroid.common.spellbind.model.Invocation;
+
+import org.jetbrains.annotations.Nullable;
+
+import static org.comroid.common.spellbind.SpellCore.methodString;
 
 public final class Spellbind {
     private Spellbind() {
@@ -16,15 +25,33 @@ public final class Spellbind {
 
     public static class Builder<T> {
         private final Class<T> mainInterface;
-        private T coreObject;
+        private final Map<String, Invocation> methodBinds;
+        private Object coreObject;
         private ClassLoader classLoader;
 
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
+            this.methodBinds = new ConcurrentHashMap<>(); // TODO use TrieMap when it's working
         }
 
-        public <X extends T> Builder<T> coreObject(X coreObject) {
+        public Builder<T> coreObject(Object coreObject) {
             this.coreObject = coreObject;
+
+            final Class<?> coreObjectClass = coreObject.getClass();
+
+            populateBinds(mainInterface.getMethods(), coreObject, methodBinds);
+
+            return this;
+        }
+
+        public Builder<T> subImplement(Object sub, Class<?> asInterface) {
+            final Class<?> subClass = sub.getClass();
+            Stream.of(subClass.getMethods())
+                    .filter(method -> method.getDeclaringClass().equals(subClass))
+                    .forEach(method -> Stream.of(asInterface.getMethods())
+                            .filter(other -> matchFootprint(other, method))
+                            .findAny()
+                            .ifPresent(value -> methodBinds.put(methodString(value), new Invocation(sub, method))));
 
             return this;
         }
@@ -37,10 +64,37 @@ public final class Spellbind {
 
         public T build() {
             final ClassLoader classLoader = Optional.ofNullable(this.classLoader).orElseGet(Spellbind.class::getClassLoader);
-            final SpellCore spellCore = SpellCore.forCoreObject(mainInterface, coreObject);
+
+            final SpellCore spellCore = new SpellCore(coreObject, methodBinds);
 
             //noinspection unchecked
             return (T) Proxy.newProxyInstance(classLoader, new Class[]{mainInterface}, spellCore);
+        }
+
+        private void populateBinds(Method[] methods, Object implementationSource, Map<String, Invocation> map) {
+            for (Method method : methods) {
+                final int mod = method.getModifiers();
+
+                Method implMethod;
+                if ((implMethod = getMethodImplementation(method, implementationSource.getClass())) != null)
+                    map.put(methodString(method), new Invocation(implementationSource, implMethod));
+            }
+        }
+
+        private static @Nullable Method getMethodImplementation(Method abstractMethod, Class<?> inClass) {
+            for (Method method : inClass.getMethods())
+                if (matchFootprint(abstractMethod, method))
+                    return method;
+
+            // TODO: 02.02.2020 doesnt work
+
+            return null;
+        }
+
+        private static boolean matchFootprint(Method abstractMethod, Method method) {
+            return abstractMethod.getName().equals(method.getName())
+                    && Arrays.equals(abstractMethod.getParameterTypes(), method.getParameterTypes())
+                    && abstractMethod.getReturnType().equals(method.getReturnType());
         }
     }
 }
