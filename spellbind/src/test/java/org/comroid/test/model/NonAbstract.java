@@ -1,4 +1,4 @@
-package de.kaleidox.spellbind.test.model;
+package org.comroid.test.model;
 
 import java.util.Optional;
 

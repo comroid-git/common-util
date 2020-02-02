@@ -1,4 +1,4 @@
-package de.kaleidox.spellbind.test.model;
+package org.comroid.test.model;
 
 public interface FullAbstract {
     boolean invert(boolean val);

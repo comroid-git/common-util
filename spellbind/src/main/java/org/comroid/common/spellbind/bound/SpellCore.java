@@ -25,13 +25,18 @@ public class SpellCore implements InvocationHandler {
         final String methodString = methodString(method);
         final Method impl = methodBinds.get(methodString);
 
-        System.out.printf("%s invoked implementation %s; args: %s\n", methodString, methodString(impl), Arrays.toString(args));
-
         if (impl == null || Modifier.isAbstract(impl.getModifiers()))
-            method.invoke(coreObject, args); // TODO: 02.02.2020 We need to keep a Proxy for each Interface for these kinds of calls
-            //throw new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy", methodString), new Error(listMethodBinds()));
+            if (!Modifier.isAbstract(method.getModifiers()))
+                method.invoke(coreObject, args);
+            else throw$unimplemented(methodString);
+
+        if (impl == null) throw$unimplemented(methodString);
 
         return impl.invoke(coreObject, args);
+    }
+
+    private void throw$unimplemented(Object methodString) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy", methodString), new Error(listMethodBinds()));
     }
 
     private String listMethodBinds() {
@@ -55,8 +60,7 @@ public class SpellCore implements InvocationHandler {
             final int mod = method.getModifiers();
 
             Method implM;
-            final boolean anAbstract = Modifier.isAbstract(mod); // is this way better? see invoke(..)
-            if (anAbstract && (implM = getMethodImplementation(method, coreObject.getClass())) != null)
+            if ((implM = getMethodImplementation(method, coreObject.getClass())) != null)
                 methodBinds.put(methodString(method), implM);
         }
 

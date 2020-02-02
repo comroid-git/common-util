@@ -1,27 +1,30 @@
 package org.comroid.common.spellbind.test;
 
 import org.comroid.common.spellbind.Spellbind;
-import de.kaleidox.spellbind.test.model.FullAbstract;
-import de.kaleidox.spellbind.test.model.NonAbstract;
-import de.kaleidox.spellbind.test.model.PartialAbstract;
+import org.comroid.test.model.FullAbstract;
+import org.comroid.test.model.NonAbstract;
+import org.comroid.test.model.PartialAbstract;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class SpellbindAPITest {
     @Test
-    public void testAPI() {
+    public void testDirectBound() {
         final ImplementingClass implementingClass = new ImplementingClass();
 
         MainInterface proxy = Spellbind.builder(MainInterface.class)
                 .coreObject(implementingClass)
                 .build();
 
-        System.out.println("proxy.cast(Integer.class) = " + proxy.cast(Integer.class));
-        System.out.println("proxy.string() = " + proxy.string());
-        System.out.println("proxy.add(5) = " + proxy.add(5));
-        System.out.println("proxy.getValue() = " + proxy.getValue());
-        System.out.println("proxy.name() = " + proxy.name());
-        System.out.println("proxy.invert(true) = " + proxy.invert(true));
+        Assert.assertTrue(proxy.cast(PartialAbstract.class).isPresent());
+        Assert.assertFalse(proxy.string().isPresent());
+
+        Assert.assertEquals(47, proxy.add(5));
+        Assert.assertEquals(42, proxy.getValue());
+
+        Assert.assertEquals("some class", proxy.name());
+        Assert.assertFalse(proxy.invert(true));
     }
 
     public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {
