@@ -1,16 +1,39 @@
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse.BodyHandlers
+
+final HttpClient client = HttpClient.newBuilder().build()
+
+task teamcityPublish {
+}
+
 subprojects {
     apply plugin: 'maven-publish'
-    //apply plugin: 'signing'
+
+    task teamcityPublish(dependsOn: 'publish') {
+    }
 
     publishing {
         repositories {
             maven {
-                url = "https://maven.jetbrains.space/comroid/repo"
-                name = "Space"
+                name = 'Space'
+                url = 'https://maven.jetbrains.space/comroid/repo'
 
                 credentials {
                     username spaceUsername
                     password spacePassword
+                }
+            }
+
+            maven {
+                name = 'Sonatype'
+                url = !snapshot
+                        ? 'https://oss.sonatype.org/content/repositories/snapshots'
+                        : 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
                 }
             }
         }
@@ -56,26 +79,28 @@ subprojects {
         }
     }
 
+    def artifactId = publishing.publications.mavenJava.artifactId
+    tasks.findByName('publishMavenJavaPublicationToSonatypeRepository').onlyIf {
+        def uri = new URI(String.format("https://oss.sonatype.org/content/repositories/releases/%s/%s/%s/%s",
+                rootProject.group.toString().replace(".", "/"), // domain
+                artifactId,
+                project.version,
+                String.format("%s-%s.pom", artifactId, project.version)
+        ))
+        def response = client.send(HttpRequest.newBuilder(uri).GET().build(), BodyHandlers.ofString())
+
+        return response.statusCode() == 404
+    }
+
     task generateGithubPom(type: GenerateMavenPom) {
         destination = file("$projectDir/pom.xml")
         pom = publishing.publications.mavenJava.pom
     }
 
-    /*
-    if (!snapshot) {
-        signing {
-            useGpgCmd()
+    apply plugin: 'signing'
 
-            sign publishing.publications.mavenJava
-        }
-    }
-    */
-}
-
-task teamcityPublish {
-}
-
-subprojects {
-    task teamcityPublish(dependsOn: 'publish') {
+    signing {
+        useGpgCmd()
+        sign publishing.publications.mavenJava
     }
 }

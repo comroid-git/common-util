@@ -112,4 +112,8 @@ task allJavadoc(type: Javadoc) {
     options.destinationDirectory(file("./docs/"))
 }
 
+subprojects {
+    apply from: "$rootDir/gradle/vars.gradle"
+}
+
 apply from: 'gradle/publishing.gradle'
