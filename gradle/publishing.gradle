@@ -88,8 +88,11 @@ subprojects {
                 String.format("%s-%s.pom", artifactId, project.version)
         ))
         def response = client.send(HttpRequest.newBuilder(uri).GET().build(), BodyHandlers.ofString())
+        def code = response.statusCode()
+        
+        System.out.printf("Checked for existing Sonatype Artifact: %s RETURNED %d\n", uri, code)
 
-        return response.statusCode() == 404
+        return code == 404
     }
 
     task generateGithubPom(type: GenerateMavenPom) {
