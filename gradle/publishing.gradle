@@ -92,7 +92,7 @@ subprojects {
         
         System.out.printf("Checked for existing Sonatype Artifact: %s RETURNED %d\n", uri, code)
 
-        return code == 404
+        return code != 200
     }
 
     task generateGithubPom(type: GenerateMavenPom) {
