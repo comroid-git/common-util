@@ -81,6 +81,8 @@ subprojects {
 
     def artifactId = publishing.publications.mavenJava.artifactId
     tasks.findByName('publishMavenJavaPublicationToSonatypeRepository').onlyIf {
+        if (snapshot) return true
+        
         def uri = new URI(String.format("https://oss.sonatype.org/content/repositories/releases/%s/%s/%s/%s",
                 rootProject.group.toString().replace(".", "/"), // domain
                 artifactId,
