@@ -80,7 +80,7 @@ subprojects {
 }
 
 project(":trie") {
-    version = '0.1.0-SNAPSHOT'
+    version = '1.0.0'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -91,7 +91,7 @@ project(":trie") {
 }
 
 project(":spellbind") {
-    version = '0.9.3-SNAPSHOT'
+    version = '0.10.0'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8

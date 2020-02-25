@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.comroid.common.spellbind"},{"l":"org.comroid.common.spellbind.model"},{"l":"org.comroid.common.trie"}]

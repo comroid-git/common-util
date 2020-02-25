@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.comroid</groupId>
+  <artifactId>common-util-spellbind</artifactId>
+  <version>0.10.0</version>
+  <name>common-util</name>
+  <description>Collection of helpful Artifacts and Utilities</description>
+  <url>https://github.com/comroid-git/common-util</url>
+  <inceptionYear>2019</inceptionYear>
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>burdoto</id>
+      <name>Tobias Burdow</name>
+      <email>burdoto@outlook.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/comroid-git/common-util.git</connection>
+    <developerConnection>scm:git:ssh://github.com/comroid-git/common-util.git</developerConnection>
+    <url>https://github.com/comroid-git/common-util</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.flogger</groupId>
+      <artifactId>flogger</artifactId>
+      <version>0.4</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>common-util-trie</artifactId>
+      <version>1.0.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.flogger</groupId>
+      <artifactId>flogger-system-backend</artifactId>
+      <version>0.4</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>
