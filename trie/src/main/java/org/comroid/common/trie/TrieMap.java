@@ -42,7 +42,7 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
 
         return baseStages.values()
                 .stream()
-                .flatMap(TrieStage::streamBelow)
+                .flatMap(TrieStage::stream)
                 .anyMatch(stage -> value.equals(stage.value));
     }
 
@@ -106,7 +106,7 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
     public @NotNull Collection<V> values() {
         return baseStages.values()
                 .stream()
-                .flatMap(TrieStage::streamBelow)
+                .flatMap(TrieStage::stream)
                 .map(stage -> stage.value)
                 .collect(Collectors.toList());
     }
@@ -147,7 +147,7 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
         //noinspection ConstantConditions
         return baseStages.values()
                 .stream()
-                .flatMap(TrieStage::streamBelow)
+                .flatMap(TrieStage::stream)
                 .map(stage -> new Local(null /* gathering keys currently not supported */, stage))
                 .collect(Collectors.toSet());
     }

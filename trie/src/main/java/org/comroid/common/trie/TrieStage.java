@@ -46,9 +46,9 @@ public class TrieStage<V> {
                 .sum() + (Objects.isNull(value) ? 0 : 1);
     }
 
-    Stream<TrieStage<V>> streamBelow() {
-        return subStages.values()
+    Stream<TrieStage<V>> stream() {
+        return Stream.concat(Stream.of(this), subStages.values()
                 .stream()
-                .flatMap(TrieStage::streamBelow);
+                .flatMap(TrieStage::stream));
     }
 }

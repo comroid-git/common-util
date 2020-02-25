@@ -34,19 +34,23 @@ public class TrieMapTest {
 
     @Test
     public void testContainsKey() {
-        assertTrue(trie.containsKey("barrel"));
         assertTrue(trie.containsKey("musik"));
         assertTrue(trie.containsKey("balloon"));
+
+        //noinspection RedundantCollectionOperation
+        assertTrue(trie.keySet().contains("barrel"));
 
         assertFalse(trie.containsKey("büro"));
     }
 
     @Test
     public void testContainsValue() {
-        assertTrue(trie.containsValue(77));
         assertTrue(trie.containsValue(50));
         assertTrue(trie.containsValue(99));
-
+        
+        //noinspection RedundantCollectionOperation
+        assertTrue(trie.values().contains(77));
+        
         assertFalse(trie.containsValue(20));
     }
 }
