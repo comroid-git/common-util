@@ -14,6 +14,13 @@ import org.jetbrains.annotations.Nullable;
 public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
     private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
 
+    /**
+     * Explicitly private constructor.
+     * Currently, generating TrieMap instances is supported only for {@code TrieMap<String, V>} using {@link #create()}.
+     */
+    private TrieMap() {
+    }
+
     @Override
     @Contract
     public int size() {
@@ -171,5 +178,9 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
                 .flatMap(TrieStage::stream)
                 .map(stage -> new Local(null /* gathering keys currently not supported */, stage))
                 .collect(Collectors.toSet());
+    }
+
+    public static <V> TrieMap<String, V> create() {
+        return new TrieMap<>();
     }
 }

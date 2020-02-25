@@ -12,7 +12,7 @@ public class TrieMapTest {
 
     @Before
     public void setup() {
-        trie = new TrieMap<>();
+        trie = TrieMap.create();
 
         trie.put("balloon", 99);
         trie.put("barrel", 50);
