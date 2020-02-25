@@ -4,10 +4,7 @@ import java.net.http.HttpResponse.BodyHandlers
 
 final HttpClient client = HttpClient.newBuilder().build()
 
-task teamcityPublish {
-}
-
-subprojects {
+allprojects {
     apply plugin: 'maven-publish'
 
     task teamcityPublish(dependsOn: 'publish') {
