@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import org.comroid.common.spellbind.model.Invocable;
 import org.comroid.common.spellbind.model.MethodInvocation;
+import org.comroid.common.trie.TrieMap;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +36,7 @@ public final class Spellbind {
 
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
-            this.methodBinds = new ConcurrentHashMap<>(); // TODO use TrieMap when it's working
+            this.methodBinds = TrieMap.create();
             this.interfaces = new ArrayList<>(1);
 
             interfaces.add(mainInterface);

@@ -99,6 +99,10 @@ project(":spellbind") {
     ext {
         projectDescription = "Blackmagic Proxies"
     }
+    
+    dependencies {
+        implementation project(":trie")
+    }
 }
 
 task allJavadoc(type: Javadoc) {
