@@ -1,6 +1,8 @@
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse.BodyHandlers
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 final HttpClient client = HttpClient.newBuilder().build()
 
@@ -37,7 +39,9 @@ allprojects {
 
         publications {
             mavenJava(MavenPublication) {
-                artifactId = artifactName + '-' + project.name
+                artifactId = Stream.of(artifactName, project.name)
+                        .distinct()
+                        .collect(Collectors.joining("-"))
                 from components.java
 
                 artifact sourcesJar
@@ -79,7 +83,7 @@ allprojects {
     def artifactId = publishing.publications.mavenJava.artifactId
     tasks.findByName('publishMavenJavaPublicationToSonatypeRepository').onlyIf {
         if (snapshot) return true
-        
+
         def uri = new URI(String.format("https://oss.sonatype.org/content/repositories/releases/%s/%s/%s/%s",
                 rootProject.group.toString().replace(".", "/"), // domain
                 artifactId,
@@ -88,7 +92,7 @@ allprojects {
         ))
         def response = client.send(HttpRequest.newBuilder(uri).GET().build(), BodyHandlers.ofString())
         def code = response.statusCode()
-        
+
         System.out.printf("Checked for existing Sonatype Artifact: %s RETURNED %d\n", uri, code)
 
         return code != 200
