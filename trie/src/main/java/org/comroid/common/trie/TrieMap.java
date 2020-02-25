@@ -95,10 +95,31 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
         baseStages.clear();
     }
 
+    /**
+     * @return A Set of generated Strings representing all contained keys.
+     */
     @Override
     @Contract
     public @NotNull Set<K> keySet() {
-        throw new UnsupportedOperationException("Gathering keys is currently not supported!");
+        class Pair {
+            String key;
+            TrieStage<V> stage;
+
+            Pair(String key, TrieStage<V> stage) {
+                this.key = key;
+                this.stage = stage;
+            }
+        }
+
+        return baseStages.entrySet()
+                .stream()
+                .map(entry -> new Pair(entry.getKey().toString(), entry.getValue()))
+                .flatMap(pair -> pair.stage.streamKeys(pair.key))
+                .map(any -> {
+                    //noinspection unchecked -> required cast
+                    return (K) any;
+                })
+                .collect(Collectors.toSet());
     }
 
     @Override

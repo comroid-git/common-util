@@ -46,6 +46,12 @@ public class TrieStage<V> {
                 .sum() + (Objects.isNull(value) ? 0 : 1);
     }
 
+    Stream<String> streamKeys(String base) {
+        return Stream.concat(Stream.of(base), subStages.entrySet()
+                .stream()
+                .flatMap(entry -> entry.getValue().streamKeys(base + entry.getKey())));
+    }
+
     Stream<TrieStage<V>> stream() {
         return Stream.concat(Stream.of(this), subStages.values()
                 .stream()
