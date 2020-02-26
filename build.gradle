@@ -67,7 +67,7 @@ allprojects {
 }
 
 // root project
-version '1.0' // build number
+version '1.1-SNAPSHOT'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -88,7 +88,7 @@ project(":trie") {
 }
 
 project(":spellbind") {
-    version = '0.10.0-SNAPSHOT'
+    version = '0.10.1-SNAPSHOT'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
