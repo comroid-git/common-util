@@ -67,7 +67,7 @@ allprojects {
 }
 
 // root project
-version '1.1-SNAPSHOT'
+version '1.1'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -96,9 +96,26 @@ project(":spellbind") {
     ext {
         projectDescription = "Blackmagic Proxies"
     }
-    
+
     dependencies {
         implementation project(":trie")
+    }
+}
+
+project(":upd8r-nginx") {
+    version = '0.1.0'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    ext {
+        projectDescription = "Update Handler using NGinX file hosts"
+    }
+    
+    dependencies {
+        api project(":")
+        implementation 'com.alibaba:fastjson:1.2.62'
+        implementation 'com.squareup.okhttp3:okhttp:3.14.7'
     }
 }
 
