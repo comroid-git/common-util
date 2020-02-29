@@ -79,10 +79,20 @@ project(":restless") {
         projectDescription = "Basic Java 8 & 11 compatible Rest API"
     }
 
-    configurations.create('jdk11')
-
+    configurations.create 'jdk11'
     sourceSets {
-        jdk11.java.srcDirs = [file("$projectDir/src/main/java11/")]
+        create 'jdk11', {
+            java.srcDirs = [file("$projectDir/src/main/java11/")]
+            resources.srcDirs = [file("$projectDir/src/main/resources11/")]
+        }
+        
+        create 'testJre8', {
+            java.srcDirs = [file("$projectDir/src/test/jre8/")]
+        }
+        
+        create 'testJre11', {
+            java.srcDirs = [file("$projectDir/src/test/jre11/")]
+        }
     }
 
     compileJdk11Java {
@@ -101,6 +111,8 @@ project(":restless") {
         implementation 'com.squareup.okhttp3:okhttp:3.14.7'
 
         jdk11CompileOnly project(':restless')
+        testJre8 project(':restless')
+        testJre11 configurations.
     }
 }
 
