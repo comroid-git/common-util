@@ -70,6 +70,8 @@ project(":upd8r") {
 }
 
 project(":restless") {
+    apply plugin: 'idea'
+    
     version = '0.1.0-SNAPSHOT'
 
     sourceCompatibility = 1.8
@@ -79,19 +81,34 @@ project(":restless") {
         projectDescription = "Basic Java 8 & 11 compatible Rest API"
     }
 
+    configurations.create 'jdk8'
     configurations.create 'jdk11'
+    configurations.create 'testJre8'
+    configurations.create 'testJre11'
+    
     sourceSets {
+        create 'jdk8', {
+            java.srcDirs = [file("$projectDir/src/main/jdk8/")]
+        }
         create 'jdk11', {
-            java.srcDirs = [file("$projectDir/src/main/java11/")]
-            resources.srcDirs = [file("$projectDir/src/main/resources11/")]
+            java.srcDirs = [file("$projectDir/src/main/jdk11/")]
         }
         
         create 'testJre8', {
             java.srcDirs = [file("$projectDir/src/test/jre8/")]
         }
-        
         create 'testJre11', {
             java.srcDirs = [file("$projectDir/src/test/jre11/")]
+        }
+    }
+
+    idea {
+        module {
+            def files = new ArrayList<>()
+            files.addAll(sourceSets.testJre8.java.srcDirs)
+            files.addAll(sourceSets.testJre11.java.srcDirs)
+            
+            testSourceDirs += files
         }
     }
 
@@ -101,18 +118,30 @@ project(":restless") {
     }
 
     jar {
-        dependsOn = ['compileJava', 'compileJdk11Java']
+        dependsOn = ['compileJdk8Java', 'compileJdk11Java']
 
-        from sourceSets.main.java.outputDir
+        from sourceSets.jdk8.java.outputDir
         from sourceSets.jdk11.java.outputDir
     }
 
     dependencies {
-        implementation 'com.squareup.okhttp3:okhttp:3.14.7'
-
-        jdk11CompileOnly project(':restless')
-        testJre8 project(':restless')
-        testJre11 configurations.
+        jdk8Implementation 'com.squareup.okhttp3:okhttp:3.14.7'
+        
+        jdk11CompileOnly sourceSets.jdk8.runtimeClasspath
+        
+        testJre8CompileOnly sourceSets.jdk8.runtimeClasspath
+        testJre8CompileOnly 'junit:junit:4.12'
+        
+        testJre11CompileOnly sourceSets.jdk8.runtimeClasspath
+        testJre11CompileOnly sourceSets.jdk11.runtimeClasspath
+        testJre11CompileOnly 'junit:junit:4.12'
+    }
+    
+    subprojects {
+        dependencies {
+            implementation 'com.google.flogger:flogger:0.4'
+            runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+        }
     }
 }
 
