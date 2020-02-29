@@ -5,174 +5,45 @@ tasks.findByName('wrapper').configure {
     distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
-allprojects {
+configurations {
+    compileClasspath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
+subprojects {
     apply plugin: 'java-library'
 
     group rootProject.group
-}
 
-// root project
-version '1.2.0-SNAPSHOT'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-ext {
-    projectDescription = "Commonly used Interfaces and Classes"
-}
-
-allprojects {
+    apply from: "$rootDir/gradle/vars.gradle"
     apply from: "$rootDir/gradle/global.gradle"
-    apply from: "$rootDir/gradle/vars.gradle"
-}
 
-project(":trie") {
-    version = '1.0.1-SNAPSHOT'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    ext {
-        projectDescription = "Trie Map implementation for Java 8"
-    }
-}
-
-project(":spellbind") {
-    version = '0.10.1-SNAPSHOT'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    ext {
-        projectDescription = "Blackmagic Proxies"
+    afterEvaluate {
+        apply from: "$rootDir/gradle/publishing.gradle"
     }
 
-    dependencies {
-        implementation project(":trie")
-    }
-}
-
-project(":upd8r") {
-    version = '0.1.2-SNAPSHOT'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    ext {
-        projectDescription = "Update Handler using NGinX file hosts"
-    }
-
-    dependencies {
-        api project(":")
-        implementation 'com.alibaba:fastjson:1.2.62'
-        implementation 'com.squareup.okhttp3:okhttp:3.14.7'
-    }
-}
-
-project(":restless") {
-    apply plugin: 'idea'
-    
-    version = '0.1.0-SNAPSHOT'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    ext {
-        projectDescription = "Basic Java 8 & 11 compatible Rest API"
-    }
-
-    configurations.create 'jdk8'
-    configurations.create 'jdk11'
-    configurations.create 'testJre8'
-    configurations.create 'testJre11'
-    
-    sourceSets {
-        create 'jdk8', {
-            java.srcDirs = [file("$projectDir/src/main/jdk8/")]
-        }
-        create 'jdk11', {
-            java.srcDirs = [file("$projectDir/src/main/jdk11/")]
-        }
-        
-        create 'testJre8', {
-            java.srcDirs = [file("$projectDir/src/test/jre8/")]
-        }
-        create 'testJre11', {
-            java.srcDirs = [file("$projectDir/src/test/jre11/")]
+    task allJavadoc(type: Javadoc) {
+        source = files(exportedProjects
+                .each { rootProject.project(it.toString()) }
+                .every { project.hasProperty("sourceSet") }
+                .each { project.sourceSets.main.allJava }
+                .collect())
+        classpath = files(exportedProjects
+                .each { rootProject.project(it.toString()) }
+                .every { project.hasProperty("sourceSet") }
+                .each { project.sourceSets.main.compileClasspath }
+                .collect())
+        options {
+            destinationDirectory(file("$rootDir/docs/"))
+            encoding = 'UTF-8'
         }
     }
-
-    idea {
-        module {
-            def files = new ArrayList<>()
-            files.addAll(sourceSets.testJre8.java.srcDirs)
-            files.addAll(sourceSets.testJre11.java.srcDirs)
-            
-            testSourceDirs += files
-        }
-    }
-
-    compileJdk11Java {
-        sourceCompatibility = 11
-        targetCompatibility = 11
-    }
-
-    jar {
-        dependsOn = ['compileJdk8Java', 'compileJdk11Java']
-
-        from sourceSets.jdk8.java.outputDir
-        from sourceSets.jdk11.java.outputDir
-    }
-
-    dependencies {
-        jdk8CompileOnly 'com.alibaba:fastjson:1.2.62'
-        jdk8CompileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
-        jdk8Implementation project(":")
-        jdk8Implementation 'com.google.flogger:flogger:0.4'
-        jdk8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
-
-        // todo This is not correct. It does what we want, but it's not good.
-        jdk11CompileOnly sourceSets.jdk8.runtimeClasspath
-        jdk11Implementation project(":")
-        jdk11Implementation 'com.google.flogger:flogger:0.4'
-        jdk11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
-
-        testImplementation 'com.alibaba:fastjson:1.2.62'
-        
-        testJre8CompileOnly sourceSets.test.runtimeClasspath
-        testJre8CompileOnly sourceSets.jdk8.runtimeClasspath
-        testJre8CompileOnly 'junit:junit:4.12'
-        testJre8Implementation 'com.alibaba:fastjson:1.2.62'
-        testJre8RuntimeOnly 'com.squareup.okhttp3:okhttp:3.14.7'
-        
-        testJre11CompileOnly sourceSets.test.runtimeClasspath
-        testJre11CompileOnly sourceSets.jdk8.runtimeClasspath
-        testJre11CompileOnly sourceSets.jdk11.runtimeClasspath
-        testJre11CompileOnly 'junit:junit:4.12'
-        testJre11Implementation 'com.alibaba:fastjson:1.2.62'
-    }
-    
-    subprojects {
-        dependencies {
-            implementation 'com.google.flogger:flogger:0.4'
-            runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
-        }
-    }
-}
-
-task allJavadoc(type: Javadoc) {
-    source exportedProjects.collect { //noinspection GroovyAssignabilityCheck
-        project(it).sourceSets.main.allJava
-    }
-    classpath = files(exportedProjects.collect { //noinspection GroovyAssignabilityCheck
-        project(it).sourceSets.main.compileClasspath
-    })
-    options.encoding = 'UTF-8'
-    options.destinationDirectory(file("./docs/"))
 }
 
 allprojects {
-    apply from: "$rootDir/gradle/vars.gradle"
+    task generateGithubPom(type: GenerateMavenPom) {
+        destination = file("$projectDir/pom.xml")
+        pom = publishing.publications.mavenJava.pom
+    }
 }
-
-apply from: 'gradle/publishing.gradle'

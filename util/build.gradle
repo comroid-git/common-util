@@ -1,0 +1,8 @@
+version '1.2.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Commonly used Interfaces and Classes"
+}

@@ -187,7 +187,11 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
                 .filter(item -> !contains(item))
                 .collect(Collectors.toList());
 
-        return removeAll(collect);
+        final boolean removeAll = removeAll(collect);
+        cleanup();
+        
+        
+        return removeAll;
     }
 
     @Override

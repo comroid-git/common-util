@@ -1,6 +1,13 @@
 rootProject.name = 'common-util'
 
+include(':util')
+
 include(':trie')
+
 include(':spellbind')
+
 include(':upd8r')
+
 include(':restless')
+includeFlat('restless/java8')
+includeFlat('restless/java11')
