@@ -11,22 +11,13 @@ import org.comroid.common.rest.REST;
 import org.comroid.common.rest.uniform.Adapter;
 import org.comroid.common.rest.uniform.SerializerAdapter;
 
-public final class Jdk11Adapter<SER extends SerializerAdapter<DAT, TYP>, DAT, TYP> implements Adapter<HttpClient, SER, DAT, TYP> {
-    private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final SER serializer;
-
+public final class Jdk11Adapter<SER extends SerializerAdapter<DAT, TYP>, DAT, TYP> extends Adapter.Abstract<HttpClient, SER, DAT, TYP> {
     public Jdk11Adapter(SER serializer) {
-        this.serializer = serializer;
+        this(HttpClient.newHttpClient(), serializer);
     }
 
-    @Override
-    public HttpClient getHttpClient() {
-        return httpClient;
-    }
-
-    @Override
-    public SER getSerializer() {
-        return serializer;
+    public Jdk11Adapter(HttpClient httpClient, SER serializer) {
+        super(httpClient, serializer);
     }
 
     @Override

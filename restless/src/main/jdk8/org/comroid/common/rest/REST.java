@@ -19,7 +19,11 @@ public final class REST {
     private static final FluentLogger log = FluentLogger.forEnclosingClass();
     private static final Map<Adapter, REST> cache = new ConcurrentHashMap<>();
 
-    public static <TYP, DAT> REST.Request.Builder<TYP, DAT> request(Adapter adapter, Context context) {
+    public static <DAT, TYP> Request.Builder<DAT, TYP> request(Adapter adapter) {
+        return request(adapter, Context.DUMMY);
+    }
+
+    public static <DAT, TYP> REST.Request.Builder<DAT, TYP> request(Adapter adapter, Context context) {
         return get(adapter).request(context);
     }
 
@@ -33,7 +37,11 @@ public final class REST {
         this.adapter = adapter;
     }
 
-    public <T, B> REST.Request.Builder<T, B> request(Context context) {
+    public <DAT, TYP> Request.Builder<DAT, TYP> request() {
+        return request(Context.DUMMY);
+    }
+
+    public <DAT, TYP> REST.Request.Builder<DAT, TYP> request(Context context) {
         return new Request.Builder<>(this, context);
     }
 

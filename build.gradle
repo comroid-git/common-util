@@ -125,16 +125,31 @@ project(":restless") {
     }
 
     dependencies {
-        jdk8Implementation 'com.squareup.okhttp3:okhttp:3.14.7'
-        
+        jdk8CompileOnly 'com.alibaba:fastjson:1.2.62'
+        jdk8CompileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
+        jdk8Implementation project(":")
+        jdk8Implementation 'com.google.flogger:flogger:0.4'
+        jdk8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+
+        // todo This is not correct. It does what we want, but it's not good.
         jdk11CompileOnly sourceSets.jdk8.runtimeClasspath
+        jdk11Implementation project(":")
+        jdk11Implementation 'com.google.flogger:flogger:0.4'
+        jdk11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+
+        testImplementation 'com.alibaba:fastjson:1.2.62'
         
+        testJre8CompileOnly sourceSets.test.runtimeClasspath
         testJre8CompileOnly sourceSets.jdk8.runtimeClasspath
         testJre8CompileOnly 'junit:junit:4.12'
+        testJre8Implementation 'com.alibaba:fastjson:1.2.62'
+        testJre8RuntimeOnly 'com.squareup.okhttp3:okhttp:3.14.7'
         
+        testJre11CompileOnly sourceSets.test.runtimeClasspath
         testJre11CompileOnly sourceSets.jdk8.runtimeClasspath
         testJre11CompileOnly sourceSets.jdk11.runtimeClasspath
         testJre11CompileOnly 'junit:junit:4.12'
+        testJre11Implementation 'com.alibaba:fastjson:1.2.62'
     }
     
     subprojects {
