@@ -39,9 +39,7 @@ allprojects {
 
         publications {
             mavenJava(MavenPublication) {
-                artifactId = Stream.of(artifactName, project.name)
-                        .distinct()
-                        .collect(Collectors.joining("-"))
+                artifactId = project.name
                 from components.java
 
                 artifact sourcesJar
