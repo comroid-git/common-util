@@ -21,7 +21,7 @@ public class VersionTest {
 
         Assert.assertTrue(version5.compareTo(version4) > 0);
         Assert.assertTrue(version6.compareTo(version4) > 0);
-        
+
         Assert.assertTrue(version4.compareTo(version5) < 0);
         Assert.assertTrue(version4.compareTo(version6) < 0);
     }

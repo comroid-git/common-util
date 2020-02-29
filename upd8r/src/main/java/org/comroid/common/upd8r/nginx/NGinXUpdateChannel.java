@@ -28,10 +28,10 @@ public class NGinXUpdateChannel implements UpdateChannel {
     private final String baseURL;
 
     /**
-     * @param versionContainer The container whose version to use for comparison
-     * @param baseURL NGinX API Base URL
+     * @param versionContainer   The container whose version to use for comparison
+     * @param baseURL            NGinX API Base URL
      * @param filenameVersioning A Function to generate a version from server response filenames.
-     * @param fileDownloadLink A Function to generate a download URL from a server response filename.
+     * @param fileDownloadLink   A Function to generate a download URL from a server response filename.
      */
     public NGinXUpdateChannel(Version.Container versionContainer, String baseURL, Function<String, Version> filenameVersioning, Function<String, URL> fileDownloadLink) {
         this.versionContainer = versionContainer;

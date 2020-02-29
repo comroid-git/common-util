@@ -61,7 +61,7 @@ project(":upd8r") {
     ext {
         projectDescription = "Update Handler using NGinX file hosts"
     }
-    
+
     dependencies {
         api project(":")
         implementation 'com.alibaba:fastjson:1.2.62'

@@ -8,12 +8,12 @@ import org.comroid.common.Version;
 
 public interface UpdateChannel {
     String getBaseURL();
-    
+
     Version currentVersion();
-    
+
     boolean canUpdate(Version version);
-    
+
     CompletableFuture<URL> requestLatest();
-    
+
     CompletableFuture<File> downloadLatest();
 }

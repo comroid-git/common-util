@@ -3,10 +3,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.comroid</groupId>
-  <artifactId>common-util-spellbind</artifactId>
-  <version>0.10.0</version>
+  <artifactId>spellbind</artifactId>
+  <version>0.10.1-SNAPSHOT</version>
   <name>common-util</name>
-  <description>Collection of helpful Artifacts and Utilities</description>
+  <description>Blackmagic Proxies</description>
   <url>https://github.com/comroid-git/common-util</url>
   <inceptionYear>2019</inceptionYear>
   <licenses>
@@ -36,8 +36,8 @@
     </dependency>
     <dependency>
       <groupId>org.comroid</groupId>
-      <artifactId>common-util-trie</artifactId>
-      <version>1.0.0</version>
+      <artifactId>trie</artifactId>
+      <version>1.0.1-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

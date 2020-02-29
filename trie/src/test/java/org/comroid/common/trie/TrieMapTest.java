@@ -47,10 +47,10 @@ public class TrieMapTest {
     public void testContainsValue() {
         assertTrue(trie.containsValue(50));
         assertTrue(trie.containsValue(99));
-        
+
         //noinspection RedundantCollectionOperation
         assertTrue(trie.values().contains(77));
-        
+
         assertFalse(trie.containsValue(20));
     }
 }

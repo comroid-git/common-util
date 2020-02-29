@@ -95,7 +95,7 @@ public final class Version implements Comparable<Version> {
 
         return String.format("%d.%d.%d-%s_%d", major, minor, patch, releaseType, hotfix);
     }
-    
+
     public interface Container {
         Version getVersion();
     }
