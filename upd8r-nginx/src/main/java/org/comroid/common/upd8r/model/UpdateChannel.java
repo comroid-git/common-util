@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import org.comroid.common.Version;
 
 public interface UpdateChannel {
-    URL getBaseURL();
+    String getBaseURL();
     
     Version currentVersion();
     

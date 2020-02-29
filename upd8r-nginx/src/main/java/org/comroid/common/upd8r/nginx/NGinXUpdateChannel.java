@@ -3,7 +3,6 @@ package org.comroid.common.upd8r.nginx;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.Objects;
@@ -24,17 +23,25 @@ public class NGinXUpdateChannel implements UpdateChannel {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
     private final Function<String, Version> filenameVersioning;
+    private final Function<String, URL> fileDownloadLink;
     private final Version.Container versionContainer;
-    private final URL baseURL;
+    private final String baseURL;
 
-    public NGinXUpdateChannel(Version.Container versionContainer, URL baseURL, Function<String, Version> filenameVersioning) {
+    /**
+     * @param versionContainer The container whose version to use for comparison
+     * @param baseURL NGinX API Base URL
+     * @param filenameVersioning A Function to generate a version from server response filenames.
+     * @param fileDownloadLink A Function to generate a download URL from a server response filename.
+     */
+    public NGinXUpdateChannel(Version.Container versionContainer, String baseURL, Function<String, Version> filenameVersioning, Function<String, URL> fileDownloadLink) {
         this.versionContainer = versionContainer;
         this.baseURL = baseURL;
         this.filenameVersioning = filenameVersioning;
+        this.fileDownloadLink = fileDownloadLink;
     }
 
     @Override
-    public URL getBaseURL() {
+    public String getBaseURL() {
         return baseURL;
     }
 
@@ -70,13 +77,7 @@ public class NGinXUpdateChannel implements UpdateChannel {
                         .map(JsonFileInfo::getFileName)
                         .max(Comparator.comparing(filenameVersioning))
                         .orElseThrow(AssertionError::new))
-                .thenApply(filename -> {
-                    try {
-                        return new URL(getBaseURL().toExternalForm() + '/' + filename);
-                    } catch (MalformedURLException e) {
-                        throw new AssertionError(e);
-                    }
-                });
+                .thenApply(fileDownloadLink);
     }
 
     @Override
