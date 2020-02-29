@@ -69,6 +69,41 @@ project(":upd8r") {
     }
 }
 
+project(":restless") {
+    version = '0.1.0-SNAPSHOT'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    ext {
+        projectDescription = "Basic Java 8 & 11 compatible Rest API"
+    }
+
+    configurations.create('jdk11')
+
+    sourceSets {
+        jdk11.java.srcDirs = [file("$projectDir/src/main/java11/")]
+    }
+
+    compileJdk11Java {
+        sourceCompatibility = 11
+        targetCompatibility = 11
+    }
+
+    jar {
+        dependsOn = ['compileJava', 'compileJdk11Java']
+
+        from sourceSets.main.java.outputDir
+        from sourceSets.jdk11.java.outputDir
+    }
+
+    dependencies {
+        implementation 'com.squareup.okhttp3:okhttp:3.14.7'
+
+        jdk11CompileOnly project(':restless')
+    }
+}
+
 task allJavadoc(type: Javadoc) {
     source exportedProjects.collect { //noinspection GroovyAssignabilityCheck
         project(it).sourceSets.main.allJava

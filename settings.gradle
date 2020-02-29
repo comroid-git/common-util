@@ -3,3 +3,4 @@ rootProject.name = 'common-util'
 include(':trie')
 include(':spellbind')
 include(':upd8r')
+include(':restless')
