@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,7 +19,11 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     public static final int DEFAULT_INITIAL_CAPACITY = 1;
     public static final NullPolicy DEFAULT_NULL_POLICY = NullPolicy.IGNORE;
     public static final boolean DEFAULT_ALLOW_STRETCHING = true;
-    
+
+    public static <T> Collector<T, ?, Span<T>> collector() {
+        return Collectors.toCollection(Span::new);
+    }
+
     private final NullPolicy nullPolicy;
 
     private Object[] data;
@@ -29,34 +34,25 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
         this(DEFAULT_INITIAL_CAPACITY, DEFAULT_NULL_POLICY, DEFAULT_ALLOW_STRETCHING);
     }
 
-    public Span(int initialCapacity) {
-        this(initialCapacity, DEFAULT_NULL_POLICY, DEFAULT_ALLOW_STRETCHING);
+    @SafeVarargs
+    public Span(T... initialValues) {
+        this(Arrays.asList(initialValues));
     }
 
-    public Span(NullPolicy nullPolicy) {
-        this(DEFAULT_INITIAL_CAPACITY, nullPolicy, DEFAULT_ALLOW_STRETCHING);
-    }
+    public Span(Collection<T> initialValues) {
+        this(initialValues.size(), DEFAULT_NULL_POLICY, DEFAULT_ALLOW_STRETCHING);
 
-    public Span(boolean allowStretching) {
-        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_NULL_POLICY, allowStretching);
-    }
-
-    public Span(int initialCapacity, NullPolicy nullPolicy) {
-        this(initialCapacity, nullPolicy, DEFAULT_ALLOW_STRETCHING);
-    }
-
-    public Span(int initialCapacity, boolean allowStretching) {
-        this(initialCapacity, DEFAULT_NULL_POLICY, allowStretching);
-    }
-
-    public Span(NullPolicy nullPolicy, boolean allowStretching) {
-        this(DEFAULT_INITIAL_CAPACITY, nullPolicy, allowStretching);
+        addAll(initialValues);
     }
 
     public Span(int initialCapacity, NullPolicy nullPolicy, boolean allowStretching) {
-        this(new Object[initialCapacity], nullPolicy, allowStretching);
+        this(new Object[Math.max(initialCapacity, 1)], nullPolicy, allowStretching);
     }
 
+    public boolean isSingle() {
+        return size() == 1;
+    }
+    
     protected Span(Object[] data, NullPolicy nullPolicy, boolean allowStretching) {
         this.nullPolicy = nullPolicy;
 
@@ -97,8 +93,7 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
             public boolean hasNext() {
                 if (i >= size()) return false;
 
-                return Stream.of(data)
-                        .limit(size())
+                return stream()
                         .skip(i)
                         .anyMatch(it -> !nullPolicy.skip(it));
             }
@@ -110,6 +105,7 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
                 if (nullPolicy.skip(value))
                     return next();
 
+                //noinspection ConstantConditions -> nothing we can do at this point
                 return value;
             }
         };
@@ -149,6 +145,8 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     @Override
     @Contract(mutates = "this")
     public boolean remove(Object item) {
+        System.out.printf("Removing %s", item);
+
         boolean yield = false;
 
         for (int i = 0; i < size(); i++) {
@@ -159,6 +157,8 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
                 yield = true;
             }
         }
+
+        System.out.printf("..%b\n", yield);
 
         return yield;
     }
@@ -177,7 +177,11 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     @Override
     @Contract(mutates = "this")
     public boolean removeAll(@NotNull Collection<?> c) {
-        return c.stream().anyMatch(this::remove);
+        return c.stream()
+                .map(this::remove)
+                .collect(Collectors.toList())
+                .stream()
+                .anyMatch(Boolean::booleanValue);
     }
 
     @Override
@@ -189,8 +193,8 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
 
         final boolean removeAll = removeAll(collect);
         cleanup();
-        
-        
+
+
         return removeAll;
     }
 
@@ -198,14 +202,6 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     @Contract(mutates = "this")
     public void clear() {
         removeAll(this);
-    }
-    
-    @Contract(mutates = "this")
-    public void cleanup() {
-        data = Stream.of(data)
-                .filter(item -> !nullPolicy.empty(item))
-                .toArray(Object[]::new);
-        last = data.length;
     }
 
     @Override
@@ -215,6 +211,14 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
         return Stream.of(data)
                 .limit(size())
                 .map(it -> (T) it);
+    }
+
+    @Contract(mutates = "this")
+    public void cleanup() {
+        data = Stream.of(data)
+                .filter(item -> !nullPolicy.empty(item))
+                .toArray(Object[]::new);
+        last = data.length;
     }
 
     @Contract(mutates = "this")
@@ -247,7 +251,7 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
         if (!nullPolicy.check(old, next))
             nullPolicy.fail();
         data[index] = next;
-        
+
         if (index >= last)
             last = index;
         cleanup();
@@ -276,7 +280,7 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
             System.err.printf("WARNING: %s is running out of space!", toString());
             return Integer.MAX_VALUE;
         }
-        
+
         return (int) var;
     }
 
@@ -334,7 +338,7 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
                 fail();
         }
 
-        private boolean skip(Object any) {
+        private boolean skip(@Nullable Object any) {
             return this == SKIP && Objects.isNull(any);
         }
 

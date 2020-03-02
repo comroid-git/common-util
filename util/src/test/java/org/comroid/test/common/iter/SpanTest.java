@@ -18,16 +18,14 @@ import static org.junit.Assert.assertTrue;
 
 public class SpanTest {
     private static final Random rng = new Random();
-    private static final int bound = rng.nextInt(50);
+    private static int bound = rng.nextInt(100);
 
     private Span<String> span;
     private List<Pair<String, Integer>> generated;
 
     @Test
     public void testSpan() {
-        this.span = new Span<>(Span.NullPolicy.SKIP);
-
-        System.out.println("span.size() = " + span.size());
+        this.span = new Span<>(1, Span.NullPolicy.SKIP, true);
 
         this.generated = IntStream.range(0, bound)
                 .mapToObj(c -> UUID.randomUUID().toString())
@@ -37,26 +35,18 @@ public class SpanTest {
         generated.stream()
                 .map(Pair::getFirst)
                 .forEach(span::add);
-
-        System.out.println("span.size() = " + span.size());
         
         assertEquals(bound, span.size());
         assertTrue(span.contains(randomGenerated()));
         assertTrue(span.remove(randomGenerated()));
-
-        System.out.println("span.size() = " + span.size());
+        bound -= 1;
 
         final List<String> remove = IntStream.range(0, 10)
                 .sequential()
                 .mapToObj(nil -> randomGenerated())
                 .collect(Collectors.toList());
         assertTrue(span.removeAll(remove));
-
-        System.out.println("span.size() = " + span.size());
-        
-        assertEquals(bound - 10, span.size());
-
-        System.out.println("span.size() = " + span.size());
+        assertEquals((bound -= 10), span.size());
     }
     
     private String randomGenerated() {

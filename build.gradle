@@ -1,3 +1,5 @@
+import java.util.stream.Collectors
+
 allprojects {
     apply plugin: 'java-library'
 
@@ -15,32 +17,38 @@ configurations {
     }
 }
 
-apply from: "$rootDir/src/build.gradle"
-
 allprojects {
     apply from: "$rootDir/gradle/vars.gradle"
     apply from: "$rootDir/gradle/global.gradle"
 }
 
 task allJavadoc(type: Javadoc) {
-    source = files(exportedProjects
-            .each { rootProject.findProject(it.toString()) }
-            .every { !Objects.isNull(it) }
-            .every { project.hasProperty("sourceSet") }
-            .each { project.sourceSets.main.allJava }
-            .collect())
-    classpath = files(exportedProjects
-            .each { rootProject.findProject(it.toString()) }
-            .every { !Objects.isNull(it) }
-            .every { project.hasProperty("sourceSet") }
-            .each { project.sourceSets.main.compileClasspath }
-            .collect())
+    source = files(exportedProjects.stream()
+            .map { rootProject.findProject(it.toString()) }
+            .filter { !Objects.isNull(it) }
+            .filter { it.hasProperty("sourceSet") }
+            .map { it.sourceSets.main.allJava }
+            .collect(Collectors.toList()))
+    classpath = files(exportedProjects.stream()
+            .map { rootProject.findProject(it.toString()) }
+            .filter { !Objects.isNull(it) }
+            .filter { it.hasProperty("sourceSet") }
+            .map { it.sourceSets.main.compileClasspath }
+            .collect(Collectors.toList()))
     options {
         destinationDirectory(file("$rootDir/docs/"))
         encoding = 'UTF-8'
     }
 }
 
-allprojects {
-    apply from: "$rootDir/gradle/publishing.gradle"
+assemble {
+    dependsOn = getTasksByName('assemble', true)
+            .stream()
+            .filter { (it as Task).project.equals(rootProject) | (it as Task).project.parent.equals(rootProject) }
+            .collect()
+    
+    exportedProjects.stream()
+            .map { rootProject.findProject(it.toString()) }
+            .filter { !Objects.isNull(it) }
+            .forEach { it.apply from: "$rootDir/gradle/publishing.gradle" }
 }

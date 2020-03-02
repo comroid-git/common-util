@@ -1,5 +1,5 @@
 apply from: "../modules.gradle"
 
 dependencies {
-    api rootProject.project(':restless')
+    compileOnly rootProject.project(':restless:java8')
 }

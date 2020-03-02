@@ -33,10 +33,7 @@ publishing {
 
     publications {
         mavenJava(MavenPublication) {
-            artifactId = project.name
-
-            System.out.println project
-            System.out.println project.components.java
+            artifactId = (project.name.equals('util') ? 'common-util' : project.name)
             from project.components.java
 
             artifact sourcesJar
