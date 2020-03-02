@@ -34,7 +34,10 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = project.name
-            from components.java
+
+            System.out.println project
+            System.out.println project.components.java
+            from project.components.java
 
             artifact sourcesJar
             artifact javadocJar
@@ -88,6 +91,11 @@ tasks.findByName('publishMavenJavaPublicationToSonatypeRepository').onlyIf {
     System.out.printf("Checked for existing Sonatype Artifact: %s RETURNED %d\n", uri, code)
 
     return code != 200
+}
+
+task generateGithubPom(type: GenerateMavenPom) {
+    destination = file("$projectDir/pom.xml")
+    pom = publishing.publications.mavenJava.pom
 }
 
 apply plugin: 'signing'

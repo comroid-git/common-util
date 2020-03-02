@@ -1,4 +1,8 @@
-group 'org.comroid'
+allprojects {
+    apply plugin: 'java-library'
+
+    group 'org.comroid'
+}
 
 tasks.findByName('wrapper').configure {
     gradleVersion = '5.6'
@@ -11,39 +15,32 @@ configurations {
     }
 }
 
-subprojects {
-    apply plugin: 'java-library'
+apply from: "$rootDir/src/build.gradle"
 
-    group rootProject.group
-
+allprojects {
     apply from: "$rootDir/gradle/vars.gradle"
     apply from: "$rootDir/gradle/global.gradle"
+}
 
-    afterEvaluate {
-        apply from: "$rootDir/gradle/publishing.gradle"
-    }
-
-    task allJavadoc(type: Javadoc) {
-        source = files(exportedProjects
-                .each { rootProject.project(it.toString()) }
-                .every { project.hasProperty("sourceSet") }
-                .each { project.sourceSets.main.allJava }
-                .collect())
-        classpath = files(exportedProjects
-                .each { rootProject.project(it.toString()) }
-                .every { project.hasProperty("sourceSet") }
-                .each { project.sourceSets.main.compileClasspath }
-                .collect())
-        options {
-            destinationDirectory(file("$rootDir/docs/"))
-            encoding = 'UTF-8'
-        }
+task allJavadoc(type: Javadoc) {
+    source = files(exportedProjects
+            .each { rootProject.findProject(it.toString()) }
+            .every { !Objects.isNull(it) }
+            .every { project.hasProperty("sourceSet") }
+            .each { project.sourceSets.main.allJava }
+            .collect())
+    classpath = files(exportedProjects
+            .each { rootProject.findProject(it.toString()) }
+            .every { !Objects.isNull(it) }
+            .every { project.hasProperty("sourceSet") }
+            .each { project.sourceSets.main.compileClasspath }
+            .collect())
+    options {
+        destinationDirectory(file("$rootDir/docs/"))
+        encoding = 'UTF-8'
     }
 }
 
 allprojects {
-    task generateGithubPom(type: GenerateMavenPom) {
-        destination = file("$projectDir/pom.xml")
-        pom = publishing.publications.mavenJava.pom
-    }
+    apply from: "$rootDir/gradle/publishing.gradle"
 }

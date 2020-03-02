@@ -1,0 +1,5 @@
+apply from: "../modules.gradle"
+
+dependencies {
+    api rootProject.project(':restless')
+}

@@ -1,7 +1,9 @@
 package org.comroid.common.rest.io;
 
+import java.util.Collection;
 import java.util.function.Function;
 
+import org.comroid.common.iter.Span;
 import org.comroid.common.rest.uniform.SerializerAdapter;
 
 import com.alibaba.fastjson.JSON;
@@ -42,12 +44,24 @@ public final class JSONSerializerAdapter<DAT, TYP, OBJ extends DAT, ARR extends 
     }
 
     @Override
-    public TYP deserialize(DAT data) {
+    public Span<TYP> deserialize(DAT data) {
         return deserializer.apply(data);
+    }
+
+    @Override public Collection<TYP> deserialize$array(ARR data) {
+        return null;
+    }
+
+    @Override public TYP deserialize$object(OBJ data) {
+        return null;
     }
 
     @Override
     public String serialize(TYP data) {
         return serializer.apply(data);
+    }
+
+    @Override public DataType type(DAT data) {
+        return null;
     }
 }

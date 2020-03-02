@@ -1,0 +1,24 @@
+ext {
+    jvm = project.name.substring("java".length())
+}
+
+sourceCompatibility = jvm
+targetCompatibility = jvm
+
+sourceSets {
+    main.java.srcDirs = [file("$rootDir/restless/src/main/jdk$jvm")]
+    test.java.srcDirs = [file("$rootDir/restless/src/test/jre$jvm")]
+}
+
+dependencies {
+    compileOnly 'com.alibaba:fastjson:1.2.62'
+    compileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
+    
+    implementation 'com.google.flogger:flogger:0.4'
+    
+    runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+    
+    testImplementation 'com.alibaba:fastjson:1.2.62'
+    testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
+    testImplementation project(':restless')
+}

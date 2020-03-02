@@ -1,52 +1,23 @@
-apply plugin: 'idea'
-
-System.out.println("hallo")
-
 version = '0.1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-ext {
-    projectDescription = "Basic Java 8 & 11 compatible Rest API"
-}
-
-project(':java8') {
-    apply plugin: 'java-library'
+allprojects {
+    ext {
+        projectDescription = "Basic Java 8 & 11 compatible Rest API"
+    }
     
-    sourceSets {
-        main.java.srcDirs = [file("$projectDir/src/main/jdk8")]
+    dependencies {
+        implementation project(':')
+        implementation project(':trie')
     }
 }
 
-project(':java11') {
-    apply plugin: 'java-library'
-    
-    sourceSets {
-        main.java.srcDirs = [file("$projectDir/src/main/jdk8")]
-    }
-}
-
-idea {
-    module {
-        def files = new ArrayList<>()
-        files.addAll(sourceSets.testJre8.java.srcDirs)
-        files.addAll(sourceSets.testJre11.java.srcDirs)
-
-        testSourceDirs += files
-    }
+sourceSets {
+    main.java.srcDirs = [file("$projectDir/src/test/models")]
 }
 
 jar {
     dependsOn = [':java8:compileJava', ':java11:compileJava']
-}
-
-dependencies {
-}
-
-subprojects {
-    dependencies {
-        implementation 'com.google.flogger:flogger:0.4'
-        runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
-    }
 }
