@@ -145,8 +145,6 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     @Override
     @Contract(mutates = "this")
     public boolean remove(Object item) {
-        System.out.printf("Removing %s", item);
-
         boolean yield = false;
 
         for (int i = 0; i < size(); i++) {
