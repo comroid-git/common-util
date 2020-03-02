@@ -1,87 +1,54 @@
-group 'org.comroid'
+import java.util.stream.Collectors
+
+allprojects {
+    apply plugin: 'java-library'
+
+    group 'org.comroid'
+}
 
 tasks.findByName('wrapper').configure {
     gradleVersion = '5.6'
     distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
-allprojects {
-    apply plugin: 'java-library'
-
-    group rootProject.group
-}
-
-// root project
-version '1.2.0-SNAPSHOT'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-ext {
-    projectDescription = "Commonly used Interfaces and Classes"
+configurations {
+    compileClasspath {
+        resolutionStrategy.activateDependencyLocking()
+    }
 }
 
 allprojects {
-    apply from: "$rootDir/gradle/global.gradle"
     apply from: "$rootDir/gradle/vars.gradle"
-}
-
-project(":trie") {
-    version = '1.0.1-SNAPSHOT'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    ext {
-        projectDescription = "Trie Map implementation for Java 8"
-    }
-}
-
-project(":spellbind") {
-    version = '0.10.1-SNAPSHOT'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    ext {
-        projectDescription = "Blackmagic Proxies"
-    }
-
-    dependencies {
-        implementation project(":trie")
-    }
-}
-
-project(":upd8r") {
-    version = '0.1.2-SNAPSHOT'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    ext {
-        projectDescription = "Update Handler using NGinX file hosts"
-    }
-
-    dependencies {
-        api project(":")
-        implementation 'com.alibaba:fastjson:1.2.62'
-        implementation 'com.squareup.okhttp3:okhttp:3.14.7'
-    }
+    apply from: "$rootDir/gradle/global.gradle"
 }
 
 task allJavadoc(type: Javadoc) {
-    source exportedProjects.collect { //noinspection GroovyAssignabilityCheck
-        project(it).sourceSets.main.allJava
+    source = files(exportedProjects.stream()
+            .map { rootProject.findProject(it.toString()) }
+            .filter { !Objects.isNull(it) }
+            .filter { it.hasProperty("sourceSet") }
+            .map { it.sourceSets.main.allJava }
+            .collect(Collectors.toList()))
+    classpath = files(exportedProjects.stream()
+            .map { rootProject.findProject(it.toString()) }
+            .filter { !Objects.isNull(it) }
+            .filter { it.hasProperty("sourceSet") }
+            .map { it.sourceSets.main.compileClasspath }
+            .collect(Collectors.toList()))
+    options {
+        destinationDirectory(file("$rootDir/docs/"))
+        encoding = 'UTF-8'
     }
-    classpath = files(exportedProjects.collect { //noinspection GroovyAssignabilityCheck
-        project(it).sourceSets.main.compileClasspath
-    })
-    options.encoding = 'UTF-8'
-    options.destinationDirectory(file("./docs/"))
 }
 
-allprojects {
-    apply from: "$rootDir/gradle/vars.gradle"
+assemble {
+    dependsOn = getTasksByName('assemble', true)
+            .stream()
+            .filter { (it as Task).project.equals(rootProject) | (it as Task).project.parent.equals(rootProject) }
+            .collect()
+    
+    exportedProjects.stream()
+            .map { rootProject.findProject(it.toString()) }
+            .filter { !Objects.isNull(it) }
+            .forEach { it.apply from: "$rootDir/gradle/publishing.gradle" }
 }
-
-apply from: 'gradle/publishing.gradle'

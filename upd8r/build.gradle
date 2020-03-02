@@ -1,0 +1,15 @@
+version = '0.1.2-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Update Handler using NGinX file hosts"
+}
+
+dependencies {
+    api project(":util")
+    
+    implementation 'com.alibaba:fastjson:1.2.62'
+    implementation 'com.squareup.okhttp3:okhttp:3.14.7'
+}

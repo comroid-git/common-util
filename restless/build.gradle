@@ -1,0 +1,20 @@
+version = '0.1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Basic Java 8 & 11 compatible Rest API"
+}
+
+sourceSets {
+    main.java.srcDirs = [file("$projectDir/src/test/models")]
+}
+
+jar {
+    dependsOn = [':restless:java8:compileJava', ':restless:java11:compileJava']
+}
+
+dependencies {
+    implementation 'com.alibaba:fastjson:1.2.62'
+}
