@@ -13,6 +13,8 @@ import org.comroid.common.iter.Span;
  * @param <ARR> The array deserialization type.
  */
 public interface DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> {
+    String getMimeType();
+
     Junction<String, BAS> getParser();
 
     PredicateDuo<OBJ, TAR> getFilter();

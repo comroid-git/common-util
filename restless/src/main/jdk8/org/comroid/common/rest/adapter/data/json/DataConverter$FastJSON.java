@@ -17,9 +17,30 @@ public class DataConverter$FastJSON<T> implements DataConverter<T, JSON, JSONObj
     private final PredicateDuo<JSONObject, T> filter;
     private final Junction<JSONObject, T> converter;
 
+    public static <T> Junction<JSONObject, T> autoConverter(Class<T> forClass) {
+        return new Junction<JSONObject, T>() {
+            private final Class<T> target = forClass;
+
+            @Override
+            public T forward(JSONObject data) {
+                return data.toJavaObject(target);
+            }
+
+            @Override
+            public JSONObject backward(T object) {
+                return ;
+            }
+        };
+    }
+
     public DataConverter$FastJSON(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
         this.filter = filter;
         this.converter = converter;
+    }
+
+    @Override
+    public String getMimeType() {
+        return "application/json";
     }
 
     @Override
