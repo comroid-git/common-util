@@ -109,12 +109,6 @@ public final class Version implements Comparable<Version> {
 
         RELEASE("r", "rc", "release");
 
-        private final String[] idents;
-
-        ReleaseType(String... idents) {
-            this.idents = idents;
-        }
-
         private static ReleaseType parse(String candidate) {
             if (candidate.isEmpty())
                 return RELEASE;
@@ -123,6 +117,11 @@ public final class Version implements Comparable<Version> {
                     .filter(rt -> Arrays.asList(rt.idents).contains(candidate))
                     .findAny()
                     .orElse(RELEASE);
+        }
+        private final String[] idents;
+
+        ReleaseType(String... idents) {
+            this.idents = idents;
         }
     }
 }

@@ -46,7 +46,7 @@ assemble {
             .stream()
             .filter { (it as Task).project.equals(rootProject) | (it as Task).project.parent.equals(rootProject) }
             .collect()
-    
+
     exportedProjects.stream()
             .map { rootProject.findProject(it.toString()) }
             .filter { !Objects.isNull(it) }
