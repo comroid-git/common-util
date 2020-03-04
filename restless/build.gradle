@@ -16,5 +16,5 @@ jar {
 }
 
 dependencies {
-    implementation 'com.alibaba:fastjson:1.2.62'
+    implementation 'com.alibaba:fastjson:1.2.66'
 }
