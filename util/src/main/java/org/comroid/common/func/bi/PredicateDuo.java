@@ -20,6 +20,10 @@ public interface PredicateDuo<A, B> {
         };
     }
 
+    static <A, B> PredicateDuo<A, B> any() {
+        return of(any -> true, any -> true);
+    }
+
     boolean testFirst(A a);
 
     boolean testSecond(B b);

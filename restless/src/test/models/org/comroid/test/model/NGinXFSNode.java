@@ -20,4 +20,16 @@ public final class NGinXFSNode {
         this.type = type;
         this.mtime = mtime;
     }
+  
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getMtime() {
+        return mtime;
+    }
 }
