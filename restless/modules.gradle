@@ -12,7 +12,7 @@ sourceSets {
 
 dependencies {
     api project(':restless')
-
+    
     implementation project(':util')
     implementation project(':trie')
     implementation 'com.google.flogger:flogger:0.4'
