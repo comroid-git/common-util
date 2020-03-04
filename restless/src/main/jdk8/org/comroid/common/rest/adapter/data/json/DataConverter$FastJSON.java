@@ -13,10 +13,6 @@ import com.alibaba.fastjson.JSONAware;
 import com.alibaba.fastjson.JSONObject;
 
 public class DataConverter$FastJSON<T> implements DataConverter<T, JSON, JSONObject, JSONArray> {
-    private final Junction<String, JSON> parser = Junction.of(str -> JSON.isValidObject(str) ? JSON.parseObject(str) : JSON.parseArray(str), JSONAware::toJSONString);
-    private final PredicateDuo<JSONObject, T> filter;
-    private final Junction<JSONObject, T> converter;
-
     public static <T> Junction<JSONObject, T> autoConverter(Class<T> forClass) {
         return new Junction<JSONObject, T>() {
             private final Class<T> target = forClass;
@@ -28,10 +24,14 @@ public class DataConverter$FastJSON<T> implements DataConverter<T, JSON, JSONObj
 
             @Override
             public JSONObject backward(T object) {
-                return ;
+                return (JSONObject) JSON.toJSON(object);
             }
         };
     }
+
+    private final Junction<String, JSON> parser = Junction.of(str -> JSON.isValidObject(str) ? JSON.parseObject(str) : JSON.parseArray(str), JSONAware::toJSONString);
+    private final PredicateDuo<JSONObject, T> filter;
+    private final Junction<JSONObject, T> converter;
 
     public DataConverter$FastJSON(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
         this.filter = filter;

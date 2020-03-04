@@ -20,7 +20,7 @@ public interface PredicateDuo<A, B> {
         };
     }
 
-    static <T> PredicateDuo<T, T> any() {
+    static <A, B> PredicateDuo<A, B> any() {
         return of(any -> true, any -> true);
     }
 

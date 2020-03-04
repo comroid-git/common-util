@@ -15,27 +15,23 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.rest.adapter.data.DataConverter;
 import org.comroid.common.rest.adapter.http.HttpAdapter;
 
-public final class REST<T, HA extends HttpAdapter, DA extends DataConverter<T, ?, ?, ?>> {
-    private final static Map<Class<?>, REST<?, ?, ?>> cache = new ConcurrentHashMap<>();
+public final class REST<T> {
+    private final static Map<Class<?>, REST<?>> cache = new ConcurrentHashMap<>();
 
-    public static <T, HA extends HttpAdapter, DA extends DataConverter<T, ?, ?, ?>> REST<T, HA, DA> getOrCreate(
-            Class<T> forClass,
-            HA httpAdapter,
-            DA dataAdapter
-    ) {
+    public static <T> REST<T> getOrCreate(Class<T> forClass, HttpAdapter httpAdapter, DataConverter<T, ?, ?, ?> dataAdapter) {
         //noinspection unchecked
-        return (REST<T, HA, DA>) cache.computeIfAbsent(forClass, key -> new REST<>(httpAdapter, dataAdapter));
+        return (REST<T>) cache.computeIfAbsent(forClass, key -> new REST<>(httpAdapter, dataAdapter));
     }
 
-    public static <T> Optional<REST<T, ?, ? extends DataConverter<T, ?, ?, ?>>> get(Class<T> forClass) {
+    public static <T> Optional<REST<T>> get(Class<T> forClass) {
         //noinspection unchecked
-        return Optional.ofNullable((REST<T, ?, ?>) cache.getOrDefault(forClass, null));
+        return Optional.ofNullable((REST<T>) cache.getOrDefault(forClass, null));
     }
 
-    private final HA httpAdapter;
-    private final DA dataAdapter;
+    private final HttpAdapter httpAdapter;
+    private final DataConverter<T, ?, ?, ?> dataAdapter;
 
-    private REST(HA httpAdapter, DA dataAdapter) {
+    private REST(HttpAdapter httpAdapter, DataConverter<T, ?, ?, ?> dataAdapter) {
         this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
         this.dataAdapter = Objects.requireNonNull(dataAdapter, "DataAdapter");
     }

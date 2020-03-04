@@ -12,16 +12,16 @@ sourceSets {
 
 dependencies {
     api project(':restless')
-    
+
     implementation project(':util')
     implementation project(':trie')
     implementation 'com.google.flogger:flogger:0.4'
-    
+
     compileOnly 'com.alibaba:fastjson:1.2.62'
     compileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
-    
+
     runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
-    
+
     testImplementation 'com.alibaba:fastjson:1.2.62'
     testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
 }
