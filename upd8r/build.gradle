@@ -11,5 +11,5 @@ dependencies {
     api project(":util")
 
     implementation 'com.alibaba:fastjson:1.2.62'
-    implementation 'com.squareup.okhttp3:okhttp:3.14.7'
+    implementation 'com.squareup.okhttp3:okhttp:4.4.0'
 }
