@@ -10,7 +10,6 @@ import java.util.stream.IntStream;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.Pair;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -35,7 +34,7 @@ public class SpanTest {
         generated.stream()
                 .map(Pair::getFirst)
                 .forEach(span::add);
-        
+
         assertEquals(bound, span.size());
         assertTrue(span.contains(randomGenerated()));
         assertTrue(span.remove(randomGenerated()));
@@ -48,7 +47,7 @@ public class SpanTest {
         assertTrue(span.removeAll(remove));
         assertEquals((bound -= 10), span.size());
     }
-    
+
     private String randomGenerated() {
         return generated.remove(Math.abs(rng.nextInt() % generated.size())).getFirst();
     }

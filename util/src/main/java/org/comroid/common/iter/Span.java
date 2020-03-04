@@ -49,16 +49,16 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
         this(new Object[Math.max(initialCapacity, 1)], nullPolicy, allowStretching);
     }
 
-    public boolean isSingle() {
-        return size() == 1;
-    }
-    
     protected Span(Object[] data, NullPolicy nullPolicy, boolean allowStretching) {
         this.nullPolicy = nullPolicy;
 
         this.data = data;
         this.last = 0;
         this.stretch = allowStretching;
+    }
+
+    public boolean isSingle() {
+        return size() == 1;
     }
 
     @Contract("null -> fail; _ -> new")

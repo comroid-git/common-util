@@ -18,15 +18,31 @@ import org.jetbrains.annotations.Nullable;
 import static org.comroid.common.spellbind.SpellCore.methodString;
 
 public final class Spellbind {
-    private Spellbind() {
-        throw new UnsupportedOperationException("Cannot instantiate " + Spellbind.class.getName());
-    }
-
     public static <T> Builder<T> builder(Class<T> mainInterface) {
         return new Builder<>(mainInterface);
     }
 
+    private Spellbind() {
+        throw new UnsupportedOperationException("Cannot instantiate " + Spellbind.class.getName());
+    }
+
     public static class Builder<T> {
+        static @Nullable Method findMatchingMethod(Method abstractMethod, Class<?> inClass) {
+            for (Method method : inClass.getMethods())
+                if (matchFootprint(abstractMethod, method))
+                    return method;
+
+            // TODO: 02.02.2020 doesnt work
+
+            return null;
+        }
+
+        private static boolean matchFootprint(Method abstractMethod, Method method) {
+            return abstractMethod.getName().equals(method.getName())
+                    && Arrays.equals(abstractMethod.getParameterTypes(), method.getParameterTypes())
+                    && abstractMethod.getReturnType().equals(method.getReturnType());
+        }
+
         private final Class<T> mainInterface;
         private final Map<String, Invocable> methodBinds;
         private final Collection<Class<?>> interfaces;
@@ -88,22 +104,6 @@ public final class Spellbind {
                 if ((implMethod = findMatchingMethod(method, implementationSource.getClass())) != null)
                     map.put(methodString(method), new MethodInvocation(implementationSource, implMethod));
             }
-        }
-
-        static @Nullable Method findMatchingMethod(Method abstractMethod, Class<?> inClass) {
-            for (Method method : inClass.getMethods())
-                if (matchFootprint(abstractMethod, method))
-                    return method;
-
-            // TODO: 02.02.2020 doesnt work
-
-            return null;
-        }
-
-        private static boolean matchFootprint(Method abstractMethod, Method method) {
-            return abstractMethod.getName().equals(method.getName())
-                    && Arrays.equals(abstractMethod.getParameterTypes(), method.getParameterTypes())
-                    && abstractMethod.getReturnType().equals(method.getReturnType());
         }
     }
 }

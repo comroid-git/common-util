@@ -17,6 +17,33 @@ import org.comroid.common.spellbind.model.MethodInvocation;
 import org.jetbrains.annotations.Nullable;
 
 public class SpellCore implements InvocationHandler {
+    public static String methodString(@Nullable Method method) {
+        if (method == null)
+            return "null";
+
+        return String.format("%s#%s(%s)%s: %s", method.getDeclaringClass().getName(), method.getName(), paramString(method), throwsString(method), method.getReturnType().getSimpleName());
+    }
+
+    private static String paramString(Method method) {
+        return Stream.of(method.getParameterTypes())
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(", "));
+    }
+
+    private static String throwsString(Method method) {
+        final Class<?>[] exceptionTypes = method.getExceptionTypes();
+
+        return exceptionTypes.length == 0 ? "" : Stream.of(exceptionTypes)
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(", ", " throws ", ""));
+    }
+
+    private static Optional<SpellCore> getInstance(Object ofProxy) {
+        final InvocationHandler invocationHandler = Proxy.getInvocationHandler(ofProxy);
+
+        return invocationHandler instanceof SpellCore ? Optional.of((SpellCore) invocationHandler) : Optional.empty();
+    }
+
     private final Object coreObject;
     private final Map<String, Invocable> methodBinds;
 
@@ -73,32 +100,5 @@ public class SpellCore implements InvocationHandler {
         throw e == null
                 ? new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy", methodString))
                 : new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy", methodString), e);
-    }
-
-    public static String methodString(@Nullable Method method) {
-        if (method == null)
-            return "null";
-
-        return String.format("%s#%s(%s)%s: %s", method.getDeclaringClass().getName(), method.getName(), paramString(method), throwsString(method), method.getReturnType().getSimpleName());
-    }
-
-    private static String paramString(Method method) {
-        return Stream.of(method.getParameterTypes())
-                .map(Class::getSimpleName)
-                .collect(Collectors.joining(", "));
-    }
-
-    private static String throwsString(Method method) {
-        final Class<?>[] exceptionTypes = method.getExceptionTypes();
-
-        return exceptionTypes.length == 0 ? "" : Stream.of(exceptionTypes)
-                .map(Class::getSimpleName)
-                .collect(Collectors.joining(", ", " throws ", ""));
-    }
-
-    private static Optional<SpellCore> getInstance(Object ofProxy) {
-        final InvocationHandler invocationHandler = Proxy.getInvocationHandler(ofProxy);
-
-        return invocationHandler instanceof SpellCore ? Optional.of((SpellCore) invocationHandler) : Optional.empty();
     }
 }

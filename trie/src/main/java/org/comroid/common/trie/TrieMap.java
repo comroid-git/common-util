@@ -12,6 +12,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
+    public static <V> TrieMap<String, V> create() {
+        return new TrieMap<>();
+    }
+
     private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
 
     /**
@@ -178,9 +182,5 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
                 .flatMap(TrieStage::stream)
                 .map(stage -> new Local(null /* gathering keys currently not supported */, stage))
                 .collect(Collectors.toSet());
-    }
-
-    public static <V> TrieMap<String, V> create() {
-        return new TrieMap<>();
     }
 }
