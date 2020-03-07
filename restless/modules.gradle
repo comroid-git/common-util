@@ -19,6 +19,7 @@ dependencies {
 
     compileOnly 'com.alibaba:fastjson:1.2.62'
     compileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
 
     runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
 

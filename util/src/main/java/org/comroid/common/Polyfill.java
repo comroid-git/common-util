@@ -5,7 +5,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Matcher;
+
+import org.comroid.common.func.ThrowingRunnable;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -40,5 +43,20 @@ public final class Polyfill {
         } catch (URISyntaxException e) {
             throw throwableReconfigurator.apply("Unexpected URISyntaxException", e);
         }
+    }
+
+    public static <R, T extends Throwable> Runnable handlingRunnable(ThrowingRunnable<R, T> throwingRunnable, @Nullable Function<T, ? extends RuntimeException> remapper) {
+        if (remapper == null)
+            remapper = RuntimeException::new;
+
+        final Function<T, ? extends RuntimeException> finalRemapper = remapper;
+        return () -> {
+            try {
+                throwingRunnable.run();
+            } catch (Throwable thr) {
+                //noinspection unchecked
+                throw finalRemapper.apply((T) thr);
+            }
+        };
     }
 }
