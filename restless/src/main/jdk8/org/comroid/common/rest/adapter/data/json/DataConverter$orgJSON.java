@@ -11,7 +11,7 @@ import org.comroid.common.rest.adapter.data.DataConverter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class DataConverter$orgJSON<T> implements DataConverter<T, Object, JSONObject, JSONArray> {
+public class DataConverter$orgJSON<T> extends DataConverter<T, Object, JSONObject, JSONArray> {
     private final static Junction<String, Object> parser = Junction.of(JSONObject::new, Object::toString);
 
     public static <T> Junction<JSONObject, T> autoConverter(Class<T> forClass, Function<JSONObject, T> initializer) {
@@ -22,13 +22,10 @@ public class DataConverter$orgJSON<T> implements DataConverter<T, Object, JSONOb
     private final Junction<JSONObject, T> converter;
 
     public DataConverter$orgJSON(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
+        super("application/json");
+
         this.filter = filter;
         this.converter = converter;
-    }
-
-    @Override
-    public String getMimeType() {
-        return "application/json";
     }
 
     @Override

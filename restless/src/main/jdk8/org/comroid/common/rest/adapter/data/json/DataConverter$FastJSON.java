@@ -12,7 +12,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONAware;
 import com.alibaba.fastjson.JSONObject;
 
-public class DataConverter$FastJSON<T> implements DataConverter<T, JSON, JSONObject, JSONArray> {
+public class DataConverter$FastJSON<T> extends DataConverter<T, JSON, JSONObject, JSONArray> {
     private static final Junction<String, JSON> parser = Junction.of(str -> JSON.isValidObject(str) ? JSON.parseObject(str) : JSON.parseArray(str), JSONAware::toJSONString);
 
     public static <T> Junction<JSONObject, T> autoConverter(Class<T> forClass) {
@@ -35,13 +35,10 @@ public class DataConverter$FastJSON<T> implements DataConverter<T, JSON, JSONObj
     private final Junction<JSONObject, T> converter;
 
     public DataConverter$FastJSON(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
+        super("application/json");
+
         this.filter = filter;
         this.converter = converter;
-    }
-
-    @Override
-    public String getMimeType() {
-        return "application/json";
     }
 
     @Override

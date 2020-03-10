@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class DataConverter$Jackson<T> implements DataConverter<T, JsonNode, ObjectNode, ArrayNode> {
+public class DataConverter$Jackson<T> extends DataConverter<T, JsonNode, ObjectNode, ArrayNode> {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Junction<String, JsonNode> parser = Junction.of(
             str -> {
@@ -53,13 +53,10 @@ public class DataConverter$Jackson<T> implements DataConverter<T, JsonNode, Obje
     private final Junction<ObjectNode, T> converter;
 
     public DataConverter$Jackson(PredicateDuo<ObjectNode, T> filter, Junction<ObjectNode, T> converter) {
+        super("application/json");
+
         this.filter = filter;
         this.converter = converter;
-    }
-
-    @Override
-    public String getMimeType() {
-        return "application/json";
     }
 
     @Override
@@ -84,9 +81,9 @@ public class DataConverter$Jackson<T> implements DataConverter<T, JsonNode, Obje
 
     @Override
     public Collection<JsonNode> split(ArrayNode data) {
-        final ArrayList<ObjectNode> yields = new ArrayList<>();
+        final ArrayList<JsonNode> yields = new ArrayList<>();
 
-        data.forEach(it -> yields.add((ObjectNode) it));
+        data.forEach(yields::add);
 
         return yields;
     }

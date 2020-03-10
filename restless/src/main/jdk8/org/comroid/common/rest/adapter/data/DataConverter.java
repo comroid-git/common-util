@@ -12,22 +12,37 @@ import org.comroid.common.iter.Span;
  * @param <OBJ> The object deserialization type.
  * @param <ARR> The array deserialization type.
  */
-public interface DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> {
-    String getMimeType();
+public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> {
+    public static <IN_T, OT_T> OT_T convert(
+            DataConverter<?, IN_T, ? extends IN_T, ? extends IN_T> fromLib,
+            DataConverter<?, OT_T, ? extends OT_T, ? extends OT_T> intoLib,
+            IN_T node
+    ) {
+        return intoLib.getParser()
+                .forward(fromLib
+                        .getParser()
+                        .backward(node));
+    }
 
-    Junction<String, BAS> getParser();
+    private final String mimeType;
 
-    PredicateDuo<OBJ, TAR> getFilter();
+    protected DataConverter(String mimeType) {
+        this.mimeType = mimeType;
+    }
 
-    Junction<OBJ, TAR> getConverter();
+    public abstract Junction<String, BAS> getParser();
 
-    DataStructureType getStructureType(BAS data);
+    public abstract PredicateDuo<OBJ, TAR> getFilter();
 
-    Collection<BAS> split(ARR data);
+    public abstract Junction<OBJ, TAR> getConverter();
 
-    ARR combine(Span<BAS> data);
+    public abstract DataStructureType getStructureType(BAS data);
 
-    default Span<TAR> deserialize(String data) {
+    public abstract Collection<BAS> split(ARR data);
+
+    public abstract ARR combine(Span<BAS> data);
+
+    public Span<TAR> deserialize(String data) {
         final BAS node = getParser().forward(data);
         final DataStructureType nodeType = getStructureType(node);
 
@@ -41,7 +56,7 @@ public interface DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> {
                 break;
             case ARRAY:
                 //noinspection unchecked
-                elements = new Span<>(split(((ARR) node)));
+                elements = (Span<OBJ>) new Span<>(split(((ARR) node)));
 
                 break;
         }
@@ -51,14 +66,17 @@ public interface DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> {
                 .collect(Span.collector());
     }
 
-    default String serialize(Span<TAR> data) {
+    public String serialize(Span<TAR> data) {
         final DataStructureType nodeType = data.isSingle() ? DataStructureType.OBJECT : DataStructureType.ARRAY;
 
         Span<OBJ> elements = null;
 
         switch (nodeType) {
             case OBJECT:
-                elements = new Span<>(getConverter().backward(data.get()));
+                final TAR tar = data.get();
+
+                assert tar != null;
+                elements = new Span<>(getConverter().backward(tar));
 
                 break;
             case ARRAY:
@@ -69,10 +87,15 @@ public interface DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> {
                 break;
         }
 
-        return getParser().backward(combine(elements));
+        //noinspection unchecked -> false positive
+        return getParser().backward(combine((Span<BAS>) elements));
     }
 
-    enum DataStructureType {
+    public final String getMimeType() {
+        return mimeType;
+    }
+
+    public enum DataStructureType {
         OBJECT,
         ARRAY
     }
