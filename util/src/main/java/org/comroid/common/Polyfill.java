@@ -8,6 +8,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
+import org.comroid.common.annotation.OptionalVararg;
 import org.comroid.common.func.ThrowingRunnable;
 
 import org.jetbrains.annotations.Nullable;
@@ -21,27 +22,27 @@ public final class Polyfill {
         else throw new NullPointerException("Group cannot be matched!");
     }
 
-    public static <T extends Throwable> URL url(String spec, @Nullable BiFunction<String, MalformedURLException, T> throwableReconfigurator) throws T {
-        if (throwableReconfigurator == null)
+    public static <T extends Throwable> URL url(String spec, @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator) throws T {
+        if (throwableReconfigurator.length == 0)
             //noinspection unchecked
-            throwableReconfigurator = (msg, cause) -> (T) new AssertionError(msg, cause);
+            throwableReconfigurator = new Function[]{ cause -> (T) new AssertionError(cause) };
 
         try {
             return new URL(spec);
         } catch (MalformedURLException e) {
-            throw throwableReconfigurator.apply("Unexpected MalformedURLException", e);
+            throw throwableReconfigurator[0].apply(e);
         }
     }
 
-    public static <T extends Throwable> URI uri(String spec, @Nullable BiFunction<String, URISyntaxException, T> throwableReconfigurator) throws T {
+    public static <T extends Throwable> URI uri(String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator) throws T {
         if (throwableReconfigurator == null)
             //noinspection unchecked
-            throwableReconfigurator = (msg, cause) -> (T) new AssertionError(msg, cause);
+            throwableReconfigurator = new Function[]{ cause -> (T) new AssertionError(cause) };
 
         try {
             return new URI(spec);
         } catch (URISyntaxException e) {
-            throw throwableReconfigurator.apply("Unexpected URISyntaxException", e);
+            throw throwableReconfigurator[0].apply(e);
         }
     }
 
