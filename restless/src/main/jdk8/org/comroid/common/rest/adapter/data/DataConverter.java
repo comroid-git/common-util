@@ -23,9 +23,9 @@ public interface DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> {
 
     DataStructureType getStructureType(BAS data);
 
-    Collection<OBJ> split(ARR data);
+    Collection<BAS> split(ARR data);
 
-    ARR combine(Span<OBJ> data);
+    ARR combine(Span<BAS> data);
 
     default Span<TAR> deserialize(String data) {
         final BAS node = getParser().forward(data);

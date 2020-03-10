@@ -65,12 +65,12 @@ public class DataConverter$FastJSON<T> implements DataConverter<T, JSON, JSONObj
     }
 
     @Override
-    public Collection<JSONObject> split(JSONArray data) {
-        return data.toJavaList(JSONObject.class);
+    public Collection<JSON> split(JSONArray data) {
+        return data.toJavaList(JSON.class);
     }
 
     @Override
-    public JSONArray combine(Span<JSONObject> data) {
+    public JSONArray combine(Span<JSON> data) {
         final JSONArray jsonArray = new JSONArray();
 
         jsonArray.addAll(data);

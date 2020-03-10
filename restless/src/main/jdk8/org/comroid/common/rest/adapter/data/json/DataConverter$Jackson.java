@@ -83,7 +83,7 @@ public class DataConverter$Jackson<T> implements DataConverter<T, JsonNode, Obje
     }
 
     @Override
-    public Collection<ObjectNode> split(ArrayNode data) {
+    public Collection<JsonNode> split(ArrayNode data) {
         final ArrayList<ObjectNode> yields = new ArrayList<>();
 
         data.forEach(it -> yields.add((ObjectNode) it));
@@ -92,7 +92,7 @@ public class DataConverter$Jackson<T> implements DataConverter<T, JsonNode, Obje
     }
 
     @Override
-    public ArrayNode combine(Span<ObjectNode> data) {
+    public ArrayNode combine(Span<JsonNode> data) {
         final ArrayNode yields = JsonNodeFactory.instance.arrayNode(data.size());
 
         yields.addAll(data);
