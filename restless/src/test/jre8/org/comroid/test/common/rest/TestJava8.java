@@ -13,6 +13,7 @@ import org.comroid.common.rest.adapter.http.HttpAdapter$OkHttp3;
 import org.comroid.test.model.NGinXFSNode;
 
 import org.junit.Before;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -31,7 +32,7 @@ public class TestJava8 {
         );
     }
 
-    @Before
+    @Test
     public void test() throws InterruptedException, ExecutionException, TimeoutException {
         final REST<NGinXFSNode>.Request request = rest.request(testUrl)
                 .method(REST.Method.GET);

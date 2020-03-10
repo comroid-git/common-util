@@ -28,6 +28,27 @@ public class DataConverter$Jackson<T> implements DataConverter<T, JsonNode, Obje
             JsonNode::toPrettyString
     );
 
+
+    public static <T> Junction<ObjectNode, T> autoConverter(Class<T> forClass) {
+        return new Junction<ObjectNode, T>() {
+            private final Class<T> target = forClass;
+
+            @Override
+            public T forward(ObjectNode node) {
+                try {
+                    return objectMapper.readValue(node.toString(), target);
+                } catch (JsonProcessingException e) {
+                    throw new AssertionError("Unexpected JsonProcessingException", e);
+                }
+            }
+
+            @Override
+            public ObjectNode backward(T object) {
+                return objectMapper.valueToTree(object);
+            }
+        };
+    }
+
     private final PredicateDuo<ObjectNode, T> filter;
     private final Junction<ObjectNode, T> converter;
 

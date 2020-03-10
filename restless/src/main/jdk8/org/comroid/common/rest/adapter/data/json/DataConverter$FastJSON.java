@@ -30,6 +30,7 @@ public class DataConverter$FastJSON<T> implements DataConverter<T, JSON, JSONObj
             }
         };
     }
+
     private final PredicateDuo<JSONObject, T> filter;
     private final Junction<JSONObject, T> converter;
 
