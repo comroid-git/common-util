@@ -35,7 +35,7 @@ public final class Polyfill {
     }
 
     public static <T extends Throwable> URI uri(String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator) throws T {
-        if (throwableReconfigurator == null)
+        if (throwableReconfigurator.length == 0)
             //noinspection unchecked
             throwableReconfigurator = new Function[]{ cause -> (T) new AssertionError(cause) };
 
