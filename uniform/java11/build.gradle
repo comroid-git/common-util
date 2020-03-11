@@ -1,0 +1,7 @@
+apply from: "../modules.gradle"
+
+dependencies {
+    implementation rootProject.project(':uniform:java8')
+
+    testImplementation rootProject.project(':uniform:java8')
+}

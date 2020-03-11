@@ -6,12 +6,12 @@ sourceCompatibility = jvm
 targetCompatibility = jvm
 
 sourceSets {
-    main.java.srcDirs = [file("$rootDir/restless/src/main/jdk$jvm")]
-    test.java.srcDirs = [file("$rootDir/restless/src/test/jre$jvm")]
+    main.java.srcDirs = [file("$rootDir/uniform/src/main/jdk$jvm")]
+    test.java.srcDirs = [file("$rootDir/uniform/src/test/jre$jvm")]
 }
 
 dependencies {
-    api project(':restless')
+    api project(':uniform')
 
     implementation project(':util')
     implementation project(':trie')

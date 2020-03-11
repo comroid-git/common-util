@@ -4,7 +4,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    projectDescription = "Basic Java 8 & 11 compatible Rest API"
+    projectDescription = "Java Uniform Adapters"
 }
 
 sourceSets {
@@ -12,9 +12,9 @@ sourceSets {
 }
 
 jar {
-    dependsOn = [':restless:java8:compileJava', ':restless:java11:compileJava']
+    dependsOn = [':uniform:java8:compileJava', ':uniform:java11:compileJava']
 }
 
 dependencies {
-    implementation 'com.alibaba:fastjson:1.2.66'
+    testRuntimeOnly 'com.alibaba:fastjson:1.2.66'
 }
