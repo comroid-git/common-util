@@ -1,4 +1,4 @@
-package org.comroid.common.rest.adapter.data;
+package org.comroid.uniform.data;
 
 import java.util.Collection;
 

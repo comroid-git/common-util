@@ -1,11 +1,11 @@
-package org.comroid.common.rest.adapter.data.json;
+package org.comroid.uniform.data.json;
 
 import java.util.Collection;
 
 import org.comroid.common.func.bi.Junction;
 import org.comroid.common.func.bi.PredicateDuo;
 import org.comroid.common.iter.Span;
-import org.comroid.common.rest.adapter.data.DataConverter;
+import org.comroid.uniform.data.DataConverter;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;

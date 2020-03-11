@@ -1,6 +1,7 @@
-package org.comroid.common.rest;
+package org.comroid.uniform;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -12,8 +13,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.comroid.common.iter.Span;
-import org.comroid.common.rest.adapter.data.DataConverter;
-import org.comroid.common.rest.adapter.http.HttpAdapter;
+import org.comroid.uniform.data.DataConverter;
+import org.comroid.uniform.http.HttpAdapter;
 
 public final class REST<T> {
     private final static Map<Class<?>, REST<?>> cache = new ConcurrentHashMap<>();
@@ -49,6 +50,7 @@ public final class REST<T> {
 
         public Request(URL url) {
             this.url = url;
+            this.headers = new ArrayList<>();
         }
 
         public Request method(REST.Method method) {

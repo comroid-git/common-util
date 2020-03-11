@@ -16,5 +16,5 @@ jar {
 }
 
 dependencies {
-    testRuntimeOnly 'com.alibaba:fastjson:1.2.66'
+    compileOnly 'com.alibaba:fastjson:1.2.66'
 }

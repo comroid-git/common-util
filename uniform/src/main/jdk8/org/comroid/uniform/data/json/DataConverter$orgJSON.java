@@ -1,4 +1,4 @@
-package org.comroid.common.rest.adapter.data.json;
+package org.comroid.uniform.data.json;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -6,7 +6,7 @@ import java.util.function.Function;
 import org.comroid.common.func.bi.Junction;
 import org.comroid.common.func.bi.PredicateDuo;
 import org.comroid.common.iter.Span;
-import org.comroid.common.rest.adapter.data.DataConverter;
+import org.comroid.uniform.data.DataConverter;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

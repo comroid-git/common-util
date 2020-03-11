@@ -1,11 +1,12 @@
-package org.comroid.common.rest.adapter.http;
+package org.comroid.uniform.http;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import org.comroid.common.rest.REST;
+import org.comroid.uniform.REST;
 
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -24,7 +25,10 @@ public class HttpAdapter$OkHttp3 implements HttpAdapter {
             try {
                 final Request.Builder builder = new Request.Builder()
                         .url(url)
-                        .method(method.toString(), RequestBody.create(MediaType.parse(mimeType), body));
+                        // only support null body for GET method, else throw
+                        .method(method.toString(), (body == null && method == REST.Method.GET ? null
+                                 : RequestBody.create(MediaType.parse(mimeType),
+                                Objects.requireNonNull(body, "Null body not supported with " + method))));
 
                 headers.forEach(header -> builder.addHeader(header.getName(), header.getValue()));
 
