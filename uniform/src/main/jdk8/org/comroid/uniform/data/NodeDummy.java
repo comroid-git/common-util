@@ -1,11 +1,11 @@
 package org.comroid.uniform.data;
 
-public class NodeDummy<SERI extends SeriLib<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS, TAR extends BAS> {
+public final class NodeDummy<SERI extends SeriLib<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS, TAR extends BAS> {
     private final SERI seriLib;
     private final TAR node;
     public final DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> type;
 
-    protected NodeDummy(SERI seriLib, TAR node, DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> type) {
+    NodeDummy(SERI seriLib, TAR node, DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> type) {
         this.seriLib = seriLib;
         this.node = node;
         this.type = type;
