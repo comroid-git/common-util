@@ -51,10 +51,13 @@ dependencies {
     java8CompileOnly sourceSets.main.output.classesDirs
     java11CompileOnly sourceSets.main.output.classesDirs
 
+    // json adapter dependencies
     java8CompileOnly 'com.alibaba:fastjson:1.2.62'
-    java8CompileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
     java8CompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
     java8CompileOnly 'org.json:json:20190722'
+
+    // http adapter dependencies
+    java8CompileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
 
     java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
     java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
