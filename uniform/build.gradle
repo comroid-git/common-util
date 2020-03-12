@@ -7,14 +7,86 @@ ext {
     projectDescription = "Java Uniform Adapters"
 }
 
-sourceSets {
-    main.java.srcDirs = [file("$projectDir/src/test/models")]
-}
+configurations {
+    main {
+        compileJava {
+            sourceCompatibility = 1.8
+            targetCompatibility = 1.8
+        }
 
-jar {
-    dependsOn = [':uniform:java8:compileJava', ':uniform:java11:compileJava']
+        sourceSets {
+            main.java.srcDirs = [file("$rootDir/uniform/src/main/java")]
+        }
+
+        dependencies {
+            api project(':uniform')
+
+            implementation project(':util')
+            implementation project(':trie')
+            implementation 'com.google.flogger:flogger:0.4'
+
+            compileOnly 'com.alibaba:fastjson:1.2.62'
+            compileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
+            compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
+            compileOnly 'org.json:json:20190722'
+
+            runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+        }
+    }
+
+    mainAlt {
+        extendsFrom main
+
+        compileJava {
+            sourceCompatibility = 11
+            targetCompatibility = 11
+        }
+
+        sourceSets {
+            main.java.srcDirs = [file("$rootDir/uniform/src/main/jdk11")]
+        }
+    }
+
+    testRoot {
+        extendsFrom main
+
+        sourceSets {
+            test.java.srcDirs = [file("$rootDir/uniform/src/test/java"),
+                                 file("$rootDir/uniform/src/test/models")]
+        }
+
+        dependencies {
+            testImplementation project(':uniform')
+            testImplementation 'com.alibaba:fastjson:1.2.62'
+            testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
+        }
+    }
+
+    testAlt {
+        extendsFrom testRoot, mainAlt
+
+        sourceSets {
+            test.java.srcDirs = [file("$rootDir/uniform/src/test/jre11"),
+                                 file("$rootDir/uniform/src/test/models")]
+        }
+    }
 }
 
 dependencies {
-    compileOnly 'com.alibaba:fastjson:1.2.66'
+    api project(':uniform')
+
+    implementation project(':util')
+    implementation project(':trie')
+    implementation 'com.google.flogger:flogger:0.4'
+
+    compileOnly 'com.alibaba:fastjson:1.2.62'
+    compileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
+    compileOnly 'org.json:json:20190722'
+
+    runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+
+    testImplementation 'com.alibaba:fastjson:1.2.62'
+    testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
 }
+
