@@ -11,3 +11,5 @@ include(':upd8r')
 include(':uniform')
 include(':uniform:java8')
 include(':uniform:java11')
+
+include(':varbind')

@@ -1,0 +1,15 @@
+version = '0.1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Serialization Binding"
+}
+
+dependencies {
+    api project(":util")
+    api project(":restless")
+
+    implementation 'com.alibaba:fastjson:1.2.66'
+}
