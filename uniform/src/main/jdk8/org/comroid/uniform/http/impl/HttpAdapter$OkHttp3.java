@@ -1,4 +1,4 @@
-package org.comroid.uniform.http;
+package org.comroid.uniform.http.impl;
 
 import java.io.IOException;
 import java.net.URL;
@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import org.comroid.uniform.REST;
+import org.comroid.uniform.http.HttpAdapter;
 
 import okhttp3.Call;
 import okhttp3.MediaType;

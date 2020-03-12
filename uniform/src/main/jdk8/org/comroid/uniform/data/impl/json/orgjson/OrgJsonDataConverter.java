@@ -1,6 +1,7 @@
 package org.comroid.uniform.data.impl.json.orgjson;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.comroid.common.func.bi.Junction;

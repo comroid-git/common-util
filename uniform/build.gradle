@@ -8,85 +8,64 @@ ext {
 }
 
 configurations {
-    main {
-        compileJava {
-            sourceCompatibility = 1.8
-            targetCompatibility = 1.8
-        }
+    main
+    java8.extendsFrom main
+    java11.extendsFrom main
+}
 
-        sourceSets {
-            main.java.srcDirs = [file("$rootDir/uniform/src/main/java")]
-        }
+sourceSets {
+    java8.java.srcDirs = [file("$rootDir/uniform/src/main/jdk8")]
+    java11.java.srcDirs = [file("$rootDir/uniform/src/main/jdk11")]
+}
 
-        dependencies {
-            api project(':uniform')
+sourceSets.forEach({ ss ->
+    ss.allSource.forEach(
+            { dir -> System.out.println("$ss.name -> $dir.absolutePath") })
+})
 
-            implementation project(':util')
-            implementation project(':trie')
-            implementation 'com.google.flogger:flogger:0.4'
+compileJava8Java {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
 
-            compileOnly 'com.alibaba:fastjson:1.2.62'
-            compileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
-            compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
-            compileOnly 'org.json:json:20190722'
+compileJava11Java {
+    sourceCompatibility = 11
+    targetCompatibility = 11
+}
 
-            runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
-        }
-    }
+jar {
+    dependsOn = ['compileJava8Java', 'compileJava11Java']
+    tasks.findByName('compileJava8Java').mustRunAfter('compileJava')
+    tasks.findByName('compileJava11Java').mustRunAfter('compileJava')
 
-    mainAlt {
-        extendsFrom main
+    from files(tasks.findByName('compileJava').destinationDir,
+            tasks.findByName('compileJava8Java').destinationDir,
+            tasks.findByName('compileJava11Java').destinationDir)
 
-        compileJava {
-            sourceCompatibility = 11
-            targetCompatibility = 11
-        }
-
-        sourceSets {
-            main.java.srcDirs = [file("$rootDir/uniform/src/main/jdk11")]
-        }
-    }
-
-    testRoot {
-        extendsFrom main
-
-        sourceSets {
-            test.java.srcDirs = [file("$rootDir/uniform/src/test/java"),
-                                 file("$rootDir/uniform/src/test/models")]
-        }
-
-        dependencies {
-            testImplementation project(':uniform')
-            testImplementation 'com.alibaba:fastjson:1.2.62'
-            testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
-        }
-    }
-
-    testAlt {
-        extendsFrom testRoot, mainAlt
-
-        sourceSets {
-            test.java.srcDirs = [file("$rootDir/uniform/src/test/jre11"),
-                                 file("$rootDir/uniform/src/test/models")]
-        }
-    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 dependencies {
-    api project(':uniform')
+    java8Implementation project(':util')
+    java11Implementation project(':util')
 
     implementation project(':util')
     implementation project(':trie')
     implementation 'com.google.flogger:flogger:0.4'
 
-    compileOnly 'com.alibaba:fastjson:1.2.62'
-    compileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
-    compileOnly 'org.json:json:20190722'
+    java8CompileOnly sourceSets.main.output.classesDirs
+    java11CompileOnly sourceSets.main.output.classesDirs
 
-    runtimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+    java8CompileOnly 'com.alibaba:fastjson:1.2.62'
+    java8CompileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
+    java8CompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
+    java8CompileOnly 'org.json:json:20190722'
 
-    testImplementation 'com.alibaba:fastjson:1.2.62'
-    testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
+    java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+    java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+
+    testImplementation project(':util')
+    testImplementation sourceSets.java8.output.classesDirs
+    testImplementation sourceSets.java11.output.classesDirs
 }
 
