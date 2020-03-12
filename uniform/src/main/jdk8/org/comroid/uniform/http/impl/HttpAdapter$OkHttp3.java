@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import org.comroid.uniform.REST;
+import org.comroid.uniform.http.REST;
 import org.comroid.uniform.http.HttpAdapter;
 
 import okhttp3.Call;

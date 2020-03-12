@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 
 import org.comroid.common.annotation.OptionalVararg;
 import org.comroid.common.func.ThrowingRunnable;
+import org.comroid.common.func.bi.Junction;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -59,5 +60,9 @@ public final class Polyfill {
                 throw finalRemapper.apply((T) thr);
             }
         };
+    }
+
+    public static <T, R> R deadCast(T instance) {
+        return (R) instance;
     }
 }

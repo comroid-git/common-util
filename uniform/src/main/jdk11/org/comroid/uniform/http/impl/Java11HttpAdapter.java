@@ -7,7 +7,7 @@ import java.net.http.HttpResponse;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
-import org.comroid.uniform.REST;
+import org.comroid.uniform.http.REST;
 import org.comroid.uniform.http.HttpAdapter;
 
 public final class Java11HttpAdapter implements HttpAdapter {

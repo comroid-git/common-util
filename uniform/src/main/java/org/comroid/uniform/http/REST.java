@@ -1,4 +1,4 @@
-package org.comroid.uniform;
+package org.comroid.uniform.http;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -14,7 +14,6 @@ import java.util.function.Predicate;
 
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.data.DataConverter;
-import org.comroid.uniform.http.HttpAdapter;
 
 public final class REST<T> {
     private final static Map<Class<?>, REST<?>> cache = new ConcurrentHashMap<>();

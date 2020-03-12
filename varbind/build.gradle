@@ -11,5 +11,7 @@ dependencies {
     api project(":util")
     api project(":uniform")
 
+    compileOnly project(":uniform").sourceSets.main.output.classesDirs
+
     implementation 'com.alibaba:fastjson:1.2.66'
 }
