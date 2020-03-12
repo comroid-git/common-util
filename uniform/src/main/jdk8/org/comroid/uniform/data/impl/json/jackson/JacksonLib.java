@@ -1,25 +1,33 @@
 package org.comroid.uniform.data.impl.json.jackson;
 
+import org.comroid.common.func.bi.Junction;
 import org.comroid.uniform.data.SeriLib;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public final class JacksonLib extends SeriLib<JsonNode, ObjectNode, ArrayNode> {
-    public static final JacksonLib instance;
+import static org.comroid.uniform.data.SeriLib.ClassDependency;
 
-    static {
-        try {
-            Class.forName("com.fasterxml.jackson.databind.JsonNode");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Cannot initialize JacksonLib: Missing dependency class", e);
-        } finally {
-            instance = new JacksonLib();
-        }
-    }
+@ClassDependency({"com.fasterxml.jackson.databind.JsonNode", "com.fasterxml.jackson.databind.node.ObjectNode", "com.fasterxml.jackson.databind.node.ArrayNode"})
+public final class JacksonLib extends SeriLib<JsonNode, ObjectNode, ArrayNode> {
+    public static final JacksonLib instance = loadAdapter(JacksonLib.class);
+    public static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final Junction<String, JsonNode> parser = Junction.of(
+            str -> {
+                try {
+                    return objectMapper.readTree(str);
+                } catch (JsonProcessingException e) {
+                    throw new AssertionError(e);
+                }
+            },
+            JsonNode::toPrettyString
+    );
 
     private JacksonLib() {
-        super(ObjectNode.class, ArrayNode.class);
+        super(parser, ObjectNode.class, ArrayNode.class);
     }
 }

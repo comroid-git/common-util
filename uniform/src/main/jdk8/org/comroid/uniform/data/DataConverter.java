@@ -17,25 +17,22 @@ import static org.comroid.uniform.data.DataStructureType.Primitive.OBJECT;
  */
 public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> {
     public static <IN_T, OT_T> OT_T convert(
-            DataConverter<?, IN_T, ? extends IN_T, ? extends IN_T> fromLib,
-            DataConverter<?, OT_T, ? extends OT_T, ? extends OT_T> intoLib,
+            SeriLib<IN_T, ? extends IN_T, ? extends IN_T> fromLib,
+            SeriLib<OT_T, ? extends OT_T, ? extends OT_T> intoLib,
             IN_T node
     ) {
-        return intoLib.getParser()
-                .forward(fromLib
-                        .getParser()
+        return intoLib.parser
+                .forward(fromLib.parser
                         .backward(node));
     }
 
-    private final SeriLib<BAS, OBJ, ARR> seriLib;
-    private final String mimeType;
+    public final SeriLib<BAS, OBJ, ARR> seriLib;
+    public final String mimeType;
 
     protected DataConverter(SeriLib<BAS, OBJ, ARR> seriLib, String mimeType) {
         this.seriLib = seriLib;
         this.mimeType = mimeType;
     }
-
-    public abstract Junction<String, BAS> getParser();
 
     public abstract PredicateDuo<OBJ, TAR> getFilter();
 
@@ -46,8 +43,8 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
     public abstract ARR combine(Span<BAS> data);
 
     public Span<TAR> deserialize(String data) {
-        final BAS node = getParser().forward(data);
-        final DataStructureType.Primitive nodeType = seriLib.typeOf(node).typ();
+        final BAS node = seriLib.parser.forward(data);
+        final DataStructureType.Primitive nodeType = seriLib.typeOf(node).typ;
 
         Span<OBJ> elements = null;
 
@@ -91,14 +88,6 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
         }
 
         //noinspection unchecked -> false positive
-        return getParser().backward(combine((Span<BAS>) elements));
-    }
-
-    public final SeriLib<BAS, OBJ, ARR> seriLib() {
-        return seriLib;
-    }
-
-    public final String getMimeType() {
-        return mimeType;
+        return seriLib.parser.backward(combine((Span<BAS>) elements));
     }
 }

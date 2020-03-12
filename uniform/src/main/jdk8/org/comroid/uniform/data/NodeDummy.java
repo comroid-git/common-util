@@ -1,11 +1,11 @@
 package org.comroid.uniform.data;
 
-public abstract class NodeDummy<SERI extends SeriLib<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS, TAR extends BAS> {
+public class NodeDummy<SERI extends SeriLib<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS, TAR extends BAS> {
     private final SERI seriLib;
     private final TAR node;
-    private final DataStructureType<SeriLib<BAS, ?, ?>, BAS, TAR> type;
+    public final DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> type;
 
-    protected NodeDummy(SERI seriLib, TAR node, DataStructureType<SeriLib<BAS, ?, ?>, BAS, TAR> type) {
+    protected NodeDummy(SERI seriLib, TAR node, DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> type) {
         this.seriLib = seriLib;
         this.node = node;
         this.type = type;
@@ -19,10 +19,10 @@ public abstract class NodeDummy<SERI extends SeriLib<BAS, OBJ, ARR>, BAS, OBJ ex
     }
 
     public final OBJ obj() throws StructureTypeMismatchException {
-        return tryReturn(seriLib.objectType());
+        return tryReturn(seriLib.objectType);
     }
 
     public final ARR arr() throws StructureTypeMismatchException {
-        return tryReturn(seriLib.arrayType());
+        return tryReturn(seriLib.arrayType);
     }
 }

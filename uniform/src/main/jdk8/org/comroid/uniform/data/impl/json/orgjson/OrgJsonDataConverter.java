@@ -11,9 +11,7 @@ import org.comroid.uniform.data.DataConverter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class DataConverter$orgJSON<T> extends DataConverter<T, Object, JSONObject, JSONArray> {
-    private final static Junction<String, Object> parser = Junction.of(JSONObject::new, Object::toString);
-
+public class OrgJsonDataConverter<T> extends DataConverter<T, Object, JSONObject, JSONArray> {
     public static <T> Junction<JSONObject, T> autoConverter(Class<T> forClass, Function<JSONObject, T> initializer) {
         return Junction.of(initializer, JSONObject::new);
     }
@@ -21,16 +19,11 @@ public class DataConverter$orgJSON<T> extends DataConverter<T, Object, JSONObjec
     private final PredicateDuo<JSONObject, T> filter;
     private final Junction<JSONObject, T> converter;
 
-    public DataConverter$orgJSON(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
+    public OrgJsonDataConverter(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
         super(OrgJsonLib.instance, "application/json");
 
         this.filter = filter;
         this.converter = converter;
-    }
-
-    @Override
-    public Junction<String, Object> getParser() {
-        return parser;
     }
 
     @Override

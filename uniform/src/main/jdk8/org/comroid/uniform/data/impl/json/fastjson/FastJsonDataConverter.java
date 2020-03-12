@@ -9,12 +9,9 @@ import org.comroid.uniform.data.DataConverter;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONAware;
 import com.alibaba.fastjson.JSONObject;
 
-public class DataConverter$FastJSON<T> extends DataConverter<T, JSON, JSONObject, JSONArray> {
-    private static final Junction<String, JSON> parser = Junction.of(str -> JSON.isValidObject(str) ? JSON.parseObject(str) : JSON.parseArray(str), JSONAware::toJSONString);
-
+public class FastJsonDataConverter<T> extends DataConverter<T, JSON, JSONObject, JSONArray> {
     public static <T> Junction<JSONObject, T> autoConverter(Class<T> forClass) {
         return new Junction<JSONObject, T>() {
             private final Class<T> target = forClass;
@@ -34,16 +31,11 @@ public class DataConverter$FastJSON<T> extends DataConverter<T, JSON, JSONObject
     private final PredicateDuo<JSONObject, T> filter;
     private final Junction<JSONObject, T> converter;
 
-    public DataConverter$FastJSON(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
+    public FastJsonDataConverter(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
         super(FastJSONLib.instance, "application/json");
 
         this.filter = filter;
         this.converter = converter;
-    }
-
-    @Override
-    public Junction<String, JSON> getParser() {
-        return parser;
     }
 
     @Override

@@ -1,8 +1,8 @@
 package org.comroid.uniform.data;
 
 public class DataStructureType<SERI extends SeriLib<BAS, ?, ?>, BAS, TAR extends BAS> {
+    public final Primitive typ;
     private final Class<TAR> tarClass;
-    private final Primitive typ;
 
     protected DataStructureType(Class<TAR> tarClass, Primitive typ) {
         this.tarClass = tarClass;
@@ -17,11 +17,26 @@ public class DataStructureType<SERI extends SeriLib<BAS, ?, ?>, BAS, TAR extends
         if (tarClass.isInstance(node))
             return tarClass.cast(node);
 
-        throw new ClassCastException(String.format("Cannot cast %s to type %s", node, tarClass.getName()));
+        throw new ClassCastException(String.format("Cannot cast %s to primitive type %s %s", node, typ.name(), tarClass.getName()));
     }
 
-    public final Primitive typ() {
-        return typ;
+    @Override
+    public int hashCode() {
+        return (31 * tarClass.hashCode()) + typ.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        DataStructureType<?, ?, ?> that = (DataStructureType<?, ?, ?>) o;
+
+        if (!tarClass.equals(that.tarClass))
+            return false;
+        return typ == that.typ;
     }
 
     public static class Obj<SERI extends SeriLib<BAS, TAR, ?>, BAS, TAR extends BAS>
@@ -34,7 +49,7 @@ public class DataStructureType<SERI extends SeriLib<BAS, ?, ?>, BAS, TAR extends
     public static class Arr<SERI extends SeriLib<BAS, ?, TAR>, BAS, TAR extends BAS>
             extends DataStructureType<SERI, BAS, TAR> {
         public Arr(Class<TAR> arrClass) {
-            super(arrClass, Primitive.OBJECT);
+            super(arrClass, Primitive.ARRAY);
         }
     }
 
