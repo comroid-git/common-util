@@ -18,11 +18,6 @@ sourceSets {
     java11.java.srcDirs = [file("$rootDir/uniform/src/main/jdk11")]
 }
 
-sourceSets.forEach({ ss ->
-    ss.allSource.forEach(
-            { dir -> System.out.println("$ss.name -> $dir.absolutePath") })
-})
-
 compileJava8Java {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8

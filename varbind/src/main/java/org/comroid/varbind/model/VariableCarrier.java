@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class VariableCarrier {
     private final Map<VarBind<?>, AtomicReference<?>> vars;
-    private final Set<VarBind<?>> initiallySet;
+    private final Set<VarBind<?>> initiallySet = null; //todo
 
     protected VariableCarrier() {
         vars = new ConcurrentHashMap<>();
