@@ -93,7 +93,7 @@ public final class REST<T> {
 
         public CompletableFuture<REST.Response> execute() {
             return execution == null
-                    ? (execution = httpAdapter.call(method, url, headers, dataAdapter.getMimeType(), body))
+                    ? (execution = httpAdapter.call(method, url, headers, dataAdapter.mimeType, body))
                     : execution;
         }
 
