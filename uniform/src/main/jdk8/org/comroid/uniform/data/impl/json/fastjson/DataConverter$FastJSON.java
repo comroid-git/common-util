@@ -1,4 +1,4 @@
-package org.comroid.uniform.data.json;
+package org.comroid.uniform.data.impl.json.fastjson;
 
 import java.util.Collection;
 
@@ -35,7 +35,7 @@ public class DataConverter$FastJSON<T> extends DataConverter<T, JSON, JSONObject
     private final Junction<JSONObject, T> converter;
 
     public DataConverter$FastJSON(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
-        super("application/json");
+        super(FastJSONLib.instance, "application/json");
 
         this.filter = filter;
         this.converter = converter;
@@ -54,11 +54,6 @@ public class DataConverter$FastJSON<T> extends DataConverter<T, JSON, JSONObject
     @Override
     public Junction<JSONObject, T> getConverter() {
         return converter;
-    }
-
-    @Override
-    public DataStructureType getStructureType(JSON data) {
-        return data instanceof JSONObject ? DataStructureType.OBJECT : DataStructureType.ARRAY;
     }
 
     @Override

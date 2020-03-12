@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import org.comroid.common.func.bi.PredicateDuo;
 import org.comroid.test.model.NGinXFSNode;
 import org.comroid.uniform.REST;
-import org.comroid.uniform.data.json.DataConverter$FastJSON;
+import org.comroid.uniform.data.impl.json.fastjson.DataConverter$FastJSON;
 import org.comroid.uniform.http.HttpAdapter$OkHttp3;
 
 import org.junit.Before;

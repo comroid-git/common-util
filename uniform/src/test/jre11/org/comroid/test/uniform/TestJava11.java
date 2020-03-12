@@ -3,11 +3,10 @@ package org.comroid.test.uniform;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import org.comroid.common.Polyfill;
 import org.comroid.common.func.bi.PredicateDuo;
 import org.comroid.test.model.NGinXFSNode;
 import org.comroid.uniform.REST;
-import org.comroid.uniform.data.json.DataConverter$FastJSON;
+import org.comroid.uniform.data.impl.json.fastjson.DataConverter$FastJSON;
 import org.comroid.uniform.http.HttpAdapter$JDK11;
 
 import org.junit.Before;

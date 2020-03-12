@@ -6,6 +6,9 @@ import org.comroid.common.func.bi.Junction;
 import org.comroid.common.func.bi.PredicateDuo;
 import org.comroid.common.iter.Span;
 
+import static org.comroid.uniform.data.DataStructureType.Primitive.ARRAY;
+import static org.comroid.uniform.data.DataStructureType.Primitive.OBJECT;
+
 /**
  * @param <TAR> The target Type.
  * @param <BAS> The basic deserialized type.
@@ -24,9 +27,11 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
                         .backward(node));
     }
 
+    private final SeriLib<BAS, OBJ, ARR> seriLib;
     private final String mimeType;
 
-    protected DataConverter(String mimeType) {
+    protected DataConverter(SeriLib<BAS, OBJ, ARR> seriLib, String mimeType) {
+        this.seriLib = seriLib;
         this.mimeType = mimeType;
     }
 
@@ -36,15 +41,13 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
 
     public abstract Junction<OBJ, TAR> getConverter();
 
-    public abstract DataStructureType getStructureType(BAS data);
-
     public abstract Collection<BAS> split(ARR data);
 
     public abstract ARR combine(Span<BAS> data);
 
     public Span<TAR> deserialize(String data) {
         final BAS node = getParser().forward(data);
-        final DataStructureType nodeType = getStructureType(node);
+        final DataStructureType.Primitive nodeType = seriLib.typeOf(node).typ();
 
         Span<OBJ> elements = null;
 
@@ -67,7 +70,7 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
     }
 
     public String serialize(Span<TAR> data) {
-        final DataStructureType nodeType = data.isSingle() ? DataStructureType.OBJECT : DataStructureType.ARRAY;
+        final DataStructureType.Primitive nodeType = data.isSingle() ? OBJECT : ARRAY;
 
         Span<OBJ> elements = null;
 
@@ -91,12 +94,11 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
         return getParser().backward(combine((Span<BAS>) elements));
     }
 
-    public final String getMimeType() {
-        return mimeType;
+    public final SeriLib<BAS, OBJ, ARR> seriLib() {
+        return seriLib;
     }
 
-    public enum DataStructureType {
-        OBJECT,
-        ARRAY
+    public final String getMimeType() {
+        return mimeType;
     }
 }

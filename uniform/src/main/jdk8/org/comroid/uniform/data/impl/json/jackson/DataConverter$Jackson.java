@@ -1,4 +1,4 @@
-package org.comroid.uniform.data.json;
+package org.comroid.uniform.data.impl.json.jackson;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,7 +53,7 @@ public class DataConverter$Jackson<T> extends DataConverter<T, JsonNode, ObjectN
     private final Junction<ObjectNode, T> converter;
 
     public DataConverter$Jackson(PredicateDuo<ObjectNode, T> filter, Junction<ObjectNode, T> converter) {
-        super("application/json");
+        super(JacksonLib.instance, "application/json");
 
         this.filter = filter;
         this.converter = converter;
@@ -72,11 +72,6 @@ public class DataConverter$Jackson<T> extends DataConverter<T, JsonNode, ObjectN
     @Override
     public Junction<ObjectNode, T> getConverter() {
         return converter;
-    }
-
-    @Override
-    public DataStructureType getStructureType(JsonNode data) {
-        return data.isArray() ? DataStructureType.ARRAY : DataStructureType.OBJECT;
     }
 
     @Override

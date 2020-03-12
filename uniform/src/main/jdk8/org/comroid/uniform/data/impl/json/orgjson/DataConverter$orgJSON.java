@@ -1,4 +1,4 @@
-package org.comroid.uniform.data.json;
+package org.comroid.uniform.data.impl.json.orgjson;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -22,7 +22,7 @@ public class DataConverter$orgJSON<T> extends DataConverter<T, Object, JSONObjec
     private final Junction<JSONObject, T> converter;
 
     public DataConverter$orgJSON(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
-        super("application/json");
+        super(OrgJsonLib.instance, "application/json");
 
         this.filter = filter;
         this.converter = converter;
@@ -41,16 +41,6 @@ public class DataConverter$orgJSON<T> extends DataConverter<T, Object, JSONObjec
     @Override
     public Junction<JSONObject, T> getConverter() {
         return converter;
-    }
-
-    @Override
-    public DataStructureType getStructureType(Object data) {
-        if (data instanceof JSONObject)
-            return DataStructureType.OBJECT;
-        if (data instanceof JSONArray)
-            return DataStructureType.ARRAY;
-
-        throw new IllegalArgumentException("Illegal argument type class: " + data.getClass().getName());
     }
 
     @Override

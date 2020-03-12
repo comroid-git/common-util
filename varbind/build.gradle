@@ -9,7 +9,7 @@ ext {
 
 dependencies {
     api project(":util")
-    api project(":restless")
+    api project(":uniform")
 
     implementation 'com.alibaba:fastjson:1.2.66'
 }
