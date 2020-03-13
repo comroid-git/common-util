@@ -1,7 +1,6 @@
 package org.comroid.uniform.data.impl.json.orgjson;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.function.Function;
 
 import org.comroid.common.func.bi.Junction;
@@ -21,7 +20,7 @@ public class OrgJsonDataConverter<T> extends DataConverter<T, Object, JSONObject
     private final Junction<JSONObject, T> converter;
 
     public OrgJsonDataConverter(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
-        super(OrgJsonLib.instance, "application/json");
+        super(OrgJsonLib.orgJsonLib, "application/json");
 
         this.filter = filter;
         this.converter = converter;

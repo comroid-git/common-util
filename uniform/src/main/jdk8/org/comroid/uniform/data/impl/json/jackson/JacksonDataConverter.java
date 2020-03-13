@@ -39,7 +39,7 @@ public class JacksonDataConverter<T> extends DataConverter<T, JsonNode, ObjectNo
     private final Junction<ObjectNode, T> converter;
 
     public JacksonDataConverter(PredicateDuo<ObjectNode, T> filter, Junction<ObjectNode, T> converter) {
-        super(JacksonLib.instance, "application/json");
+        super(JacksonLib.jacksonLib, "application/json");
 
         this.filter = filter;
         this.converter = converter;

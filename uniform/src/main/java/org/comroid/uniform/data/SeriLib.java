@@ -13,6 +13,9 @@ import java.util.stream.Collectors;
 import org.comroid.common.func.bi.Junction;
 import org.comroid.common.util.ReflectionHelper;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
+
 public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
     protected static <T> T loadAdapter(Class<T> adapterClass) throws ExceptionInInitializerError {
         final ClassDependency classDependency = adapterClass.getAnnotation(ClassDependency.class);
@@ -60,21 +63,23 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         this(parser, new DataStructureType.Obj<>(objClass), new DataStructureType.Arr<>(arrClass));
     }
 
-    public <TAR extends BAS> NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR> dummy(TAR node) {
-        //noinspection unchecked -> cache instance problem
-        return (NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR>) dummyCache.computeIfAbsent(node, key -> new NodeDummy<>(this, node, typeOf(node)));
+    @Contract("null -> null")
+    public <TAR extends BAS> @Nullable NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR> dummy(@Nullable TAR node) {
+        if (node == null) return null;
+
+        return (NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR>) dummyCache.computeIfAbsent(node, key -> createNodeDummy(node));
     }
 
     public <TAR extends BAS> DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> typeOf(TAR node) {
         if (objectType.typeClass().isInstance(node))
-            //noinspection unchecked
             return (DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR>) objectType;
         if (arrayType.typeClass().isInstance(node))
-            //noinspection unchecked
             return (DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR>) arrayType;
 
         throw new IllegalArgumentException("Unknown type: " + node.getClass().getName());
     }
+
+    protected abstract <TAR extends BAS> NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR> createNodeDummy(TAR node);
 
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)

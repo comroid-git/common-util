@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -25,7 +26,6 @@ public final class Polyfill {
 
     public static <T extends Throwable> URL url(String spec, @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator) throws T {
         if (throwableReconfigurator.length == 0)
-            //noinspection unchecked
             throwableReconfigurator = new Function[]{ cause -> (T) new AssertionError(cause) };
 
         try {
@@ -37,7 +37,6 @@ public final class Polyfill {
 
     public static <T extends Throwable> URI uri(String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator) throws T {
         if (throwableReconfigurator.length == 0)
-            //noinspection unchecked
             throwableReconfigurator = new Function[]{ cause -> (T) new AssertionError(cause) };
 
         try {
@@ -56,13 +55,12 @@ public final class Polyfill {
             try {
                 throwingRunnable.run();
             } catch (Throwable thr) {
-                //noinspection unchecked
                 throw finalRemapper.apply((T) thr);
             }
         };
     }
 
-    public static <T, R> R deadCast(T instance) {
+    public static <R> R deadCast(Object instance) {
         return (R) instance;
     }
 }

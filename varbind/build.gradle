@@ -13,5 +13,6 @@ dependencies {
 
     compileOnly project(":uniform").sourceSets.main.output.classesDirs
 
-    implementation 'com.alibaba:fastjson:1.2.66'
+    testImplementation project(":uniform").sourceSets.java8.output.classesDirs
+    testImplementation 'com.alibaba:fastjson:1.2.66'
 }

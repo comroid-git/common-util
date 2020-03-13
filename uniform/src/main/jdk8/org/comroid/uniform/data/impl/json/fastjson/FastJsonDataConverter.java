@@ -32,7 +32,7 @@ public class FastJsonDataConverter<T> extends DataConverter<T, JSON, JSONObject,
     private final Junction<JSONObject, T> converter;
 
     public FastJsonDataConverter(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
-        super(FastJSONLib.instance, "application/json");
+        super(FastJSONLib.fastJsonLib, "application/json");
 
         this.filter = filter;
         this.converter = converter;
