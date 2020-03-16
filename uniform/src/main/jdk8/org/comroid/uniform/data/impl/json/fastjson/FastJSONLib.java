@@ -41,6 +41,13 @@ public final class FastJSONLib extends SeriLib<JSON, JSONObject, JSONArray> {
                     throw new StructureTypeMismatchException(arrayType, objectType);
                 });
             }
+
+            @Override
+            public <T> T getValueAs(String fieldName, Class<T> targetType) {
+                return process(obj -> obj.getObject(fieldName, targetType), arr -> {
+                    throw new StructureTypeMismatchException(arrayType, objectType);
+                });
+            }
         };
     }
 }

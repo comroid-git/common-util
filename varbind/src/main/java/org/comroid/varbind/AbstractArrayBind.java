@@ -1,4 +1,4 @@
-package org.comroid.varbind.bind;
+package org.comroid.varbind;
 
 import java.util.Collection;
 import java.util.Objects;

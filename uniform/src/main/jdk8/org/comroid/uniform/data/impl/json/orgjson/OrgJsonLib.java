@@ -29,6 +29,13 @@ public final class OrgJsonLib extends SeriLib<Object, JSONObject, JSONArray> {
                     throw new StructureTypeMismatchException(arrayType, objectType);
                 });
             }
+
+            @Override
+            public <T> T getValueAs(String fieldName, Class<T> targetType) {
+                return process(obj -> (T) obj.get(fieldName), arr -> {
+                    throw new StructureTypeMismatchException(arrayType, objectType);
+                });
+            }
         };
     }
 }

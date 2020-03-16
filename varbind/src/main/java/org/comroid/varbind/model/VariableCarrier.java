@@ -11,7 +11,8 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.NodeDummy;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.varbind.bind.VarBind;
+import org.comroid.varbind.GroupBind;
+import org.comroid.varbind.VarBind;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +24,7 @@ import static org.comroid.common.Polyfill.deadCast;
 public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     private final SeriLib<BAS, OBJ, ? extends BAS> seriLib;
     private final Map<VarBind<?, ?, DEP, ?, OBJ>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
-    private final Set<VarBind<?, ?, DEP, ?, OBJ>> binds;
+    private final GroupBind<BAS, OBJ, ?> binds;
     private final Set<VarBind<?, ?, DEP, ?, OBJ>> initiallySet;
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<DEP> dependencyObject;
@@ -42,19 +43,19 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
             @Nullable DEP dependencyObject
     ) {
         this.seriLib = seriLib;
-        this.binds = findBinds(getClass());
+        this.binds = findRootBind(getClass());
         this.initiallySet = initializeVariables(seriLib.dummy(node));
         this.dependencyObject = Optional.ofNullable(dependencyObject);
     }
 
-    private Set<VarBind<?, ?, DEP, ?, OBJ>> findBinds(Class<? extends VariableCarrier> inClass) {
+    private <ARR extends BAS> GroupBind<BAS, OBJ, ARR> findRootBind(Class<? extends VariableCarrier> inClass) {
         final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
 
         if (location == null)
             throw new IllegalStateException(String.format("Class %s extends VariableCarrier, but does not have a %s annotation.",
                     inClass.getName(), VarBind.Location.class.getName()));
 
-        return ReflectionHelper.collectStaticFields(VarBind.class, location.value());
+        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), VarBind.Root.class).get();
     }
 
     private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, DEP, ?, OBJ>> initializeVariables(
@@ -62,12 +63,12 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         if (initalData == null) return emptySet();
 
         final HashSet<VarBind<?, ?, DEP, ?, OBJ>> initialized = new HashSet<>();
-        for (VarBind<?, ?, DEP, ?, OBJ> bind : this.binds) {
+        for (VarBind<?, ?, ?, ?, OBJ> bind : this.binds.getChildren()) {
             if (initalData.containsKey(bind.getName())) {
                 ref((VarBind<Object, Object, DEP, Object, OBJ>) bind)
                         .set((Span<Object>) bind.extract(initalData.obj()));
 
-                initialized.add(bind);
+                initialized.add((VarBind<?, ?, DEP, ?, OBJ>) bind);
             }
         }
 
@@ -83,7 +84,7 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         return seriLib;
     }
 
-    public final Set<VarBind<?, ?, DEP, ?, OBJ>> getBindings() {
+    public final GroupBind<BAS, OBJ, ?> getBindings() {
         return binds;
     }
 

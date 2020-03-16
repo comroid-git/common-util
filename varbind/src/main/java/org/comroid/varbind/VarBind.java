@@ -1,4 +1,4 @@
-package org.comroid.varbind.bind;
+package org.comroid.varbind;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -35,9 +35,14 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)
     @interface Location {
-        String fieldName();
+        Class<?> value();
 
-        Class<?> inClass();
+        String rootNode() default "";
+    }
+
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Root {
     }
 
     //region Types

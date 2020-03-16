@@ -4,6 +4,7 @@ import org.comroid.common.func.bi.Junction;
 import org.comroid.uniform.data.NodeDummy;
 import org.comroid.uniform.data.SeriLib;
 import org.comroid.uniform.data.StructureTypeMismatchException;
+import org.comroid.uniform.data.util.json.JacksonUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,6 +40,13 @@ public final class JacksonLib extends SeriLib<JsonNode, ObjectNode, ArrayNode> {
             @Override
             public boolean containsKey(String name) {
                 return process(obj -> obj.has(name), arr -> {
+                    throw new StructureTypeMismatchException(arrayType, objectType);
+                });
+            }
+
+            @Override
+            public <T> T getValueAs(String fieldName, Class<T> targetType) {
+                return process(obj -> JacksonUtils.nodeAs(obj.get(fieldName), targetType), arr -> {
                     throw new StructureTypeMismatchException(arrayType, objectType);
                 });
             }
