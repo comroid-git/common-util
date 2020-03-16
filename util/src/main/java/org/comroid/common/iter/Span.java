@@ -57,6 +57,19 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
         this.stretch = allowStretching;
     }
 
+    public static <T> Span<T> fixedSize(Collection<T> contents) {
+        final Span<T> span = new Span<>(contents.size(), NullPolicy.IGNORE, false);
+
+        span.addAll(contents);
+
+        return span;
+    }
+
+    @SafeVarargs
+    public static <T> Span<T> fixedSize(T... contents) {
+        return fixedSize(Arrays.asList(contents));
+    }
+
     public boolean isSingle() {
         return size() == 1;
     }

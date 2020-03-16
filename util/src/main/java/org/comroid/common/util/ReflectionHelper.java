@@ -38,7 +38,7 @@ public final class ReflectionHelper {
         return yields;
     }
 
-    public static <T> Set<T> collectStaticFields(Class<T> fieldType, Class<?> inClass) {
+    public static <T> Set<T> collectStaticFields(Class<? extends T> fieldType, Class<?> inClass) {
         final Field[] fields = inClass.getFields();
         final HashSet<T> values = new HashSet<>(fields.length);
 

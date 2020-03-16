@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.comroid.common.Polyfill;
+import org.comroid.common.iter.Span;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.NodeDummy;
 import org.comroid.uniform.data.SeriLib;
@@ -18,12 +18,13 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
+import static org.comroid.common.Polyfill.deadCast;
 
 public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     private final SeriLib<BAS, OBJ, ? extends BAS> seriLib;
-    private final Map<VarBind<?, ?, BAS, OBJ>, AtomicReference<Object>> vars = new ConcurrentHashMap<>();
-    private final Set<VarBind<?, ?, BAS, OBJ>> binds;
-    private final Set<VarBind<?, ?, BAS, OBJ>> initiallySet;
+    private final Map<VarBind<?, ?, DEP, ?, OBJ>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
+    private final Set<VarBind<?, ?, DEP, ?, OBJ>> binds;
+    private final Set<VarBind<?, ?, DEP, ?, OBJ>> initiallySet;
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<DEP> dependencyObject;
 
@@ -46,25 +47,25 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         this.dependencyObject = Optional.ofNullable(dependencyObject);
     }
 
-    private Set<VarBind<?, ?, BAS, OBJ>> findBinds(Class<? extends VariableCarrier> inClass) {
+    private Set<VarBind<?, ?, DEP, ?, OBJ>> findBinds(Class<? extends VariableCarrier> inClass) {
         final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
 
         if (location == null)
             throw new IllegalStateException(String.format("Class %s extends VariableCarrier, but does not have a %s annotation.",
                     inClass.getName(), VarBind.Location.class.getName()));
 
-        return ReflectionHelper.collectStaticFields(Polyfill.deadCast(VarBind.class), location.value());
+        return ReflectionHelper.collectStaticFields(VarBind.class, location.value());
     }
 
-    private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, BAS, OBJ>> initializeVariables(
+    private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, DEP, ?, OBJ>> initializeVariables(
             @Nullable NodeDummy<SERI, BAS, OBJ, ARR, TAR> initalData) {
         if (initalData == null) return emptySet();
 
-        final HashSet<VarBind<?, ?, BAS, OBJ>> initialized = new HashSet<>();
-        for (VarBind<?, ?, BAS, OBJ> bind : this.binds) {
-            if (initalData.containsKey(bind.name())) {
-                ref((VarBind<Object, Object, BAS, OBJ>) bind)
-                        .set(bind.extract(initalData.obj()));
+        final HashSet<VarBind<?, ?, DEP, ?, OBJ>> initialized = new HashSet<>();
+        for (VarBind<?, ?, DEP, ?, OBJ> bind : this.binds) {
+            if (initalData.containsKey(bind.getName())) {
+                ref((VarBind<Object, Object, DEP, Object, OBJ>) bind)
+                        .set((Span<Object>) bind.extract(initalData.obj()));
 
                 initialized.add(bind);
             }
@@ -73,32 +74,31 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         return unmodifiableSet(initialized);
     }
 
-    private <T, C> AtomicReference<C> ref(VarBind<T, C, BAS, OBJ> bind) {
-        return (AtomicReference<C>) vars.computeIfAbsent(bind, key -> new AtomicReference<>(null));
+    private <C> AtomicReference<Span<C>> ref(VarBind<C, ?, DEP, ?, OBJ> bind) {
+        return deadCast(vars.computeIfAbsent(bind, key ->
+                deadCast(new AtomicReference<>(new Span<C>(1, Span.NullPolicy.IGNORE, false)))));
     }
 
     public final SeriLib<BAS, OBJ, ? extends BAS> getSerializationLibrary() {
         return seriLib;
     }
 
-    public final Set<VarBind<?, ?, BAS, OBJ>> getBindings() {
+    public final Set<VarBind<?, ?, DEP, ?, OBJ>> getBindings() {
         return binds;
     }
 
-    public final Set<VarBind<?, ?, BAS, OBJ>> initiallySet() {
+    public final Set<VarBind<?, ?, DEP, ?, OBJ>> initiallySet() {
         return initiallySet;
     }
 
-    public final <T, C> @Nullable T getVar(VarBind<T, C, ?, ?> bind) {
-        final C ref = ref((VarBind<T, C, BAS, OBJ>) bind).get();
-
-        if (dependencyObject.isPresent() && bind instanceof VarBind.Dep)
-            return (T) ((VarBind.Dep) bind).finish(dependencyObject.get(), ref);
-
-        return bind.finish(ref);
+    public final <T, A, R> @Nullable R getVar(VarBind<T, A, DEP, R, OBJ> bind) {
+        return bind.finish(ref(bind).get()
+                .stream()
+                .map(it -> bind.remap(it, dependencyObject.orElse(null)))
+                .collect(Span.collector()));
     }
 
-    public final <T, C> @NotNull Optional<T> wrapVar(VarBind<T, C, ?, ?> bind) {
+    public final <T, A, R> @NotNull Optional<R> wrapVar(VarBind<T, A, DEP, R, OBJ> bind) {
         return Optional.ofNullable(getVar(bind));
     }
 }

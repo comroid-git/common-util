@@ -4,16 +4,17 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Objects;
-import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 
 import org.comroid.common.annotation.OptionalVararg;
 import org.comroid.common.func.ThrowingRunnable;
-import org.comroid.common.func.bi.Junction;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static java.util.Objects.isNull;
 
 public final class Polyfill {
     public static String regexGroupOrDefault(Matcher matcher, String groupName, @Nullable String orDefault) {
@@ -26,7 +27,7 @@ public final class Polyfill {
 
     public static <T extends Throwable> URL url(String spec, @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator) throws T {
         if (throwableReconfigurator.length == 0)
-            throwableReconfigurator = new Function[]{ cause -> (T) new AssertionError(cause) };
+            throwableReconfigurator = new Function[]{cause -> (T) new AssertionError(cause)};
 
         try {
             return new URL(spec);
@@ -37,7 +38,7 @@ public final class Polyfill {
 
     public static <T extends Throwable> URI uri(String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator) throws T {
         if (throwableReconfigurator.length == 0)
-            throwableReconfigurator = new Function[]{ cause -> (T) new AssertionError(cause) };
+            throwableReconfigurator = new Function[]{cause -> (T) new AssertionError(cause)};
 
         try {
             return new URI(spec);
@@ -47,10 +48,8 @@ public final class Polyfill {
     }
 
     public static <R, T extends Throwable> Runnable handlingRunnable(ThrowingRunnable<R, T> throwingRunnable, @Nullable Function<T, ? extends RuntimeException> remapper) {
-        if (remapper == null)
-            remapper = RuntimeException::new;
+        final Function<T, ? extends RuntimeException> finalRemapper = nullOr(remapper, (Function<T, ? extends RuntimeException>) RuntimeException::new);
 
-        final Function<T, ? extends RuntimeException> finalRemapper = remapper;
         return () -> {
             try {
                 throwingRunnable.run();
@@ -62,5 +61,34 @@ public final class Polyfill {
 
     public static <R> R deadCast(Object instance) {
         return (R) instance;
+    }
+
+    public static <T, R> Function<T, R> failingFunction(Supplier<? extends RuntimeException> exceptionSupplier) {
+        return new Function<T, R>() {
+            private final Supplier<? extends RuntimeException> supplier = exceptionSupplier;
+
+            @Override
+            public R apply(T t) {
+                throw supplier.get();
+            }
+        };
+    }
+
+    public static <T, R> Function<T, R> erroringFunction(@Nullable String message) {
+        return new Function<T, R>() {
+            private final String msg = nullOr(message, "Unexpected Call");
+
+            @Override
+            public R apply(T t) {
+                throw new AssertionError(msg);
+            }
+        };
+    }
+
+    private static <T> T nullOr(@Nullable T value, @NotNull T def) {
+        if (isNull(value))
+            return def;
+
+        return value;
     }
 }

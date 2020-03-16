@@ -4,73 +4,254 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.comroid.common.iter.Span;
+import org.comroid.varbind.model.VariableCarrier;
+
 import org.jetbrains.annotations.Nullable;
 
-public class VarBind<T, C, BAS, TAR extends BAS> implements GroupedBind {
-    private final @Nullable GroupBind group;
-    private final String name;
-    private final Function<C, T> finisher;
-    private final BiFunction<TAR, String, C> extractor;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
 
-    public VarBind(@Nullable GroupBind group, String name, BiFunction<TAR, String, C> extractor, Function<C, T> finisher) {
-        this.group = group;
-        this.name = name;
-        this.finisher = finisher;
-        this.extractor = extractor;
-    }
+/**
+ * Basic Variable Binding definition
+ * Serves as an interface to handling data when serializing.
+ *
+ * @param <S>    The (singular) remapping input Type
+ * @param <A>    The (singular) remapping output Type
+ * @param <D>    The (singular) dependency Type; {@link Void} is default for {@code independent}
+ * @param <R>    The (singular) output Type
+ * @param <NODE> Serialization Library Type of the serialization Node
+ */
+public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
+    Span<? super S> extract(NODE node);
 
-    public T finish(C from) {
-        return finisher.apply(from);
-    }
+    A remap(S from, D dependency);
 
-    public C extract(TAR node) {
-        return extractor.apply(node, name);
-    }
+    R finish(Span<A> parts);
 
-    @Override
-    public Optional<GroupBind> getGroup() {
-        return Optional.ofNullable(group);
-    }
-
-    public final String name() {
-        return name;
-    }
+    String getName();
 
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)
-    public @interface Location {
+    @interface Location {
         Class<?> value();
     }
 
-    public static class Uno<T> extends VarBind<T, T, Object, Object> {
-        public Uno(@Nullable GroupBind group, String name, BiFunction<Object, String, T> extractor, Function<T, T> finisher) {
-            super(group, name, extractor, finisher);
+    abstract class Abstract<S, A, D, R, NODE> implements VarBind<S, A, D, R, NODE> {
+        private final String name;
+        private final @Nullable GroupBind group;
+        private final BiFunction<NODE, String, Span<S>> extractor;
+
+        protected Abstract(@Nullable GroupBind group, String name, BiFunction<NODE, String, Span<S>> extractor) {
+            this.name = name;
+            this.group = group;
+            this.extractor = extractor;
+        }
+
+        @Override
+        public final Optional<GroupBind> getGroup() {
+            return Optional.ofNullable(group);
+        }
+
+        @Override
+        public final Span<S> extract(NODE node) {
+            return extractor.apply(node, name);
+        }
+
+        @Override
+        public final String getName() {
+            return name;
         }
     }
 
-    public static class Duo<T, C> extends VarBind<T, C, Object, Object> {
-        public Duo(@Nullable GroupBind group, String name, BiFunction<Object, String, C> extractor, Function<C, T> finisher) {
-            super(group, name, extractor, finisher);
+    //region Types
+
+    /**
+     * Variable definition with 0 mapping Stages.
+     *
+     * @param <NODE> Serialization Library Type of the serialization Node
+     * @param <S>    The serialization input & output Type
+     */
+    final class Uno<NODE, S> extends Abstract<S, S, Void, S, NODE> {
+        public Uno(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor) {
+            super(group, name, extractor.andThen(Span::fixedSize));
+        }
+
+        @Override
+        public S remap(S from, @Nullable Void dependency) {
+            return from;
+        }
+
+        @Override
+        public S finish(Span<S> parts) {
+            if (parts.isSingle())
+                return parts.get();
+
+            throw new AssertionError("Span too large");
         }
     }
 
-    public static class Dep<T, C, D> extends VarBind<T, C, Object, Object> {
-        private final BiFunction<D, C, T> resolver;
+    /**
+     * Variable definition with 1 mapping Stage.
+     *
+     * @param <NODE> Serialization Library Type of the serialization Node
+     * @param <S>    The serialization input Type
+     * @param <A>    The mapping output Type
+     */
+    final class Duo<NODE, S, A> extends Abstract<S, A, Void, A, NODE> {
+        private final Function<S, A> remapper;
 
-        public Dep(@Nullable GroupBind group, String name, BiFunction<Object, String, C> extractor, BiFunction<D, C, T> resolver) {
-            super(group, name, extractor, c -> {
-                throw new AssertionError("Unexpected Call");
-            });
+        public Duo(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor, Function<S, A> remapper) {
+            super(group, name, extractor.andThen(Span::fixedSize));
+
+            this.remapper = remapper;
+        }
+
+        @Override
+        public A remap(S from, Void dependency) {
+            return remapper.apply(from);
+        }
+
+        @Override
+        public A finish(Span<A> parts) {
+            if (parts.isSingle())
+                return parts.get();
+
+            throw new AssertionError("Span too large");
+        }
+    }
+
+    /**
+     * Variable definition with 2 mapping Stages, one of which uses an environmentally global variable.
+     *
+     * @param <NODE> Serialization Library Type of the serialization Node
+     * @param <S>    The serialization input Type
+     * @param <A>    The mapping output Type
+     * @param <D>    The dependency Type
+     *
+     * @see VariableCarrier Dependency Type
+     */
+    final class Dep<NODE, S, A, D> extends Abstract<S, A, D, A, NODE> {
+        private final BiFunction<D, S, A> resolver;
+
+        public Dep(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor, BiFunction<D, S, A> resolver) {
+            super(group, name, extractor.andThen(Span::fixedSize));
 
             this.resolver = resolver;
         }
 
-        public T finish(D dependency, C from) {
-            return resolver.apply(dependency, from);
+        @Override
+        public A remap(S from, D dependency) {
+            return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object is null"), from);
+        }
+
+        @Override
+        public A finish(Span<A> parts) {
+            if (parts.isSingle())
+                return parts.get();
+
+            throw new AssertionError("Span too large");
         }
     }
+
+    /**
+     * {@link Collection} building Variable definition with 1 mapping Stage.
+     * Used for deserializing arrays of data.
+     *
+     * @param <NODE> Serialization Library Type of the serialization Node
+     * @param <S>    The serialization input Type
+     * @param <A>    The mapping output Type
+     *
+     * @see Duo
+     */
+    final class LsDuo<NODE, S, A> extends Abstract<S, A, Void, Collection<A>, NODE> {
+        private final Function<S, A> remapper;
+
+        public LsDuo(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor, Function<S, A> remapper) {
+            super(group, name, extractor.andThen(Span::fixedSize));
+
+            this.remapper = remapper;
+        }
+
+        @Override
+        public A remap(S from, Void dependency) {
+            return remapper.apply(from);
+        }
+
+        @Override
+        public Collection<A> finish(Span<A> parts) {
+            return unmodifiableCollection(parts);
+        }
+    }
+
+    /**
+     * {@link Collection} building Variable definition with 2 mapping Stages.
+     * Used for deserializing arrays of data.
+     *
+     * @param <NODE> Serialization Library Type of the serialization Node
+     * @param <S>    The serialization input Type
+     * @param <A>    The mapping output Type
+     * @param <D>    The dependency Type
+     *
+     * @see Dep
+     */
+    final class LsDep<NODE, S, A, D> extends Abstract<S, A, D, Collection<A>, NODE> {
+        private final BiFunction<D, S, A> resolver;
+
+        public LsDep(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor, BiFunction<D, S, A> resolver) {
+            super(group, name, extractor.andThen(Span::fixedSize));
+
+            this.resolver = resolver;
+        }
+
+        @Override
+        public A remap(S from, D dependency) {
+            return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object is null"), from);
+        }
+
+        @Override
+        public Collection<A> finish(Span<A> parts) {
+            return unmodifiableCollection(parts);
+        }
+    }
+
+    /**
+     * {@link Set} building Variable definition with 2 mapping Stages.
+     * Used for deserializing arrays of data.
+     *
+     * @param <NODE> Serialization Library Type of the serialization Node
+     * @param <S>    The serialization input Type
+     * @param <A>    The mapping output Type
+     * @param <D>    The dependency Type
+     *
+     * @see Dep
+     */
+    final class LsIdn<NODE, S, A, D> extends Abstract<S, A, D, Set<A>, NODE> {
+        private final BiFunction<D, S, A> resolver;
+
+        public LsIdn(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor, BiFunction<D, S, A> resolver) {
+            super(group, name, extractor.andThen(Span::fixedSize));
+
+            this.resolver = resolver;
+        }
+
+        @Override
+        public A remap(S from, D dependency) {
+            return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object is null"), from);
+        }
+
+        @Override
+        public Set<A> finish(Span<A> parts) {
+            return unmodifiableSet(new HashSet<>(parts));
+        }
+    }
+    //endregion
 }
