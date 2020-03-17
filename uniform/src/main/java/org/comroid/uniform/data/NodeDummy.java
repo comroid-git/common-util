@@ -7,10 +7,10 @@ public abstract class NodeDummy<SERI extends SeriLib<BAS, OBJ, ARR>, BAS, OBJ ex
     private final SERI seriLib;
     private final TAR node;
 
-    protected NodeDummy(SERI seriLib, TAR node, DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> type) {
+    protected NodeDummy(SERI seriLib, TAR node) {
         this.seriLib = seriLib;
         this.node = node;
-        this.type = type;
+        this.type = seriLib.typeOf(node);
     }
 
     public abstract boolean containsKey(String name);

@@ -11,6 +11,7 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.NodeDummy;
 import org.comroid.uniform.data.SeriLib;
+import org.comroid.varbind.ArrayBind;
 import org.comroid.varbind.GroupBind;
 import org.comroid.varbind.VarBind;
 
@@ -59,7 +60,7 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
             throw new IllegalStateException(String.format("Class %s extends VariableCarrier, but does not have a %s annotation.",
                     inClass.getName(), VarBind.Location.class.getName()));
 
-        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), VarBind.Root.class).get();
+        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class).get();
     }
 
     private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, ?, ?, OBJ>> updateVars(
@@ -69,8 +70,24 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         final HashSet<VarBind<?, ?, DEP, ?, OBJ>> changed = new HashSet<>();
         for (VarBind<?, ?, ?, ?, OBJ> bind : this.rootBind.getChildren()) {
             if (initalData.containsKey(bind.getName())) {
-                ref((VarBind<Object, Object, DEP, Object, OBJ>) bind)
-                        .set((Span<Object>) bind.extract(initalData.obj()));
+                final OBJ obj = initalData.obj();
+                if (bind instanceof ArrayBind) {
+                    final Span<Object> data = seriLib.arrayType.split(obj)
+                            .stream()
+                            .map(bas -> (OBJ) bas)
+                            .map(bind::extract)
+                            .map(Span::get)
+                            //.flatMap(Span::stream) why should we stream here?
+                            .map(Object.class::cast)
+                            .collect(Span.collector(true));
+
+                    ref((VarBind<Object, Object, DEP, Object, OBJ>) bind)
+                            .set(data);
+                } else if (bind instanceof VarBind)
+                    ref((VarBind<Object, Object, DEP, Object, OBJ>) bind)
+                        .set((Span<Object>) bind.extract(obj));
+                else throw new IllegalArgumentException(String.format("Unknown Bind type; expected any of:\n\t-\t%s\n\t-\t%s\n",
+                            VarBind.class.getName(), ArrayBind.class.getName()));
 
                 changed.add((VarBind<?, ?, DEP, ?, OBJ>) bind);
             }

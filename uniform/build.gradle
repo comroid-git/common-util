@@ -65,5 +65,7 @@ dependencies {
     testImplementation project(':util')
     testImplementation sourceSets.java8.output.classesDirs
     testImplementation sourceSets.java11.output.classesDirs
+    testImplementation 'com.alibaba:fastjson:1.2.62'
+    testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
 }
 

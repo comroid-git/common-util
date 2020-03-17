@@ -20,7 +20,7 @@ import static org.comroid.uniform.data.impl.json.fastjson.FastJSONLib.fastJsonLi
 
 @VarBind.Location(Message.Binds.class)
 public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
-    protected Message(DiscordAPI api, JSONObject node) {
+    public Message(DiscordAPI api, JSONObject node) {
         super(fastJsonLib, node, api);
     }
 
@@ -35,7 +35,7 @@ public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
         return wrapVar(Binds.EDITED_TIMESTAMP);
     }
 
-    interface Binds {
+    public interface Binds {
         @VarBind.Root
         GroupBind<JSON, JSONObject, JSONArray> GROUP
                 = new GroupBind<>(fastJsonLib, "message");
@@ -71,7 +71,7 @@ public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
                 = GROUP.bind2Stage("type", Integer.class, Type::new);
     }
 
-    private static class Type {
+    public static class Type {
         public final int value;
 
         private Type(int value) {

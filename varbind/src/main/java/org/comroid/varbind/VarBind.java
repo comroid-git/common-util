@@ -9,6 +9,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
+import org.comroid.uniform.data.SeriLib;
 import org.comroid.varbind.model.VariableCarrier;
 
 import org.jetbrains.annotations.Nullable;
@@ -53,8 +54,13 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
      * @param <S>    The serialization input & output Type
      */
     final class Uno<NODE, S> extends AbstractObjectBind<S, S, Void, S, NODE> {
-        Uno(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor) {
-            super(group, name, extractor.andThen(Span::fixedSize));
+        Uno(
+                Object seriLib,
+                @Nullable GroupBind group,
+                String name,
+                BiFunction<NODE, String, S> extractor
+        ) {
+            super(seriLib, group, name, extractor.andThen(Span::fixedSize));
         }
 
         @Override
@@ -81,8 +87,14 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
     final class Duo<NODE, S, A> extends AbstractObjectBind<S, A, Void, A, NODE> {
         private final Function<S, A> remapper;
 
-        Duo(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor, Function<S, A> remapper) {
-            super(group, name, extractor.andThen(Span::fixedSize));
+        Duo(
+                Object seriLib,
+                @Nullable GroupBind group,
+                String name,
+                BiFunction<NODE, String, S> extractor,
+                Function<S, A> remapper
+        ) {
+            super(seriLib, group, name, extractor.andThen(Span::fixedSize));
 
             this.remapper = remapper;
         }
@@ -114,8 +126,14 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
     final class Dep<NODE, S, A, D> extends AbstractObjectBind<S, A, D, A, NODE> {
         private final BiFunction<D, S, A> resolver;
 
-        Dep(@Nullable GroupBind group, String name, BiFunction<NODE, String, S> extractor, BiFunction<D, S, A> resolver) {
-            super(group, name, extractor.andThen(Span::fixedSize));
+        Dep(
+                Object seriLib,
+                @Nullable GroupBind group,
+                String name,
+                BiFunction<NODE, String, S> extractor,
+                BiFunction<D, S, A> resolver
+        ) {
+            super(seriLib, group, name, extractor.andThen(Span::fixedSize));
 
             this.resolver = resolver;
         }

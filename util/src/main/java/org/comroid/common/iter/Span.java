@@ -6,7 +6,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -17,21 +19,24 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class Span<T> implements Collection<T>, Supplier<T> {
+public class Span<T> implements Collection<T>, Supplier<T> {
     public static final int DEFAULT_INITIAL_CAPACITY = 1;
     public static final NullPolicy DEFAULT_NULL_POLICY = NullPolicy.IGNORE;
     public static final boolean DEFAULT_ALLOW_STRETCHING = true;
+    private static final Span<?> ZeroSize = new Span<>(new Object[0], NullPolicy.IGNORE, false);
 
-    public static <T> Collector<T, ?, Span<T>> collector(boolean fixedSize) {
-        return fixedSize
-                ? Collector.of(ArrayList::new, ArrayList::add, (list, other) -> {
+    public static <T> Collector<T, Collection<T>, Span<T>> collector(final boolean fixedSize) {
+        return Collector.of(
+                Span::new,
+                Collection::add,
+                (list, other) -> {
                     list.addAll(other);
 
                     return list;
                 },
-                (Function<ArrayList<Object>, Span<T>>) objects -> Span.fixedSize((Collection<T>) objects),
-                Collector.Characteristics.IDENTITY_FINISH)
-                : Collectors.toCollection(Span::new);
+                ts -> fixedSize ? Span.fixedSize(ts) : new Span<>(ts),
+                Collector.Characteristics.IDENTITY_FINISH
+        );
     }
 
     public static <T> Span<T> fixedSize(Collection<T> contents) {
@@ -46,6 +51,22 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     public static <T> Span<T> fixedSize(T... contents) {
         return fixedSize(Arrays.asList(contents));
     }
+
+    public static <T> Span<T> fixedSize$NotNull(Collection<T> contents) {
+        return new Span<T>(contents.size(), NullPolicy.PROHIBIT, false) {{
+            addAll(contents);
+        }};
+    }
+
+    @SafeVarargs
+    public static <T> Span<T> fixedSize$NotNull(T... contents) {
+        return fixedSize$NotNull(Arrays.asList(contents));
+    }
+
+    public static <T> Span<T> zeroSize() {
+        return (Span<T>) ZeroSize;
+    }
+
     private final NullPolicy nullPolicy;
     private Object[] data;
     private int last;
@@ -139,7 +160,6 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
 
     @Override
     public @NotNull <A> A[] toArray(@NotNull A[] dummy) {
-        //noinspection unchecked
         return stream()
                 .limit(size())
                 .map(it -> (A) it)
@@ -156,7 +176,8 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
             if (i >= data.length) {
                 adjustArray(i);
                 break;
-            } else i++;
+            }
+            i++;
         }
 
         set(i, item);
@@ -226,7 +247,6 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     @Override
     @Contract(pure = true)
     public Stream<T> stream() {
-        //noinspection unchecked
         return Stream.of(data)
                 .limit(size())
                 .map(it -> (T) it);
@@ -261,8 +281,8 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     private @Nullable T set(int index, @Nullable T next) {
         final int size = size();
 
-        if (index < 0 || (!stretch && index >= size))
-            throw new IndexOutOfBoundsException("Stretching is not allowed here");
+        if (index < 0 || (!stretch && index >= data.length))
+            throw new IndexOutOfBoundsException("Span cannot be resized");
         if (stretch) adjustArray(index);
 
         final T old = value(index);
@@ -303,7 +323,6 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
         return (int) var;
     }
 
-    @SuppressWarnings("unchecked")
     private @Nullable T value(int index) {
         if (index >= size())
             return null;
