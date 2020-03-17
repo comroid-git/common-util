@@ -9,12 +9,12 @@ import com.alibaba.fastjson.JSONObject;
 
 import static org.comroid.uniform.data.impl.json.fastjson.FastJSONLib.fastJsonLib;
 
-public class Reaction extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
-    protected Reaction(DiscordAPI dependencyObject, JSONObject data) {
+public class Role extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
+    protected Role(DiscordAPI dependencyObject, JSONObject data) {
         super(fastJsonLib, data, dependencyObject);
     }
 
     public interface Binds {
-        GroupBind<JSON, JSONObject, JSONArray> GROUP = new GroupBind<>(fastJsonLib, "reaction");
+        GroupBind<JSON, JSONObject, JSONArray> GROUP = new GroupBind<>(fastJsonLib, "role");
     }
 }

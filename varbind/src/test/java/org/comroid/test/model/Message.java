@@ -1,8 +1,12 @@
 package org.comroid.test.model;
 
+import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
+import org.comroid.common.Polyfill;
 import org.comroid.varbind.ArrayBind;
 import org.comroid.varbind.GroupBind;
 import org.comroid.varbind.VarBind;
@@ -20,10 +24,58 @@ public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
         super(fastJsonLib, node, api);
     }
 
+    // get for non-optional field
+    public final long getID() {
+        return getVar(Binds.ID);
+    }
+
+    // getter for optional field
+    public final Optional<Instant> getEditedTimestamp() {
+        // if wrapVar is not used, getVar might return null
+        return wrapVar(Binds.EDITED_TIMESTAMP);
+    }
+
     interface Binds {
         @VarBind.Root
-        GroupBind<JSON, JSONObject, JSONArray> MESSAGE_BIND = new GroupBind<>(fastJsonLib, "message");
-        VarBind.Uno<JSONObject, Long> ID = MESSAGE_BIND.bind1Stage("id", Long.class);
-        ArrayBind.Dep<JSONObject, JSONObject, Reaction, DiscordAPI, Collection<Reaction>> REACTIONS = MESSAGE_BIND.listDependent("reactions", JSONObject.class, Reaction.Binds.GROUP.autoRemapper(Reaction.class, DiscordAPI.class), ArrayList::new);
+        GroupBind<JSON, JSONObject, JSONArray> GROUP
+                = new GroupBind<>(fastJsonLib, "message");
+        ArrayBind.Duo<JSONObject, String, URL, Collection<URL>> ATTACHMENTS
+                = GROUP.list2Stage("attachments", String.class, spec -> Polyfill.url(spec), ArrayList::new);
+        ArrayBind.Dep<JSONObject, JSONObject, Reaction, DiscordAPI, Collection<Reaction>> REACTIONS
+                = GROUP.listDependent("reactions", JSONObject.class, Reaction.Binds.GROUP.autoRemapper(Reaction.class, DiscordAPI.class), ArrayList::new);
+        VarBind.Uno<JSONObject, Boolean> TTS
+                = GROUP.bind1Stage("tts", Boolean.class);
+        ArrayBind.Dep<JSONObject, JSONObject, Embed, DiscordAPI, Collection<Embed>> EMBEDS
+                = GROUP.listDependent("embeds", JSONObject.class, Embed.Binds.GROUP.autoRemapper(Embed.class, DiscordAPI.class), ArrayList::new);
+        VarBind.Duo<JSONObject, String, Instant> TIMESTAMP
+                = GROUP.bind2Stage("timestamp", String.class, Instant::parse);
+        VarBind.Uno<JSONObject, Boolean> MENTIONS_EVERYONE
+                = GROUP.bind1Stage("mention_everyone", Boolean.class);
+        VarBind.Uno<JSONObject, Long> ID
+                = GROUP.bind1Stage("id", Long.class);
+        VarBind.Uno<JSONObject, Boolean> PINNED
+                = GROUP.bind1Stage("pinned", Boolean.class);
+        VarBind.Duo<JSONObject, String, Instant> EDITED_TIMESTAMP
+                = GROUP.bind2Stage("edited_timestamp", String.class, Instant::parse);
+        VarBind.Dep<JSONObject, JSONObject, User, DiscordAPI> AUTHOR
+                = GROUP.bindDependent("author", JSONObject.class, User.Binds.GROUP.autoRemapper(User.class, DiscordAPI.class));
+        ArrayBind.Dep<JSONObject, JSONObject, Role, DiscordAPI, Collection<Role>> MENTIONED_ROLES
+                = GROUP.listDependent("mentioned_roles", JSONObject.class, Role.Binds.GROUP.autoRemapper(Role.class, DiscordAPI.class), ArrayList::new);
+        VarBind.Uno<JSONObject, String> CONTENT
+                = GROUP.bind1Stage("content", String.class);
+        VarBind.Dep<JSONObject, Long, Channel, DiscordAPI> CHANNEL
+                = GROUP.bindDependent("channel_id", Long.class, DiscordAPI::getChannelById);
+        ArrayBind.Dep<JSONObject, JSONObject, User, DiscordAPI, Collection<User>> MENTIONED_USERS
+                = GROUP.listDependent("mentions", JSONObject.class, User.Binds.GROUP.autoRemapper(User.class, DiscordAPI.class), ArrayList::new);
+        VarBind.Duo<JSONObject, Integer, Message.Type> TYPE
+                = GROUP.bind2Stage("type", Integer.class, Type::new);
+    }
+
+    private static class Type {
+        public final int value;
+
+        private Type(int value) {
+            this.value = value;
+        }
     }
 }

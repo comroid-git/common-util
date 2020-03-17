@@ -63,7 +63,7 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
 
         return elements.stream()
                 .map(getConverter()::forward)
-                .collect(Span.collector());
+                .collect(Span.collector(false));
     }
 
     public String serialize(Span<TAR> data) {
@@ -82,7 +82,7 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
             case ARRAY:
                 elements = data.stream()
                         .map(getConverter()::backward)
-                        .collect(Span.collector());
+                        .collect(Span.collector(false));
 
                 break;
         }

@@ -23,9 +23,9 @@ import static org.comroid.common.Polyfill.deadCast;
 
 public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     private final SeriLib<BAS, OBJ, ? extends BAS> seriLib;
-    private final Map<VarBind<?, ?, DEP, ?, OBJ>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
-    private final GroupBind<BAS, OBJ, ?> binds;
-    private final Set<VarBind<?, ?, DEP, ?, OBJ>> initiallySet;
+    private final Map<VarBind<?, ?, ?, ?, OBJ>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
+    private final GroupBind<BAS, OBJ, ?> rootBind;
+    private final Set<VarBind<?, ?, ?, ?, OBJ>> initiallySet;
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<DEP> dependencyObject;
 
@@ -43,9 +43,13 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
             @Nullable DEP dependencyObject
     ) {
         this.seriLib = seriLib;
-        this.binds = findRootBind(getClass());
-        this.initiallySet = initializeVariables(seriLib.dummy(node));
+        this.rootBind = findRootBind(getClass());
+        this.initiallySet = updateVars(seriLib.dummy(node));
         this.dependencyObject = Optional.ofNullable(dependencyObject);
+    }
+
+    public final Set<VarBind<?, ?, ?, ?, OBJ>> updateFrom(OBJ node) {
+        return updateVars(seriLib.dummy(node));
     }
 
     private <ARR extends BAS> GroupBind<BAS, OBJ, ARR> findRootBind(Class<? extends VariableCarrier> inClass) {
@@ -58,24 +62,24 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), VarBind.Root.class).get();
     }
 
-    private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, DEP, ?, OBJ>> initializeVariables(
+    private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, ?, ?, OBJ>> updateVars(
             @Nullable NodeDummy<SERI, BAS, OBJ, ARR, TAR> initalData) {
         if (initalData == null) return emptySet();
 
-        final HashSet<VarBind<?, ?, DEP, ?, OBJ>> initialized = new HashSet<>();
-        for (VarBind<?, ?, ?, ?, OBJ> bind : this.binds.getChildren()) {
+        final HashSet<VarBind<?, ?, DEP, ?, OBJ>> changed = new HashSet<>();
+        for (VarBind<?, ?, ?, ?, OBJ> bind : this.rootBind.getChildren()) {
             if (initalData.containsKey(bind.getName())) {
                 ref((VarBind<Object, Object, DEP, Object, OBJ>) bind)
                         .set((Span<Object>) bind.extract(initalData.obj()));
 
-                initialized.add((VarBind<?, ?, DEP, ?, OBJ>) bind);
+                changed.add((VarBind<?, ?, DEP, ?, OBJ>) bind);
             }
         }
 
-        return unmodifiableSet(initialized);
+        return unmodifiableSet(changed);
     }
 
-    private <C> AtomicReference<Span<C>> ref(VarBind<C, ?, DEP, ?, OBJ> bind) {
+    private <C> AtomicReference<Span<C>> ref(VarBind<C, ?, ?, ?, OBJ> bind) {
         return deadCast(vars.computeIfAbsent(bind, key ->
                 deadCast(new AtomicReference<>(new Span<C>(1, Span.NullPolicy.IGNORE, false)))));
     }
@@ -85,21 +89,21 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     }
 
     public final GroupBind<BAS, OBJ, ?> getBindings() {
-        return binds;
+        return rootBind;
     }
 
-    public final Set<VarBind<?, ?, DEP, ?, OBJ>> initiallySet() {
+    public final Set<VarBind<?, ?, ?, ?, OBJ>> initiallySet() {
         return initiallySet;
     }
 
-    public final <T, A, R> @Nullable R getVar(VarBind<T, A, DEP, R, OBJ> bind) {
+    public final <T, A, R> @Nullable R getVar(VarBind<T, A, ?, R, OBJ> bind) {
         return bind.finish(ref(bind).get()
                 .stream()
-                .map(it -> bind.remap(it, dependencyObject.orElse(null)))
-                .collect(Span.collector()));
+                .map(it -> it == null ? null : bind.remap(it, deadCast(dependencyObject.orElse(null))))
+                .collect(Span.collector(true)));
     }
 
-    public final <T, A, R> @NotNull Optional<R> wrapVar(VarBind<T, A, DEP, R, OBJ> bind) {
+    public final <T, A, R> @NotNull Optional<R> wrapVar(VarBind<T, A, ?, R, OBJ> bind) {
         return Optional.ofNullable(getVar(bind));
     }
 }

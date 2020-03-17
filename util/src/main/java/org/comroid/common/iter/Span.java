@@ -1,11 +1,13 @@
 package org.comroid.common.iter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -20,12 +22,31 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
     public static final NullPolicy DEFAULT_NULL_POLICY = NullPolicy.IGNORE;
     public static final boolean DEFAULT_ALLOW_STRETCHING = true;
 
-    public static <T> Collector<T, ?, Span<T>> collector() {
-        return Collectors.toCollection(Span::new);
+    public static <T> Collector<T, ?, Span<T>> collector(boolean fixedSize) {
+        return fixedSize
+                ? Collector.of(ArrayList::new, ArrayList::add, (list, other) -> {
+                    list.addAll(other);
+
+                    return list;
+                },
+                (Function<ArrayList<Object>, Span<T>>) objects -> Span.fixedSize((Collection<T>) objects),
+                Collector.Characteristics.IDENTITY_FINISH)
+                : Collectors.toCollection(Span::new);
     }
 
-    private final NullPolicy nullPolicy;
+    public static <T> Span<T> fixedSize(Collection<T> contents) {
+        final Span<T> span = new Span<>(contents.size(), NullPolicy.IGNORE, false);
 
+        span.addAll(contents);
+
+        return span;
+    }
+
+    @SafeVarargs
+    public static <T> Span<T> fixedSize(T... contents) {
+        return fixedSize(Arrays.asList(contents));
+    }
+    private final NullPolicy nullPolicy;
     private Object[] data;
     private int last;
     private boolean stretch;
@@ -55,19 +76,6 @@ public final class Span<T> implements Collection<T>, Supplier<T> {
         this.data = data;
         this.last = 0;
         this.stretch = allowStretching;
-    }
-
-    public static <T> Span<T> fixedSize(Collection<T> contents) {
-        final Span<T> span = new Span<>(contents.size(), NullPolicy.IGNORE, false);
-
-        span.addAll(contents);
-
-        return span;
-    }
-
-    @SafeVarargs
-    public static <T> Span<T> fixedSize(T... contents) {
-        return fixedSize(Arrays.asList(contents));
     }
 
     public boolean isSingle() {
