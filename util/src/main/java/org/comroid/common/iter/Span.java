@@ -14,6 +14,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -24,17 +25,14 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.lang.Math.max;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
-    @Deprecated
-    public static final int DEFAULT_INITIAL_CAPACITY = 1;
-    @Deprecated
-    public static final NullPolicy DEFAULT_NULL_POLICY = NullPolicy.IGNORE;
-    @Deprecated
-    public static final boolean DEFAULT_ALLOW_STRETCHING = true;
-    private static final Span<?> ZeroSize = new Span<>(new Object[0], NullPolicy.IGNORE, false);
+    public static final int DEFAULT_INITIAL_CAPACITY = 0;
+    public static final NullPolicy DEFAULT_NULL_POLICY = NullPolicy.DEFAULT;
+    public static final boolean DEFAULT_FIXED_SIZE = false;
 
     @Deprecated
     public static <T> Collector<T, Collection<T>, Span<T>> collector(final boolean fixedSize) {
@@ -62,7 +60,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
                     return list;
                 },
                 ts -> {
-                    final Span span = new Span<>(ts.size(), dummy.nullPolicy, dummy.stretch);
+                    final Span span = new Span<>(ts.size(), dummy.nullPolicy, dummy.fixedSize);
                     span.addAll(ts);
                     return span;
                 },
@@ -107,13 +105,19 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
     }
 
     private final NullPolicy nullPolicy;
+    private final Object dataLock = new Object() {
+        private volatile Object selfaware_keepalive = Span.this.dataLock;
+    };
     private Object[] data;
     private int last;
-    private boolean stretch;
+    private boolean fixedSize;
 
-    @Deprecated
     public Span() {
-        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_NULL_POLICY, DEFAULT_ALLOW_STRETCHING);
+        this(
+                new Object[DEFAULT_INITIAL_CAPACITY],
+                DEFAULT_NULL_POLICY,
+                DEFAULT_FIXED_SIZE
+        );
     }
 
     @SafeVarargs
@@ -124,14 +128,14 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
 
     @Deprecated
     public Span(Collection<T> initialValues) {
-        this(initialValues.size(), DEFAULT_NULL_POLICY, DEFAULT_ALLOW_STRETCHING);
+        this(initialValues.size(), DEFAULT_NULL_POLICY, DEFAULT_FIXED_SIZE);
 
         addAll(initialValues);
     }
 
     @Deprecated
     public Span(int initialCapacity, NullPolicy nullPolicy, boolean fixedSize) {
-        this(new Object[Math.max(initialCapacity, 1)], nullPolicy, fixedSize);
+        this(new Object[max(initialCapacity, 1)], nullPolicy, fixedSize);
     }
 
     private Span(Object[] data, NullPolicy nullPolicy, boolean fixedSize) {
@@ -139,7 +143,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
 
         this.data = data;
         this.last = data.length;
-        this.stretch = !fixedSize;
+        this.fixedSize = fixedSize;
     }
 
     public boolean isSingle() {
@@ -201,7 +205,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
 
             @Override
             public T next() {
-                final T value = value(i++);
+                final T value = valueAt(i++);
 
                 if (!nullPolicy.canIterate(value))
                     return next();
@@ -229,9 +233,9 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
     @Override
     @Contract(mutates = "this")
     public boolean add(T item) {
-        int i = 0;
+        int i = data.length;
 
-        while (!nullPolicy.canOverwrite(value(i), item)) {
+        while (!nullPolicy.canOverwrite(valueAt(i), item)) {
             if (i >= data.length) {
                 adjustArray(i);
                 break;
@@ -296,15 +300,6 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         removeAll(this);
     }
 
-    @Contract(mutates = "this")
-    public void sort(Comparator<T> comparator) {
-        data = stream()
-                .sorted(comparator)
-                .toArray();
-
-        cleanup();
-    }
-
     @Override
     @Contract(pure = true)
     public Stream<T> stream() {
@@ -313,11 +308,22 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
                 .map(it -> (T) it);
     }
 
+    @Contract(mutates = "this")
+    public void sort(Comparator<T> comparator) {
+        synchronized (dataLock) {
+            data = stream()
+                    .sorted(comparator)
+                    .toArray();
+        }
+
+        cleanup();
+    }
+
     public boolean remove(Object item, boolean force) {
         boolean yield = false;
 
         for (int i = 0; i < size(); i++) {
-            final T it = value(i);
+            final T it = valueAt(i);
 
             if (item.equals(it)) {
                 replace(i, null, force);
@@ -331,20 +337,23 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
     }
 
     @Contract(mutates = "this")
-    public void cleanup() {
-        data = Stream.of(data)
-                .filter(it -> !nullPolicy.canCleanup(it))
-                .toArray(Object[]::new);
+    public synchronized void cleanup() {
+        synchronized (dataLock) {
+            data = Stream.of(data)
+                    .filter(it -> !nullPolicy.canCleanup(it))
+                    .toArray(Object[]::new);
 
-        last = data.length;
+            last = data.length;
 
-        if (stretch) trimArray(last);
+            if (!fixedSize)
+                trimArray(last);
+        }
     }
 
     @Contract(mutates = "this")
     public boolean append(T item) {
         if (!nullPolicy.canInitialize(item))
-            nullPolicy.fail();
+            nullPolicy.fail(String.format("Cannot initialize %s @ index: %d; array length: %d", item, last + 1, data.length));
 
         this.replace(++last, item, false);
 
@@ -384,43 +393,58 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
     public @Nullable T replace(int index, @Nullable T next, boolean force) {
         final int size = size();
 
-        if (index < 0 || (!stretch && index >= data.length))
-            throw new IndexOutOfBoundsException("Span cannot be resized");
-        if (stretch) adjustArray(index);
+        adjustArray(index);
 
-        final T old = value(index);
+        final T old = valueAt(index);
 
-        if (!nullPolicy.canOverwrite(old, next))
-            nullPolicy.fail();
+        if (force || !nullPolicy.canOverwrite(old, next))
+            nullPolicy.fail(String.format("Cannot overwrite %s with %s", old, next));
 
-        data[index] = next;
+        synchronized (dataLock) {
+            data[index] = next;
+        }
 
         if (index >= last)
             last = index;
-        cleanup();
 
         return old;
     }
 
-    private int adjustArray(int index) {
-        if (data.length > index)
-            return 0;
+    private int adjustArray(int lastIndex) {
+        if (fixedSize)
+            throw new IndexOutOfBoundsException("Span cannot be resized");
 
-        int c = 0;
-        while (enlargeArray() < index)
-            c++;
+        int diff = data.length;
 
-        return c;
+        if (lastIndex > data.length - 1) {
+            do {
+                enlargeArray();
+            } while (lastIndex > data.length - 1);
+
+            diff = data.length - diff;
+        } else if (lastIndex < data.length) {
+            trimArray(lastIndex);
+
+            diff = diff - data.length;
+        } else return 0;
+
+        return diff;
     }
 
     private int enlargeArray() {
-        data = Arrays.copyOf(data, intLimit(Math.max(1, data.length * 2)));
+        synchronized (dataLock) {
+            final int newLength = intLimit(enlargementOp.applyAsInt(data.length));
 
-        return data.length;
+            data = Arrays.copyOf(data, newLength);
+
+            return data.length;
+        }
     }
 
     private int trimArray(int toSize) {
-        data = Arrays.copyOf(data, toSize);
+        synchronized (dataLock) {
+            data = Arrays.copyOf(data, toSize);
+        }
 
         return data.length;
     }
@@ -437,18 +461,21 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         return (int) var;
     }
 
-    private @Nullable T value(int index) {
+    private @Nullable T valueAt(int index) {
         if (index >= size())
             return null;
 
         return (T) data[index];
     }
 
+    private static final Span<?> ZeroSize = new Span<>(new Object[0], NullPolicy.IGNORE, false);
+    private static final IntUnaryOperator enlargementOp = x -> (x + 4) % 5;
+
     public static final class API<T> {
         private final Collection<T> initialValues = new ArrayList<>();
         private int initialSize = DEFAULT_INITIAL_CAPACITY;
         private NullPolicy nullPolicy = DEFAULT_NULL_POLICY;
-        private boolean fixedSize = DEFAULT_ALLOW_STRETCHING;
+        private boolean fixedSize = DEFAULT_FIXED_SIZE;
 
         @Contract(value = "_ -> this", mutates = "this")
         public API<T> initialSize(int initialSize) {
@@ -552,12 +579,24 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
     public enum NullPolicy {
         /**
          * Nulls are ignored.
+         * Requires external index and size management using {@link #replace(int, Object, boolean)}
+         * using the {@code force} parameter and {@link #cleanup()}.
          */
         IGNORE(
                 init -> true,
                 iterate -> true,
                 (overwriting, with) -> true,
-                cleanup -> false
+                cleanup -> isNull(cleanup)
+        ),
+
+        /**
+         * Nulls are removed on {@link Span#cleanup()}.
+         */
+        DEFAULT(
+                init -> true,
+                iterate -> true,
+                (overwriting, with) -> isNull(overwriting),
+                cleanup -> isNull(cleanup)
         ),
 
         /**
@@ -571,22 +610,12 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         ),
 
         /**
-         * Nulls are removed on {@link Span#cleanup()}.
-         */
-        CLEANUP_NULLS(
-                init -> true,
-                iterate -> true,
-                (overwriting, with) -> true,
-                cleanup -> isNull(cleanup)
-        ),
-
-        /**
          * Skip nulls in iteration, but don't prohibit any actions.
          */
         SKIP_ON_ITERATE(
                 init -> true,
                 iterate -> nonNull(iterate),
-                (overwriting, with) -> true,
+                (overwriting, with) -> isNull(overwriting),
                 cleanup -> isNull(cleanup)
         ),
 
@@ -620,7 +649,6 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
                 cleanup -> isNull(cleanup)
         );
 
-        private final static Object dummy = new Object();
         private final Predicate<Object> initVarTester;
         private final Predicate<Object> iterateVarTester;
         private final BiPredicate<Object, Object> overwriteTester;
@@ -655,8 +683,10 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
             return cleanupTester.test(var);
         }
 
-        public void fail() throws NullPointerException {
-            throw new NullPointerException(String.format("NullPolicy %s was violated", name()));
+        public void fail(String message) throws NullPointerException {
+            throw new NullPointerException(String.format("NullPolicy %s was violated: %s", name(), message));
         }
+
+        private final static Object dummy = new Object();
     }
 }

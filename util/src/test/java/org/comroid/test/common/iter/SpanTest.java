@@ -2,6 +2,7 @@ package org.comroid.test.common.iter;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,10 +24,10 @@ public class SpanTest {
     private List<Pair<String, Integer>> generated;
 
     @Test
-    public void testPolicy$OverwriteOnly() {
+    public void testDefaults() {
         this.span = Span.<String>api()
                 .initialSize(1) // default value
-                .nullPolicy(Span.NullPolicy.OVERWRITE_ONLY)
+                .nullPolicy(Span.NullPolicy.DEFAULT) // default value
                 .fixedSize(false) // default value
                 .span();
 
