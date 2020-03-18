@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -238,27 +239,14 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
             i++;
         }
 
-        set(i, item);
+        replace(i, item, false);
         return true;
     }
 
     @Override
     @Contract(mutates = "this")
     public boolean remove(Object item) {
-        boolean yield = false;
-
-        for (int i = 0; i < size(); i++) {
-            final T it = value(i);
-
-            if (item.equals(it)) {
-                set(i, null);
-                yield = true;
-            }
-        }
-
-        System.out.printf("..%b\n", yield);
-
-        return yield;
+        return remove(item, false);
     }
 
     @Override
@@ -308,12 +296,38 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         removeAll(this);
     }
 
+    @Contract(mutates = "this")
+    public void sort(Comparator<T> comparator) {
+        data = stream()
+                .sorted(comparator)
+                .toArray();
+
+        cleanup();
+    }
+
     @Override
     @Contract(pure = true)
     public Stream<T> stream() {
         return Stream.of(data)
                 .limit(size())
                 .map(it -> (T) it);
+    }
+
+    public boolean remove(Object item, boolean force) {
+        boolean yield = false;
+
+        for (int i = 0; i < size(); i++) {
+            final T it = value(i);
+
+            if (item.equals(it)) {
+                replace(i, null, force);
+                yield = true;
+            }
+        }
+
+        System.out.printf("..%b\n", yield);
+
+        return yield;
     }
 
     @Contract(mutates = "this")
@@ -332,7 +346,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         if (!nullPolicy.canInitialize(item))
             nullPolicy.fail();
 
-        this.set(++last, item);
+        this.replace(++last, item, false);
 
         return true;
     }
@@ -367,7 +381,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         return String.format("Span{nullPolicy=%s, data=%s}", nullPolicy, Arrays.toString(data));
     }
 
-    private @Nullable T set(int index, @Nullable T next) {
+    public @Nullable T replace(int index, @Nullable T next, boolean force) {
         final int size = size();
 
         if (index < 0 || (!stretch && index >= data.length))
@@ -441,12 +455,6 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
             this.initialSize = initialSize;
 
             return this;
-        }
-
-        @SafeVarargs
-        @Contract(value = "_ -> this", mutates = "this")
-        public final API<T> initialValues(T... values) {
-            return initialValues(Arrays.asList(values));
         }
 
         @Contract(value = "_ -> this", mutates = "this")
@@ -532,6 +540,12 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
 
             return new SpanCollector(initialValues, nullPolicy, fixedSize);
         }
+
+        @SafeVarargs
+        @Contract(value = "_ -> this", mutates = "this")
+        public final API<T> initialValues(T... values) {
+            return initialValues(Arrays.asList(values));
+        }
     }
 
     @SuppressWarnings("Convert2MethodRef")
@@ -592,7 +606,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         OVERWRITE_ONLY(
                 init -> nonNull(init),
                 iterate -> nonNull(iterate),
-                (overwriting, with) -> true,
+                (overwriting, with) -> isNull(overwriting),
                 cleanup -> isNull(cleanup)
         ),
 

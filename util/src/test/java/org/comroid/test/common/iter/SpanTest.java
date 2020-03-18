@@ -23,11 +23,11 @@ public class SpanTest {
     private List<Pair<String, Integer>> generated;
 
     @Test
-    public void testSpan() {
+    public void testPolicy$OverwriteOnly() {
         this.span = Span.<String>api()
-                .initialSize(1)
+                .initialSize(1) // default value
                 .nullPolicy(Span.NullPolicy.OVERWRITE_ONLY)
-                .fixedSize(false)
+                .fixedSize(false) // default value
                 .span();
 
         this.generated = IntStream.range(0, bound)
