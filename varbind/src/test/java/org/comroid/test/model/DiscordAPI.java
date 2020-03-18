@@ -10,4 +10,8 @@ public class DiscordAPI {
     public User parseUser(JSONObject data) {
         return new User(this, data);
     }
+
+    public Reaction parseReaction(JSONObject node) {
+        return new Reaction(this, node);
+    }
 }

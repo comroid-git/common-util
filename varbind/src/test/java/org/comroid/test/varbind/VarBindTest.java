@@ -2,7 +2,6 @@ package org.comroid.test.varbind;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.time.Instant;
 import java.util.stream.Collectors;
 
 import org.comroid.test.model.DiscordAPI;
@@ -16,7 +15,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class VarBindTest {
     Message message;
@@ -33,13 +31,13 @@ public class VarBindTest {
     @Test
     public void testGetters() {
         assertEquals(1, message.getVar(Message.Binds.REACTIONS).size());
-        assertEquals(0, message.getVar(Message.Binds.ATTACHMENTS).size());
         assertFalse(message.getVar(Message.Binds.TTS));
-        assertEquals(0, message.getVar(Message.Binds.EMBEDS).size());
-        assertTrue(message.getVar(Message.Binds.TIMESTAMP).isBefore(Instant.parse("2017-07-10T17:27:07.299000+00:00")));
+        assertFalse(message.getVar(Message.Binds.TIMESTAMP).isEmpty());
         assertFalse(message.getVar(Message.Binds.MENTIONS_EVERYONE));
         assertEquals(334385199974967042L, message.getID());
         assertFalse(message.getVar(Message.Binds.PINNED));
+        assertEquals(0, message.getVar(Message.Binds.EMBEDS).size());
+        assertEquals(0, message.getVar(Message.Binds.ATTACHMENTS).size());
         assertFalse(message.getEditedTimestamp().isPresent());
         assertNotNull(message.getVar(Message.Binds.AUTHOR));
         assertEquals(0, message.getVar(Message.Binds.MENTIONED_ROLES).size());

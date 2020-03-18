@@ -2,6 +2,7 @@ package org.comroid.varbind.model;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,7 +61,8 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
             throw new IllegalStateException(String.format("Class %s extends VariableCarrier, but does not have a %s annotation.",
                     inClass.getName(), VarBind.Location.class.getName()));
 
-        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class).get();
+        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class)
+                .getAssert();
     }
 
     private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, ?, ?, OBJ>> updateVars(
@@ -71,13 +73,13 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         for (VarBind<?, ?, ?, ?, OBJ> bind : this.rootBind.getChildren()) {
             if (initalData.containsKey(bind.getName())) {
                 final OBJ obj = initalData.obj();
+
                 if (bind instanceof ArrayBind) {
                     final Span<Object> data = seriLib.arrayType.split(obj)
                             .stream()
                             .map(bas -> (OBJ) bas)
                             .map(bind::extract)
-                            .map(Span::get)
-                            //.flatMap(Span::stream) why should we stream here?
+                            .flatMap(Span::stream)
                             .map(Object.class::cast)
                             .collect(Span.collector(true));
 
@@ -114,10 +116,17 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     }
 
     public final <T, A, R> @Nullable R getVar(VarBind<T, A, ?, R, OBJ> bind) {
-        return bind.finish(ref(bind).get()
+        final Span<A> span = ref(bind)
+                .get()
                 .stream()
                 .map(it -> it == null ? null : bind.remap(it, deadCast(dependencyObject.orElse(null))))
-                .collect(Span.collector(true)));
+                .filter(Objects::nonNull)
+                .collect(Span.<A>api()
+                        .nullPolicy(Span.NullPolicy.SKIP)
+                        .fixedSize(true)
+                        .collector());
+
+        return bind.finish(span);
     }
 
     public final <T, A, R> @NotNull Optional<R> wrapVar(VarBind<T, A, ?, R, OBJ> bind) {

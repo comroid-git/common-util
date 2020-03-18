@@ -29,8 +29,6 @@ public final class OrgJsonLib extends SeriLib<Object, JSONObject, JSONArray> {
 
             throw new AssertionError();
         });
-
-        ReflectionHelper.verifyClassDependencies(OrgJsonLib.class);
     }
 
     @Override
@@ -47,6 +45,7 @@ public final class OrgJsonLib extends SeriLib<Object, JSONObject, JSONArray> {
             public <T> T getValueAs(String fieldName, Class<T> targetType) {
                 return process(obj -> (T) obj.get(fieldName), arr -> {
                     // todo
+                    return null;
                 });
             }
         };

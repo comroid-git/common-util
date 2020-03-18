@@ -109,7 +109,10 @@ public final class ReflectionHelper {
             }
         }
 
-        return Span.fixedSize$NotNull(values);
+        return Span.<T>api()
+                .initialValues(values)
+                .fixedSize(true)
+                .span();
     }
 
     public static <T> Optional<Constructor<T>> findConstructor(Class<T> inClass, Class<?>[] types) {

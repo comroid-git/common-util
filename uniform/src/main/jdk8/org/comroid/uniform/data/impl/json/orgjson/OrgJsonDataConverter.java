@@ -38,7 +38,7 @@ public class OrgJsonDataConverter<T> extends DataConverter<T, Object, JSONObject
 
     @Override
     public Collection<Object> split(JSONArray data) {
-        final Span<Object> yields = new Span<>(data.length(), Span.NullPolicy.PROHIBIT, false);
+        final Span<Object> yields = new Span<>(data.length(), Span.NullPolicy.SKIP_ON_ITERATE, false);
 
         data.forEach(yields::add);
 

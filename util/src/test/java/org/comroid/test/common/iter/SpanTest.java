@@ -24,7 +24,11 @@ public class SpanTest {
 
     @Test
     public void testSpan() {
-        this.span = new Span<>(1, Span.NullPolicy.SKIP, true);
+        this.span = Span.<String>api()
+                .initialSize(1)
+                .nullPolicy(Span.NullPolicy.OVERWRITE_ONLY)
+                .fixedSize(false)
+                .span();
 
         this.generated = IntStream.range(0, bound)
                 .mapToObj(c -> UUID.randomUUID().toString())
@@ -44,7 +48,12 @@ public class SpanTest {
                 .sequential()
                 .mapToObj(nil -> randomGenerated())
                 .collect(Collectors.toList());
-        assertTrue(span.removeAll(remove));
+
+        int c = 0;
+        for (String it : remove)
+            if (span.remove(it)) c++;
+
+        assertEquals(remove.size(), c);
         assertEquals((bound -= 10), span.size());
     }
 

@@ -44,7 +44,7 @@ abstract class AbstractObjectBind<S, A, D, R, NODE> implements VarBind<S, A, D, 
         return String.format("VarBind@%s", getPath());
     }
 
-    private String getPath() {
+    public final String getPath() {
         return getGroup().map(groupBind -> groupBind.getName() + ".").orElse("") + name;
     }
 

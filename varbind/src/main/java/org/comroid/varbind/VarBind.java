@@ -9,7 +9,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.SeriLib;
 import org.comroid.varbind.model.VariableCarrier;
 
 import org.jetbrains.annotations.Nullable;
@@ -53,25 +52,29 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
      * @param <NODE> Serialization Library Type of the serialization Node
      * @param <S>    The serialization input & output Type
      */
-    final class Uno<NODE, S> extends AbstractObjectBind<S, S, Void, S, NODE> {
+    final class Uno<NODE, S> extends AbstractObjectBind<S, S, Object, S, NODE> {
         Uno(
                 Object seriLib,
                 @Nullable GroupBind group,
                 String name,
                 BiFunction<NODE, String, S> extractor
         ) {
-            super(seriLib, group, name, extractor.andThen(Span::fixedSize));
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>api()
+                    .initialValues(it)
+                    .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
+                    .fixedSize(true)
+                    .span()));
         }
 
         @Override
-        public final S remap(S from, @Nullable Void dependency) {
+        public final S remap(S from, @Nullable Object dependency) {
             return from;
         }
 
         @Override
         public final S finish(Span<S> parts) {
             if (parts.isSingle())
-                return parts.get();
+                return parts.get().orElse(null);
 
             throw new AssertionError("Span too large");
         }
@@ -84,7 +87,7 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
      * @param <S>    The serialization input Type
      * @param <A>    The mapping output Type
      */
-    final class Duo<NODE, S, A> extends AbstractObjectBind<S, A, Void, A, NODE> {
+    final class Duo<NODE, S, A> extends AbstractObjectBind<S, A, Object, A, NODE> {
         private final Function<S, A> remapper;
 
         Duo(
@@ -94,20 +97,24 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 BiFunction<NODE, String, S> extractor,
                 Function<S, A> remapper
         ) {
-            super(seriLib, group, name, extractor.andThen(Span::fixedSize));
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>api()
+                    .initialValues(it)
+                    .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
+                    .fixedSize(true)
+                    .span()));
 
             this.remapper = remapper;
         }
 
         @Override
-        public final A remap(S from, Void dependency) {
+        public final A remap(S from, Object dependency) {
             return remapper.apply(from);
         }
 
         @Override
         public final A finish(Span<A> parts) {
             if (parts.isSingle())
-                return parts.get();
+                return parts.getAssert();
 
             throw new AssertionError("Span too large");
         }
@@ -133,7 +140,11 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 BiFunction<NODE, String, S> extractor,
                 BiFunction<D, S, A> resolver
         ) {
-            super(seriLib, group, name, extractor.andThen(Span::fixedSize));
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>api()
+                    .initialValues(it)
+                    .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
+                    .fixedSize(true)
+                    .span()));
 
             this.resolver = resolver;
         }
@@ -146,7 +157,7 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
         @Override
         public final A finish(Span<A> parts) {
             if (parts.isSingle())
-                return parts.get();
+                return parts.getAssert();
 
             throw new AssertionError("Span too large");
         }

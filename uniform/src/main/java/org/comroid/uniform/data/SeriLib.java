@@ -57,6 +57,8 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         this.objectType = objectType;
         this.arrayType = arrayType;
         this.arrayExtractor = arrayExtractor;
+
+        ReflectionHelper.verifyClassDependencies(getClass());
     }
 
     protected SeriLib(

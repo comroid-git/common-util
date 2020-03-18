@@ -41,8 +41,6 @@ public final class JacksonLib extends SeriLib<JsonNode, ObjectNode, ArrayNode> {
             array.forEach(objects::add);
             return objects;
         });
-
-        ReflectionHelper.verifyClassDependencies(JacksonLib.class);
     }
 
     @Override
@@ -59,6 +57,7 @@ public final class JacksonLib extends SeriLib<JsonNode, ObjectNode, ArrayNode> {
             public <T> T getValueAs(final String fieldName, final Class<T> targetType) {
                 return process(obj -> JacksonUtils.nodeAs(obj.get(fieldName), targetType), arr -> {
                     // todo
+                    return null;
                 });
             }
         };

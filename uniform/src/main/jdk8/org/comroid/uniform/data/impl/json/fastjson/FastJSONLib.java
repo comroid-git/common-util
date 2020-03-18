@@ -32,13 +32,11 @@ public final class FastJSONLib extends SeriLib<JSON, JSONObject, JSONArray> {
     );
 
     private FastJSONLib() {
-        super(parser, JSONObject.class, JSONArray.class, JSONObject::getJSONArray, JSONArray::size, node -> {
+        super(parser, JSONObject.class, JSONArray.class, (jsonObject, key) -> jsonObject.getJSONArray(key), JSONArray::size, node -> {
             if (node instanceof JSONArray)
                 return ((JSONArray) node).toJavaList(JSON.class);
             return Collections.singletonList(node);
         });
-
-        ReflectionHelper.verifyClassDependencies(FastJSONLib.class);
     }
 
     @Override
@@ -53,7 +51,12 @@ public final class FastJSONLib extends SeriLib<JSON, JSONObject, JSONArray> {
 
             @Override
             public <T> T getValueAs(final String fieldName, final Class<T> targetType) {
-                return process(obj -> obj.getObject(fieldName, targetType), arr -> arr.toJavaObject(targetType));
+                return process(
+                        obj -> fieldName == null && targetType.equals(JSONObject.class)
+                                ? (T) obj
+                                : obj.getObject(fieldName, targetType),
+                        arr -> arr.toJavaObject(targetType)
+                );
             }
         };
     }

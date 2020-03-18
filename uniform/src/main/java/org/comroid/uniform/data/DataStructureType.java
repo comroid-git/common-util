@@ -22,7 +22,7 @@ public class DataStructureType<SERI extends SeriLib<BAS, ?, ?>, BAS, TAR extends
         if (tarClass.isInstance(node))
             return tarClass.cast(node);
 
-        throw new ClassCastException(String.format("Cannot cast %s to primitive type %s %s", node, typ.name(), tarClass.getName()));
+        throw new ClassCastException(String.format("Cannot cast %s to targeted %s type %s", node.getClass().getName(), typ.name(), tarClass.getName()));
     }
 
     @Override
@@ -71,14 +71,14 @@ public class DataStructureType<SERI extends SeriLib<BAS, ?, ?>, BAS, TAR extends
             return sizeEvaluation.applyAsInt(array);
         }
 
-        public final List<BAS> split(BAS arr) {
-            final BAS cast;
+        public final List<BAS> split(BAS node) {
+            final ARR cast;
 
             try {
-                cast = cast(arr);
+                cast = cast(node);
             } catch (ClassCastException ignored) {
-                // "arr" is object
-                return Collections.singletonList(arr);
+                // "node" is object
+                return Collections.singletonList(node);
             }
 
             return splitter.apply(cast);

@@ -73,7 +73,7 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
 
         switch (nodeType) {
             case OBJECT:
-                final TAR tar = data.get();
+                final TAR tar = data.get(AssertionError::new);
 
                 assert tar != null;
                 elements = new Span<>(getConverter().backward(tar));

@@ -30,7 +30,7 @@ public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
     }
 
     // getter for optional field
-    public final Optional<Instant> getEditedTimestamp() {
+    public final Optional<String> getEditedTimestamp() {
         // if wrapVar is not used, getVar might return null
         return wrapVar(Binds.EDITED_TIMESTAMP);
     }
@@ -42,21 +42,21 @@ public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
         ArrayBind.Duo<JSONObject, String, URL, Collection<URL>> ATTACHMENTS
                 = GROUP.list2Stage("attachments", String.class, spec -> Polyfill.url(spec), ArrayList::new);
         ArrayBind.Dep<JSONObject, JSONObject, Reaction, DiscordAPI, Collection<Reaction>> REACTIONS
-                = GROUP.listDependent("reactions", JSONObject.class, Reaction.Binds.GROUP.autoRemapper(Reaction.class, DiscordAPI.class), ArrayList::new);
+                = GROUP.listDependent("reactions", JSONObject.class, DiscordAPI::parseReaction, ArrayList::new);
         VarBind.Uno<JSONObject, Boolean> TTS
                 = GROUP.bind1Stage("tts", Boolean.class);
         ArrayBind.Dep<JSONObject, JSONObject, Embed, DiscordAPI, Collection<Embed>> EMBEDS
                 = GROUP.listDependent("embeds", JSONObject.class, Embed.Binds.GROUP.autoRemapper(Embed.class, DiscordAPI.class), ArrayList::new);
-        VarBind.Duo<JSONObject, String, Instant> TIMESTAMP
-                = GROUP.bind2Stage("timestamp", String.class, Instant::parse);
+        VarBind.Duo<JSONObject, String, String> TIMESTAMP
+                = GROUP.bind2Stage("timestamp", String.class, spec -> spec); // todo Instant parsing
         VarBind.Uno<JSONObject, Boolean> MENTIONS_EVERYONE
                 = GROUP.bind1Stage("mention_everyone", Boolean.class);
         VarBind.Uno<JSONObject, Long> ID
                 = GROUP.bind1Stage("id", Long.class);
         VarBind.Uno<JSONObject, Boolean> PINNED
                 = GROUP.bind1Stage("pinned", Boolean.class);
-        VarBind.Duo<JSONObject, String, Instant> EDITED_TIMESTAMP
-                = GROUP.bind2Stage("edited_timestamp", String.class, Instant::parse);
+        VarBind.Duo<JSONObject, String, String> EDITED_TIMESTAMP
+                = GROUP.bind2Stage("edited_timestamp", String.class, spec -> spec); // todo Instant parsing
         VarBind.Dep<JSONObject, JSONObject, User, DiscordAPI> AUTHOR
                 = GROUP.bindDependent("author", JSONObject.class, User.Binds.GROUP.autoRemapper(User.class, DiscordAPI.class));
         ArrayBind.Dep<JSONObject, JSONObject, Role, DiscordAPI, Collection<Role>> MENTIONED_ROLES
