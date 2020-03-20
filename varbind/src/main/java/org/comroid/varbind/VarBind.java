@@ -59,7 +59,7 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 String name,
                 BiFunction<NODE, String, S> extractor
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>api()
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make()
                     .initialValues(it)
                     .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
                     .fixedSize(true)
@@ -97,7 +97,7 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 BiFunction<NODE, String, S> extractor,
                 Function<S, A> remapper
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>api()
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make()
                     .initialValues(it)
                     .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
                     .fixedSize(true)
@@ -140,7 +140,7 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 BiFunction<NODE, String, S> extractor,
                 BiFunction<D, S, A> resolver
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>api()
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make()
                     .initialValues(it)
                     .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
                     .fixedSize(true)

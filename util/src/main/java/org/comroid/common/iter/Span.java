@@ -96,7 +96,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         return fixedSize$NotNull(Arrays.asList(contents));
     }
 
-    public static <T> Span.API<T> api() {
+    public static <T> Span.API<T> make() {
         return new Span.API<>();
     }
 
@@ -233,13 +233,14 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
     @Override
     @Contract(mutates = "this")
     public boolean add(T item) {
-        int i = data.length;
+        int i = 0;
 
         while (!nullPolicy.canOverwrite(valueAt(i), item)) {
             if (i >= data.length) {
-                adjustArray(i);
+                adjustArray(i, false);
                 break;
             }
+
             i++;
         }
 
@@ -250,7 +251,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
     @Override
     @Contract(mutates = "this")
     public boolean remove(Object item) {
-        return remove(item, false);
+        return remove(item, true) > -1;
     }
 
     @Override
@@ -319,21 +320,30 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         cleanup();
     }
 
-    public boolean remove(Object item, boolean force) {
-        boolean yield = false;
+    public int count(Object instance) {
+        return (int) stream()
+                .filter(instance::equals)
+                .count();
+    }
 
-        for (int i = 0; i < size(); i++) {
-            final T it = valueAt(i);
+    public int remove(Object item, boolean force) {
+        int removed = 0;
 
-            if (item.equals(it)) {
-                replace(i, null, force);
-                yield = true;
+        for (int i = 0; i < size(); i++)
+            if (item.equals(valueAt(i))) {
+                remove(i, force);
+                removed++;
             }
-        }
 
-        System.out.printf("..%b\n", yield);
+        return removed;
+    }
 
-        return yield;
+    public boolean remove(int index, boolean force) {
+        if (index > data.length)
+            return false;
+
+        replace(index, null, force);
+        return true;
     }
 
     @Contract(mutates = "this")
@@ -387,17 +397,17 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
 
     @Override
     public String toString() {
-        return String.format("Span{nullPolicy=%s, data=%s}", nullPolicy, Arrays.toString(data));
+        return String.format("Span{nullPolicy=%s, data={%d}%s}", nullPolicy, data.length, Arrays.toString(data));
     }
 
     public @Nullable T replace(int index, @Nullable T next, boolean force) {
         final int size = size();
 
-        adjustArray(index);
+        adjustArray(index, false);
 
         final T old = valueAt(index);
 
-        if (force || !nullPolicy.canOverwrite(old, next))
+        if (!force && !nullPolicy.canOverwrite(old, next))
             nullPolicy.fail(String.format("Cannot overwrite %s with %s", old, next));
 
         synchronized (dataLock) {
@@ -410,7 +420,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
         return old;
     }
 
-    private int adjustArray(int lastIndex) {
+    public final int adjustArray(int lastIndex, boolean allowShrink) {
         if (fixedSize)
             throw new IndexOutOfBoundsException("Span cannot be resized");
 
@@ -423,7 +433,9 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
 
             diff = data.length - diff;
         } else if (lastIndex < data.length) {
-            trimArray(lastIndex);
+            // todo: implement unary operator that works based of time and accesses
+            if (allowShrink)
+                trimArray(lastIndex);
 
             diff = diff - data.length;
         } else return 0;
@@ -443,7 +455,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
 
     private int trimArray(int toSize) {
         synchronized (dataLock) {
-            data = Arrays.copyOf(data, toSize);
+            data = Arrays.copyOf(data, toSize + 1);
         }
 
         return data.length;
@@ -469,7 +481,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
     }
 
     private static final Span<?> ZeroSize = new Span<>(new Object[0], NullPolicy.IGNORE, false);
-    private static final IntUnaryOperator enlargementOp = x -> (x + 4) % 5;
+    private static final IntUnaryOperator enlargementOp = x -> x + 1;
 
     public static final class API<T> {
         private final Collection<T> initialValues = new ArrayList<>();
@@ -524,7 +536,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
                 private final Function<Span<T>, Span<T>> finisher = new Function<Span<T>, Span<T>>() {
                     @Override
                     public Span<T> apply(Span<T> ts) {
-                        return Span.<T>api()
+                        return Span.<T>make()
                                 .nullPolicy(nullPolicy)
                                 .fixedSize(fixedSize)
                                 .initialValues(initialValues)
@@ -577,6 +589,12 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
 
     @SuppressWarnings("Convert2MethodRef")
     public enum NullPolicy {
+        /*
+         TODO
+
+         Clean this up.
+         */
+
         /**
          * Nulls are ignored.
          * Requires external index and size management using {@link #replace(int, Object, boolean)}
@@ -584,7 +602,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
          */
         IGNORE(
                 init -> true,
-                iterate -> true,
+                iterate -> nonNull(iterate),
                 (overwriting, with) -> true,
                 cleanup -> isNull(cleanup)
         ),
@@ -594,7 +612,7 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
          */
         DEFAULT(
                 init -> true,
-                iterate -> true,
+                iterate -> nonNull(iterate),
                 (overwriting, with) -> isNull(overwriting),
                 cleanup -> isNull(cleanup)
         ),
@@ -606,16 +624,6 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
                 init -> true,
                 iterate -> nonNull(iterate),
                 (overwriting, with) -> nonNull(with),
-                cleanup -> isNull(cleanup)
-        ),
-
-        /**
-         * Skip nulls in iteration, but don't prohibit any actions.
-         */
-        SKIP_ON_ITERATE(
-                init -> true,
-                iterate -> nonNull(iterate),
-                (overwriting, with) -> isNull(overwriting),
                 cleanup -> isNull(cleanup)
         ),
 

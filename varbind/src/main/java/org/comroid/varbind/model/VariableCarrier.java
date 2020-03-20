@@ -121,7 +121,7 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
                 .stream()
                 .map(it -> it == null ? null : bind.remap(it, deadCast(dependencyObject.orElse(null))))
                 .filter(Objects::nonNull)
-                .collect(Span.<A>api()
+                .collect(Span.<A>make()
                         .nullPolicy(Span.NullPolicy.SKIP)
                         .fixedSize(true)
                         .collector());

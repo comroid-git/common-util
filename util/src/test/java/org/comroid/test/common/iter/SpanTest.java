@@ -1,8 +1,8 @@
 package org.comroid.test.common.iter;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,14 +18,14 @@ import static org.junit.Assert.assertTrue;
 
 public class SpanTest {
     private static final Random rng = new Random();
-    private static int bound = rng.nextInt(100);
+    private static int bound = rng.nextInt(100) + 50;
 
     private Span<String> span;
     private List<Pair<String, Integer>> generated;
 
     @Test
     public void testDefaults() {
-        this.span = Span.<String>api()
+        this.span = Span.<String>make()
                 .initialSize(1) // default value
                 .nullPolicy(Span.NullPolicy.DEFAULT) // default value
                 .fixedSize(false) // default value
@@ -36,29 +36,59 @@ public class SpanTest {
                 .map(str -> new Pair<>(str, rng.nextInt() % bound))
                 .sorted(Comparator.comparingInt(Pair::getSecond))
                 .collect(Collectors.toList());
+        System.out.println("generated.size() = " + generated.size());
+
         generated.stream()
                 .map(Pair::getFirst)
                 .forEach(span::add);
 
-        assertEquals(bound, span.size());
+        span.cleanup();
+
+        System.out.println("span cleanup     = " + span);
+
+        assertTrue(bound <= span.size());
         assertTrue(span.contains(randomGenerated()));
-        assertTrue(span.remove(randomGenerated()));
+
+        final String removeThis = randomGenerated();
+        final int count = span.count(removeThis);
+        System.out.println("removing value   = " + removeThis + "; found " + count + " occurrence" + (count == 1 ? "" : "s"));
+        assertTrue(span.remove(removeThis));
+        System.out.println("span after rem   = " + span);
         bound -= 1;
 
-        final List<String> remove = IntStream.range(0, 10)
+        System.out.println("span before      = " + span);
+
+        final int size_beforeBulk = span.size();
+        final int remove = (size_beforeBulk / 4) + (size_beforeBulk / 2);
+        System.out.printf("removing values  = [%d]{", remove);
+        final long successful = IntStream.range(0, remove)
                 .sequential()
                 .mapToObj(nil -> randomGenerated())
-                .collect(Collectors.toList());
+                .peek(it -> System.out.printf(" %s,", it))
+                .map(it -> span.remove(it))
+                .filter(Boolean::booleanValue)
+                .count();
 
-        int c = 0;
-        for (String it : remove)
-            if (span.remove(it)) c++;
+        System.out.printf("};\n" +
+                "                   ... %d were successful.\n" +
+                "remove           = %d%n", successful, remove);
 
-        assertEquals(remove.size(), c);
-        assertEquals((bound -= 10), span.size());
+        final Object[] iterable = span.toArray();
+        System.out.println("span after       = " + span);
+        System.out.printf("span iterable    = {%d}%s%n", iterable.length, Arrays.toString(iterable));
+
+        assertEquals(successful, remove);
+        //assertEquals(size_beforeBulk - successful, iterable.length);
+
+        span.cleanup();
+
+        final Object[] cleanup = span.toArray();
+        System.out.printf("span cleanup     = {%d}%s%n", cleanup.length, Arrays.toString(cleanup));
+
+        assertEquals((bound -= remove), span.size());
     }
 
     private String randomGenerated() {
-        return generated.remove(Math.abs(rng.nextInt() % generated.size())).getFirst();
+        return generated.remove(Math.abs((rng.nextInt() + 1) % generated.size())).getFirst();
     }
 }

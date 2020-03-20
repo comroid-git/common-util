@@ -109,7 +109,7 @@ public final class ReflectionHelper {
             }
         }
 
-        return Span.<T>api()
+        return Span.<T>make()
                 .initialValues(values)
                 .fixedSize(true)
                 .span();
