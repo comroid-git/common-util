@@ -9,9 +9,16 @@ public class StructureTypeMismatchException extends IllegalArgumentException {
         this(errorType, null);
     }
 
-    public StructureTypeMismatchException(DataStructureType<?, ?, ?> errorType, @Nullable DataStructureType<?, ?, ?> expected) {
-        super(String.format("Illegal Structure type %s; %s expected", errorType.typ, expected == null
-                ? Arrays.toString(new DataStructureType.Primitive[]{DataStructureType.Primitive.OBJECT, DataStructureType.Primitive.ARRAY})
-                : expected.typ));
+    public StructureTypeMismatchException(
+            DataStructureType<?, ?, ?> errorType,
+            @Nullable DataStructureType<?, ?, ?> expected
+    ) {
+        super(String.format(
+                "Illegal Structure type %s; %s expected", errorType.typ,
+                expected == null ? Arrays.toString(new DataStructureType.Primitive[]{
+                        DataStructureType.Primitive.OBJECT,
+                        DataStructureType.Primitive.ARRAY
+                }) : expected.typ
+        ));
     }
 }

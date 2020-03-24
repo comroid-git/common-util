@@ -37,7 +37,7 @@ public class SpanTest {
 
         int added = (int) generated.stream()
                                    .map(Pair::getFirst)
-                                   .map(span::add)
+                                   .filter(span::add)
                                    .count();
         System.out.printf("added to span    = %d successful%n", added);
 

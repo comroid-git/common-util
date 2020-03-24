@@ -38,7 +38,8 @@ public class TrieMapTest {
         assertTrue(trie.containsKey("balloon"));
 
         //noinspection RedundantCollectionOperation
-        assertTrue(trie.keySet().contains("barrel"));
+        assertTrue(trie.keySet()
+                       .contains("barrel"));
 
         assertFalse(trie.containsKey("büro"));
     }
@@ -49,7 +50,8 @@ public class TrieMapTest {
         assertTrue(trie.containsValue(99));
 
         //noinspection RedundantCollectionOperation
-        assertTrue(trie.values().contains(77));
+        assertTrue(trie.values()
+                       .contains(77));
 
         assertFalse(trie.containsValue(20));
     }
