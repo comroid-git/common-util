@@ -3,6 +3,10 @@ package org.comroid.common.func.bi;
 import java.util.function.Predicate;
 
 public interface PredicateDuo<A, B> {
+    static <A, B> PredicateDuo<A, B> any() {
+        return of(any -> true, any -> true);
+    }
+
     static <A, B> PredicateDuo<A, B> of(Predicate<A> aPredicate, Predicate<B> bPredicate) {
         return new PredicateDuo<A, B>() {
             private final Predicate<A> first = aPredicate;
@@ -18,10 +22,6 @@ public interface PredicateDuo<A, B> {
                 return second.test(b);
             }
         };
-    }
-
-    static <A, B> PredicateDuo<A, B> any() {
-        return of(any -> true, any -> true);
     }
 
     boolean testFirst(A a);

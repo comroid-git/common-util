@@ -12,14 +12,20 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class OrgJsonDataConverter<T> extends DataConverter<T, Object, JSONObject, JSONArray> {
-    public static <T> Junction<JSONObject, T> autoConverter(Class<T> forClass, Function<JSONObject, T> initializer) {
+    public static <T> Junction<JSONObject, T> autoConverter(
+            Class<T> forClass,
+            Function<JSONObject, T> initializer
+    ) {
         return Junction.of(initializer, JSONObject::new);
     }
 
     private final PredicateDuo<JSONObject, T> filter;
-    private final Junction<JSONObject, T> converter;
+    private final Junction<JSONObject, T>     converter;
 
-    public OrgJsonDataConverter(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
+    public OrgJsonDataConverter(
+            PredicateDuo<JSONObject, T> filter,
+            Junction<JSONObject, T> converter
+    ) {
         super(OrgJsonLib.orgJsonLib, "application/json");
 
         this.filter = filter;
@@ -32,17 +38,18 @@ public class OrgJsonDataConverter<T> extends DataConverter<T, Object, JSONObject
     }
 
     @Override
-    public Junction<JSONObject, T> getConverter() {
-        return converter;
-    }
-
-    @Override
     public Collection<Object> split(JSONArray data) {
-        final Span<Object> yields = new Span<>(data.length(), Span.NullPolicy.SKIP_ON_ITERATE, false);
+        final Span<Object> yields = new Span<>(
+                data.length(), Span.NullPolicy.SKIP_ON_ITERATE, false);
 
         data.forEach(yields::add);
 
         return yields;
+    }
+
+    @Override
+    public Junction<JSONObject, T> getConverter() {
+        return converter;
     }
 
     @Override

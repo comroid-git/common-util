@@ -14,38 +14,16 @@ import org.comroid.varbind.model.VariableCarrier;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Basic Variable Binding definition
- * Serves as an interface to handling data when serializing.
+ * Basic Variable Binding definition Serves as an interface to handling data when serializing.
  *
  * @param <S>    The (singular) remapping input Type
  * @param <A>    The (singular) remapping output Type
  * @param <D>    The (singular) dependency Type; {@link Void} is default for {@code independent}
- * @param <R>    The (singular) output Type, this is what you get from {@link VariableCarrier#getVar(VarBind)}
+ * @param <R>    The (singular) output Type, this is what you get from {@link
+ *               VariableCarrier#getVar(VarBind)}
  * @param <NODE> Serialization Library Type of the serialization Node
  */
 public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
-    Span<? super S> extract(NODE node);
-
-    A remap(S from, D dependency);
-
-    R finish(Span<A> parts);
-
-    String getName();
-
-    @Target(ElementType.TYPE)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Location {
-        Class<?> value();
-
-        String rootNode() default "";
-    }
-
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Root {
-    }
-
-    //region Types
     /**
      * Variable definition with 0 mapping Stages.
      *
@@ -59,11 +37,11 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 String name,
                 BiFunction<NODE, String, S> extractor
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make()
-                    .initialValues(it)
-                    .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
-                    .fixedSize(true)
-                    .span()));
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make().initialValues(it)
+                                                                              .nullPolicy(
+                                                                                      Span.NullPolicy.SKIP_ON_ITERATE)
+                                                                              .fixedSize(true)
+                                                                              .span()));
         }
 
         @Override
@@ -73,8 +51,8 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
 
         @Override
         public final S finish(Span<S> parts) {
-            if (parts.isSingle())
-                return parts.get().orElse(null);
+            if (parts.isSingle()) return parts.get()
+                                              .orElse(null);
 
             throw new AssertionError("Span too large");
         }
@@ -97,11 +75,11 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 BiFunction<NODE, String, S> extractor,
                 Function<S, A> remapper
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make()
-                    .initialValues(it)
-                    .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
-                    .fixedSize(true)
-                    .span()));
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make().initialValues(it)
+                                                                              .nullPolicy(
+                                                                                      Span.NullPolicy.SKIP_ON_ITERATE)
+                                                                              .fixedSize(true)
+                                                                              .span()));
 
             this.remapper = remapper;
         }
@@ -113,15 +91,15 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
 
         @Override
         public final A finish(Span<A> parts) {
-            if (parts.isSingle())
-                return parts.getAssert();
+            if (parts.isSingle()) return parts.getAssert();
 
             throw new AssertionError("Span too large");
         }
     }
 
     /**
-     * Variable definition with 2 mapping Stages, one of which uses an environmentally global variable.
+     * Variable definition with 2 mapping Stages, one of which uses an environmentally global
+     * variable.
      *
      * @param <NODE> Serialization Library Type of the serialization Node
      * @param <S>    The serialization input Type
@@ -140,27 +118,49 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 BiFunction<NODE, String, S> extractor,
                 BiFunction<D, S, A> resolver
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make()
-                    .initialValues(it)
-                    .nullPolicy(Span.NullPolicy.SKIP_ON_ITERATE)
-                    .fixedSize(true)
-                    .span()));
+            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make().initialValues(it)
+                                                                              .nullPolicy(
+                                                                                      Span.NullPolicy.SKIP_ON_ITERATE)
+                                                                              .fixedSize(true)
+                                                                              .span()));
 
             this.resolver = resolver;
         }
 
         @Override
         public final A remap(S from, D dependency) {
-            return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object is null"), from);
+            return resolver.apply(
+                    Objects.requireNonNull(dependency, "Dependency Object is null"), from);
         }
 
         @Override
         public final A finish(Span<A> parts) {
-            if (parts.isSingle())
-                return parts.getAssert();
+            if (parts.isSingle()) return parts.getAssert();
 
             throw new AssertionError("Span too large");
         }
     }
+
+    String getName();
+
+    Span<? super S> extract(NODE node);
+
+    A remap(S from, D dependency);
+
+    //region Types
+
+    R finish(Span<A> parts);
+
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Location {
+        Class<?> value();
+
+        String rootNode() default "";
+    }
+
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Root {}
     //endregion
 }

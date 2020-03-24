@@ -21,29 +21,21 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
             SeriLib<OT_T, ? extends OT_T, ? extends OT_T> intoLib,
             IN_T node
     ) {
-        return intoLib.parser
-                .forward(fromLib.parser
-                        .backward(node));
+        return intoLib.parser.forward(fromLib.parser.backward(node));
     }
 
     public final SeriLib<BAS, OBJ, ARR> seriLib;
-    public final String mimeType;
-
-    protected DataConverter(SeriLib<BAS, OBJ, ARR> seriLib, String mimeType) {
-        this.seriLib = seriLib;
-        this.mimeType = mimeType;
-    }
+    public final String                 mimeType;
 
     public abstract PredicateDuo<OBJ, TAR> getFilter();
 
-    public abstract Junction<OBJ, TAR> getConverter();
-
-    public abstract Collection<BAS> split(ARR data);
-
-    public abstract ARR combine(Span<BAS> data);
+    protected DataConverter(SeriLib<BAS, OBJ, ARR> seriLib, String mimeType) {
+        this.seriLib  = seriLib;
+        this.mimeType = mimeType;
+    }
 
     public Span<TAR> deserialize(String data) {
-        final BAS node = seriLib.parser.forward(data);
+        final BAS                         node     = seriLib.parser.forward(data);
         final DataStructureType.Primitive nodeType = seriLib.typeOf(node).typ;
 
         Span<OBJ> elements = null;
@@ -62,9 +54,11 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
         }
 
         return elements.stream()
-                .map(getConverter()::forward)
-                .collect(Span.collector(false));
+                       .map(getConverter()::forward)
+                       .collect(Span.collector(false));
     }
+
+    public abstract Collection<BAS> split(ARR data);
 
     public String serialize(Span<TAR> data) {
         final DataStructureType.Primitive nodeType = data.isSingle() ? OBJECT : ARRAY;
@@ -81,8 +75,8 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
                 break;
             case ARRAY:
                 elements = data.stream()
-                        .map(getConverter()::backward)
-                        .collect(Span.collector(false));
+                               .map(getConverter()::backward)
+                               .collect(Span.collector(false));
 
                 break;
         }
@@ -90,4 +84,8 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
         //noinspection unchecked -> false positive
         return seriLib.parser.backward(combine((Span<BAS>) elements));
     }
+
+    public abstract Junction<OBJ, TAR> getConverter();
+
+    public abstract ARR combine(Span<BAS> data);
 }

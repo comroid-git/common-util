@@ -36,9 +36,12 @@ public class JacksonDataConverter<T> extends DataConverter<T, JsonNode, ObjectNo
     }
 
     private final PredicateDuo<ObjectNode, T> filter;
-    private final Junction<ObjectNode, T> converter;
+    private final Junction<ObjectNode, T>     converter;
 
-    public JacksonDataConverter(PredicateDuo<ObjectNode, T> filter, Junction<ObjectNode, T> converter) {
+    public JacksonDataConverter(
+            PredicateDuo<ObjectNode, T> filter,
+            Junction<ObjectNode, T> converter
+    ) {
         super(JacksonLib.jacksonLib, "application/json");
 
         this.filter = filter;
@@ -51,17 +54,17 @@ public class JacksonDataConverter<T> extends DataConverter<T, JsonNode, ObjectNo
     }
 
     @Override
-    public Junction<ObjectNode, T> getConverter() {
-        return converter;
-    }
-
-    @Override
     public Collection<JsonNode> split(ArrayNode data) {
         final ArrayList<JsonNode> yields = new ArrayList<>();
 
         data.forEach(yields::add);
 
         return yields;
+    }
+
+    @Override
+    public Junction<ObjectNode, T> getConverter() {
+        return converter;
     }
 
     @Override

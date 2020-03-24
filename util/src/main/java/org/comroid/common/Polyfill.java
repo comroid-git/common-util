@@ -17,7 +17,11 @@ import org.jetbrains.annotations.Nullable;
 import static java.util.Objects.isNull;
 
 public final class Polyfill {
-    public static String regexGroupOrDefault(Matcher matcher, String groupName, @Nullable String orDefault) {
+    public static String regexGroupOrDefault(
+            Matcher matcher,
+            String groupName,
+            @Nullable String orDefault
+    ) {
         String cont;
 
         if (matcher.matches() && (cont = matcher.group(groupName)) != null) return cont;
@@ -25,9 +29,21 @@ public final class Polyfill {
         else throw new NullPointerException("Group cannot be matched!");
     }
 
-    public static <T extends Throwable> URL url(String spec, @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator) throws T {
-        if (throwableReconfigurator.length == 0)
-            throwableReconfigurator = new Function[]{cause -> (T) new AssertionError(cause)};
+    public static <R, T extends Throwable> Function<T, R> exceptionLogger() {
+        return nil -> {
+            nil.printStackTrace(System.err);
+
+            return null;
+        };
+    }
+
+    public static <T extends Throwable> URL url(
+            String spec,
+            @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator
+    ) throws T {
+        if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
+                cause -> (T) new AssertionError(cause)
+        };
 
         try {
             return new URL(spec);
@@ -36,9 +52,13 @@ public final class Polyfill {
         }
     }
 
-    public static <T extends Throwable> URI uri(String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator) throws T {
-        if (throwableReconfigurator.length == 0)
-            throwableReconfigurator = new Function[]{cause -> (T) new AssertionError(cause)};
+    public static <T extends Throwable> URI uri(
+            String spec,
+            @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
+    ) throws T {
+        if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
+                cause -> (T) new AssertionError(cause)
+        };
 
         try {
             return new URI(spec);
@@ -47,8 +67,12 @@ public final class Polyfill {
         }
     }
 
-    public static <R, T extends Throwable> Runnable handlingRunnable(ThrowingRunnable<R, T> throwingRunnable, @Nullable Function<T, ? extends RuntimeException> remapper) {
-        final Function<T, ? extends RuntimeException> finalRemapper = nullOr(remapper, (Function<T, ? extends RuntimeException>) RuntimeException::new);
+    public static <R, T extends Throwable> Runnable handlingRunnable(
+            ThrowingRunnable<R, T> throwingRunnable,
+            @Nullable Function<T, ? extends RuntimeException> remapper
+    ) {
+        final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(
+                remapper, (Function<T, ? extends RuntimeException>) RuntimeException::new);
 
         return () -> {
             try {
@@ -57,6 +81,12 @@ public final class Polyfill {
                 throw finalRemapper.apply((T) thr);
             }
         };
+    }
+
+    public static <T> T notnullOr(@Nullable T value, @NotNull T def) {
+        if (isNull(value)) return def;
+
+        return value;
     }
 
     public static <R> R deadCast(Object instance) {
@@ -76,19 +106,12 @@ public final class Polyfill {
 
     public static <T, R> Function<T, R> erroringFunction(@Nullable String message) {
         return new Function<T, R>() {
-            private final String msg = nullOr(message, "Unexpected Call");
+            private final String msg = notnullOr(message, "Unexpected Call");
 
             @Override
             public R apply(T t) {
                 throw new AssertionError(msg);
             }
         };
-    }
-
-    private static <T> T nullOr(@Nullable T value, @NotNull T def) {
-        if (isNull(value))
-            return def;
-
-        return value;
     }
 }

@@ -8,7 +8,8 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.Nullable;
 
 public interface ArrayBind {
-    final class Uno<NODE, S, C extends Collection<S>> extends AbstractArrayBind<S, S, Object, C, NODE> {
+    final class Uno<NODE, S, C extends Collection<S>>
+            extends AbstractArrayBind<S, S, Object, C, NODE> {
         Uno(
                 Object seriLib,
                 @Nullable GroupBind group,
@@ -17,7 +18,10 @@ public interface ArrayBind {
                 Function<NODE, S> dataExtractor,
                 Supplier<C> collectionProvider
         ) {
-            super(seriLib, group, name, arrayExtractor, dataExtractor, null, mergefuncWithProvider(collectionProvider));
+            super(
+                    seriLib, group, name, arrayExtractor, dataExtractor, null,
+                    mergefuncWithProvider(collectionProvider)
+            );
         }
 
         @Override
@@ -26,7 +30,8 @@ public interface ArrayBind {
         }
     }
 
-    final class Duo<NODE, S, A, C extends Collection<A>> extends AbstractArrayBind<S, A, Object, C, NODE> {
+    final class Duo<NODE, S, A, C extends Collection<A>>
+            extends AbstractArrayBind<S, A, Object, C, NODE> {
         Duo(
                 Object seriLib,
                 @Nullable GroupBind group,
@@ -36,11 +41,15 @@ public interface ArrayBind {
                 BiFunction<Object, S, A> resolver,
                 Supplier<C> collectionProvider
         ) {
-            super(seriLib, group, name, arrayExtractor, dataExtractor, resolver, mergefuncWithProvider(collectionProvider));
+            super(
+                    seriLib, group, name, arrayExtractor, dataExtractor, resolver,
+                    mergefuncWithProvider(collectionProvider)
+            );
         }
     }
 
-    final class Dep<NODE, S, A, D, C extends Collection<A>> extends AbstractArrayBind<S, A, D, C, NODE> {
+    final class Dep<NODE, S, A, D, C extends Collection<A>>
+            extends AbstractArrayBind<S, A, D, C, NODE> {
         Dep(
                 Object seriLib,
                 @Nullable GroupBind group,
@@ -50,7 +59,10 @@ public interface ArrayBind {
                 BiFunction<D, S, A> resolver,
                 Supplier<C> collectionProvider
         ) {
-            super(seriLib, group, name, arrayExtractor, dataExtractor, resolver, mergefuncWithProvider(collectionProvider));
+            super(
+                    seriLib, group, name, arrayExtractor, dataExtractor, resolver,
+                    mergefuncWithProvider(collectionProvider)
+            );
         }
     }
 }

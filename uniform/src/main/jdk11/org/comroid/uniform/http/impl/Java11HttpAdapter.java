@@ -7,24 +7,35 @@ import java.net.http.HttpResponse;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
-import org.comroid.uniform.http.REST;
 import org.comroid.uniform.http.HttpAdapter;
+import org.comroid.uniform.http.REST;
 
 public final class Java11HttpAdapter implements HttpAdapter {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Override
-    public CompletableFuture<REST.Response> call(REST.Method method, URL url, Collection<REST.Header> headers, String mimeType, String body) {
+    public CompletableFuture<REST.Response> call(
+            REST.Method method,
+            URL url,
+            Collection<REST.Header> headers,
+            String mimeType,
+            String body
+    ) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final HttpRequest.Builder builder = HttpRequest.newBuilder(url.toURI())
-                        .method(method.toString(), HttpRequest.BodyPublishers.ofString(body))
-                        .header("Content-Type", mimeType);
+                                                               .method(
+                                                                       method.toString(),
+                                                                       HttpRequest.BodyPublishers.ofString(
+                                                                               body)
+                                                               )
+                                                               .header("Content-Type", mimeType);
 
                 headers.forEach(header -> builder.header(header.getName(), header.getValue()));
 
-                final HttpRequest request = builder.build();
-                final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                final HttpRequest          request  = builder.build();
+                final HttpResponse<String> response = httpClient.send(
+                        request, HttpResponse.BodyHandlers.ofString());
 
                 return new REST.Response(response.statusCode(), response.body());
             } catch (Throwable e) {

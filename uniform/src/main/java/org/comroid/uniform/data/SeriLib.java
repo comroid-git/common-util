@@ -22,17 +22,25 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         final ClassDependency classDependency = adapterClass.getAnnotation(ClassDependency.class);
 
         Set<String> missingClasses = new HashSet<>();
-        for (String depClass : (classDependency == null ? new String[0] : classDependency.value())) {
+        for (String depClass : (classDependency == null
+                ? new String[0]
+                : classDependency.value())) {
             try {
                 Class.forName(depClass);
             } catch (ClassNotFoundException ignored) {
                 missingClasses.add(depClass);
             }
         }
-        if (!missingClasses.isEmpty())
-            throw new ExceptionInInitializerError(String.format("Missing dependency classes:%s",
-                    missingClasses.stream().collect(Collectors.joining("\n\t-\t", "", "\n"))));
-        else System.err.printf("Missing ClassDependency annotation on class %s\n", adapterClass.getName());
+        if (!missingClasses.isEmpty()) throw new ExceptionInInitializerError(
+                String.format("Missing dependency classes:%s", missingClasses.stream()
+                                                                             .collect(
+                                                                                     Collectors.joining(
+                                                                                             "\n\t-\t",
+                                                                                             "",
+                                                                                             "\n"
+                                                                                     ))));
+        else System.err.printf(
+                "Missing ClassDependency annotation on class %s\n", adapterClass.getName());
 
         try {
             return ReflectionHelper.instance(adapterClass);
@@ -41,25 +49,11 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         }
     }
 
-    public final Junction<String, BAS> parser;
-    public final DataStructureType.Obj<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
-    public final DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
-    public final BiFunction<OBJ, String, ARR> arrayExtractor;
+    public final  Junction<String, BAS>                                         parser;
+    public final  DataStructureType.Obj<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR>  objectType;
+    public final  DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR>  arrayType;
+    public final  BiFunction<OBJ, String, ARR>                                  arrayExtractor;
     private final Map<BAS, NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, ?>> dummyCache = new ConcurrentHashMap<>();
-
-    protected SeriLib(
-            Junction<String, BAS> parser,
-            DataStructureType.Obj<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
-            DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType,
-            BiFunction<OBJ, String, ARR> arrayExtractor
-    ) {
-        this.parser = parser;
-        this.objectType = objectType;
-        this.arrayType = arrayType;
-        this.arrayExtractor = arrayExtractor;
-
-        ReflectionHelper.verifyClassDependencies(getClass());
-    }
 
     protected SeriLib(
             Junction<String, BAS> parser,
@@ -69,21 +63,24 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
             ToIntFunction<ARR> arraySizeEvaluator,
             Function<BAS, List<BAS>> arraySplitter
     ) {
-        this(
-                parser,
-                new DataStructureType.Obj<>(objClass),
-                new DataStructureType.Arr<>(arrClass, arraySizeEvaluator, arraySplitter),
-                arrayExtractor
+        this(parser, new DataStructureType.Obj<>(objClass),
+             new DataStructureType.Arr<>(arrClass, arraySizeEvaluator, arraySplitter),
+             arrayExtractor
         );
     }
 
-    @Contract("null -> null")
-    public <TAR extends BAS> @Nullable NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR> dummy(@Nullable TAR node) {
-        if (node == null)
-            return null;
+    protected SeriLib(
+            Junction<String, BAS> parser,
+            DataStructureType.Obj<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
+            DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType,
+            BiFunction<OBJ, String, ARR> arrayExtractor
+    ) {
+        this.parser         = parser;
+        this.objectType     = objectType;
+        this.arrayType      = arrayType;
+        this.arrayExtractor = arrayExtractor;
 
-        return (NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR>) dummyCache
-                .computeIfAbsent(node, key -> createNodeDummy(node));
+        ReflectionHelper.verifyClassDependencies(getClass());
     }
 
     @Override
@@ -91,15 +88,28 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         return String.format("SeriLib{lib=%s}", getClass().getName());
     }
 
-    public <TAR extends BAS> DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> typeOf(TAR node) {
-        if (objectType.typeClass().isInstance(node))
-            return (DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR>) objectType;
-        if (arrayType.typeClass().isInstance(node))
-            return (DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR>) arrayType;
+    @Contract("null -> null")
+    public <TAR extends BAS> @Nullable NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR> dummy(@Nullable TAR node) {
+        if (node == null) return null;
 
-        throw new IllegalArgumentException("Unknown type: " + node.getClass().getName());
+        return (NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR>) dummyCache.computeIfAbsent(
+                node, key -> createNodeDummy(node));
     }
 
-    protected abstract <TAR extends BAS> NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR> createNodeDummy(TAR node);
+    protected abstract <TAR extends BAS> NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR> createNodeDummy(
+            TAR node
+    );
+
+    public <TAR extends BAS> DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> typeOf(TAR node) {
+        if (objectType.typeClass()
+                      .isInstance(node))
+            return (DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR>) objectType;
+        if (arrayType.typeClass()
+                     .isInstance(node))
+            return (DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR>) arrayType;
+
+        throw new IllegalArgumentException("Unknown type: " + node.getClass()
+                                                                  .getName());
+    }
 
 }

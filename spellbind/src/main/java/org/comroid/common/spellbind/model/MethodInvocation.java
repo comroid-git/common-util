@@ -15,7 +15,8 @@ public class MethodInvocation implements Invocable {
     }
 
     @Override
-    public @Nullable Object invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
+    public @Nullable Object invoke(Object... args)
+            throws InvocationTargetException, IllegalAccessException {
         return method.invoke(target, args);
     }
 }

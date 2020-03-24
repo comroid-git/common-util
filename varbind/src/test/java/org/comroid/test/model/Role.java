@@ -17,7 +17,7 @@ public class Role extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
     }
 
     public interface Binds {
-        @VarBind.Root
-        GroupBind<JSON, JSONObject, JSONArray> GROUP = new GroupBind<>(fastJsonLib, "role");
+        @VarBind.Root GroupBind<JSON, JSONObject, JSONArray> GROUP = new GroupBind<>(
+                fastJsonLib, "role");
     }
 }

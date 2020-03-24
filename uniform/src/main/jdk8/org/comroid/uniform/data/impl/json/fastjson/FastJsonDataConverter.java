@@ -29,9 +29,12 @@ public class FastJsonDataConverter<T> extends DataConverter<T, JSON, JSONObject,
     }
 
     private final PredicateDuo<JSONObject, T> filter;
-    private final Junction<JSONObject, T> converter;
+    private final Junction<JSONObject, T>     converter;
 
-    public FastJsonDataConverter(PredicateDuo<JSONObject, T> filter, Junction<JSONObject, T> converter) {
+    public FastJsonDataConverter(
+            PredicateDuo<JSONObject, T> filter,
+            Junction<JSONObject, T> converter
+    ) {
         super(FastJSONLib.fastJsonLib, "application/json");
 
         this.filter = filter;
@@ -44,13 +47,13 @@ public class FastJsonDataConverter<T> extends DataConverter<T, JSON, JSONObject,
     }
 
     @Override
-    public Junction<JSONObject, T> getConverter() {
-        return converter;
+    public Collection<JSON> split(JSONArray data) {
+        return data.toJavaList(JSON.class);
     }
 
     @Override
-    public Collection<JSON> split(JSONArray data) {
-        return data.toJavaList(JSON.class);
+    public Junction<JSONObject, T> getConverter() {
+        return converter;
     }
 
     @Override

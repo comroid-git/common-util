@@ -5,5 +5,11 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
 public interface HttpAdapter {
-    CompletableFuture<REST.Response> call(REST.Method method, URL url, Collection<REST.Header> headers, String mimeType, String body);
+    CompletableFuture<REST.Response> call(
+            REST.Method method,
+            URL url,
+            Collection<REST.Header> headers,
+            String mimeType,
+            String body
+    );
 }
