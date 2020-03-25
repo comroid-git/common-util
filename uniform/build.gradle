@@ -46,7 +46,7 @@ dependencies {
 
     implementation project(':util')
     implementation project(':trie')
-    implementation 'com.google.flogger:flogger:0.4'
+    implementation 'com.google.flogger:flogger:0.5'
 
     java8CompileOnly sourceSets.main.output.classesDirs
     java11CompileOnly sourceSets.main.output.classesDirs
