@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.comroid.common"},{"l":"org.comroid.common.func"},{"l":"org.comroid.common.spellbind"},{"l":"org.comroid.common.spellbind.model"},{"l":"org.comroid.common.trie"},{"l":"org.comroid.common.upd8r.model"},{"l":"org.comroid.common.upd8r.nginx"},{"l":"org.comroid.common.upd8r.nginx.model"}]

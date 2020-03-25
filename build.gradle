@@ -22,6 +22,10 @@ allprojects {
     apply from: "$rootDir/gradle/global.gradle"
 }
 
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
 task allJavadoc(type: Javadoc) {
     source = files(exportedProjects.stream()
             .map { rootProject.findProject(it.toString()) }
@@ -44,7 +48,7 @@ task allJavadoc(type: Javadoc) {
 assemble {
     dependsOn = getTasksByName('assemble', true)
             .stream()
-            .filter { (it as Task).project.equals(rootProject) | (it as Task).project.parent.equals(rootProject) }
+            .filter { (it as Task).project.parent.equals(rootProject) }
             .collect()
 
     exportedProjects.stream()

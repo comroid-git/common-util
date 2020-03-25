@@ -1,61 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <artifactId>upd8r</artifactId>
-    <dependencies>
-        <dependency>
-            <artifactId>common-util</artifactId>
-            <groupId>org.comroid</groupId>
-            <scope>compile</scope>
-            <version>1.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <artifactId>flogger</artifactId>
-            <groupId>com.google.flogger</groupId>
-            <scope>runtime</scope>
-            <version>0.4</version>
-        </dependency>
-        <dependency>
-            <artifactId>fastjson</artifactId>
-            <groupId>com.alibaba</groupId>
-            <scope>runtime</scope>
-            <version>1.2.62</version>
-        </dependency>
-        <dependency>
-            <artifactId>okhttp</artifactId>
-            <groupId>com.squareup.okhttp3</groupId>
-            <scope>runtime</scope>
-            <version>3.14.7</version>
-        </dependency>
-        <dependency>
-            <artifactId>flogger-system-backend</artifactId>
-            <groupId>com.google.flogger</groupId>
-            <scope>runtime</scope>
-            <version>0.4</version>
-        </dependency>
-    </dependencies>
-    <description>Update Handler using NGinX file hosts</description>
-    <developers>
-        <developer>
-            <email>burdoto@outlook.com</email>
-            <id>burdoto</id>
-            <name>Tobias Burdow</name>
-        </developer>
-    </developers>
-    <groupId>org.comroid</groupId>
-    <inceptionYear>2019</inceptionYear>
-    <licenses>
-        <license>
-            <name>The Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-    </licenses>
-    <modelVersion>4.0.0</modelVersion>
-    <name>common-util</name>
-    <scm>
-        <connection>scm:git:git://github.com/comroid-git/common-util.git</connection>
-        <developerConnection>scm:git:ssh://github.com/comroid-git/common-util.git</developerConnection>
-        <url>https://github.com/comroid-git/common-util</url>
-    </scm>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.comroid</groupId>
+  <artifactId>upd8r</artifactId>
+  <version>0.1.2-SNAPSHOT</version>
+  <name>common-util</name>
+  <description>Update Handler using NGinX file hosts</description>
+  <url>https://github.com/comroid-git/common-util</url>
+  <inceptionYear>2019</inceptionYear>
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>burdoto</id>
+      <name>Tobias Burdow</name>
+      <email>burdoto@outlook.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/comroid-git/common-util.git</connection>
+    <developerConnection>scm:git:ssh://github.com/comroid-git/common-util.git</developerConnection>
     <url>https://github.com/comroid-git/common-util</url>
-    <version>0.1.2-SNAPSHOT</version>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>common-util</artifactId>
+      <version>1.2.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.flogger</groupId>
+      <artifactId>flogger</artifactId>
+      <version>0.4</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+      <version>1.2.66</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>4.4.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.flogger</groupId>
+      <artifactId>flogger-system-backend</artifactId>
+      <version>0.4</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
 </project>

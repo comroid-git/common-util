@@ -1,7 +1,0 @@
-apply from: "../modules.gradle"
-
-dependencies {
-    implementation rootProject.project(':restless:java8')
-
-    testImplementation rootProject.project(':restless:java8')
-}
