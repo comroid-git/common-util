@@ -52,7 +52,7 @@ dependencies {
     java11CompileOnly sourceSets.main.output.classesDirs
 
     // json adapter dependencies
-    java8CompileOnly 'com.alibaba:fastjson:1.2.62'
+    java8CompileOnly 'com.alibaba:fastjson:1.2.67'
     java8CompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
     java8CompileOnly 'org.json:json:20190722'
 
