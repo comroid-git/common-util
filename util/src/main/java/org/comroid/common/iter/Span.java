@@ -238,7 +238,9 @@ public class Span<T> implements Collection<T>, Supplier<Optional<T>> {
                     : i < data.length; i++
             ) {
                 if (nullPolicy.canOverwrite(valueAt(i), item)) {
-                    return nullPolicy.canIterate(replace(i, item, true));
+                    replace(i, item, true);
+                    last = i;
+                    return true;
                 }
             }
 
