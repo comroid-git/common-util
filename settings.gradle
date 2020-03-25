@@ -2,6 +2,8 @@ rootProject.name = 'common-util'
 
 include(':util')
 
+include(':iclog')
+
 include(':trie')
 
 include(':spellbind')

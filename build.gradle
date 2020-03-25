@@ -20,6 +20,10 @@ configurations {
 allprojects {
     apply from: "$rootDir/gradle/vars.gradle"
     apply from: "$rootDir/gradle/global.gradle"
+
+    dependencies {
+        api project(':util')
+    }
 }
 
 dependencies {

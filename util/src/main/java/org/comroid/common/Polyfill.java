@@ -4,12 +4,15 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
+import java.util.stream.Stream;
 
 import org.comroid.common.annotation.OptionalVararg;
 import org.comroid.common.func.ThrowingRunnable;
+import org.comroid.common.iter.Span;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,9 +21,7 @@ import static java.util.Objects.isNull;
 
 public final class Polyfill {
     public static String regexGroupOrDefault(
-            Matcher matcher,
-            String groupName,
-            @Nullable String orDefault
+            Matcher matcher, String groupName, @Nullable String orDefault
     ) {
         String cont;
 
@@ -53,8 +54,7 @@ public final class Polyfill {
     }
 
     public static <T extends Throwable> URI uri(
-            String spec,
-            @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
+            String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
     ) throws T {
         if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
                 cause -> (T) new AssertionError(cause)
@@ -113,5 +113,22 @@ public final class Polyfill {
                 throw new AssertionError(msg);
             }
         };
+    }
+
+    public static <T> Stream<T> recursiveStream(Object... vars) {
+        Collection<T> yields = Span.<T>make().initialSize(vars.length)
+                                             .span();
+
+        for (Object each : vars)
+            if (each instanceof Collection) {
+                recursiveStream(((Collection) each).toArray()).map(it -> (T) it)
+                                                              .forEachOrdered(yields::add);
+            } else if (each.getClass()
+                           .isArray()) {
+                recursiveStream((Object[]) each).map(it -> (T) it)
+                                                .forEachOrdered(yields::add);
+            } else yields.add((T) each);
+
+        return yields.stream();
     }
 }
