@@ -24,7 +24,7 @@ public class SpanTest {
     private List<Pair<String, Integer>> generated;
 
     @Test
-    public void testDefaults() {
+    public void baseTest() {
         this.span = Span.<String>make().span();
 
         this.generated = IntStream.range(0, bound)
