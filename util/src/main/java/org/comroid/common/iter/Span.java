@@ -29,6 +29,8 @@ import static java.lang.Math.max;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+//todo REWORK THIS
+@Deprecated
 public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
     public static final int        DEFAULT_INITIAL_CAPACITY = 0;
     public static final NullPolicy DEFAULT_NULL_POLICY      = NullPolicy.DEFAULT;
