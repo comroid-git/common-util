@@ -4,6 +4,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@Deprecated
 public final class nFunction {
     @FunctionalInterface
     public interface I0O<O> extends Supplier<O> {
