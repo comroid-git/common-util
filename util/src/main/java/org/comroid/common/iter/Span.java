@@ -166,13 +166,15 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     @Override
     @Contract
     public final int size() {
-        int c = 0;
+        synchronized (dataLock) {
+            int c = 0;
 
-        for (Object it : data) {
-            if (nullPolicy.canIterate(it)) c++;
+            for (Object it : data) {
+                if (nullPolicy.canIterate(it)) c++;
+            }
+
+            return c;
         }
-
-        return c;
     }
 
     @NotNull

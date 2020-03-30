@@ -43,19 +43,21 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
         switch (nodeType) {
             case OBJECT:
                 //noinspection unchecked
-                elements = new Span<>(((OBJ) node));
+                elements = Span.<OBJ>make().initialValues(((OBJ) node))
+                                           .span();
 
                 break;
             case ARRAY:
                 //noinspection unchecked
-                elements = (Span<OBJ>) new Span<>(split(((ARR) node)));
+                elements = (Span<OBJ>) Span.<BAS>make().initialValues(split((ARR) node))
+                                                       .span();
 
                 break;
         }
 
         return elements.stream()
                        .map(getConverter()::forward)
-                       .collect(Span.collector(false));
+                       .collect(Span.<TAR>make().collector());
     }
 
     public abstract Collection<BAS> split(ARR data);
@@ -67,16 +69,18 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
 
         switch (nodeType) {
             case OBJECT:
-                final TAR tar = data.get(AssertionError::new);
+                final TAR tar = data.wrap()
+                                    .orElseThrow(AssertionError::new);
 
                 assert tar != null;
-                elements = new Span<>(getConverter().backward(tar));
+                elements = Span.<OBJ>make().initialValues(getConverter().backward(tar))
+                                           .span();
 
                 break;
             case ARRAY:
                 elements = data.stream()
                                .map(getConverter()::backward)
-                               .collect(Span.collector(false));
+                               .collect(Span.<OBJ>make().collector());
 
                 break;
         }
