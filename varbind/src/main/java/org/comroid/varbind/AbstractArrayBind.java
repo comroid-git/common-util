@@ -73,7 +73,8 @@ abstract class AbstractArrayBind<S, A, D, C extends Collection<A>, OBJ>
                                   .stream()
                                   .map(it -> (OBJ) it)
                                   .map(dataExtractor)
-                                  .collect(Span.collector(true));
+                                  .collect(Span.<S>make().fixedSize(true)
+                                                         .collector());
     }
 
     @Override
@@ -84,7 +85,9 @@ abstract class AbstractArrayBind<S, A, D, C extends Collection<A>, OBJ>
     @Override
     public A remap(S from, D dependency) {
         return resolver.apply(
-                Objects.requireNonNull(dependency, "Dependency Object is null"), from);
+                Objects.requireNonNull(dependency, "Dependency Object is null"),
+                from
+        );
     }
 
     @Override

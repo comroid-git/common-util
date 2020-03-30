@@ -23,6 +23,7 @@ import static org.comroid.common.Polyfill.deadCast;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
 
+@SuppressWarnings("unchecked")
 public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     public final SeriLib<BAS, OBJ, ? extends BAS> getSerializationLibrary() {
         return seriLib;
@@ -31,6 +32,7 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     public final GroupBind<BAS, OBJ, ?> getBindings() {
         return rootBind;
     }
+
     private final                                                         SeriLib<BAS, OBJ, ? extends BAS>                             seriLib;
     private final                                                         Map<VarBind<?, ?, ?, ?, OBJ>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
     private final                                                         GroupBind<BAS, OBJ, ?>                                       rootBind;
@@ -40,10 +42,9 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     protected <ARR extends BAS> VariableCarrier(
             SeriLib<BAS, OBJ, ARR> seriLib, @Nullable String data, @Nullable DEP dependencyObject
     ) {
-        this(
-                seriLib,
-                data == null ? null : seriLib.objectType.cast(seriLib.parser.forward(data)),
-                dependencyObject
+        this(seriLib,
+             data == null ? null : seriLib.objectType.cast(seriLib.parser.forward(data)),
+             dependencyObject
         );
     }
 
@@ -61,12 +62,17 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
 
         if (location == null) throw new IllegalStateException(String.format(
                 "Class %s extends VariableCarrier, but does not have a %s annotation.",
-                inClass.getName(), VarBind.Location.class.getName()
+                inClass.getName(),
+                VarBind.Location.class.getName()
         ));
 
-        return ReflectionHelper.collectStaticFields(
-                GroupBind.class, location.value(), true, VarBind.Root.class)
-                               .getAssert();
+        //noinspection unchecked
+        return (GroupBind<BAS, OBJ, ARR>) ReflectionHelper.collectStaticFields(GroupBind.class,
+                                                                               location.value(),
+                                                                               true,
+                                                                               VarBind.Root.class
+        )
+                                                          .requireNonNull();
     }
 
     private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, ?, ?, OBJ>> updateVars(
@@ -86,16 +92,13 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
                                                                .map(bind::extract)
                                                                .flatMap(Span::stream)
                                                                .map(Object.class::cast)
-                                                               .collect(Span.collector(true));
+                                                               .collect(Span.make()
+                                                                            .fixedSize(true)
+                                                                            .collector());
 
                     ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set(data);
-                } else if (bind instanceof VarBind) ref(
-                        (VarBind<Object, Object, DEP, Object, OBJ>) bind).set(
-                        (Span<Object>) bind.extract(obj));
-                else throw new IllegalArgumentException(
-                            String.format("Unknown Bind type; expected any of:\n\t-\t%s\n\t-\t%s\n",
-                                          VarBind.class.getName(), ArrayBind.class.getName()
-                            ));
+                } else ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set((Span<Object>) bind.extract(
+                        obj));
 
                 changed.add((VarBind<?, ?, DEP, ?, OBJ>) bind);
             }
@@ -105,8 +108,13 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
     }
 
     private <C> AtomicReference<Span<C>> ref(VarBind<C, ?, ?, ?, OBJ> bind) {
-        return deadCast(vars.computeIfAbsent(bind, key -> deadCast(
-                new AtomicReference<>(new Span<C>(1, Span.NullPolicy.IGNORE, false)))));
+        return deadCast(vars.computeIfAbsent(bind,
+                                             key -> deadCast(new AtomicReference<>(Span.<C>make().initialSize(
+                                                     1)
+                                                                                                 .fixedSize(
+                                                                                                         true)
+                                                                                                 .span()))
+        ));
     }
 
     public final Set<VarBind<?, ?, ?, ?, OBJ>> updateFrom(OBJ node) {
@@ -130,8 +138,7 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
                                                            deadCast(dependencyObject.orElse(null))
                                               ))
                                       .filter(Objects::nonNull)
-                                      .collect(Span.<A>make().nullPolicy(Span.NullPolicy.SKIP)
-                                                             .fixedSize(true)
+                                      .collect(Span.<A>make().fixedSize(true)
                                                              .collector());
 
         return bind.finish(span);

@@ -37,11 +37,13 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 String name,
                 BiFunction<NODE, String, S> extractor
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make().initialValues(it)
-                                                                              .nullPolicy(
-                                                                                      Span.NullPolicy.SKIP_ON_ITERATE)
-                                                                              .fixedSize(true)
-                                                                              .span()));
+            super(seriLib,
+                  group,
+                  name,
+                  extractor.andThen(it -> Span.<S>make().initialValues(it)
+                                                        .fixedSize(true)
+                                                        .span())
+            );
         }
 
         @Override
@@ -51,8 +53,7 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
 
         @Override
         public final S finish(Span<S> parts) {
-            if (parts.isSingle()) return parts.get()
-                                              .orElse(null);
+            if (parts.isSingle()) return parts.get();
 
             throw new AssertionError("Span too large");
         }
@@ -75,11 +76,13 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 BiFunction<NODE, String, S> extractor,
                 Function<S, A> remapper
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make().initialValues(it)
-                                                                              .nullPolicy(
-                                                                                      Span.NullPolicy.SKIP_ON_ITERATE)
-                                                                              .fixedSize(true)
-                                                                              .span()));
+            super(seriLib,
+                  group,
+                  name,
+                  extractor.andThen(it -> Span.<S>make().initialValues(it)
+                                                        .fixedSize(true)
+                                                        .span())
+            );
 
             this.remapper = remapper;
         }
@@ -91,7 +94,7 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
 
         @Override
         public final A finish(Span<A> parts) {
-            if (parts.isSingle()) return parts.getAssert();
+            if (parts.isSingle()) return parts.requireNonNull();
 
             throw new AssertionError("Span too large");
         }
@@ -118,24 +121,27 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
                 BiFunction<NODE, String, S> extractor,
                 BiFunction<D, S, A> resolver
         ) {
-            super(seriLib, group, name, extractor.andThen(it -> Span.<S>make().initialValues(it)
-                                                                              .nullPolicy(
-                                                                                      Span.NullPolicy.SKIP_ON_ITERATE)
-                                                                              .fixedSize(true)
-                                                                              .span()));
+            super(seriLib,
+                  group,
+                  name,
+                  extractor.andThen(it -> Span.<S>make().initialValues(it)
+                                                        .fixedSize(true)
+                                                        .span())
+            );
 
             this.resolver = resolver;
         }
 
         @Override
         public final A remap(S from, D dependency) {
-            return resolver.apply(
-                    Objects.requireNonNull(dependency, "Dependency Object is null"), from);
+            return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object is null"),
+                                  from
+            );
         }
 
         @Override
         public final A finish(Span<A> parts) {
-            if (parts.isSingle()) return parts.getAssert();
+            if (parts.isSingle()) return parts.requireNonNull();
 
             throw new AssertionError("Span too large");
         }
