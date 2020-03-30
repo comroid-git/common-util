@@ -6,10 +6,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
@@ -18,15 +16,16 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
+import org.comroid.common.ref.Reference;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
 
-public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
+public class Span<T> implements AbstractCollection<T>, Reference<T> {
     public static final int        DEFAULT_INITIAL_CAPACITY = 0;
     public static final NullPolicy DEFAULT_NULL_POLICY      = NullPolicy.SKIP_NULLS;
     public static final boolean    DEFAULT_FIXED_SIZE       = false;
@@ -294,43 +293,6 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
         }
     }
 
-    @Override
-    public Spliterator<T> spliterator() {
-        Iterator iterator = iterator();
-
-        return Spliterators.spliterator(iterator, iterator.dataSnapshot.length, Spliterator.SIZED);
-    }
-
-    public final @NotNull T getAssert() throws AssertionError {
-        return get(String.format("Could not get from %s: no iterable values present", toString()));
-    }
-
-    @Override
-    public final String toString() {
-        @NotNull Object[] arr = toArray();
-        return String.format("Span{nullPolicy=%s, data={%d}%s}",
-                             nullPolicy,
-                             arr.length,
-                             Arrays.toString(arr)
-        );
-    }
-
-    public final @NotNull T get(final String exceptionMessage) throws AssertionError {
-        return get(() -> new AssertionError(exceptionMessage));
-    }
-
-    public final <E extends Throwable> @NotNull T get(Supplier<E> exceptionSupplier) throws E {
-        return get().orElseThrow(exceptionSupplier);
-    }
-
-    @Override
-    public final @NotNull Optional<T> get() {
-        final Object[] objects = stream().filter(nullPolicy::canIterate)
-                                         .toArray();
-        //noinspection unchecked
-        return objects.length >= 1 ? Optional.ofNullable((T) objects[0]) : Optional.empty();
-    }
-
     private final NullPolicy nullPolicy;
     private final Object     dataLock = new Object() {
         private volatile Object selfaware_keepalive = Span.this.dataLock;
@@ -347,6 +309,26 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
 
         this.data      = data;
         this.fixedSize = fixedSize;
+    }
+
+    @Nullable
+    @Override
+    public final T get() {
+        synchronized (dataLock) {
+            for (int i = 0; i < data.length; i++) {
+                final T valueAt = valueAt(i);
+
+                if (nullPolicy.canIterate(valueAt))
+                    return valueAt;
+            }
+
+            return null;
+        }
+    }
+
+    @Override
+    public @NotNull T requireNonNull() throws NullPointerException {
+        return requireNonNull("No iterable value present");
     }
 
     public final API<T> reconfigure() {
@@ -389,7 +371,10 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
         ),
 
         PROHIBIT_NULLS(
-                init -> requireNonNull(init) != null,
+                init -> {
+                    Objects.requireNonNull(init);
+                    return true;
+                },
                 iterate -> nonNull(iterate),
                 (overwriting, with) -> nonNull(with) && isNull(overwriting),
                 cleanup -> isNull(cleanup)
