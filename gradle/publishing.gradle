@@ -18,6 +18,9 @@ publishing {
             }
         }
 
+        /*
+        TODO temporarily disabled because sonatype is weird
+
         maven {
             name = 'Sonatype'
             url = snapshot
@@ -29,6 +32,8 @@ publishing {
                 password sonatypePassword
             }
         }
+
+         */
     }
 
     publications {
@@ -72,6 +77,7 @@ publishing {
     }
 }
 
+/*
 def artifactId = publishing.publications.mavenJava.artifactId
 tasks.findByName('publishMavenJavaPublicationToSonatypeRepository').onlyIf {
     if (snapshot) return true
@@ -89,6 +95,7 @@ tasks.findByName('publishMavenJavaPublicationToSonatypeRepository').onlyIf {
 
     return code != 200
 }
+ */
 
 task generateGithubPom(type: GenerateMavenPom) {
     destination = file("$projectDir/pom.xml")
