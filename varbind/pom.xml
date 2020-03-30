@@ -3,10 +3,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.comroid</groupId>
-  <artifactId>common-util</artifactId>
-  <version>1.2.0</version>
+  <artifactId>varbind</artifactId>
+  <version>0.1.0</version>
   <name>common-util</name>
-  <description>Commonly used Interfaces and Classes</description>
+  <description>Serialization Binding</description>
   <url>https://github.com/comroid-git/common-util</url>
   <inceptionYear>2019</inceptionYear>
   <licenses>
@@ -28,6 +28,18 @@
     <url>https://github.com/comroid-git/common-util</url>
   </scm>
   <dependencies>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>common-util</artifactId>
+      <version>1.2.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>uniform</artifactId>
+      <version>0.1.0</version>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger</artifactId>
