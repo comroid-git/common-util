@@ -256,7 +256,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
                     if (!nullPolicy.canIterate(valueAt)) continue;
 
-                    if (other.equals(valueAt) && nullPolicy.canCleanup(valueAt)) {
+                    if (other.equals(valueAt) && nullPolicy.canRemove(valueAt)) {
                         data[i] = null;
                         return true;
                     }
@@ -271,7 +271,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                     if (!nullPolicy.canIterate(valueAt)) continue;
 
                     if (other.equals(valueAt)) {
-                        if (!nullPolicy.canCleanup(valueAt)) {
+                        if (!nullPolicy.canRemove(valueAt)) {
                             nullPolicy.fail(String.format("Cannot remove %s from Span", valueAt));
                         }
                     } else newData.add(valueAt);
@@ -369,6 +369,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 init -> true,
                 iterate -> nonNull(iterate),
                 (overwriting, with) -> isNull(overwriting),
+                remove -> true,
                 cleanup -> isNull(cleanup)
         ),
 
@@ -376,6 +377,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 init -> true,
                 iterate -> nonNull(iterate),
                 (overwriting, with) -> nonNull(with) && isNull(overwriting),
+                remove -> true,
                 cleanup -> isNull(cleanup)
         ),
 
@@ -386,6 +388,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 },
                 iterate -> nonNull(iterate),
                 (overwriting, with) -> nonNull(with) && isNull(overwriting),
+                remove -> true,
                 cleanup -> isNull(cleanup)
         );
         //startformatting
@@ -394,18 +397,21 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         private final        Predicate<Object>           initVarTester;
         private final        Predicate<Object>           iterateVarTester;
         private final        BiPredicate<Object, Object> overwriteTester;
+        private final        Predicate<Object>           removeTester;
         private final        Predicate<Object>           cleanupTester;
 
         NullPolicy(
                 Predicate<Object> initVarTester,
                 Predicate<Object> iterateVarTester,
                 BiPredicate<Object, Object> overwriteTester,
+                Predicate<Object> removeTester,
                 Predicate<Object> cleanupTester
         ) {
 
             this.initVarTester    = initVarTester;
             this.iterateVarTester = iterateVarTester;
             this.overwriteTester  = overwriteTester;
+            this.removeTester     = removeTester;
             this.cleanupTester    = cleanupTester;
         }
 
@@ -419,6 +425,10 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
         public boolean canOverwrite(Object old, Object with) {
             return (old != dummy && with != dummy) && overwriteTester.test(old, with);
+        }
+
+        public boolean canRemove(Object var) {
+            return var != dummy && removeTester.test(var);
         }
 
         public boolean canCleanup(Object var) {
