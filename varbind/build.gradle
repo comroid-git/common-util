@@ -14,5 +14,5 @@ dependencies {
     compileOnly project(":uniform").sourceSets.main.output.classesDirs
 
     testImplementation project(":uniform").sourceSets.java8.output.classesDirs
-    testImplementation 'com.alibaba:fastjson:1.2.67'
+    testImplementation 'com.alibaba:fastjson:1.2.68'
 }

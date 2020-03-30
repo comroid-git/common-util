@@ -10,6 +10,6 @@ ext {
 dependencies {
     api project(":util")
 
-    implementation 'com.alibaba:fastjson:1.2.67'
+    implementation 'com.alibaba:fastjson:1.2.68'
     implementation 'com.squareup.okhttp3:okhttp:4.4.1'
 }
