@@ -256,7 +256,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
                     if (!nullPolicy.canIterate(valueAt)) continue;
 
-                    if (other.equals(valueAt) && nullPolicy.canOverwrite(valueAt, null)) {
+                    if (other.equals(valueAt) && nullPolicy.canCleanup(valueAt)) {
                         data[i] = null;
                         return true;
                     }
@@ -271,9 +271,9 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                     if (!nullPolicy.canIterate(valueAt)) continue;
 
                     if (other.equals(valueAt)) {
-                        if (!nullPolicy.canOverwrite(valueAt, null)) nullPolicy.fail(String.format("Cannot remove %s from Span",
-                                                                                                   valueAt
-                        ));
+                        if (!nullPolicy.canCleanup(valueAt)) {
+                            nullPolicy.fail(String.format("Cannot remove %s from Span", valueAt));
+                        }
                     } else newData.add(valueAt);
                 }
 
@@ -368,7 +368,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         SKIP_NULLS(
                 init -> true,
                 iterate -> nonNull(iterate),
-                (overwriting, with) -> true,
+                (overwriting, with) -> isNull(overwriting),
                 cleanup -> isNull(cleanup)
         ),
 
