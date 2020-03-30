@@ -58,9 +58,11 @@ public class SpanTest {
         assertTrue(span.contains(randomGenerated()));
 
         final String removeThis = randomGenerated();
-        final int    count      = span.count(removeThis);
-        System.out.println(
-                "removing value   = " + removeThis + "; found " + count + " occurrence" + (count == 1
+        final int    count      = (int) span.stream()
+                                            .filter(it -> it.equals(removeThis))
+                                            .count();
+        System.out.println("removing value   = " + removeThis + "; found " + count + " occurrence" + (
+                count == 1
                         ? ""
                         : "s"));
         assertTrue(span.remove(removeThis));
@@ -80,15 +82,18 @@ public class SpanTest {
                                          .filter(Boolean::booleanValue)
                                          .count();
 
-        System.out.printf(
-                "};\n" + "                   ... %d were successful.\n" + "remove           = %d%n",
-                successful, remove
+        System.out.printf("};\n" + "                   ... %d were successful.\n" + "remove           = %d%n",
+                          successful,
+                          remove
         );
 
         final Object[] iterable = span.toArray();
         System.out.println("span after       = " + span);
         System.out.printf(
-                "span iterable    = {%d}%s%n", iterable.length, Arrays.toString(iterable));
+                "span iterable    = {%d}%s%n",
+                iterable.length,
+                Arrays.toString(iterable)
+        );
 
         assertEquals(successful, remove);
         //assertEquals(size_beforeBulk - successful, iterable.length);

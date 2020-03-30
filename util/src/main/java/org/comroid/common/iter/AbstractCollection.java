@@ -1,7 +1,6 @@
 package org.comroid.common.iter;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -12,11 +11,11 @@ public interface AbstractCollection<T> extends Collection<T> {
     }
 
     @Override
-    @SuppressWarnings("WhileLoopReplaceableByForEach")
     default boolean contains(Object o) {
-        final Iterator<T> iterator = iterator();
-
-        while (iterator.hasNext()) if (o.equals(iterator.next())) return true;
+        for (T it : this) {
+            if (o.equals(it))
+                return true;
+        }
 
         return false;
     }
