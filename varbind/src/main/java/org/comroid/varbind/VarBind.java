@@ -96,7 +96,10 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
         public final A finish(Span<A> parts) {
             if (parts.isSingle()) return parts.requireNonNull();
 
-            throw new AssertionError("Span too large");
+            throw new AssertionError(String.format("Span %s: %s",
+                                                   (parts.isEmpty() ? "empty" : "too large"),
+                                                   parts
+            ));
         }
     }
 

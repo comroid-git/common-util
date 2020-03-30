@@ -141,6 +141,6 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
                                       .collect(Span.<A>make().fixedSize(true)
                                                              .collector());
 
-        return bind.finish(span);
+        return span.isEmpty() ? null : bind.finish(span);
     }
 }
