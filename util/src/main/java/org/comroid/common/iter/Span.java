@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 
 public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
     public static final int        DEFAULT_INITIAL_CAPACITY = 0;
@@ -254,15 +255,31 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
                 for (int i = 0; i < data.length; i++) {
                     final T valueAt = valueAt(i);
 
+                    if (!nullPolicy.canIterate(valueAt)) continue;
+
                     if (other.equals(valueAt) && nullPolicy.canOverwrite(valueAt, null)) {
                         data[i] = null;
                         return true;
                     }
                 }
             } else {
-                data = stream().filter(it -> !other.equals(it))
-                               .toArray();
-                return true;
+                final int           ol      = data.length;
+                final Collection<T> newData = new ArrayList<>();
+
+                for (int i = 0; i < data.length; i++) {
+                    final T valueAt = valueAt(i);
+
+                    if (!nullPolicy.canIterate(valueAt)) continue;
+
+                    if (other.equals(valueAt)) {
+                        if (!nullPolicy.canOverwrite(valueAt, null)) nullPolicy.fail(String.format("Cannot remove %s from Span",
+                                                                                                   valueAt
+                        ));
+                    } else newData.add(valueAt);
+                }
+
+                data = newData.toArray();
+                return ol != data.length;
             }
 
             return false;
@@ -274,8 +291,6 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
         synchronized (dataLock) {
             if (fixedSize) Arrays.fill(data, NullPolicy.dummy);
             else data = new Object[0];
-
-            last = -1;
         }
     }
 
@@ -321,7 +336,6 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
         private volatile Object selfaware_keepalive = Span.this.dataLock;
     };
     private       Object[]   data;
-    private       int        last;
     private       boolean    fixedSize;
 
     public Span() {
@@ -332,7 +346,6 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
         this.nullPolicy = nullPolicy;
 
         this.data      = data;
-        this.last      = data.length;
         this.fixedSize = fixedSize;
     }
 
@@ -352,8 +365,6 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
 
     @Contract(mutates = "this")
     public final synchronized void cleanup() {
-        last = data.length;
-
         if (fixedSize) {
             data = stream().filter(it -> !nullPolicy.canCleanup(it))
                            .toArray(Object[]::new);
@@ -365,6 +376,20 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
         //endformatting
         SKIP_NULLS(
                 init -> nonNull(init),
+                iterate -> nonNull(iterate),
+                (overwriting, with) -> isNull(overwriting),
+                cleanup -> isNull(cleanup)
+        ),
+
+        NULL_ON_INIT(
+                init -> nonNull(init),
+                iterate -> nonNull(iterate),
+                (overwriting, with) -> nonNull(with) && isNull(overwriting),
+                cleanup -> isNull(cleanup)
+        ),
+
+        PROHIBIT_NULLS(
+                init -> requireNonNull(init) != null,
                 iterate -> nonNull(iterate),
                 (overwriting, with) -> nonNull(with) && isNull(overwriting),
                 cleanup -> isNull(cleanup)
@@ -439,8 +464,7 @@ public class Span<T> implements AbstractCollection<T>, Supplier<Optional<T>> {
 
         private boolean tryAcquireNext() {
             int nextIndex = previousIndex + 1;
-            if (next != null || nextIndex >= dataSnapshot.length)
-                return false;
+            if (next != null || nextIndex >= dataSnapshot.length) return false;
 
             next = dataSnapshot[nextIndex];
 

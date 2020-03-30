@@ -50,6 +50,8 @@ public class SpanTest {
         System.out.println("span contains    = " + cContains);
         System.out.println("span             = " + span);
 
+        assertEquals(added, cContains);
+
         span.cleanup();
 
         System.out.println("span cleanup     = " + span);

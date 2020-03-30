@@ -42,7 +42,8 @@ public interface AbstractCollection<T> extends Collection<T> {
         boolean removed = false;
 
         for (Object object : objects) {
-            if (remove(object) && !removed) removed = true;
+            if (remove(object) && !removed)
+                removed = true;
         }
 
         return removed;
