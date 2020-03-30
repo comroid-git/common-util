@@ -1,4 +1,4 @@
-version = '0.10.1-SNAPSHOT'
+version = '0.10.2s-SNAPSHOT'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
