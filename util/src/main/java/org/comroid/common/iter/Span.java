@@ -366,14 +366,14 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     public enum NullPolicy {
         //endformatting
         SKIP_NULLS(
-                init -> nonNull(init),
+                init -> true,
                 iterate -> nonNull(iterate),
-                (overwriting, with) -> isNull(overwriting),
+                (overwriting, with) -> true,
                 cleanup -> isNull(cleanup)
         ),
 
         NULL_ON_INIT(
-                init -> nonNull(init),
+                init -> true,
                 iterate -> nonNull(iterate),
                 (overwriting, with) -> nonNull(with) && isNull(overwriting),
                 cleanup -> isNull(cleanup)
