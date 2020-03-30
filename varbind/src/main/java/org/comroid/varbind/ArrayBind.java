@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface ArrayBind {
+public interface ArrayBind<S, A, D, C extends Collection<A>, OBJ> extends VarBind<S, A, D, C, OBJ> {
     final class Uno<NODE, S, C extends Collection<S>>
             extends AbstractArrayBind<S, S, Object, C, NODE> {
         Uno(
@@ -18,9 +18,13 @@ public interface ArrayBind {
                 Function<NODE, S> dataExtractor,
                 Supplier<C> collectionProvider
         ) {
-            super(
-                    seriLib, group, name, arrayExtractor, dataExtractor, null,
-                    mergefuncWithProvider(collectionProvider)
+            super(seriLib,
+                  group,
+                  name,
+                  arrayExtractor,
+                  dataExtractor,
+                  null,
+                  mergefuncWithProvider(collectionProvider)
             );
         }
 
@@ -41,9 +45,13 @@ public interface ArrayBind {
                 BiFunction<Object, S, A> resolver,
                 Supplier<C> collectionProvider
         ) {
-            super(
-                    seriLib, group, name, arrayExtractor, dataExtractor, resolver,
-                    mergefuncWithProvider(collectionProvider)
+            super(seriLib,
+                  group,
+                  name,
+                  arrayExtractor,
+                  dataExtractor,
+                  resolver,
+                  mergefuncWithProvider(collectionProvider)
             );
         }
     }
@@ -59,9 +67,13 @@ public interface ArrayBind {
                 BiFunction<D, S, A> resolver,
                 Supplier<C> collectionProvider
         ) {
-            super(
-                    seriLib, group, name, arrayExtractor, dataExtractor, resolver,
-                    mergefuncWithProvider(collectionProvider)
+            super(seriLib,
+                  group,
+                  name,
+                  arrayExtractor,
+                  dataExtractor,
+                  resolver,
+                  mergefuncWithProvider(collectionProvider)
             );
         }
     }

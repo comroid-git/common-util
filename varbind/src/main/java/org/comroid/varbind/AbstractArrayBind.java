@@ -25,7 +25,7 @@ import static org.comroid.common.Polyfill.deadCast;
  * @param <OBJ> Serialization Library Type of the serialization Node
  */
 abstract class AbstractArrayBind<S, A, D, C extends Collection<A>, OBJ>
-        extends AbstractObjectBind<S, A, D, C, OBJ> implements ArrayBind {
+        extends AbstractObjectBind<S, A, D, C, OBJ> implements ArrayBind<S, A, D, C, OBJ> {
     protected static <S, C extends Collection<S>> Function<Span<S>, C> mergefuncWithProvider(
             Supplier<C> collectionProvider
     ) {
