@@ -141,8 +141,8 @@ public final class ReflectionHelper {
                              .span();
     }
 
-    public static Object[] arrange(Object[] args, Class[] typesOrdered) {
-        final Object[] yields = new Object[args.length];
+    public static Object[] arrange(Object[] args, Class<?>[] typesOrdered) {
+        final Object[] yields = new Object[typesOrdered.length];
 
         for (int i = 0; i < typesOrdered.length; i++) {
             int finalli = i;

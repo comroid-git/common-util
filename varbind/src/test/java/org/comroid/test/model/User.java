@@ -12,7 +12,7 @@ import static org.comroid.uniform.data.impl.json.fastjson.FastJSONLib.fastJsonLi
 
 @VarBind.Location(User.Binds.class)
 public class User extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
-    protected User(DiscordAPI dependencyObject, JSONObject data) {
+    public User(DiscordAPI dependencyObject, JSONObject data) {
         super(fastJsonLib, data, dependencyObject);
     }
 

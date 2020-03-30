@@ -38,13 +38,13 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
             Class<R> resultType,
             Class<D> dependencyType
     ) {
-        final Class[]                  typesOrdered   = {
+        final Class<?>[]                  typesUnordered   = {
                 SeriLib.class,
                 seriLib.objectType.typeClass(),
                 dependencyType
         };
         final Optional<Constructor<R>> optConstructor = ReflectionHelper.findConstructor(
-                resultType, typesOrdered);
+                resultType, typesUnordered);
 
         if (!optConstructor.isPresent()) throw new NoSuchElementException(
                 "Could not find any fitting constructor");
@@ -60,7 +60,7 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
             public R apply(D dependencyObject, OBJ obj) {
                 return ReflectionHelper.instance(
                         constr, ReflectionHelper.arrange(
-                                new Object[]{ seriLib, obj, dependencyObject }, typesOrdered));
+                                new Object[]{ seriLib, obj, dependencyObject }, constr.getParameterTypes()));
             }
         }
 

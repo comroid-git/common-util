@@ -12,7 +12,7 @@ import static org.comroid.uniform.data.impl.json.fastjson.FastJSONLib.fastJsonLi
 
 @VarBind.Location(Reaction.Binds.class)
 public class Reaction extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
-    protected Reaction(DiscordAPI dependencyObject, JSONObject data) {
+    public Reaction(DiscordAPI dependencyObject, JSONObject data) {
         super(fastJsonLib, data, dependencyObject);
     }
 

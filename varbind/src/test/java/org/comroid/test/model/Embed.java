@@ -12,7 +12,7 @@ import static org.comroid.uniform.data.impl.json.fastjson.FastJSONLib.fastJsonLi
 
 @VarBind.Location(Embed.Binds.class)
 public class Embed extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
-    protected Embed(DiscordAPI dependencyObject, JSONObject data) {
+    public Embed(DiscordAPI dependencyObject, JSONObject data) {
         super(fastJsonLib, data, dependencyObject);
     }
 
