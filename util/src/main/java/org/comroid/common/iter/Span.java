@@ -311,6 +311,16 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         this.fixedSize = fixedSize;
     }
 
+    @Override
+    public final String toString() {
+        @NotNull Object[] arr = toArray();
+        return String.format("Span{nullPolicy=%s, data={%d}%s}",
+                             nullPolicy,
+                             arr.length,
+                             Arrays.toString(arr)
+        );
+    }
+
     @Nullable
     @Override
     public final T get() {
@@ -318,8 +328,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
             for (int i = 0; i < data.length; i++) {
                 final T valueAt = valueAt(i);
 
-                if (nullPolicy.canIterate(valueAt))
-                    return valueAt;
+                if (nullPolicy.canIterate(valueAt)) return valueAt;
             }
 
             return null;
@@ -426,7 +435,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
     public final class Iterator implements java.util.Iterator<T> {
         private final     Object[] dataSnapshot  = toArray();
-        private           int      previousIndex = 0;
+        private           int      previousIndex = -1;
         private @Nullable Object   next;
 
         @Override
