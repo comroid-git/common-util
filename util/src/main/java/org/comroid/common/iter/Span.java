@@ -34,6 +34,10 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         return new Span.API<>();
     }
 
+    public static <T> Collector<T, ?, Span<T>> collector() {
+        return Span.<T>make().collector();
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> Span<T> zeroSize() {
         return (Span<T>) ZeroSize;
