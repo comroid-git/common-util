@@ -95,6 +95,12 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         return String.format("SeriLib{lib=%s}", getClass().getName());
     }
 
+    @Contract("null -> null")
+    @Deprecated
+    public <TAR extends BAS> @Nullable NodeDummy<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR, TAR> dummy(@Nullable TAR node) {
+        throw new UnsupportedOperationException("Use SeriLib.createUniNode() methods instead!");
+    }
+
     public abstract <MT> UniObjectNode<BAS, OBJ, MT> createUniObjectNode(OBJ node);
 
     public abstract <CT> UniArrayNode<BAS, ARR, CT> createUniArrayNode(ARR node);
