@@ -9,7 +9,7 @@ import org.comroid.common.Polyfill;
 import org.comroid.varbind.ArrayBind;
 import org.comroid.varbind.GroupBind;
 import org.comroid.varbind.VarBind;
-import org.comroid.varbind.model.VariableCarrier;
+import org.comroid.varbind.VariableCarrier;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;

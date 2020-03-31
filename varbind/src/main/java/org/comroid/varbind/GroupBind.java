@@ -13,7 +13,6 @@ import java.util.function.Supplier;
 
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.varbind.model.VariableCarrier;
 
 import static org.comroid.common.Polyfill.deadCast;
 

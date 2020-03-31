@@ -9,7 +9,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
-import org.comroid.varbind.model.VariableCarrier;
 
 import org.jetbrains.annotations.Nullable;
 

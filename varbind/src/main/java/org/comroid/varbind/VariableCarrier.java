@@ -1,4 +1,4 @@
-package org.comroid.varbind.model;
+package org.comroid.varbind;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -12,9 +12,6 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.NodeDummy;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.varbind.ArrayBind;
-import org.comroid.varbind.GroupBind;
-import org.comroid.varbind.VarBind;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,11 +21,14 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
 
 @SuppressWarnings("unchecked")
-public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
+public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
+        implements VarCarrier<BAS, OBJ, DEP> {
+    @Override
     public final SeriLib<BAS, OBJ, ? extends BAS> getSerializationLibrary() {
         return seriLib;
     }
 
+    @Override
     public final GroupBind<BAS, OBJ, ?> getBindings() {
         return rootBind;
     }
@@ -57,7 +57,7 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         this.dependencyObject = Optional.ofNullable(dependencyObject);
     }
 
-    private <ARR extends BAS> GroupBind<BAS, OBJ, ARR> findRootBind(Class<? extends VariableCarrier> inClass) {
+    private <ARR extends BAS> GroupBind<BAS, OBJ, ARR> findRootBind(Class<? extends VarCarrier> inClass) {
         final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
 
         if (location == null) throw new IllegalStateException(String.format(
@@ -117,18 +117,22 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP> {
         ));
     }
 
+    @Override
     public final Set<VarBind<?, ?, ?, ?, OBJ>> updateFrom(OBJ node) {
         return updateVars(seriLib.dummy(node));
     }
 
+    @Override
     public final Set<VarBind<?, ?, ?, ?, OBJ>> initiallySet() {
         return initiallySet;
     }
 
+    @Override
     public final <T, A, R> @NotNull Optional<R> wrapVar(VarBind<T, A, ?, R, OBJ> bind) {
         return Optional.ofNullable(getVar(bind));
     }
 
+    @Override
     public final <T, A, R> @Nullable R getVar(VarBind<T, A, ?, R, OBJ> bind) {
         final Span<A> span = ref(bind).get()
                                       .stream()

@@ -7,7 +7,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.comroid.common.iter.Span;
-import org.comroid.varbind.model.VariableCarrier;
 
 import org.jetbrains.annotations.Nullable;
 
