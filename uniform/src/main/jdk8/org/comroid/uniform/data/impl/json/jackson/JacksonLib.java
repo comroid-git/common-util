@@ -5,10 +5,9 @@ import java.util.ArrayList;
 import org.comroid.common.annotation.ClassDependency;
 import org.comroid.common.annotation.Instance;
 import org.comroid.common.func.bi.Junction;
-import org.comroid.uniform.data.NodeDummy;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.data.StructureTypeMismatchException;
-import org.comroid.uniform.data.util.json.JacksonUtils;
+import org.comroid.uniform.data.node.UniArrayNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,25 +44,16 @@ public final class JacksonLib extends SeriLib<JsonNode, ObjectNode, ArrayNode> {
     }
 
     @Override
-    protected <TAR extends JsonNode> NodeDummy<SeriLib<JsonNode, ObjectNode, ArrayNode>, JsonNode, ObjectNode, ArrayNode, TAR> createNodeDummy(
-            TAR node
+    public <MT> UniObjectNode<JsonNode, ObjectNode, MT> createUniObjectNode(
+            ObjectNode node
     ) {
-        return new NodeDummy<SeriLib<JsonNode, ObjectNode, ArrayNode>, JsonNode, ObjectNode, ArrayNode, TAR>(
-                this, node) {
-            @Override
-            public boolean containsKey(String name) {
-                return process(obj -> obj.has(name), arr -> {
-                    throw new StructureTypeMismatchException(arrayType, objectType);
-                });
-            }
+        throw new UnsupportedOperationException("no class defined");
+    }
 
-            @Override
-            public <T> T getValueAs(final String fieldName, final Class<T> targetType) {
-                return process(obj -> JacksonUtils.nodeAs(obj.get(fieldName), targetType), arr -> {
-                    // todo
-                    return null;
-                });
-            }
-        };
+    @Override
+    public <CT> UniArrayNode<JsonNode, ArrayNode, CT> createUniArrayNode(
+            ArrayNode node
+    ) {
+        throw new UnsupportedOperationException("no class defined");
     }
 }

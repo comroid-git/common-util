@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class TestJava8 {
+public class TestRestJava8 {
     public final static URL testUrl = url("https://api.cdn.comroid.org/app/SymBLink/");
 
     private REST<NGinXFSNode> rest;

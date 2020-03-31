@@ -10,8 +10,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.comroid.common.iter.Span;
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.data.NodeDummy;
+import org.comroid.uniform.data.DataStructureType.Primitive;
 import org.comroid.uniform.data.SeriLib;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,22 +24,12 @@ import static java.util.Collections.unmodifiableSet;
 @SuppressWarnings("unchecked")
 public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
         implements VarCarrier<BAS, OBJ, DEP> {
-    @Override
-    public final SeriLib<BAS, OBJ, ? extends BAS> getSerializationLibrary() {
-        return seriLib;
-    }
-
-    @Override
-    public final GroupBind<BAS, OBJ, ?> getBindings() {
-        return rootBind;
-    }
-
-    private final                                                         SeriLib<BAS, OBJ, ? extends BAS>                             seriLib;
-    private final                                                         Map<VarBind<?, ?, ?, ?, OBJ>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
-    private final                                                         GroupBind<BAS, OBJ, ?>                                       rootBind;
-    private final                                                         Set<VarBind<?, ?, ?, ?, OBJ>>                                initiallySet;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType") private final Optional<DEP>                                                dependencyObject;
-
+    private final SeriLib<BAS, OBJ, ? extends BAS>                             seriLib;
+    private final Map<VarBind<?, ?, ?, ?, OBJ>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
+    private final GroupBind<BAS, OBJ, ?>                                       rootBind;
+    private final Set<VarBind<?, ?, ?, ?, OBJ>>                                initiallySet;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private final Optional<DEP>                                                dependencyObject;
     protected <ARR extends BAS> VariableCarrier(
             SeriLib<BAS, OBJ, ARR> seriLib, @Nullable String data, @Nullable DEP dependencyObject
     ) {
@@ -47,13 +38,12 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
              dependencyObject
         );
     }
-
     protected <ARR extends BAS> VariableCarrier(
             SeriLib<BAS, OBJ, ARR> seriLib, @Nullable OBJ node, @Nullable DEP dependencyObject
     ) {
         this.seriLib          = seriLib;
         this.rootBind         = findRootBind(getClass());
-        this.initiallySet     = updateVars(seriLib.dummy(node));
+        this.initiallySet     = updateVars(seriLib.createUniObjectNode(node));
         this.dependencyObject = Optional.ofNullable(dependencyObject);
     }
 
@@ -75,18 +65,20 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
                                                           .requireNonNull();
     }
 
-    private <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, ?, ?, OBJ>> updateVars(
-            @Nullable NodeDummy<SERI, BAS, OBJ, ARR, TAR> initalData
+    public <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?,
+            ?, ?, ?, OBJ>> updateVars(
+            @Nullable UniObjectNode<BAS, OBJ, ?> data
     ) {
-        if (initalData == null) return emptySet();
+        if (data == null) return emptySet();
+
+        if (data.getType() != Primitive.OBJECT) throw new IllegalArgumentException(
+                "Object required");
 
         final HashSet<VarBind<?, ?, DEP, ?, OBJ>> changed = new HashSet<>();
         for (VarBind<?, ?, ?, ?, OBJ> bind : this.rootBind.getChildren()) {
-            if (initalData.containsKey(bind.getName())) {
-                final OBJ obj = initalData.obj();
-
+            if (data.containsKey(bind.getName())) {
                 if (bind instanceof ArrayBind) {
-                    final Span<Object> data = seriLib.arrayType.split(obj)
+                    final Span<Object> span = seriLib.arrayType.split(data.getBaseNode())
                                                                .stream()
                                                                .map(bas -> (OBJ) bas)
                                                                .map(bind::extract)
@@ -96,9 +88,9 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
                                                                             .fixedSize(true)
                                                                             .collector());
 
-                    ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set(data);
+                    ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set(span);
                 } else ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set((Span<Object>) bind.extract(
-                        obj));
+                        (OBJ) data.getBaseNode()));
 
                 changed.add((VarBind<?, ?, DEP, ?, OBJ>) bind);
             }
@@ -118,8 +110,18 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
     }
 
     @Override
+    public final SeriLib<BAS, OBJ, ? extends BAS> getSerializationLibrary() {
+        return seriLib;
+    }
+
+    @Override
+    public final GroupBind<BAS, OBJ, ?> getBindings() {
+        return rootBind;
+    }
+
+    @Override
     public final Set<VarBind<?, ?, ?, ?, OBJ>> updateFrom(OBJ node) {
-        return updateVars(seriLib.dummy(node));
+        return updateVars(seriLib.createUniObjectNode(node));
     }
 
     @Override

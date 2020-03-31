@@ -5,9 +5,9 @@ import java.util.Collections;
 import org.comroid.common.annotation.ClassDependency;
 import org.comroid.common.annotation.Instance;
 import org.comroid.common.func.bi.Junction;
-import org.comroid.uniform.data.NodeDummy;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.data.StructureTypeMismatchException;
+import org.comroid.uniform.data.node.UniArrayNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -32,25 +32,14 @@ public final class OrgJsonLib extends SeriLib<Object, JSONObject, JSONArray> {
     }
 
     @Override
-    protected <TAR> NodeDummy<SeriLib<Object, JSONObject, JSONArray>, Object, JSONObject, JSONArray, TAR> createNodeDummy(
-            TAR node
+    public <MT> UniObjectNode<Object, JSONObject, MT> createUniObjectNode(
+            JSONObject node
     ) {
-        return new NodeDummy<SeriLib<Object, JSONObject, JSONArray>, Object, JSONObject, JSONArray, TAR>(
-                this, node) {
-            @Override
-            public boolean containsKey(String name) {
-                return process(obj -> obj.has(name), arr -> {
-                    throw new StructureTypeMismatchException(arrayType, objectType);
-                });
-            }
+        throw new UnsupportedOperationException("no class defined");
+    }
 
-            @Override
-            public <T> T getValueAs(String fieldName, Class<T> targetType) {
-                return process(obj -> (T) obj.get(fieldName), arr -> {
-                    // todo
-                    return null;
-                });
-            }
-        };
+    @Override
+    public <CT> UniArrayNode<Object, JSONArray, CT> createUniArrayNode(JSONArray node) {
+        throw new UnsupportedOperationException("no class defined");
     }
 }

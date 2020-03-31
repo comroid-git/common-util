@@ -2,6 +2,7 @@ package org.comroid.uniform.data;
 
 import java.util.function.Function;
 
+@Deprecated
 public abstract class NodeDummy<SERI extends SeriLib<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS, TAR extends BAS> {
     public final  DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> type;
     private final SERI                                                seriLib;
