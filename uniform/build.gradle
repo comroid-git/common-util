@@ -61,8 +61,8 @@ dependencies {
     // http adapter dependencies
     java8CompileOnly 'com.squareup.okhttp3:okhttp:4.4.1'
 
-    java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5'
-    java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+    java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
+    java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
 
     testImplementation project(':util')
     testImplementation sourceSets.java8.output.classesDirs
