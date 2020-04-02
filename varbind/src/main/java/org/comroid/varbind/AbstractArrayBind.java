@@ -23,74 +23,55 @@ import static org.comroid.common.Polyfill.deadCast;
  *              VariableCarrier#getVar(VarBind)}
  * @param <OBJ> Serialization Library Type of the serialization Node
  */
-abstract class AbstractArrayBind<S, A, D, C extends Collection<A>, OBJ>
-        extends AbstractObjectBind<S, A, D, C, OBJ> implements ArrayBind<S, A, D, C, OBJ> {
-    protected static <S, C extends Collection<S>> Function<Span<S>, C> mergefuncWithProvider(
-            Supplier<C> collectionProvider
-    ) {
-        return new Function<Span<S>, C>() {
-            private final Supplier<C> provider = collectionProvider;
+abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>implements ArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
+    private final           Object                            seriLib;
+    private final           String                            name;
+    private final @Nullable GroupBind                         group;
+    private final           BiFunction<NODE, String, Span<EXTR>> extractor;
 
-            @Override
-            public C apply(Span<S> span) {
-                final C collection = provider.get();
-
-                collection.addAll(span);
-
-                return collection;
-            }
-        };
-    }
-
-    private final BiFunction<D, S, A>        resolver;
-    private final Function<Span<A>, C>       finisher;
-    private final BiFunction<OBJ, String, ?> arrayExtractor;
-    private final Function<OBJ, S>           dataExtractor;
-
-    protected AbstractArrayBind(
+    protected AbstractObjectBind(
             Object seriLib,
             @Nullable GroupBind group,
             String name,
-            BiFunction<OBJ, String, ?> arrayExtractor,
-            Function<OBJ, S> dataExtractor,
-            BiFunction<D, S, A> resolver,
-            Function<Span<A>, C> finisher
+            BiFunction<NODE, String, Span<EXTR>> extractor
     ) {
-        super(seriLib, group, name, null);
-
-        this.arrayExtractor = arrayExtractor;
-        this.dataExtractor  = dataExtractor;
-        this.resolver       = resolver;
-        this.finisher       = finisher;
+        this.seriLib   = seriLib;
+        this.name      = name;
+        this.group     = group;
+        this.extractor = extractor;
     }
 
     @Override
-    public Span<S> extract(OBJ obj) {
-        final Object array = arrayExtractor.apply(obj, getName());
+    public final String getName() {
+        return name;
+    }
 
-        return seriLib().arrayType.split(deadCast(array))
-                                  .stream()
-                                  .map(it -> (OBJ) it)
-                                  .map(dataExtractor)
-                                  .collect(Span.<S>make().fixedSize(true)
-                                                         .collector());
+    @Override
+    public Span<EXTR> extract(NODE NODE) {
+        return extractor.apply(NODE, name);
     }
 
     @Override
     public String toString() {
-        return String.format("ArrayBind@%s", getPath());
+        return String.format("VarBind@%s", getPath());
+    }
+
+    public final String getPath() {
+        return getGroup().map(groupBind -> groupBind.getName() + ".")
+                         .orElse("") + name;
     }
 
     @Override
-    public A remap(S from, D dependency) {
-        return resolver.apply(
-                Objects.requireNonNull(dependency, "Dependency Object is null"),
-                from
-        );
+    public final REMAP finish(Span<REMAP> parts) {
+        return parts.get();
     }
 
     @Override
-    public final C finish(Span<A> parts) {
-        return finisher.apply(parts);
+    public final Optional<GroupBind> getGroup() {
+        return Optional.ofNullable(group);
+    }
+
+    protected <BAS, OBJ extends BAS, ARR extends BAS> SeriLib<BAS, OBJ, ARR> seriLib() {
+        return Polyfill.deadCast(seriLib);
     }
 }

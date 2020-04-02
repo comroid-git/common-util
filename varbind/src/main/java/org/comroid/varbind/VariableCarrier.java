@@ -12,7 +12,8 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.DataStructureType.Primitive;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.data.node.UniArrayNode;
+import org.comroid.uniform.data.node.UniNode;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,7 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
     private final Set<VarBind<?, ?, ?, ?, OBJ>>                                initiallySet;
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<DEP>                                                dependencyObject;
+
     protected <ARR extends BAS> VariableCarrier(
             SeriLib<BAS, OBJ, ARR> seriLib, @Nullable String data, @Nullable DEP dependencyObject
     ) {
@@ -38,6 +40,7 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
              dependencyObject
         );
     }
+
     protected <ARR extends BAS> VariableCarrier(
             SeriLib<BAS, OBJ, ARR> seriLib, @Nullable OBJ node, @Nullable DEP dependencyObject
     ) {
@@ -56,7 +59,6 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
                 VarBind.Location.class.getName()
         ));
 
-        //noinspection unchecked
         return (GroupBind<BAS, OBJ, ARR>) ReflectionHelper.collectStaticFields(GroupBind.class,
                                                                                location.value(),
                                                                                true,
@@ -65,28 +67,25 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
                                                           .requireNonNull();
     }
 
-    public <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?,
-            ?, ?, ?, OBJ>> updateVars(
-            @Nullable UniObjectNode<BAS, OBJ, ?> data
+    public <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, ?, ?, OBJ>> updateVars(
+            @Nullable UniNode<BAS> data
     ) {
         if (data == null) return emptySet();
 
-        if (data.getType() != Primitive.OBJECT) throw new IllegalArgumentException(
-                "Object required");
+        if (data.getType() != Primitive.OBJECT)
+            throw new IllegalArgumentException("Object required");
 
         final HashSet<VarBind<?, ?, DEP, ?, OBJ>> changed = new HashSet<>();
         for (VarBind<?, ?, ?, ?, OBJ> bind : this.rootBind.getChildren()) {
             if (data.containsKey(bind.getName())) {
                 if (bind instanceof ArrayBind) {
-                    final Span<Object> span = seriLib.arrayType.split(data.getBaseNode())
-                                                               .stream()
-                                                               .map(bas -> (OBJ) bas)
-                                                               .map(bind::extract)
-                                                               .flatMap(Span::stream)
-                                                               .map(Object.class::cast)
-                                                               .collect(Span.make()
-                                                                            .fixedSize(true)
-                                                                            .collector());
+                    final Span<Object> span = ((UniArrayNode) data).stream()
+                                                                   .map(bind::extract)
+                                                                   .flatMap(Span::stream)
+                                                                   .map(Object.class::cast)
+                                                                   .collect(Span.make()
+                                                                                .fixedSize(true)
+                                                                                .collector());
 
                     ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set(span);
                 } else ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set((Span<Object>) bind.extract(

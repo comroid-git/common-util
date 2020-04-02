@@ -5,11 +5,15 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.comroid.common.iter.Span;
+import org.comroid.common.iter.Span.ModifyPolicy;
+
 import org.jetbrains.annotations.Nullable;
 
-public interface ArrayBind<S, A, D, C extends Collection<A>, OBJ> extends VarBind<S, A, D, C, OBJ> {
-    final class Uno<NODE, S, C extends Collection<S>>
-            extends AbstractArrayBind<S, S, Object, C, NODE> {
+public interface ArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
+        extends VarBind<NODE, EXTR, DPND, REMAP, FINAL> {
+    final class Uno<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
+            extends AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
         Uno(
                 Object seriLib,
                 @Nullable GroupBind group,
@@ -18,13 +22,14 @@ public interface ArrayBind<S, A, D, C extends Collection<A>, OBJ> extends VarBin
                 Function<NODE, S> dataExtractor,
                 Supplier<C> collectionProvider
         ) {
-            super(seriLib,
-                  group,
-                  name,
-                  arrayExtractor,
-                  dataExtractor,
-                  null,
-                  mergefuncWithProvider(collectionProvider)
+            super(
+                    seriLib,
+                    group,
+                    name,
+                    arrayExtractor,
+                    dataExtractor,
+                    null,
+                    mergefuncWithProvider(collectionProvider)
             );
         }
 
@@ -34,8 +39,8 @@ public interface ArrayBind<S, A, D, C extends Collection<A>, OBJ> extends VarBin
         }
     }
 
-    final class Duo<NODE, S, A, C extends Collection<A>>
-            extends AbstractArrayBind<S, A, Object, C, NODE> {
+    final class Duo<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
+            extends AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
         Duo(
                 Object seriLib,
                 @Nullable GroupBind group,
@@ -45,19 +50,20 @@ public interface ArrayBind<S, A, D, C extends Collection<A>, OBJ> extends VarBin
                 BiFunction<Object, S, A> resolver,
                 Supplier<C> collectionProvider
         ) {
-            super(seriLib,
-                  group,
-                  name,
-                  arrayExtractor,
-                  dataExtractor,
-                  resolver,
-                  mergefuncWithProvider(collectionProvider)
+            super(
+                    seriLib,
+                    group,
+                    name,
+                    arrayExtractor,
+                    dataExtractor,
+                    resolver,
+                    mergefuncWithProvider(collectionProvider)
             );
         }
     }
 
-    final class Dep<NODE, S, A, D, C extends Collection<A>>
-            extends AbstractArrayBind<S, A, D, C, NODE> {
+    final class Dep<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
+            extends AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
         Dep(
                 Object seriLib,
                 @Nullable GroupBind group,
@@ -67,14 +73,32 @@ public interface ArrayBind<S, A, D, C extends Collection<A>, OBJ> extends VarBin
                 BiFunction<D, S, A> resolver,
                 Supplier<C> collectionProvider
         ) {
-            super(seriLib,
-                  group,
-                  name,
-                  arrayExtractor,
-                  dataExtractor,
-                  resolver,
-                  mergefuncWithProvider(collectionProvider)
+            super(
+                    seriLib,
+                    group,
+                    name,
+                    arrayExtractor,
+                    dataExtractor,
+                    resolver,
+                    mergefuncWithProvider(collectionProvider)
             );
         }
+    }
+
+    @Override
+    String getName();
+
+    @Override
+    Span<EXTR> extract(NODE node);
+
+    @Override
+    REMAP remap(EXTR from, DPND dependency);
+
+    @Override
+    default FINAL finish(Span<REMAP> parts) {
+        return (FINAL) parts.reconfigure()
+                            .fixedSize(true)
+                            .nullPolicy(ModifyPolicy.UNMODIFIABLE)
+                            .span();
     }
 }

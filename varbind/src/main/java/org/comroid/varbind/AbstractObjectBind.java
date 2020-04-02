@@ -9,17 +9,18 @@ import org.comroid.uniform.data.SeriLib;
 
 import org.jetbrains.annotations.Nullable;
 
-abstract class AbstractObjectBind<S, A, D, R, NODE> implements VarBind<S, A, D, R, NODE> {
+abstract class AbstractObjectBind<NODE, EXTR, DPND, REMAP> implements VarBind<NODE, EXTR, DPND,
+        REMAP, REMAP> {
     private final           Object                            seriLib;
     private final           String                            name;
     private final @Nullable GroupBind                         group;
-    private final           BiFunction<NODE, String, Span<S>> extractor;
+    private final           BiFunction<NODE, String, Span<EXTR>> extractor;
 
     protected AbstractObjectBind(
             Object seriLib,
             @Nullable GroupBind group,
             String name,
-            BiFunction<NODE, String, Span<S>> extractor
+            BiFunction<NODE, String, Span<EXTR>> extractor
     ) {
         this.seriLib   = seriLib;
         this.name      = name;
@@ -33,7 +34,7 @@ abstract class AbstractObjectBind<S, A, D, R, NODE> implements VarBind<S, A, D, 
     }
 
     @Override
-    public Span<S> extract(NODE NODE) {
+    public Span<EXTR> extract(NODE NODE) {
         return extractor.apply(NODE, name);
     }
 
@@ -45,6 +46,11 @@ abstract class AbstractObjectBind<S, A, D, R, NODE> implements VarBind<S, A, D, 
     public final String getPath() {
         return getGroup().map(groupBind -> groupBind.getName() + ".")
                          .orElse("") + name;
+    }
+
+    @Override
+    public final REMAP finish(Span<REMAP> parts) {
+        return parts.get();
     }
 
     @Override

@@ -22,39 +22,26 @@ import org.jetbrains.annotations.Nullable;
  *               VariableCarrier#getVar(VarBind)}
  * @param <NODE> Serialization Library Type of the serialization Node
  */
-public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
+public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     /**
      * Variable definition with 0 mapping Stages.
      *
      * @param <NODE> Serialization Library Type of the serialization Node
      * @param <S>    The serialization input & output Type
      */
-    final class Uno<NODE, S> extends AbstractObjectBind<S, S, Object, S, NODE> {
-        Uno(
+    final class Uno<NODE, TARGET> extends AbstractObjectBind<NODE, TARGET, Object, TARGET> {
+        protected Uno(
                 Object seriLib,
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<NODE, String, S> extractor
+                BiFunction<NODE, String, Span<TARGET>> extractor
         ) {
-            super(seriLib,
-                  group,
-                  name,
-                  extractor.andThen(it -> Span.<S>make().initialValues(it)
-                                                        .fixedSize(true)
-                                                        .span())
-            );
+            super(seriLib, group, name, extractor);
         }
 
         @Override
-        public final S remap(S from, @Nullable Object dependency) {
+        public TARGET remap(TARGET from, Object dependency) {
             return from;
-        }
-
-        @Override
-        public final S finish(Span<S> parts) {
-            if (parts.isSingle()) return parts.get();
-
-            throw new AssertionError("Span too large");
         }
     }
 
@@ -65,40 +52,24 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
      * @param <S>    The serialization input Type
      * @param <A>    The mapping output Type
      */
-    final class Duo<NODE, S, A> extends AbstractObjectBind<S, A, Object, A, NODE> {
-        private final Function<S, A> remapper;
+    final class Duo<NODE, EXTR, TARGET> extends AbstractObjectBind<NODE, EXTR, Object, TARGET> {
+        private final Function<EXTR, TARGET> remapper;
 
-        Duo(
+        protected Duo(
                 Object seriLib,
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<NODE, String, S> extractor,
-                Function<S, A> remapper
+                BiFunction<NODE, String, Span<EXTR>> extractor,
+                Function<EXTR, TARGET> remapper
         ) {
-            super(seriLib,
-                  group,
-                  name,
-                  extractor.andThen(it -> Span.<S>make().initialValues(it)
-                                                        .fixedSize(true)
-                                                        .span())
-            );
+            super(seriLib, group, name, extractor);
 
             this.remapper = remapper;
         }
 
         @Override
-        public final A remap(S from, Object dependency) {
+        public TARGET remap(EXTR from, Object dependency) {
             return remapper.apply(from);
-        }
-
-        @Override
-        public final A finish(Span<A> parts) {
-            if (parts.isSingle()) return parts.requireNonNull();
-
-            throw new AssertionError(String.format("Span %s: %s",
-                                                   (parts.isEmpty() ? "empty" : "too large"),
-                                                   parts
-            ));
         }
     }
 
@@ -113,51 +84,38 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
      *
      * @see VariableCarrier Dependency Type
      */
-    final class Dep<NODE, S, A, D> extends AbstractObjectBind<S, A, D, A, NODE> {
-        private final BiFunction<D, S, A> resolver;
+    final class Dep<NODE, EXTR, DPND, TARGET> extends AbstractObjectBind<NODE, EXTR, DPND, TARGET> {
+        private final BiFunction<EXTR, DPND, TARGET> remapper;
 
-        Dep(
+        protected Dep(
                 Object seriLib,
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<NODE, String, S> extractor,
-                BiFunction<D, S, A> resolver
+                BiFunction<NODE, String, Span<EXTR>> extractor,
+                BiFunction<EXTR, DPND, TARGET> remapper
         ) {
-            super(seriLib,
-                  group,
-                  name,
-                  extractor.andThen(it -> Span.<S>make().initialValues(it)
-                                                        .fixedSize(true)
-                                                        .span())
-            );
-
-            this.resolver = resolver;
+            super(seriLib, group, name, extractor);
+            this.remapper = remapper;
         }
 
         @Override
-        public final A remap(S from, D dependency) {
-            return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object is null"),
-                                  from
+        public TARGET remap(EXTR from, DPND dependency) {
+            return remapper.apply(from,
+                                  Objects.requireNonNull(
+                                          dependency,
+                                          "Dependency Object " + "Required"
+                                  )
             );
-        }
-
-        @Override
-        public final A finish(Span<A> parts) {
-            if (parts.isSingle()) return parts.requireNonNull();
-
-            throw new AssertionError("Span too large");
         }
     }
 
     String getName();
 
-    Span<? super S> extract(NODE node);
+    Span<EXTR> extract(NODE node);
 
-    A remap(S from, D dependency);
+    REMAP remap(EXTR from, DPND dependency);
 
-    //region Types
-
-    R finish(Span<A> parts);
+    FINAL finish(Span<REMAP> parts);
 
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)
@@ -170,5 +128,4 @@ public interface VarBind<S, A, D, R, NODE> extends GroupedBind {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     @interface Root {}
-    //endregion
 }
