@@ -50,7 +50,15 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 .span();
     }
 
-    private static final Span<?> ZeroSize = new Span<>(new Object[0], DEFAULT_MODIFY_POLICY, true);
+    public static <T> Span<T> immutable(Collection<T> of) {
+        return Span.<T>make()
+                .initialValues(of)
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
+    }
+
+    private static final Span<?> ZeroSize = new Span<>(new Object[0], ModifyPolicy.IMMUTABLE, true);
 
     //region API Class
     public static final class API<T> {
