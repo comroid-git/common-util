@@ -38,9 +38,15 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         return Span.<T>make().collector();
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> Span<T> zeroSize() {
         return (Span<T>) ZeroSize;
+    }
+
+    public static <T> Span<T> singleton(T it) {
+        return Span.<T>make()
+                .initialValues(it)
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE);
     }
 
     private static final Span<?> ZeroSize = new Span<>(new Object[0], DEFAULT_MODIFY_POLICY, true);
@@ -85,7 +91,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>, Span<T>>() {
                     @Override
                     public Span<T> apply(Span<T> ts) {
-                        return Span.<T>make().nullPolicy(nullPolicy)
+                        return Span.<T>make().modifyPolicy(nullPolicy)
                                              .fixedSize(fixedSize)
                                              .initialValues(initialValues)
                                              .initialValues(ts)
@@ -138,7 +144,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         }
 
         @Contract(value = "_ -> this", mutates = "this")
-        public API<T> nullPolicy(ModifyPolicy modifyPolicy) {
+        public API<T> modifyPolicy(ModifyPolicy modifyPolicy) {
             this.modifyPolicy = modifyPolicy;
 
             return this;
@@ -398,7 +404,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 cleanup -> isNull(cleanup)
         ),
 
-        UNMODIFIABLE(
+        IMMUTABLE(
                 init -> true,
                 iterate -> true,
                 (overwriting, with) -> false,
