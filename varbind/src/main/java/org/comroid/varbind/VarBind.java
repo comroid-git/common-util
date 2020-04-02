@@ -9,6 +9,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
+import org.comroid.uniform.data.node.UniArrayNode;
+import org.comroid.uniform.data.node.UniNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -31,12 +34,11 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
      */
     final class Uno<NODE, TARGET> extends AbstractObjectBind<NODE, TARGET, Object, TARGET> {
         protected Uno(
-                Object seriLib,
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<NODE, String, Span<TARGET>> extractor
+                BiFunction<? super UniObjectNode<? super NODE, ?, ? super TARGET>, String, TARGET> extractor
         ) {
-            super(seriLib, group, name, extractor);
+            super(group, name, extractor);
         }
 
         @Override
@@ -56,13 +58,12 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         private final Function<EXTR, TARGET> remapper;
 
         protected Duo(
-                Object seriLib,
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<NODE, String, Span<EXTR>> extractor,
+                BiFunction<? super UniObjectNode<? super NODE, ?, ? super EXTR>, String, EXTR> extractor,
                 Function<EXTR, TARGET> remapper
         ) {
-            super(seriLib, group, name, extractor);
+            super(group, name, extractor);
 
             this.remapper = remapper;
         }
@@ -88,22 +89,21 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         private final BiFunction<EXTR, DPND, TARGET> remapper;
 
         protected Dep(
-                Object seriLib,
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<NODE, String, Span<EXTR>> extractor,
+                BiFunction<? super UniObjectNode<? super NODE, ?, ? super EXTR>, String, EXTR> extractor,
                 BiFunction<EXTR, DPND, TARGET> remapper
         ) {
-            super(seriLib, group, name, extractor);
+            super(group, name, extractor);
+
             this.remapper = remapper;
         }
 
         @Override
         public TARGET remap(EXTR from, DPND dependency) {
             return remapper.apply(from,
-                                  Objects.requireNonNull(
-                                          dependency,
-                                          "Dependency Object " + "Required"
+                                  Objects.requireNonNull(dependency,
+                                                         "Dependency Object " + "Required"
                                   )
             );
         }
@@ -111,7 +111,24 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
 
     String getName();
 
-    Span<EXTR> extract(NODE node);
+    default Span<EXTR> extract(UniNode<Object, NODE> node) {
+        switch (node.getType()) {
+            case OBJECT:
+                final UniObjectNode uniObject = (UniObjectNode) node;
+                final String key = getName();
+
+                if (!uniObject.containsKey(key))
+                    return Span.zeroSize();
+
+                final EXTR extracted = (EXTR) uniObject.get(key);
+
+                return Span.singleton(extracted);
+            case ARRAY:
+                throw new IllegalArgumentException("VarBind cannot extract from Array node");
+        }
+
+        throw new AssertionError();
+    }
 
     REMAP remap(EXTR from, DPND dependency);
 

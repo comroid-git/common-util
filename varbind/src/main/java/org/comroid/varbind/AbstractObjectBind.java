@@ -3,29 +3,27 @@ package org.comroid.varbind;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.SeriLib;
+import org.comroid.uniform.data.DataStructureType.Primitive;
+import org.comroid.uniform.data.node.UniNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 import org.jetbrains.annotations.Nullable;
 
-abstract class AbstractObjectBind<NODE, EXTR, DPND, REMAP> implements VarBind<NODE, EXTR, DPND,
-        REMAP, REMAP> {
-    private final           Object                            seriLib;
-    private final           String                            name;
-    private final @Nullable GroupBind                         group;
-    private final           BiFunction<NODE, String, Span<EXTR>> extractor;
+abstract class AbstractObjectBind<NODE, EXTR, DPND, REMAP>
+        implements VarBind<NODE, EXTR, DPND, REMAP, REMAP> {
+    private final           String                                                                       name;
+    private final @Nullable GroupBind                                                                    group;
+    private final           BiFunction<? super UniObjectNode<NODE, ?, ? super EXTR>, String, Span<EXTR>> extractor;
 
     protected AbstractObjectBind(
-            Object seriLib,
             @Nullable GroupBind group,
             String name,
-            BiFunction<NODE, String, Span<EXTR>> extractor
+            BiFunction<? super UniObjectNode<? super NODE, ?, ? super EXTR>, String, EXTR> extractor
     ) {
-        this.seriLib   = seriLib;
         this.name      = name;
         this.group     = group;
-        this.extractor = extractor;
+        this.extractor = extractor.andThen(Span::singleton);
     }
 
     @Override
@@ -34,8 +32,17 @@ abstract class AbstractObjectBind<NODE, EXTR, DPND, REMAP> implements VarBind<NO
     }
 
     @Override
-    public Span<EXTR> extract(NODE NODE) {
-        return extractor.apply(NODE, name);
+    public Span<EXTR> extract(UniNode<NODE> node) {
+        if (node.getType() == Primitive.ARRAY) {
+            throw new IllegalArgumentException("VarBind cannot extract from Array Nodes");
+        }
+
+        return extractor.apply((UniObjectNode) node, name);
+    }
+
+    @Override
+    public final REMAP finish(Span<REMAP> parts) {
+        return parts.get();
     }
 
     @Override
@@ -49,16 +56,7 @@ abstract class AbstractObjectBind<NODE, EXTR, DPND, REMAP> implements VarBind<NO
     }
 
     @Override
-    public final REMAP finish(Span<REMAP> parts) {
-        return parts.get();
-    }
-
-    @Override
     public final Optional<GroupBind> getGroup() {
         return Optional.ofNullable(group);
-    }
-
-    protected <BAS, OBJ extends BAS, ARR extends BAS> SeriLib<BAS, OBJ, ARR> seriLib() {
-        return Polyfill.deadCast(seriLib);
     }
 }

@@ -1,16 +1,16 @@
 package org.comroid.varbind;
 
 import java.util.Collection;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.comroid.common.iter.Span;
+import org.comroid.uniform.data.DataStructureType.Primitive;
+import org.comroid.uniform.data.node.UniArrayNode;
+import org.comroid.uniform.data.node.UniNode;
 
 import org.jetbrains.annotations.Nullable;
-
-import static org.comroid.common.Polyfill.deadCast;
 
 /**
  * {@link Collection} building Variable definition with 2 mapping Stages. Used for deserializing
@@ -23,22 +23,23 @@ import static org.comroid.common.Polyfill.deadCast;
  *              VariableCarrier#getVar(VarBind)}
  * @param <OBJ> Serialization Library Type of the serialization Node
  */
-abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>implements ArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
-    private final           Object                            seriLib;
-    private final           String                            name;
-    private final @Nullable GroupBind                         group;
-    private final           BiFunction<NODE, String, Span<EXTR>> extractor;
+abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
+        implements ArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
+    private final           String                                                                            name;
+    private final @Nullable GroupBind                                                                         group;
+    private final           BiFunction<? super UniArrayNode<NODE, ?, ? super EXTR>, String, Collection<EXTR>> extractor;
+    private final           Function<Span<REMAP>, FINAL>                                                      collectionFinalizer;
 
-    protected AbstractObjectBind(
-            Object seriLib,
+    protected AbstractArrayBind(
             @Nullable GroupBind group,
             String name,
-            BiFunction<NODE, String, Span<EXTR>> extractor
+            BiFunction<? super UniArrayNode<NODE, ?, ? super EXTR>, String, Collection<EXTR>> extractor,
+            Function<Span<REMAP>, FINAL> collectionFinalizer
     ) {
-        this.seriLib   = seriLib;
-        this.name      = name;
-        this.group     = group;
-        this.extractor = extractor;
+        this.name                = name;
+        this.group               = group;
+        this.extractor           = extractor;
+        this.collectionFinalizer = collectionFinalizer;
     }
 
     @Override
@@ -47,8 +48,20 @@ abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collecti
     }
 
     @Override
-    public Span<EXTR> extract(NODE NODE) {
-        return extractor.apply(NODE, name);
+    public Span<EXTR> extract(UniNode<NODE> node) {
+        if (node.getType() == Primitive.OBJECT) {
+            throw new IllegalArgumentException("ArrayBind cannot extract from Object Nodes");
+        }
+
+        return Span.immutable(extractor.apply((UniArrayNode) node, name));
+    }
+
+    @Override
+    public abstract REMAP remap(EXTR from, DPND dependency);
+
+    @Override
+    public final FINAL finish(Span<REMAP> parts) {
+        return collectionFinalizer.apply(parts);
     }
 
     @Override
@@ -62,16 +75,7 @@ abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collecti
     }
 
     @Override
-    public final REMAP finish(Span<REMAP> parts) {
-        return parts.get();
-    }
-
-    @Override
     public final Optional<GroupBind> getGroup() {
         return Optional.ofNullable(group);
-    }
-
-    protected <BAS, OBJ extends BAS, ARR extends BAS> SeriLib<BAS, OBJ, ARR> seriLib() {
-        return Polyfill.deadCast(seriLib);
     }
 }
