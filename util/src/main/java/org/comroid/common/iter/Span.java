@@ -30,12 +30,12 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     public static final ModifyPolicy DEFAULT_MODIFY_POLICY    = ModifyPolicy.SKIP_NULLS;
     public static final boolean      DEFAULT_FIXED_SIZE       = false;
 
-    public static <T> Span.API<T> make() {
-        return new Span.API<>();
-    }
-
     public static <T> Collector<T, ?, Span<T>> collector() {
         return Span.<T>make().collector();
+    }
+
+    public static <T> Span.API<T> make() {
+        return new Span.API<>();
     }
 
     public static <T> Span<T> zeroSize() {
@@ -43,19 +43,17 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     }
 
     public static <T> Span<T> singleton(T it) {
-        return Span.<T>make()
-                .initialValues(it)
-                .fixedSize(true)
-                .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                .span();
+        return Span.<T>make().initialValues(it)
+                             .fixedSize(true)
+                             .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                             .span();
     }
 
     public static <T> Span<T> immutable(Collection<T> of) {
-        return Span.<T>make()
-                .initialValues(of)
-                .fixedSize(true)
-                .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                .span();
+        return Span.<T>make().initialValues(of)
+                             .fixedSize(true)
+                             .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                             .span();
     }
 
     private static final Span<?> ZeroSize = new Span<>(new Object[0], ModifyPolicy.IMMUTABLE, true);
@@ -94,9 +92,9 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
                     return ts;
                 };
-                private final Collection<T> initialValues;
-                private final ModifyPolicy  nullPolicy;
-                private final boolean       fixedSize;
+                private final Collection<T>              initialValues;
+                private final ModifyPolicy               nullPolicy;
+                private final boolean                    fixedSize;
                 private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>, Span<T>>() {
                     @Override
                     public Span<T> apply(Span<T> ts) {
@@ -145,16 +143,13 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
             return new SpanCollector(initialValues, modifyPolicy, fixedSize);
         }
 
-        @Contract(value = "_ -> this", mutates = "this")
-        public API<T> initialValues(Collection<T> values) {
-            initialValues.addAll(values);
-
-            return this;
+        public Span<T> span() {
+            return new Span<>(initialValues.toArray(), modifyPolicy, fixedSize);
         }
 
         @Contract(value = "_ -> this", mutates = "this")
-        public API<T> modifyPolicy(ModifyPolicy modifyPolicy) {
-            this.modifyPolicy = modifyPolicy;
+        public API<T> initialValues(Collection<T> values) {
+            initialValues.addAll(values);
 
             return this;
         }
@@ -166,8 +161,11 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
             return this;
         }
 
-        public Span<T> span() {
-            return new Span<>(initialValues.toArray(), modifyPolicy, fixedSize);
+        @Contract(value = "_ -> this", mutates = "this")
+        public API<T> modifyPolicy(ModifyPolicy modifyPolicy) {
+            this.modifyPolicy = modifyPolicy;
+
+            return this;
         }
 
         @SafeVarargs
@@ -212,7 +210,6 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
     @NotNull
     @Override
-    @SuppressWarnings("unchecked")
     public final <R> R[] toArray(@NotNull R[] dummy) {
         return toArray(dummy, it -> (R) it);
     }
@@ -235,7 +232,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         synchronized (dataLock) {
             if (index >= size()) return null;
 
-            @SuppressWarnings("unchecked") T cast = (T) data[index];
+            T cast = (T) data[index];
             return modifyPolicy.canIterate(cast) ? cast : null;
         }
     }
@@ -309,7 +306,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     @Override
     public final void clear() {
         synchronized (dataLock) {
-            if (fixedSize) Arrays.fill(data, modifyPolicy.dummy);
+            if (fixedSize) Arrays.fill(data, ModifyPolicy.dummy);
             else data = new Object[0];
         }
     }
@@ -318,8 +315,8 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     private final Object       dataLock = new Object() {
         private volatile Object selfaware_keepalive = Span.this.dataLock;
     };
-    private       Object[]   data;
-    private       boolean    fixedSize;
+    private       Object[]     data;
+    private       boolean      fixedSize;
 
     public Span() {
         this(new Object[DEFAULT_INITIAL_CAPACITY], DEFAULT_MODIFY_POLICY, DEFAULT_FIXED_SIZE);
@@ -335,7 +332,8 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     @Override
     public final String toString() {
         @NotNull Object[] arr = toArray();
-        return String.format("Span{nullPolicy=%s, data={%d}%s}", modifyPolicy,
+        return String.format("Span{nullPolicy=%s, data={%d}%s}",
+                             modifyPolicy,
                              arr.length,
                              Arrays.toString(arr)
         );
@@ -363,6 +361,13 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     @Contract("-> new")
     public final API<T> reconfigure(/* todo: boolean parameter finalizeOldSpan? */) {
         return new API<>(this);
+    }
+
+    public final <C extends Collection<T>> C into(Supplier<C> collectionSupplier) {
+        final C coll = collectionSupplier.get();
+        coll.addAll(this);
+
+        return coll;
     }
 
     @Contract(mutates = "this")
@@ -483,7 +488,6 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public T next() {
             if (next != null || tryAcquireNext()) {
                 final T it = (T) next;

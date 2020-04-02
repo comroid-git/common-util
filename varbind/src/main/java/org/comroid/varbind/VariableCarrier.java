@@ -2,55 +2,45 @@ package org.comroid.varbind;
 
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.comroid.common.iter.Span;
+import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.DataStructureType.Primitive;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.data.node.UniArrayNode;
 import org.comroid.uniform.data.node.UniNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.comroid.common.Polyfill.deadCast;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
 
-@SuppressWarnings("unchecked")
-public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
-        implements VarCarrier<BAS, OBJ, DEP> {
-    private final SeriLib<BAS, OBJ, ? extends BAS>                             seriLib;
-    private final Map<VarBind<?, ?, ?, ?, OBJ>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
-    private final GroupBind<BAS, OBJ, ?>                                       rootBind;
-    private final Set<VarBind<?, ?, ?, ?, OBJ>>                                initiallySet;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private final Optional<DEP>                                                dependencyObject;
+public class VariableCarrier<BAS, OBJ extends BAS, ARR extends BAS, DEP>
+        implements VarCarrier<BAS, DEP> {
+    private final SeriLib<BAS, OBJ, ARR>                                                                     seriLib;
+    private final GroupBind<BAS, OBJ, ARR>                                                                   rootBind;
+    private final Map<VarBind<? extends BAS, Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     = new ConcurrentHashMap<>();
+    private final Map<VarBind<? extends BAS, Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed = new ConcurrentHashMap<>();
+    private final DEP                                                                                        dependencyObject;
+    private final Set<VarBind<? extends BAS, Object, ? super DEP, ?, Object>>                                initiallySet;
 
-    protected <ARR extends BAS> VariableCarrier(
-            SeriLib<BAS, OBJ, ARR> seriLib, @Nullable String data, @Nullable DEP dependencyObject
-    ) {
-        this(seriLib,
-             data == null ? null : seriLib.objectType.cast(seriLib.parser.forward(data)),
-             dependencyObject
-        );
-    }
-
-    protected <ARR extends BAS> VariableCarrier(
-            SeriLib<BAS, OBJ, ARR> seriLib, @Nullable OBJ node, @Nullable DEP dependencyObject
+    protected VariableCarrier(
+            SeriLib<BAS, OBJ, ARR> seriLib,
+            @Nullable OBJ initialData,
+            @Nullable DEP dependencyObject
     ) {
         this.seriLib          = seriLib;
         this.rootBind         = findRootBind(getClass());
-        this.initiallySet     = updateVars(seriLib.createUniObjectNode(node));
-        this.dependencyObject = Optional.ofNullable(dependencyObject);
+        this.initiallySet     = unmodifiableSet(updateVars(seriLib.createUniObjectNode(initialData)));
+        this.dependencyObject = dependencyObject;
     }
 
-    private <ARR extends BAS> GroupBind<BAS, OBJ, ARR> findRootBind(Class<? extends VarCarrier> inClass) {
+    private GroupBind<BAS, OBJ, ARR> findRootBind(Class<? extends VarCarrier> inClass) {
         final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
 
         if (location == null) throw new IllegalStateException(String.format(
@@ -67,50 +57,29 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
                                                           .requireNonNull();
     }
 
-    public <SERI extends SeriLib<BAS, OBJ, ARR>, ARR extends BAS, TAR extends BAS> Set<VarBind<?, ?, ?, ?, OBJ>> updateVars(
-            @Nullable UniNode<BAS> data
+    private Set<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> updateVars(
+            @Nullable UniObjectNode<BAS, OBJ, Object> data
     ) {
         if (data == null) return emptySet();
 
         if (data.getType() != Primitive.OBJECT)
             throw new IllegalArgumentException("Object required");
 
-        final HashSet<VarBind<?, ?, DEP, ?, OBJ>> changed = new HashSet<>();
-        for (VarBind<?, ?, ?, ?, OBJ> bind : this.rootBind.getChildren()) {
-            if (data.containsKey(bind.getName())) {
-                if (bind instanceof ArrayBind) {
-                    final Span<Object> span = ((UniArrayNode) data).stream()
-                                                                   .map(bind::extract)
-                                                                   .flatMap(Span::stream)
-                                                                   .map(Object.class::cast)
-                                                                   .collect(Span.make()
-                                                                                .fixedSize(true)
-                                                                                .collector());
+        final HashSet<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
-                    ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set(span);
-                } else ref((VarBind<Object, Object, DEP, Object, OBJ>) bind).set((Span<Object>) bind.extract(
-                        (OBJ) data.getBaseNode()));
+        getBindings().getChildren()
+                     .stream()
+                     .filter(bind -> data.containsKey(bind.getName()))
+                     .map(it -> (VarBind<? extends BAS, Object, Object, Object, Object>) (Object) it)
+                     .forEach(bind -> {
+                         Span<Object> extract = bind.extract((UniNode) data);
 
-                changed.add((VarBind<?, ?, DEP, ?, OBJ>) bind);
-            }
-        }
+                         ref(bind).set(extract);
+                         compRef(bind).outdate();
+                         changed.add(bind);
+                     });
 
         return unmodifiableSet(changed);
-    }
-
-    private <C> AtomicReference<Span<C>> ref(VarBind<C, ?, ?, ?, OBJ> bind) {
-        return deadCast(vars.computeIfAbsent(bind,
-                                             key -> deadCast(new AtomicReference<>(Span.<C>make().initialSize(
-                                                     1)
-                                                                                                 .fixedSize(
-                                                                                                         true)
-                                                                                                 .span()))
-        ));
-    }
-
-    @Override
-    public final SeriLib<BAS, OBJ, ? extends BAS> getSerializationLibrary() {
-        return seriLib;
     }
 
     @Override
@@ -119,36 +88,55 @@ public abstract class VariableCarrier<BAS, OBJ extends BAS, DEP>
     }
 
     @Override
-    public final Set<VarBind<?, ?, ?, ?, OBJ>> updateFrom(OBJ node) {
-        return updateVars(seriLib.createUniObjectNode(node));
+    public final Set<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> updateFrom(BAS node) {
+        switch (seriLib.typeOf(node).typ) {
+            case OBJECT:
+                return updateVars(seriLib.createUniObjectNode((OBJ) node));
+            case ARRAY:
+                throw new IllegalArgumentException("Cannot update VariableCarrier from Object node");
+        }
+
+        throw new AssertionError();
     }
 
     @Override
-    public final Set<VarBind<?, ?, ?, ?, OBJ>> initiallySet() {
+    public final Set<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> initiallySet() {
         return initiallySet;
     }
 
     @Override
-    public final <T, A, R> @NotNull Optional<R> wrapVar(VarBind<T, A, ?, R, OBJ> bind) {
-        return Optional.ofNullable(getVar(bind));
+    public final <T> @Nullable T get(VarBind<? extends BAS, Object, ? super DEP, ?, T> pBind) {
+        VarBind<? extends BAS, Object, ? super DEP, Object, Object> bind = (VarBind<? extends BAS, Object, ? super DEP, Object, Object>) pBind;
+        OutdateableReference<T>                                     ref  = compRef(pBind);
+
+        if (ref.isOutdated()) {
+            // recompute
+
+            AtomicReference<Span<Object>> reference = ref(bind);
+            Span<Object> remapped = reference.get()
+                                             .stream()
+                                             .map(each -> bind.remap(each, dependencyObject))
+                                             .collect(Span.collector());
+            final T yield = (T) bind.finish(remapped);
+            ref.update(yield);
+        }
+
+        return ref.get();
     }
 
-    @Override
-    public final <T, A, R> @Nullable R getVar(VarBind<T, A, ?, R, OBJ> bind) {
-        final Span<A> span = ref(bind).get()
-                                      .stream()
-                                      .map(it -> it == null
-                                              ? null
-                                              : bind.remap(it,
-                                                           deadCast(dependencyObject.orElse(null))
-                                              ))
-                                      .filter(Objects::nonNull)
-                                      .collect(Span.<A>make().fixedSize(true)
-                                                             .collector());
+    private <T> AtomicReference<Span<T>> ref(
+            VarBind<? extends BAS, T, ? super DEP, ?, Object> bind
+    ) {
+        return deadCast(vars.computeIfAbsent((VarBind<? extends BAS, Object, ? super DEP, ?, Object>) bind,
+                                             key -> new AtomicReference<>(Span.zeroSize())
+        ));
+    }
 
-        if (span.isEmpty()) {
-            if (bind instanceof ArrayBind) return bind.finish(Span.zeroSize());
-            else return null;
-        } else return bind.finish(span);
+    private <T> OutdateableReference<T> compRef(
+            VarBind<? extends BAS, Object, ? super DEP, ?, T> bind
+    ) {
+        return deadCast(vars.computeIfAbsent((VarBind<? extends BAS, Object, ? super DEP, ?, Object>) bind,
+                                             key -> new AtomicReference<>(Span.zeroSize())
+        ));
     }
 }

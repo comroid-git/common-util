@@ -13,6 +13,8 @@ import java.util.function.Supplier;
 
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.SeriLib;
+import org.comroid.uniform.data.node.UniArrayNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 import static org.comroid.common.Polyfill.deadCast;
 
@@ -24,26 +26,25 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
     public final List<? extends VarBind<?, ?, ?, ?, OBJ>> getChildren() {
         return Collections.unmodifiableList(children);
     }
+
     private final List<? extends VarBind<?, ?, ?, ?, OBJ>> children = new ArrayList<>();
     private final SeriLib<BAS, OBJ, ARR>                   seriLib;
     private final String                                   groupName;
 
     public GroupBind(SeriLib<BAS, OBJ, ARR> seriLib, String groupName) {
-        this.seriLib   = seriLib;
+        this.seriLib = seriLib;
         this.groupName = groupName;
     }
 
-    public <R extends VariableCarrier<?, ?, D>, D> BiFunction<D, OBJ, R> autoRemapper(
-            Class<R> resultType,
-            Class<D> dependencyType
+    public <R extends VariableCarrier<BAS, OBJ, ARR, ?>, D> BiFunction<D, OBJ, R> autoRemapper(
+            Class<R> resultType, Class<D> dependencyType
     ) {
-        final Class<?>[]                  typesUnordered   = {
-                SeriLib.class,
-                seriLib.objectType.typeClass(),
-                dependencyType
+        final Class<?>[] typesUnordered = {
+                SeriLib.class, seriLib.objectType.typeClass(), dependencyType
         };
-        final Optional<Constructor<R>> optConstructor = ReflectionHelper.findConstructor(
-                resultType, typesUnordered);
+        final Optional<Constructor<R>> optConstructor = ReflectionHelper.findConstructor(resultType,
+                                                                                         typesUnordered
+        );
 
         if (!optConstructor.isPresent()) throw new NoSuchElementException(
                 "Could not find any fitting constructor");
@@ -57,9 +58,9 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
 
             @Override
             public R apply(D dependencyObject, OBJ obj) {
-                return ReflectionHelper.instance(
-                        constr, ReflectionHelper.arrange(
-                                new Object[]{ seriLib, obj, dependencyObject }, constr.getParameterTypes()));
+                return ReflectionHelper.instance(constr, ReflectionHelper.arrange(new Object[]{
+                        seriLib, obj, dependencyObject
+                }, constr.getParameterTypes()));
             }
         }
 
@@ -72,19 +73,30 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
         return bind1Stage(name, extractor(extractTarget));
     }
 
-    private <T> BiFunction<OBJ, String, T> extractor(final Class<T> extractTarget) {
-        return (node, fieldName) -> seriLib.dummy(node)
-                                           .getValueAs(fieldName, extractTarget);
-    }
-
     public final <T> VarBind.Uno<OBJ, T> bind1Stage(
             String name, BiFunction<OBJ, String, T> extractor
     ) {
-        final VarBind.Uno<OBJ, T> bind = new VarBind.Uno<>(seriLib, this, name, extractor);
+        final VarBind.Uno<OBJ, T> bind = new VarBind.Uno<OBJ, T>(
+                this,
+                name,
+                new BiFunction<UniObjectNode<? super OBJ, ?, ? super T>, String, T>() {
+                    @Override
+                    public T apply(
+                            UniObjectNode<? super OBJ, ?, ? super T> uniObject, String fieldName
+                    ) {
+                        return uniObject.get(fieldName);
+                    }
+                }
+        );
 
         children.add(deadCast(bind));
 
         return bind;
+    }
+
+    private <T> BiFunction<OBJ, String, T> extractor(final Class<T> extractTarget) {
+        return (node, fieldName) -> seriLib.dummy(node)
+                                           .getValueAs(fieldName, extractTarget);
     }
 
     public final <T, X> VarBind.Duo<OBJ, T, X> bind2Stage(
@@ -96,8 +108,12 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
     public final <T, X> VarBind.Duo<OBJ, T, X> bind2Stage(
             String name, BiFunction<OBJ, String, T> extractor, Function<T, X> remapper
     ) {
-        final VarBind.Duo<OBJ, T, X> bind = new VarBind.Duo<>(
-                seriLib, this, name, extractor, remapper);
+        final VarBind.Duo<OBJ, T, X> bind = new VarBind.Duo<>(seriLib,
+                                                              this,
+                                                              name,
+                                                              extractor,
+                                                              remapper
+        );
 
         children.add(deadCast(bind));
 
@@ -113,8 +129,12 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
     public final <T, X, Y> VarBind.Dep<OBJ, T, X, Y> bindDependent(
             String name, BiFunction<OBJ, String, T> extractor, BiFunction<Y, T, X> resolver
     ) {
-        final VarBind.Dep<OBJ, T, X, Y> bind = new VarBind.Dep<>(
-                seriLib, this, name, extractor, resolver);
+        final VarBind.Dep<OBJ, T, X, Y> bind = new VarBind.Dep<>(seriLib,
+                                                                 this,
+                                                                 name,
+                                                                 extractor,
+                                                                 resolver
+        );
 
         children.add(deadCast(bind));
 
@@ -127,22 +147,28 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
         return list1Stage(name, typeExtractor(extractTarget), collectionProvider);
     }
 
-    private <T> Function<OBJ, T> typeExtractor(final Class<T> target) {
-        return node -> seriLib.dummy(node)
-                              .getValueAs(null, target);
-    }
-
     public final <T, C extends Collection<T>> ArrayBind.Uno<OBJ, T, C> list1Stage(
             String name, Function<OBJ, T> dataExtractor, Supplier<C> collectionProvider
     ) {
-        final ArrayBind.Uno<OBJ, T, C> bind = new ArrayBind.Uno<>(seriLib, this, name,
-                                                                  seriLib.arrayExtractor,
-                                                                  dataExtractor, collectionProvider
+        final ArrayBind.Uno<OBJ, T, C> bind = new ArrayBind.Uno<OBJ, T, C>(this,
+                                                                  name,
+                                                                  splitExtractor(dataExtractor),
+                                                                  span -> span.into(collectionProvider)
         );
 
         children.add(deadCast(bind));
 
         return bind;
+    }
+
+    private <T> BiFunction<? super UniArrayNode<OBJ,?,? super T>, String, Collection<T>> splitExtractor(
+            Function<OBJ,T> dataExtractor) {
+
+    }
+
+    private <T> Function<OBJ, T> typeExtractor(final Class<T> target) {
+        return node -> seriLib.dummy(node)
+                              .getValueAs(null, target);
     }
 
     public final <T, R, C extends Collection<R>> ArrayBind.Duo<OBJ, T, R, C> list2Stage(
@@ -160,11 +186,14 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
             Function<T, R> remapper,
             Supplier<C> collectionProvider
     ) {
-        final ArrayBind.Duo<OBJ, T, R, C> bind = new ArrayBind.Duo<>(seriLib, this, name,
+        final ArrayBind.Duo<OBJ, T, R, C> bind = new ArrayBind.Duo<>(seriLib,
+                                                                     this,
+                                                                     name,
                                                                      seriLib.arrayExtractor,
                                                                      dataExtractor,
                                                                      (aVoid, it) -> remapper.apply(
-                                                                             it), collectionProvider
+                                                                             it),
+                                                                     collectionProvider
         );
 
         children.add(deadCast(bind));
@@ -187,9 +216,12 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
             BiFunction<Y, T, R> resolver,
             Supplier<C> collectionProvider
     ) {
-        final ArrayBind.Dep<OBJ, T, R, Y, C> bind = new ArrayBind.Dep<>(seriLib, this, name,
+        final ArrayBind.Dep<OBJ, T, R, Y, C> bind = new ArrayBind.Dep<>(seriLib,
+                                                                        this,
+                                                                        name,
                                                                         seriLib.arrayExtractor,
-                                                                        dataExtractor, resolver,
+                                                                        dataExtractor,
+                                                                        resolver,
                                                                         collectionProvider
         );
 

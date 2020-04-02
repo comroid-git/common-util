@@ -9,7 +9,7 @@ import org.comroid.common.annotation.Instance;
 import org.comroid.common.func.bi.Junction;
 import org.comroid.common.spellbind.Spellbind;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.data.model.BaseNodeMember;
+import org.comroid.uniform.data.model.UniNodeExtensions;
 import org.comroid.uniform.data.node.UniArrayNode;
 import org.comroid.uniform.data.node.UniObjectNode;
 
@@ -48,22 +48,44 @@ public final class FastJSONLib extends SeriLib<JSON, JSONObject, JSONArray> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> UniObjectNode<JSON, JSONObject, T> createUniObjectNode(final JSONObject node) {
+    public <T> UniObjectNode<JSON, JSONObject, T> createUniObjectNode(JSONObject node) {
         return Spellbind.builder(UniObjectNode.class)
                         .coreObject(node)
                         .subImplement(node, Map.class)
-                        .subImplement((BaseNodeMember<JSONObject>) () -> node, BaseNodeMember.class)
+                        .subImplement(new UniNodeExtensions<JSON, JSONObject>() {
+                            private final JSONObject base = node;
+
+                            @Override
+                            public JSONObject getBaseNode() {
+                                return base;
+                            }
+
+                            @Override
+                            public SeriLib getSeriLib() {
+                                return fastJsonLib;
+                            }
+                        }, UniNodeExtensions.class)
                         .build();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> UniArrayNode<JSON, JSONArray, T> createUniArrayNode(final JSONArray node) {
+    public <T> UniArrayNode<JSON, JSONArray, T> createUniArrayNode(JSONArray node) {
         return Spellbind.builder(UniArrayNode.class)
                         .coreObject(node)
                         .subImplement(node, List.class)
-                        .subImplement((BaseNodeMember<JSONArray>) () -> node, BaseNodeMember.class)
+                        .subImplement(new UniNodeExtensions<JSON, JSONArray>() {
+                            private final JSONArray base = node;
+
+                            @Override
+                            public JSONArray getBaseNode() {
+                                return base;
+                            }
+
+                            @Override
+                            public SeriLib getSeriLib() {
+                                return fastJsonLib;
+                            }
+                        }, UniNodeExtensions.class)
                         .build();
     }
 }

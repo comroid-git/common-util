@@ -58,7 +58,6 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
     public final  Junction<String, BAS>                                        parser;
     public final  DataStructureType.Obj<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
     public final  DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
-    public final  BiFunction<OBJ, String, ARR>                                 arrayExtractor;
     private final Map<BAS, UniNode<BAS>>                                       dummyCache = new ConcurrentHashMap<>();
 
     protected SeriLib(
