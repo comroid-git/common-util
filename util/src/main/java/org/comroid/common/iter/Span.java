@@ -46,7 +46,8 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         return Span.<T>make()
                 .initialValues(it)
                 .fixedSize(true)
-                .modifyPolicy(ModifyPolicy.IMMUTABLE);
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
     }
 
     private static final Span<?> ZeroSize = new Span<>(new Object[0], DEFAULT_MODIFY_POLICY, true);
