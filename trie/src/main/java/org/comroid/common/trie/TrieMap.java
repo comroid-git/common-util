@@ -5,24 +5,80 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
-    public static <V> TrieMap<String, V> create() {
-        return new TrieMap<>();
+    public static <V> TrieMap<String, V> ofString() {
+        return new TrieMap<>(Function.identity());
     }
 
-    private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
+    private static class TrieStage<V> {
+        private @Nullable V                            value;
+        private final     Map<Character, TrieStage<V>> subStages = new ConcurrentHashMap<>();
 
-    /**
-     * Explicitly private constructor. Currently, generating TrieMap instances is supported only for
-     * {@code TrieMap<String, V>} using {@link #create()}.
-     */
-    private TrieMap() {
+        @Nullable V get(char[] chars, int index) {
+            if (chars.length == 0 || index >= chars.length) return value;
+
+            return subStages.computeIfAbsent(chars[index], it -> new TrieStage<>())
+                            .get(chars, index + 1);
+        }
+
+        @Nullable V set(char[] chars, int index, @Nullable V value) {
+            if (chars.length == 0 || index >= chars.length) {
+                final V old = this.value;
+                this.value = value;
+
+                return old;
+            }
+
+            return subStages.computeIfAbsent(chars[index], it -> new TrieStage<>())
+                            .set(chars, index + 1, value);
+        }
+
+        @Nullable V remove(char[] chars, int index) {
+            if (chars.length == 0 || index + 1 >= chars.length)
+                return subStages.remove(chars[index + 1]).value;
+
+            return subStages.computeIfAbsent(chars[index], it -> new TrieStage<>())
+                            .remove(chars, index + 1);
+        }
+
+        int size() {
+            return subStages.values()
+                            .stream()
+                            .mapToInt(TrieStage::size)
+                            .sum() + (Objects.isNull(value) ? 0 : 1);
+        }
+
+        Stream<String> streamKeys(String base) {
+            return Stream.concat(Stream.of(base),
+                                 subStages.entrySet()
+                                          .stream()
+                                          .flatMap(entry -> entry.getValue()
+                                                                 .streamKeys(base + entry.getKey()))
+            );
+        }
+
+        Stream<TrieStage<V>> stream() {
+            return Stream.concat(Stream.of(this),
+                                 subStages.values()
+                                          .stream()
+                                          .flatMap(TrieStage::stream)
+            );
+        }
+    }
+    
+    private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
+    private final Function<String, K>          keyMapper;
+
+    public TrieMap(Function<String, K> keyMapper) {
+        this.keyMapper = keyMapper;
     }
 
     @Override
@@ -59,8 +115,9 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
     @Override
     @Contract
     public @Nullable V get(@NotNull Object key) {
-        if (!(key instanceof CharSequence)) throw new ClassCastException(
-                String.format("Unsupported key type: %s", key.getClass()));
+        if (!(key instanceof CharSequence)) throw new ClassCastException(String.format("Unsupported key type: %s",
+                                                                                       key.getClass()
+        ));
 
         final char[] chars = Objects.requireNonNull(key, "Key cannot be null!")
                                     .toString()
@@ -84,8 +141,9 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
     @Override
     @Contract(mutates = "this")
     public @Nullable V remove(Object key) {
-        if (!(key instanceof CharSequence)) throw new ClassCastException(
-                String.format("Unsupported key type: %s", key.getClass()));
+        if (!(key instanceof CharSequence)) throw new ClassCastException(String.format("Unsupported key type: %s",
+                                                                                       key.getClass()
+        ));
 
         final char[] chars = Objects.requireNonNull(key, "Key cannot be null!")
                                     .toString()
@@ -126,10 +184,7 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
                          .map(entry -> new Pair(entry.getKey()
                                                      .toString(), entry.getValue()))
                          .flatMap(pair -> pair.stage.streamKeys(pair.key))
-                         .map(any -> {
-                             //noinspection unchecked -> required cast
-                             return (K) any;
-                         })
+                         .map(keyMapper)
                          .collect(Collectors.toSet());
     }
 

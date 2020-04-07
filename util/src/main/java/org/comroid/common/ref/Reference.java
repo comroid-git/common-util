@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@FunctionalInterface
 public interface Reference<T> extends Supplier<T> {
     @Override
     @Nullable T get();

@@ -30,7 +30,7 @@ public final class Spellbind {
         private       ClassLoader classLoader;
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
-            this.methodBinds   = TrieMap.create();
+            this.methodBinds   = TrieMap.ofString();
             this.interfaces    = new ArrayList<>(1);
 
             interfaces.add(mainInterface);
