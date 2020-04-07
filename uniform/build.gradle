@@ -59,7 +59,7 @@ dependencies {
     java8CompileOnly 'org.json:json:20190722'
 
     // http adapter dependencies
-    java8CompileOnly 'com.squareup.okhttp3:okhttp:4.4.1'
+    java8CompileOnly 'com.squareup.okhttp3:okhttp:4.5.0'
 
     java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5'
     java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
@@ -68,6 +68,6 @@ dependencies {
     testImplementation sourceSets.java8.output.classesDirs
     testImplementation sourceSets.java11.output.classesDirs
     testImplementation 'com.alibaba:fastjson:1.2.68'
-    testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
+    testImplementation 'com.squareup.okhttp3:okhttp:4.5.0'
 }
 
