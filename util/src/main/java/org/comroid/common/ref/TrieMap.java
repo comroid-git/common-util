@@ -1,4 +1,4 @@
-package org.comroid.common.trie;
+package org.comroid.common.ref;
 
 import java.util.Collection;
 import java.util.Map;
@@ -18,6 +18,7 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
         return new TrieMap<>(Function.identity());
     }
 
+    //region Stage Class
     private static class TrieStage<V> {
         private @Nullable V                            value;
         private final     Map<Character, TrieStage<V>> subStages = new ConcurrentHashMap<>();
@@ -73,7 +74,8 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
             );
         }
     }
-    
+    //endregion
+
     private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
     private final Function<String, K>          keyMapper;
 
