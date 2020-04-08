@@ -1,4 +1,4 @@
-package org.comroid.common.ref;
+package org.comroid.common.map;
 
 import java.util.Collection;
 import java.util.Map;
