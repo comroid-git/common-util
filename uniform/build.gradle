@@ -46,7 +46,7 @@ dependencies {
 
     implementation project(':util')
     implementation project(':spellbind')
-    implementation 'com.google.flogger:flogger:0.5'
+    implementation 'com.google.flogger:flogger:0.5.1'
 
     java8CompileOnly project(':spellbind')
     java8CompileOnly sourceSets.main.output.classesDirs
