@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.comroid.common.annotation.ClassDependency;
 import org.comroid.common.annotation.Instance;
 import org.comroid.common.iter.Span;
 
@@ -154,14 +153,6 @@ public final class ReflectionHelper {
         }
 
         return yields;
-    }
-
-    public static boolean verifyClassDependencies(Class<?> forType) throws IllegalStateException {
-        return annotation(forType, ClassDependency.class).map(ClassDependency::value)
-                .filter(classnames -> Stream.of(classnames)
-                        .allMatch(
-                                ReflectionHelper::classExists))
-                .isPresent();
     }
 
     private static boolean classExists(String name) {

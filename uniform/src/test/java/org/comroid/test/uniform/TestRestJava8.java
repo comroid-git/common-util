@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.comroid.common.func.bi.PredicateDuo;
 import org.comroid.test.model.NGinXFSNode;
-import org.comroid.uniform.data.impl.json.fastjson.FastJsonDataConverter;
+import org.comroid.uniform.adapter.data.json.fastjson.FastJsonDataConverter;
 import org.comroid.uniform.http.REST;
-import org.comroid.uniform.http.impl.HttpAdapter$OkHttp3;
+import org.comroid.uniform.adapter.http.okhttp.v3.OkHttp3Adapter;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class TestRestJava8 {
     @Before
     public void setup() {
         rest = REST.getOrCreate(
-                NGinXFSNode.class, new HttpAdapter$OkHttp3(),
+                NGinXFSNode.class, new OkHttp3Adapter(),
                 new FastJsonDataConverter<>(PredicateDuo.any(),
                         FastJsonDataConverter.autoConverter(NGinXFSNode.class)
                 )

@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

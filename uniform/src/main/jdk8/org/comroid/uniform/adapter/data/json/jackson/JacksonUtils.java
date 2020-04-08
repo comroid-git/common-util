@@ -1,4 +1,4 @@
-package org.comroid.uniform.data.util.json;
+package org.comroid.uniform.adapter.data.json.jackson;
 
 import java.util.Objects;
 

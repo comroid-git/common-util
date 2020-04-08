@@ -1,15 +1,13 @@
 package org.comroid.varbind;
 
 import java.util.Collection;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.node.UniArrayNode;
-import org.comroid.uniform.node.UniNode;
-import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.data.node.UniNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 /**
  * {@link Collection} building Variable definition with 2 mapping Stages. Used for deserializing

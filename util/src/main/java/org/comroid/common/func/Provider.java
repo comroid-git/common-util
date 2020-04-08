@@ -3,8 +3,15 @@ package org.comroid.common.func;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.comroid.common.annotation.Blocking;
+
 public interface Provider<T> extends Supplier<CompletableFuture<T>> {
     CompletableFuture<T> get();
+
+    @Blocking
+    default T join() {
+        return get().join();
+    }
 
     static <T> Provider<T> of(Supplier<T> supplier) {
         return () -> CompletableFuture.completedFuture(supplier.get());

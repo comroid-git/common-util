@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.data.SerializationAdapter;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +19,7 @@ import static java.util.Collections.unmodifiableSet;
 import static org.comroid.common.Polyfill.deadCast;
 
 public class VariableCarrier<DEP> implements VarCarrier<DEP> {
-    private final SeriLib<?, ?, ?> seriLib;
+    private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final GroupBind rootBind;
     private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
     private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>> computed = new ConcurrentHashMap<>();
@@ -27,11 +27,11 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
 
     protected VariableCarrier(
-            SeriLib<?, ?, ?> seriLib,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
             @Nullable UniObjectNode initialData,
             @Nullable DEP dependencyObject
     ) {
-        this.seriLib = seriLib;
+        this.serializationAdapter = serializationAdapter;
         this.rootBind = findRootBind(getClass());
         this.initiallySet = unmodifiableSet(updateVars(initialData));
         this.dependencyObject = dependencyObject;

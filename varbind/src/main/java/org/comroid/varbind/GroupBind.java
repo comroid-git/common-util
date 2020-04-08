@@ -8,25 +8,21 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.node.UniArrayNode;
-import org.comroid.uniform.node.UniNode;
-import org.comroid.uniform.node.UniObjectNode;
-
-import static org.comroid.common.Polyfill.deadCast;
+import org.comroid.uniform.data.SerializationAdapter;
+import org.comroid.uniform.data.node.UniArrayNode;
+import org.comroid.uniform.data.node.UniNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 public final class GroupBind {
     private final List<? extends VarBind<?, ?, ?, ?>> children = new ArrayList<>();
-    private final SeriLib<?, ?, ?> seriLib;
+    private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final String groupName;
 
-    public GroupBind(SeriLib<?, ?, ?> seriLib, String groupName) {
-        this.seriLib = seriLib;
+    public GroupBind(SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
+        this.serializationAdapter = serializationAdapter;
         this.groupName = groupName;
     }
 
@@ -34,7 +30,7 @@ public final class GroupBind {
             Class<R> resultType, Class<D> dependencyType
     ) {
         final Class<?>[] typesUnordered = {
-                SeriLib.class, seriLib.objectType.typeClass(), dependencyType
+                SerializationAdapter.class, serializationAdapter.objectType.typeClass(), dependencyType
         };
         final Optional<Constructor<R>> optConstructor = ReflectionHelper.findConstructor(resultType,
                 typesUnordered
@@ -53,7 +49,7 @@ public final class GroupBind {
             @Override
             public R apply(D dependencyObject, UniObjectNode obj) {
                 return ReflectionHelper.instance(constr, ReflectionHelper.arrange(new Object[]{
-                        seriLib, obj, dependencyObject
+                        serializationAdapter, obj, dependencyObject
                 }, constr.getParameterTypes()));
             }
         }

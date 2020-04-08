@@ -13,13 +13,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.DataConverter;
+import org.comroid.uniform.data.SerializationAdapter;
 
-public final class REST<T> {
-    public static <T> REST<T> getOrCreate(
-            Class<T> forClass,
+public final class REST {
+    public static REST getOrCreate(
             HttpAdapter httpAdapter,
-            DataConverter<T, ?, ?, ?> dataAdapter
+            SerializationAdapter serializationAdapter
     ) {
         //noinspection unchecked
         return (REST<T>) cache.computeIfAbsent(

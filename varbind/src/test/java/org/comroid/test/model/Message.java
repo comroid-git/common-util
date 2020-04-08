@@ -15,7 +15,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import static org.comroid.uniform.data.impl.json.fastjson.FastJSONLib.fastJsonLib;
+import static org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib.fastJsonLib;
 
 @VarBind.Location(Message.Binds.class)
 public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {

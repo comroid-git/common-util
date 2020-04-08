@@ -9,8 +9,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.node.UniNode;
-import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 /**
  * Basic Variable Binding definition Serves as an interface to handling data when serializing.
@@ -61,7 +60,7 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
      * @param <S>    The serialization input & output Type
      */
     final class Uno<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
-        public Uno(GroupBind group, String fieldName, BiFunction<UniNode, String, TARGET> extractor) {
+        public Uno(GroupBind group, String fieldName, BiFunction<UniObjectNode, String, TARGET> extractor) {
             super(group, fieldName, extractor.andThen(Span::singleton));
         }
 
@@ -81,7 +80,7 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     final class Duo<EXTR, TARGET> extends AbstractObjectBind<EXTR, Object, TARGET> {
         private final Function<EXTR, TARGET> remapper;
 
-        public Duo(GroupBind group, String fieldName, BiFunction<UniNode, String, EXTR> extractor, Function<EXTR, TARGET> remapper) {
+        public Duo(GroupBind group, String fieldName, BiFunction<UniObjectNode, String, EXTR> extractor, Function<EXTR, TARGET> remapper) {
             super(group, fieldName, extractor.andThen(Span::singleton));
 
             this.remapper = remapper;
@@ -107,7 +106,7 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     final class Dep<EXTR, DPND, TARGET> extends AbstractObjectBind<EXTR, DPND, TARGET> {
         private final BiFunction<EXTR, DPND, TARGET> resolver;
 
-        public Dep(GroupBind group, String fieldName, BiFunction<UniNode, String, EXTR> extractor, BiFunction<EXTR, DPND, TARGET> resolver) {
+        public Dep(GroupBind group, String fieldName, BiFunction<UniObjectNode, String, EXTR> extractor, BiFunction<EXTR, DPND, TARGET> resolver) {
             super(group, fieldName, extractor.andThen(Span::singleton));
 
             this.resolver = resolver;

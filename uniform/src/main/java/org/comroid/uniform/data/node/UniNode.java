@@ -1,4 +1,4 @@
-package org.comroid.uniform.node;
+package org.comroid.uniform.data.node;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,17 +6,17 @@ import java.util.function.Supplier;
 
 import org.comroid.common.info.MessageSupplier;
 import org.comroid.common.ref.Specifiable;
-import org.comroid.uniform.data.SeriLib;
+import org.comroid.uniform.data.SerializationAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class UniNode implements Specifiable<UniNode> {
-    protected final SeriLib<?, ?, ?> seriLib;
+    protected final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Type type;
 
-    protected UniNode(SeriLib<?, ?, ?> seriLib, Type type) {
-        this.seriLib = seriLib;
+    protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
+        this.serializationAdapter = serializationAdapter;
         this.type = type;
     }
 
@@ -131,8 +131,8 @@ public abstract class UniNode implements Specifiable<UniNode> {
         throw new UnsupportedOperationException(String.format("Cannot invoke %s on node type %s; %s expected", actionName, getType(), expected));
     }
 
-    public final SeriLib<?, ?, ?> getSeriLib() {
-        return seriLib;
+    public final SerializationAdapter<?, ?, ?> getSerializationAdapter() {
+        return serializationAdapter;
     }
 
     public final Type getType() {

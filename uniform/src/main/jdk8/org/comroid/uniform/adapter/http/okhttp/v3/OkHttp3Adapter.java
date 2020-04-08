@@ -1,4 +1,4 @@
-package org.comroid.uniform.http.impl;
+package org.comroid.uniform.adapter.http.okhttp.v3;
 
 import java.io.IOException;
 import java.net.URL;
@@ -17,7 +17,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-public class HttpAdapter$OkHttp3 implements HttpAdapter {
+public class OkHttp3Adapter implements HttpAdapter {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
     @Override

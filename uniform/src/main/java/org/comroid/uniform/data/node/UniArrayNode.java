@@ -1,19 +1,19 @@
-package org.comroid.uniform.node;
+package org.comroid.uniform.data.node;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import org.comroid.uniform.data.DataStructureType;
-import org.comroid.uniform.data.SeriLib;
+import org.comroid.uniform.data.SerializationAdapter;
 
 import org.jetbrains.annotations.NotNull;
 
 public final class UniArrayNode extends UniNode {
     private final Adapter adapter;
 
-    public UniArrayNode(SeriLib<?, ?, ?> seriLib, Adapter adapter) {
-        super(seriLib, Type.ARRAY);
+    public UniArrayNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
+        super(serializationAdapter, Type.ARRAY);
 
         this.adapter = adapter;
     }
@@ -30,11 +30,11 @@ public final class UniArrayNode extends UniNode {
         if (value == null)
             return UniValueNode.nullNode();
 
-        if (Stream.of(seriLib.objectType, seriLib.arrayType)
+        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(seriLib, makeValueAdapter(() -> (String) adapter.get(index)));
-        } else return seriLib.createUniNode(value);
+            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> (String) adapter.get(index)));
+        } else return serializationAdapter.createUniNode(value);
     }
 
     @Override

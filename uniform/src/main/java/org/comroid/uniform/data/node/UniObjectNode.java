@@ -1,18 +1,18 @@
-package org.comroid.uniform.node;
+package org.comroid.uniform.data.node;
 
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.comroid.uniform.data.DataStructureType;
-import org.comroid.uniform.data.SeriLib;
+import org.comroid.uniform.data.SerializationAdapter;
 
 import org.jetbrains.annotations.NotNull;
 
 public final class UniObjectNode extends UniNode {
     private final Adapter adapter;
 
-    public UniObjectNode(SeriLib<?, ?, ?> seriLib, Adapter adapter) {
-        super(seriLib, Type.OBJECT);
+    public UniObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
+        super(serializationAdapter, Type.OBJECT);
 
         this.adapter = adapter;
     }
@@ -24,11 +24,11 @@ public final class UniObjectNode extends UniNode {
         if (value == null)
             return UniValueNode.nullNode();
 
-        if (Stream.of(seriLib.objectType, seriLib.arrayType)
+        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(seriLib, makeValueAdapter(() -> (String) adapter.get(fieldName)));
-        } else return seriLib.createUniNode(value);
+            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> (String) adapter.get(fieldName)));
+        } else return serializationAdapter.createUniNode(value);
     }
 
     @Override

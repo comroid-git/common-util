@@ -1,4 +1,4 @@
-package org.comroid.uniform.http.impl;
+package org.comroid.uniform.adapter.http.jdk;
 
 import java.net.URL;
 import java.net.http.HttpClient;
@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import org.comroid.uniform.http.HttpAdapter;
 import org.comroid.uniform.http.REST;
 
-public final class Java11HttpAdapter implements HttpAdapter {
+public final class JavaHttpAdapter implements HttpAdapter {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Override

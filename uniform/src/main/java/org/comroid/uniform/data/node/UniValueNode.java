@@ -1,9 +1,9 @@
-package org.comroid.uniform.node;
+package org.comroid.uniform.data.node;
 
 import java.util.function.Function;
 
 import org.comroid.common.ref.Reference;
-import org.comroid.uniform.data.SeriLib;
+import org.comroid.uniform.data.SerializationAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,8 +15,8 @@ public class UniValueNode<T> extends UniNode {
 
     private final Adapter<T> adapter;
 
-    public UniValueNode(SeriLib<?, ?, ?> seriLib, Adapter<T> adapter) {
-        super(seriLib, Type.VALUE);
+    public UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
+        super(serializationAdapter, Type.VALUE);
 
         this.adapter = adapter;
     }

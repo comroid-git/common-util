@@ -1,4 +1,4 @@
-package org.comroid.uniform.data.impl.json.jackson;
+package org.comroid.uniform.adapter.data.json.jackson;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,7 +6,6 @@ import java.util.Collection;
 import org.comroid.common.func.bi.Junction;
 import org.comroid.common.func.bi.PredicateDuo;
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.DataConverter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

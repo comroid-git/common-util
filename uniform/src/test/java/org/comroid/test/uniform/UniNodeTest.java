@@ -16,7 +16,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.comroid.uniform.data.impl.json.fastjson.FastJSONLib.fastJsonLib;
+import static org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib.fastJsonLib;
 
 public class UniNodeTest {
     private final Random rng = new Random();

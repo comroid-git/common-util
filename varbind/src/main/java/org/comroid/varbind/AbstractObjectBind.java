@@ -3,8 +3,7 @@ package org.comroid.varbind;
 import java.util.function.BiFunction;
 
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.node.UniNode;
-import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.data.node.UniObjectNode;
 
 abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<EXTR, DPND, REMAP, REMAP> {
     private final String fieldName;
