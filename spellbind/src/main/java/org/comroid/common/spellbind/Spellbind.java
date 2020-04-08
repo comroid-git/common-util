@@ -44,6 +44,7 @@ public final class Spellbind {
             ) && abstractMethod.getReturnType()
                     .equals(method.getReturnType());
         }
+
         private final Class<T> mainInterface;
         private final Map<String, Invocable> methodBinds;
         private final Collection<Class<?>> interfaces;

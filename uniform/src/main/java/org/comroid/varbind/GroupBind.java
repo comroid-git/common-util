@@ -74,6 +74,14 @@ public final class GroupBind {
                 .collect(Collectors.toList());
     }
 
+    private <T> BiFunction<UniObjectNode, String, T> extractor(final UniValueNode.ValueType<T> type) {
+        return (root, fieldName) -> root.get(fieldName).as(type);
+    }
+
+    private <T> Function<UniNode, T> eachExtractor(final UniValueNode.ValueType<T> type) {
+        return root -> root.as(type);
+    }
+
     public final String getName() {
         return groupName;
     }
@@ -128,13 +136,5 @@ public final class GroupBind {
 
     public final <T, D, R, C extends Collection<R>> ArrayBind.Dep<T, D, R, C> listDependent(String fieldName, Function<? extends UniNode, T> extractor, BiFunction<T, D, R> resolver, Supplier<C> collectionSupplier) {
         return new ArrayBind.Dep<>(this, fieldName, extractor, resolver, collectionSupplier);
-    }
-
-    private <T> BiFunction<UniObjectNode, String, T> extractor(final UniValueNode.ValueType<T> type) {
-        return (root, fieldName) -> root.get(fieldName).as(type);
-    }
-
-    private <T> Function<UniNode, T> eachExtractor(final UniValueNode.ValueType<T> type) {
-        return root -> root.as(type);
     }
 }

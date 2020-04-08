@@ -98,5 +98,6 @@ public final class HTTPStatusCodes {
     private HTTPStatusCodes() {
         // nope
     }
+
     private static final Field[] fields = HTTPStatusCodes.class.getFields();
 }

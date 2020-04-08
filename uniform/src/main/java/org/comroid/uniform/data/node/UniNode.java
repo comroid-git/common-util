@@ -8,8 +8,6 @@ import org.comroid.common.info.MessageSupplier;
 import org.comroid.common.ref.Specifiable;
 import org.comroid.uniform.data.SerializationAdapter;
 
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,6 +127,8 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS_NODELIST", Type.ARRAY);
     }
 
+    public abstract Object getBaseNode();
+
     protected <T> UniValueNode.Adapter<T> makeValueAdapter(Supplier<String> stringSupplier) {
         return new UniValueNode.Adapter.ViaString<>(stringSupplier::get);
     }
@@ -168,8 +168,6 @@ public abstract class UniNode implements Specifiable<UniNode> {
     public final <T> UniValueNode<T> asValueNode() {
         return as(UniValueNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.VALUE));
     }
-
-    public abstract Object getBaseNode();
 
     public interface Adapter {
         Object getBaseNode();

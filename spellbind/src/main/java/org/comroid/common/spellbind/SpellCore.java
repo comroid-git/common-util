@@ -51,6 +51,7 @@ public class SpellCore implements InvocationHandler {
                         ""
                 ));
     }
+
     private final Object coreObject;
     private final Map<String, Invocable> methodBinds;
 

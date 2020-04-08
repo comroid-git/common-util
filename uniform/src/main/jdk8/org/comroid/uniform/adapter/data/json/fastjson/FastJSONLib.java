@@ -51,6 +51,16 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
         return Objects.requireNonNull(node, "Node is null");
     }
 
+    @Override
+    public UniObjectNode createUniObjectNode(JSONObject node) {
+        return null;
+    }
+
+    @Override
+    public UniArrayNode createUniArrayNode(JSONArray node) {
+        return null;
+    }
+
     private UniObjectNode.Adapter objectAdapter(JSONObject parseObject) {
         class Local extends JSONObject implements UniObjectNode.Adapter {
             private final JSONObject baseNode = parseObject;
@@ -75,15 +85,5 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
         }
 
         return new Local();
-    }
-
-    @Override
-    public UniObjectNode createUniObjectNode(JSONObject node) {
-        return null;
-    }
-
-    @Override
-    public UniArrayNode createUniArrayNode(JSONArray node) {
-        return null;
     }
 }

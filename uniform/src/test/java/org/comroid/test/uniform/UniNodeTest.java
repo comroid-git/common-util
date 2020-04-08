@@ -9,7 +9,6 @@ import java.util.stream.IntStream;
 import org.comroid.uniform.data.node.UniArrayNode;
 import org.comroid.uniform.data.node.UniObjectNode;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.junit.Assert;

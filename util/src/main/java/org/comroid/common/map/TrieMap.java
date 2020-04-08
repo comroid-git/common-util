@@ -17,9 +17,11 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
     public static <V> TrieMap<String, V> ofString() {
         return new TrieMap<>(Function.identity());
     }
+
     private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
     //endregion
     private final Function<String, K> keyMapper;
+
     public TrieMap(Function<String, K> keyMapper) {
         this.keyMapper = keyMapper;
     }

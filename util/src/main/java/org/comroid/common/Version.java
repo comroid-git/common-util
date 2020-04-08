@@ -27,6 +27,7 @@ public final class Version implements Comparable<Version> {
         this.releaseType = releaseType;
         this.hotfix = hotfix;
     }
+
     public Version(String version) {
         final Matcher matcher = PATTERN.matcher(version.toLowerCase());
 

@@ -43,6 +43,11 @@ public final class UniArrayNode extends UniNode {
     }
 
     @Override
+    public boolean has(String fieldName) {
+        return unsupported("HAS_FIELD", Type.OBJECT);
+    }
+
+    @Override
     public synchronized List<Object> asList() {
         final List<Object> yields = new ArrayList<>();
 
@@ -67,11 +72,6 @@ public final class UniArrayNode extends UniNode {
     @Override
     public final Object getBaseNode() {
         return adapter.getBaseNode();
-    }
-
-    @Override
-    public boolean has(String fieldName) {
-        return unsupported("HAS_FIELD", Type.OBJECT);
     }
 
     public interface Adapter extends UniNode.Adapter, List<Object> {

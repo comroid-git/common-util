@@ -279,6 +279,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                     .toArray(Object[]::new);
         } else data = toArray();
     }
+
     private static final Span<?> ZeroSize = new Span<>(new Object[0], ModifyPolicy.IMMUTABLE, true);
 
     //region API Class
@@ -479,6 +480,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         private final BiPredicate<Object, Object> overwriteTester;
         private final Predicate<Object> removeTester;
         private final Predicate<Object> cleanupTester;
+
         ModifyPolicy(
                 Predicate<Object> initVarTester,
                 Predicate<Object> iterateVarTester,
@@ -520,6 +522,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                     message
             ));
         }
+
         private final static Object dummy = new Object();
     }
 }
