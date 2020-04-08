@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 public class TestRestJava11 {
     public final static URL testUrl = url("https://api.cdn.comroid.org/app/SymBLink/");
 
-    private REST<Void> rest;
+    private REST rest;
 
     @Before
     public void setup() {

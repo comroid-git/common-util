@@ -20,8 +20,8 @@ import static org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib.fastJso
 
 public class UniNodeTest {
     private final Random rng = new Random();
-    private UniObjectNode<JSON, JSONObject, Integer> object;
-    private UniArrayNode<JSON, JSONArray, Integer> array;
+    private UniObjectNode object;
+    private UniArrayNode array;
     private Map<String, Integer> randomMap;
     private List<Integer> randomInts;
 
@@ -48,13 +48,13 @@ public class UniNodeTest {
 
     @Test
     public void testObject() {
-        object.forEach((key, value) -> Assert.assertEquals(randomMap.get(key), value));
+        randomMap.forEach((key, value) -> Assert.assertEquals(object.get(key).asInt(0), (int) value));
     }
 
     @Test
     public void testArray() {
         for (int i = 0; i < array.size(); i++) {
-            Integer value = array.get(i);
+            Integer value = array.get(i).asInt(0);
 
             Assert.assertEquals(randomInts.get(i), value);
         }
