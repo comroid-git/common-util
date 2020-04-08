@@ -1,16 +1,15 @@
 package org.comroid.varbind;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.DataStructureType.Primitive;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
-
-import org.jetbrains.annotations.Nullable;
+import org.comroid.uniform.node.UniObjectNode;
 
 /**
  * {@link Collection} building Variable definition with 2 mapping Stages. Used for deserializing
@@ -23,55 +22,44 @@ import org.jetbrains.annotations.Nullable;
  *              VariableCarrier#getVar(VarBind)}
  * @param <OBJ> Serialization Library Type of the serialization Node
  */
-abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
-        implements ArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
-    private final String name;
-    private final @Nullable GroupBind group;
-    private final BiFunction<UniArrayNode, String, Collection<EXTR>> extractor;
-    private final Function<Span<REMAP>, FINAL> collectionFinalizer;
+abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> implements ArrayBind<EXTR, DPND, REMAP, FINAL> {
+    private final String fieldName;
+    private final Function<? extends UniNode, EXTR> extractor;
+    private final Supplier<FINAL> collectionSupplier;
+    private final GroupBind group;
 
-    protected AbstractArrayBind(
-            @Nullable GroupBind group,
-            String name,
-            BiFunction<UniArrayNode, String, Collection<EXTR>> extractor,
-            Function<Span<REMAP>, FINAL> collectionFinalizer
-    ) {
-        this.name = name;
-        this.group = group;
+    protected AbstractArrayBind(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Supplier<FINAL> collectionSupplier) {
+        this.fieldName = fieldName;
         this.extractor = extractor;
-        this.collectionFinalizer = collectionFinalizer;
+        this.collectionSupplier = collectionSupplier;
+        this.group = group;
     }
 
     @Override
-    public Span<EXTR> extract(UniNode node) {
-        return Span.immutable(extractor.apply(node.asArrayNode(), name));
+    public final String getFieldName() {
+        return fieldName;
     }
 
     @Override
-    public String toString() {
-        return String.format("VarBind@%s", getPath());
+    public final Span<EXTR> extract(UniObjectNode node) {
+        return node.get(fieldName)
+                .asArrayNode()
+                .asNodeList()
+                .stream()
+                .map(arrayMember -> extractor.apply(Polyfill.deadCast(arrayMember)))
+                .collect(Span.collector());
     }
-
-    @Override
-    public final String getName() {
-        return name;
-    }
-
-    @Override
-    public abstract REMAP remap(EXTR from, DPND dependency);
 
     @Override
     public final FINAL finish(Span<REMAP> parts) {
-        return collectionFinalizer.apply(parts);
-    }
+        final FINAL yields = collectionSupplier.get();
+        yields.addAll(parts);
 
-    public final String getPath() {
-        return getGroup().map(groupBind -> groupBind.getName() + ".")
-                .orElse("") + name;
+        return yields;
     }
 
     @Override
-    public final Optional<GroupBind> getGroup() {
-        return Optional.ofNullable(group);
+    public final GroupBind getGroup() {
+        return group;
     }
 }

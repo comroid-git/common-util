@@ -31,7 +31,10 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     public static final boolean DEFAULT_FIXED_SIZE = false;
 
     public static <T> Collector<T, ?, Span<T>> collector() {
-        return Span.<T>make().collector();
+        return Span.<T>make()
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .collector();
     }
 
     public static <T> Span.API<T> make() {
@@ -55,6 +58,15 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 .modifyPolicy(ModifyPolicy.IMMUTABLE)
                 .span();
     }
+
+    @SafeVarargs
+    public static <T> Span<T> immutable(T... of) {
+        return Span.<T>make().initialValues(of)
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
+    }
+
     private final ModifyPolicy modifyPolicy;
     private final Object dataLock = new Object() {
         private volatile Object selfaware_keepalive = Span.this.dataLock;

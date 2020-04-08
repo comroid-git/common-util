@@ -12,8 +12,6 @@ import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * Basic Variable Binding definition Serves as an interface to handling data when serializing.
  *
@@ -24,19 +22,19 @@ import org.jetbrains.annotations.Nullable;
  *               VariableCarrier#getVar(VarBind)}
  * @param <NODE> Serialization Library Type of the serialization Node
  */
-public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
-    String getName();
+public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
+    String getFieldName();
 
-    default Span<EXTR> extract(UniNode node) {
-        final UniObjectNode uniObject = node.asObjectNode();
-        final String key = getName();
+    Span<EXTR> extract(UniObjectNode node);
 
-        if (!uniObject.has(key))
-            return Span.zeroSize();
+    default FINAL process(final DPND dependency, Span<EXTR> from) {
+        return finish(remapAll(dependency, from));
+    }
 
-        final EXTR extracted = (EXTR) uniObject.get(key);
-
-        return Span.singleton(extracted);
+    default Span<REMAP> remapAll(final DPND dependency, Span<EXTR> from) {
+        return from.stream()
+                .map(each -> remap(each, dependency))
+                .collect(Span.collector());
     }
 
     REMAP remap(EXTR from, DPND dependency);
@@ -62,13 +60,9 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
      * @param <NODE> Serialization Library Type of the serialization Node
      * @param <S>    The serialization input & output Type
      */
-    final class Uno<NODE, TARGET> extends AbstractObjectBind<NODE, TARGET, Object, TARGET> {
-        protected Uno(
-                @Nullable GroupBind group,
-                String name,
-                BiFunction<UniObjectNode, String, TARGET> extractor
-        ) {
-            super(group, name, extractor);
+    final class Uno<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
+        public Uno(GroupBind group, String fieldName, BiFunction<UniNode, String, TARGET> extractor) {
+            super(group, fieldName, extractor.andThen(Span::singleton));
         }
 
         @Override
@@ -84,16 +78,11 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
      * @param <S>    The serialization input Type
      * @param <A>    The mapping output Type
      */
-    final class Duo<NODE, EXTR, TARGET> extends AbstractObjectBind<NODE, EXTR, Object, TARGET> {
+    final class Duo<EXTR, TARGET> extends AbstractObjectBind<EXTR, Object, TARGET> {
         private final Function<EXTR, TARGET> remapper;
 
-        protected Duo(
-                @Nullable GroupBind group,
-                String name,
-                BiFunction<UniObjectNode, String, EXTR> extractor,
-                Function<EXTR, TARGET> remapper
-        ) {
-            super(group, name, extractor);
+        public Duo(GroupBind group, String fieldName, BiFunction<UniNode, String, EXTR> extractor, Function<EXTR, TARGET> remapper) {
+            super(group, fieldName, extractor.andThen(Span::singleton));
 
             this.remapper = remapper;
         }
@@ -115,27 +104,18 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
      *
      * @see VariableCarrier Dependency Type
      */
-    final class Dep<NODE, EXTR, DPND, TARGET> extends AbstractObjectBind<NODE, EXTR, DPND, TARGET> {
-        private final BiFunction<EXTR, DPND, TARGET> remapper;
+    final class Dep<EXTR, DPND, TARGET> extends AbstractObjectBind<EXTR, DPND, TARGET> {
+        private final BiFunction<EXTR, DPND, TARGET> resolver;
 
-        protected Dep(
-                @Nullable GroupBind group,
-                String name,
-                BiFunction<UniObjectNode, String, EXTR> extractor,
-                BiFunction<EXTR, DPND, TARGET> remapper
-        ) {
-            super(group, name, extractor);
+        public Dep(GroupBind group, String fieldName, BiFunction<UniNode, String, EXTR> extractor, BiFunction<EXTR, DPND, TARGET> resolver) {
+            super(group, fieldName, extractor.andThen(Span::singleton));
 
-            this.remapper = remapper;
+            this.resolver = resolver;
         }
 
         @Override
         public TARGET remap(EXTR from, DPND dependency) {
-            return remapper.apply(from,
-                    Objects.requireNonNull(dependency,
-                            "Dependency Object " + "Required"
-                    )
-            );
+            return resolver.apply(from, Objects.requireNonNull(dependency, "Dependency Object"));
         }
     }
 }

@@ -119,7 +119,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS_LIST", Type.ARRAY);
     }
 
-    public List<UniNode> asNodeList() {
+    public List<? extends UniNode> asNodeList() {
         return unsupported("GET_AS_NODELIST", Type.ARRAY);
     }
 

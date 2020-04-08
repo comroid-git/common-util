@@ -54,7 +54,7 @@ public final class UniArrayNode extends UniNode {
     }
 
     @Override
-    public List<UniNode> asNodeList() {
+    public List<? extends UniNode> asNodeList() {
         final List<UniNode> yields = new ArrayList<>();
 
         for (int i = 0; i < size(); i++) {

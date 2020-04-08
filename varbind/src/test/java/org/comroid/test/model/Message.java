@@ -45,7 +45,7 @@ public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
                 "tts", Boolean.class);
         ArrayBind.Dep<JSONObject, JSONObject, Embed, DiscordAPI, Collection<Embed>> EMBEDS = GROUP.listDependent(
                 "embeds", JSONObject.class,
-                Embed.Binds.GROUP.autoRemapper(Embed.class, DiscordAPI.class), ArrayList::new
+                Embed.Binds.GROUP.autoConstructor(Embed.class, DiscordAPI.class), ArrayList::new
         );
         VarBind.Duo<JSONObject, String, String> TIMESTAMP = GROUP.bind2Stage(
                 "timestamp", String.class, spec -> spec); // todo Instant parsing
@@ -59,11 +59,11 @@ public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
                 "edited_timestamp", String.class, spec -> spec); // todo Instant parsing
         VarBind.Dep<JSONObject, JSONObject, User, DiscordAPI> AUTHOR = GROUP.bindDependent(
                 "author", JSONObject.class,
-                User.Binds.GROUP.autoRemapper(User.class, DiscordAPI.class)
+                User.Binds.GROUP.autoConstructor(User.class, DiscordAPI.class)
         );
         ArrayBind.Dep<JSONObject, JSONObject, Role, DiscordAPI, Collection<Role>> MENTIONED_ROLES = GROUP.listDependent(
                 "mentioned_roles", JSONObject.class,
-                Role.Binds.GROUP.autoRemapper(Role.class, DiscordAPI.class), ArrayList::new
+                Role.Binds.GROUP.autoConstructor(Role.class, DiscordAPI.class), ArrayList::new
         );
         VarBind.Uno<JSONObject, String> CONTENT = GROUP.bind1Stage(
                 "content", String.class);
@@ -71,7 +71,7 @@ public class Message extends VariableCarrier<JSON, JSONObject, DiscordAPI> {
                 "channel_id", Long.class, DiscordAPI::getChannelById);
         ArrayBind.Dep<JSONObject, JSONObject, User, DiscordAPI, Collection<User>> MENTIONED_USERS = GROUP.listDependent(
                 "mentions", JSONObject.class,
-                User.Binds.GROUP.autoRemapper(User.class, DiscordAPI.class), ArrayList::new
+                User.Binds.GROUP.autoConstructor(User.class, DiscordAPI.class), ArrayList::new
         );
         VarBind.Duo<JSONObject, Integer, Message.Type> TYPE = GROUP.bind2Stage(
                 "type", Integer.class, Type::new);
