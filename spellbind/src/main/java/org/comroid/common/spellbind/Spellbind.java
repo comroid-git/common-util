@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.comroid.common.map.TrieMap;
 import org.comroid.common.spellbind.model.Invocable;
 import org.comroid.common.spellbind.model.MethodInvocation;
-import org.comroid.common.trie.TrieMap;
 
 import org.jetbrains.annotations.Nullable;
 

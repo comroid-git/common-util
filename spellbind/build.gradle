@@ -8,5 +8,5 @@ ext {
 }
 
 dependencies {
-    implementation project(":trie")
+    implementation project(":util")
 }

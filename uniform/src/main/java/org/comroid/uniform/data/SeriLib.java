@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 import org.comroid.common.annotation.ClassDependency;
 import org.comroid.common.func.bi.Junction;
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.data.node.UniArrayNode;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -37,11 +37,11 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         if (!missingClasses.isEmpty()) throw new ExceptionInInitializerError(String.format(
                 "Missing dependency classes:%s",
                 missingClasses.stream()
-                              .collect(Collectors.joining(
-                                      "\n\t-\t",
-                                      "",
-                                      "\n"
-                              ))
+                        .collect(Collectors.joining(
+                                "\n\t-\t",
+                                "",
+                                "\n"
+                        ))
         ));
         else System.err.printf(
                 "Missing ClassDependency annotation on class %s\n",
@@ -55,36 +55,29 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         }
     }
 
-    public final  Junction<String, BAS>                                        parser;
-    public final  DataStructureType.Obj<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
-    public final  DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
-    private final Map<BAS, UniNode<BAS>>                                       dummyCache = new ConcurrentHashMap<>();
+    public final Junction<String, BAS> parser;
+    public final DataStructureType.Obj<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
+    public final DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
 
     protected SeriLib(
             Junction<String, BAS> parser,
             Class<OBJ> objClass,
-            Class<ARR> arrClass,
-            BiFunction<OBJ, String, ARR> arrayExtractor,
-            ToIntFunction<ARR> arraySizeEvaluator,
-            Function<BAS, List<BAS>> arraySplitter
+            Class<ARR> arrClass
     ) {
         this(parser,
-             new DataStructureType.Obj<>(objClass),
-             new DataStructureType.Arr<>(arrClass, arraySizeEvaluator, arraySplitter),
-             arrayExtractor
+                new DataStructureType.Obj<>(objClass),
+                new DataStructureType.Arr<>(arrClass)
         );
     }
 
     protected SeriLib(
             Junction<String, BAS> parser,
             DataStructureType.Obj<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
-            DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType,
-            BiFunction<OBJ, String, ARR> arrayExtractor
+            DataStructureType.Arr<SeriLib<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType
     ) {
-        this.parser         = parser;
-        this.objectType     = objectType;
-        this.arrayType      = arrayType;
-        this.arrayExtractor = arrayExtractor;
+        this.parser = parser;
+        this.objectType = objectType;
+        this.arrayType = arrayType;
 
         ReflectionHelper.verifyClassDependencies(getClass());
     }
@@ -100,20 +93,29 @@ public abstract class SeriLib<BAS, OBJ extends BAS, ARR extends BAS> {
         throw new UnsupportedOperationException("Use SeriLib.createUniNode() methods instead!");
     }
 
-    public abstract <MT> UniObjectNode<BAS, OBJ, MT> createUniObjectNode(OBJ node);
+    public abstract UniObjectNode createUniObjectNode(OBJ node);
 
-    public abstract <CT> UniArrayNode<BAS, ARR, CT> createUniArrayNode(ARR node);
+    public abstract UniArrayNode createUniArrayNode(ARR node);
 
     public <TAR extends BAS> DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR> typeOf(TAR node) {
         if (objectType.typeClass()
-                      .isInstance(node))
+                .isInstance(node))
             return (DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR>) objectType;
         if (arrayType.typeClass()
-                     .isInstance(node))
+                .isInstance(node))
             return (DataStructureType<SeriLib<BAS, OBJ, ARR>, BAS, TAR>) arrayType;
 
         throw new IllegalArgumentException("Unknown type: " + node.getClass()
-                                                                  .getName());
+                .getName());
+    }
+
+    public final UniNode createUniNode(Object node) {
+        if (objectType.typeClass().isInstance(node))
+            return createUniObjectNode((OBJ) node);
+        if (arrayType.typeClass().isInstance(node))
+            return createUniArrayNode((ARR) node);
+
+        throw new IllegalArgumentException(String.format("Unknown node type: %s", node.getClass().getName()));
     }
 
 }

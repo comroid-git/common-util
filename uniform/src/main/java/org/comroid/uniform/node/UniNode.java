@@ -1,39 +1,154 @@
 package org.comroid.uniform.node;
 
-import java.util.UUID;
+import java.util.Optional;
+import java.util.function.Supplier;
 
-import org.comroid.common.trie.TrieMap;
+import org.comroid.common.info.MessageSupplier;
+import org.comroid.common.ref.Reference;
+import org.comroid.common.ref.Specifiable;
+import org.comroid.uniform.data.SeriLib;
 
-public abstract class UniNode {
-    static <T> String selfCacheAccessKey(UUID identifier, String fieldName, Class<T> asType) {
-        return String.format("%s-%s-%s", identifier, fieldName, asType.getName());
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public abstract class UniNode implements Specifiable<UniNode> {
+    protected final SeriLib<?, ?, ?> seriLib;
+    private final Type type;
+
+    protected UniNode(SeriLib<?, ?, ?> seriLib, Type type) {
+        this.seriLib = seriLib;
+        this.type = type;
     }
 
-    protected final static class API {
-        private final TrieMap<String, UniObjectNode>   objectNodeCache = TrieMap.ofString();
-        private final TrieMap<String, UniArrayNode>    arrayNodeCache  = TrieMap.ofString();
-        private final TrieMap<String, UniValueNode<?>> valueNodeCache  = TrieMap.ofString();
+    protected <T> UniValueNode.Adapter<T> makeValueAdapter(Supplier<String> stringSupplier) {
+        return new UniValueNode.Adapter.ViaString<>(stringSupplier::get);
+    }
 
-        public <T> UniValueNode<T> objectAccessingValueNode(
-                UUID identifier, String fieldName, Class<T> asType
-        ) {
-        }
+    public abstract @NotNull UniNode get(String fieldName);
+
+    public abstract @NotNull UniNode get(int index);
+
+    public @NotNull Optional<UniNode> wrap(String fieldName) {
+        return has(fieldName) ? Optional.of(get(fieldName)) : Optional.empty();
+    }
+
+    public @NotNull Optional<UniNode> wrap(int index) {
+        return has(index) ? Optional.of(get(index)) : Optional.empty();
+    }
+
+    public abstract int size();
+
+    public abstract boolean has(String fieldName);
+
+    public boolean has(int index) {
+        return size() < index;
+    }
+
+    public boolean isNull(String fieldName) {
+        return wrap(fieldName).map(UniNode::isNull).orElse(true);
+    }
+
+    public boolean isNull() {
+        return this instanceof UniValueNode.Null;
+    }
+
+    public String asString(@Nullable String fallback) {
+        if (isNull())
+            return fallback;
+
+        return unsupported("GET_AS_STRING", Type.VALUE);
+    }
+
+    public boolean asBoolean(boolean fallback) {
+        if (isNull())
+            return fallback;
+
+        return unsupported("GET_AS_BOOLEAN", Type.VALUE);
+    }
+
+    public int asInt(int fallback) {
+        if (isNull())
+            return fallback;
+
+        return unsupported("GET_AS_INT", Type.VALUE);
+    }
+
+    public long asLong(long fallback) {
+        if (isNull())
+            return fallback;
+
+        return unsupported("GET_AS_LONG", Type.VALUE);
+    }
+
+    public double asDouble(double fallback) {
+        if (isNull())
+            return fallback;
+
+        return unsupported("GET_AS_DOUBLE", Type.VALUE);
+    }
+
+    public float asFloat(float fallback) {
+        if (isNull())
+            return fallback;
+
+        return unsupported("GET_AS_FLOAT", Type.VALUE);
+    }
+
+    public short asShort(short fallback) {
+        if (isNull())
+            return fallback;
+
+        return unsupported("GET_AS_SHORT", Type.VALUE);
+    }
+
+    public char asChar(char fallback) {
+        if (isNull())
+            return fallback;
+
+        return unsupported("GET_AS_CHAR", Type.VALUE);
+    }
+
+    public String getSerializedString() {
+        return toString();
+    }
+
+    protected final <T> T unsupported(String actionName, Type expected) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException(String.format("Cannot invoke %s on node type %s; %s expected", actionName, getType(), expected));
+    }
+
+    public final SeriLib<?, ?, ?> getSeriLib() {
+        return seriLib;
     }
 
     public final Type getType() {
         return type;
     }
 
-    protected final String identifier;
-    protected final API    API;
-    private final   Type   type;
+    public final boolean isObjectNode() {
+        return getType() == Type.OBJECT;
+    }
 
-    protected UniNode(API API, Type type) {
-        this.API        = API;
-        this.type       = type;
-        this.identifier = UUID.randomUUID()
-                              .toString();
-        selfCache.put(identifier, this);
+    public final boolean isArrayNode() {
+        return getType() == Type.ARRAY;
+    }
+
+    public final boolean isValueNode() {
+        return getType() == Type.VALUE;
+    }
+
+    public final UniObjectNode asObjectNode() {
+        return as(UniObjectNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.OBJECT));
+    }
+
+    public final UniArrayNode asArrayNode() {
+        return as(UniArrayNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.ARRAY));
+    }
+
+    public final <T> UniValueNode<T> asValueNode() {
+        return as(UniValueNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.VALUE));
+    }
+
+    public interface Adapter {
     }
 
     public enum Type {
