@@ -1,12 +1,13 @@
 package org.comroid.varbind;
 
+import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.data.DataStructureType.Primitive;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -14,25 +15,16 @@ abstract class AbstractObjectBind<NODE, EXTR, DPND, REMAP>
         implements VarBind<NODE, EXTR, DPND, REMAP, REMAP> {
     private final String name;
     private final @Nullable GroupBind group;
-    private final BiFunction<? super UniObjectNode<NODE, ?, ? super EXTR>, String, Span<EXTR>> extractor;
+    private final BiFunction<UniObjectNode, String, Span<EXTR>> extractor;
 
     protected AbstractObjectBind(
             @Nullable GroupBind group,
             String name,
-            BiFunction<? super UniObjectNode<? super NODE, ?, ? super EXTR>, String, EXTR> extractor
+            BiFunction<UniObjectNode, String, EXTR> extractor
     ) {
         this.name = name;
         this.group = group;
         this.extractor = extractor.andThen(Span::singleton);
-    }
-
-    @Override
-    public Span<EXTR> extract(UniNode<NODE> node) {
-        if (node.getType() == Primitive.ARRAY) {
-            throw new IllegalArgumentException("VarBind cannot extract from Array Nodes");
-        }
-
-        return extractor.apply((UniObjectNode) node, name);
     }
 
     @Override

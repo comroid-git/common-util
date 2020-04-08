@@ -9,12 +9,15 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.data.node.UniArrayNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 import static org.comroid.common.Polyfill.deadCast;
 
@@ -63,9 +66,14 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
                 .getValueAs(fieldName, extractTarget);
     }
 
-    private <T> BiFunction<? super UniArrayNode<OBJ, ?, ? super T>, String, Collection<T>> splitExtractor(
-            Function<OBJ, T> dataExtractor) {
-
+    private <T> BiFunction<UniArrayNode, String, Collection<T>> splitExtractor(
+            BiFunction<OBJ, String, T> dataExtractor) {
+        return (arrayNode, fieldName) -> arrayNode.asNodeList()
+                .stream()
+                .map(UniNode::asObjectNode)
+                .filter(node -> !node.isNull())
+                .map(node -> dataExtractor.apply((OBJ) node.getBaseNode(), fieldName))
+                .collect(Collectors.toList());
     }
 
     private <T> Function<OBJ, T> typeExtractor(final Class<T> target) {
@@ -93,14 +101,7 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
         final VarBind.Uno<OBJ, T> bind = new VarBind.Uno<OBJ, T>(
                 this,
                 name,
-                new BiFunction<UniObjectNode<? super OBJ, ?, ? super T>, String, T>() {
-                    @Override
-                    public T apply(
-                            UniObjectNode<? super OBJ, ?, ? super T> uniObject, String fieldName
-                    ) {
-                        return uniObject.get(fieldName);
-                    }
-                }
+                (uniObject, fieldName) -> (T) uniObject.get(fieldName).asRaw(null)
         );
 
         children.add(deadCast(bind));
@@ -157,7 +158,7 @@ public final class GroupBind<BAS, OBJ extends BAS, ARR extends BAS> {
     }
 
     public final <T, C extends Collection<T>> ArrayBind.Uno<OBJ, T, C> list1Stage(
-            String name, Function<OBJ, T> dataExtractor, Supplier<C> collectionProvider
+            String name, BiFunction<OBJ, String, T> dataExtractor, Supplier<C> collectionProvider
     ) {
         final ArrayBind.Uno<OBJ, T, C> bind = new ArrayBind.Uno<OBJ, T, C>(this,
                 name,

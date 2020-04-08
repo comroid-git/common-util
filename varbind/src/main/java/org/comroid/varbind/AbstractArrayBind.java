@@ -7,8 +7,8 @@ import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.data.DataStructureType.Primitive;
-import org.comroid.uniform.data.node.UniArrayNode;
-import org.comroid.uniform.data.node.UniNode;
+import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -27,13 +27,13 @@ abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collecti
         implements ArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
     private final String name;
     private final @Nullable GroupBind group;
-    private final BiFunction<? super UniArrayNode<NODE, ?, ? super EXTR>, String, Collection<EXTR>> extractor;
+    private final BiFunction<UniArrayNode, String, Collection<EXTR>> extractor;
     private final Function<Span<REMAP>, FINAL> collectionFinalizer;
 
     protected AbstractArrayBind(
             @Nullable GroupBind group,
             String name,
-            BiFunction<? super UniArrayNode<NODE, ?, ? super EXTR>, String, Collection<EXTR>> extractor,
+            BiFunction<UniArrayNode, String, Collection<EXTR>> extractor,
             Function<Span<REMAP>, FINAL> collectionFinalizer
     ) {
         this.name = name;
@@ -43,12 +43,8 @@ abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collecti
     }
 
     @Override
-    public Span<EXTR> extract(UniNode<NODE> node) {
-        if (node.getType() == Primitive.OBJECT) {
-            throw new IllegalArgumentException("ArrayBind cannot extract from Object Nodes");
-        }
-
-        return Span.immutable(extractor.apply((UniArrayNode) node, name));
+    public Span<EXTR> extract(UniNode node) {
+        return Span.immutable(extractor.apply(node.asArrayNode(), name));
     }
 
     @Override

@@ -9,8 +9,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -27,23 +27,16 @@ import org.jetbrains.annotations.Nullable;
 public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     String getName();
 
-    default Span<EXTR> extract(UniNode<Object, NODE> node) {
-        switch (node.getType()) {
-            case OBJECT:
-                final UniObjectNode uniObject = (UniObjectNode) node;
-                final String key = getName();
+    default Span<EXTR> extract(UniNode node) {
+        final UniObjectNode uniObject = node.asObjectNode();
+        final String key = getName();
 
-                if (!uniObject.containsKey(key))
-                    return Span.zeroSize();
+        if (!uniObject.has(key))
+            return Span.zeroSize();
 
-                final EXTR extracted = (EXTR) uniObject.get(key);
+        final EXTR extracted = (EXTR) uniObject.get(key);
 
-                return Span.singleton(extracted);
-            case ARRAY:
-                throw new IllegalArgumentException("VarBind cannot extract from Array node");
-        }
-
-        throw new AssertionError();
+        return Span.singleton(extracted);
     }
 
     REMAP remap(EXTR from, DPND dependency);
@@ -73,7 +66,7 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         protected Uno(
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<? super UniObjectNode<? super NODE, ?, ? super TARGET>, String, TARGET> extractor
+                BiFunction<UniObjectNode, String, TARGET> extractor
         ) {
             super(group, name, extractor);
         }
@@ -97,7 +90,7 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         protected Duo(
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<? super UniObjectNode<? super NODE, ?, ? super EXTR>, String, EXTR> extractor,
+                BiFunction<UniObjectNode, String, EXTR> extractor,
                 Function<EXTR, TARGET> remapper
         ) {
             super(group, name, extractor);
@@ -128,7 +121,7 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         protected Dep(
                 @Nullable GroupBind group,
                 String name,
-                BiFunction<? super UniObjectNode<? super NODE, ?, ? super EXTR>, String, EXTR> extractor,
+                BiFunction<UniObjectNode, String, EXTR> extractor,
                 BiFunction<EXTR, DPND, TARGET> remapper
         ) {
             super(group, name, extractor);

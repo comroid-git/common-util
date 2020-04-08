@@ -42,8 +42,37 @@ public class UniValueNode<T> extends UniNode {
     }
 
     @Override
+    public Object asRaw(@Nullable Object fallback) {
+        final String str = asString(null);
+
+        if (str.length() == 1)
+            return asChar((char) 0);
+
+        if (str.matches("true|false"))
+            return asBoolean(false);
+
+        if (str.matches("[0-9]+")) {
+            final long asLong = asLong(0);
+
+            if (asLong > Integer.MAX_VALUE)
+                return asLong;
+            else return asInt(0);
+        }
+
+        if (str.matches("[0-9.]+")) {
+            final double asDouble = asDouble(0);
+
+            if (asDouble > Float.MAX_VALUE)
+                return asDouble;
+            else return asFloat(0);
+        }
+
+        return asString(null);
+    }
+
+    @Override
     public String asString(@Nullable String fallback) {
-        if (isNull())
+        if (isNull() && fallback != null)
             return fallback;
 
         return adapter.get(Adapter.ValueType.STRING);
@@ -105,6 +134,11 @@ public class UniValueNode<T> extends UniNode {
         return adapter.get(Adapter.ValueType.CHARACTER);
     }
 
+    @Override
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
+    }
+
     public interface Adapter<T> extends UniNode.Adapter {
         @Nullable <R> R get(ValueType<R> as);
 
@@ -135,6 +169,11 @@ public class UniValueNode<T> extends UniNode {
             @Override
             public <R> @Nullable R get(ValueType<R> as) {
                 return as.mapper.apply(sub.get());
+            }
+
+            @Override
+            public Object getBaseNode() {
+                return null;
             }
         }
     }

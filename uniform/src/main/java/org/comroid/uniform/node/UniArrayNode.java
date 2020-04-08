@@ -1,5 +1,6 @@
 package org.comroid.uniform.node;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -26,6 +27,9 @@ public final class UniArrayNode extends UniNode {
     public @NotNull UniNode get(int index) {
         final Object value = adapter.get(index);
 
+        if (value == null)
+            return UniValueNode.nullNode();
+
         if (Stream.of(seriLib.objectType, seriLib.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
@@ -36,6 +40,33 @@ public final class UniArrayNode extends UniNode {
     @Override
     public int size() {
         return adapter.size();
+    }
+
+    @Override
+    public synchronized List<Object> asList() {
+        final List<Object> yields = new ArrayList<>();
+
+        for (int i = 0; i < size(); i++) {
+            yields.set(i, get(i).asRaw(null));
+        }
+
+        return yields;
+    }
+
+    @Override
+    public List<UniNode> asNodeList() {
+        final List<UniNode> yields = new ArrayList<>();
+
+        for (int i = 0; i < size(); i++) {
+            yields.set(i, get(i));
+        }
+
+        return yields;
+    }
+
+    @Override
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
     }
 
     @Override

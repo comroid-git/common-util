@@ -1,5 +1,6 @@
 package org.comroid.uniform.node;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -47,8 +48,15 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return this instanceof UniValueNode.Null;
     }
 
+    public Object asRaw(@Nullable Object fallback) {
+        if (isNull() && fallback != null)
+            return fallback;
+
+        return unsupported("GET_RAW", Type.VALUE);
+    }
+
     public String asString(@Nullable String fallback) {
-        if (isNull())
+        if (isNull() && fallback != null)
             return fallback;
 
         return unsupported("GET_AS_STRING", Type.VALUE);
@@ -107,6 +115,14 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return toString();
     }
 
+    public List<Object> asList() {
+        return unsupported("GET_AS_LIST", Type.ARRAY);
+    }
+
+    public List<UniNode> asNodeList() {
+        return unsupported("GET_AS_NODELIST", Type.ARRAY);
+    }
+
     protected <T> UniValueNode.Adapter<T> makeValueAdapter(Supplier<String> stringSupplier) {
         return new UniValueNode.Adapter.ViaString<>(stringSupplier::get);
     }
@@ -147,7 +163,10 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return as(UniValueNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.VALUE));
     }
 
+    public abstract Object getBaseNode();
+
     public interface Adapter {
+        Object getBaseNode();
     }
 
     public enum Type {

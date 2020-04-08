@@ -21,6 +21,9 @@ public final class UniObjectNode extends UniNode {
     public @NotNull UniNode get(String fieldName) {
         final Object value = adapter.get(fieldName);
 
+        if (value == null)
+            return UniValueNode.nullNode();
+
         if (Stream.of(seriLib.objectType, seriLib.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
@@ -41,6 +44,11 @@ public final class UniObjectNode extends UniNode {
     @Override
     public boolean has(String fieldName) {
         return adapter.containsKey(fieldName);
+    }
+
+    @Override
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
     }
 
     public interface Adapter extends UniNode.Adapter, Map<String, Object> {

@@ -9,10 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.data.DataStructureType.Primitive;
 import org.comroid.uniform.data.SeriLib;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -58,21 +56,18 @@ public class VariableCarrier<BAS, OBJ extends BAS, ARR extends BAS, DEP>
     }
 
     private Set<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> updateVars(
-            @Nullable UniObjectNode<BAS, OBJ, Object> data
+            @Nullable UniObjectNode data
     ) {
         if (data == null) return emptySet();
-
-        if (data.getType() != Primitive.OBJECT)
-            throw new IllegalArgumentException("Object required");
 
         final HashSet<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
         getBindings().getChildren()
                 .stream()
-                .filter(bind -> data.containsKey(bind.getName()))
+                .filter(bind -> data.has(bind.getName()))
                 .map(it -> (VarBind<? extends BAS, Object, Object, Object, Object>) (Object) it)
                 .forEach(bind -> {
-                    Span<Object> extract = bind.extract((UniNode) data);
+                    Span<Object> extract = bind.extract(data);
 
                     ref(bind).set(extract);
                     compRef(bind).outdate();
