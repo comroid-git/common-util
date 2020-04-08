@@ -1,35 +1,35 @@
 package org.comroid.test.model;
 
-import com.alibaba.fastjson.annotation.JSONCreator;
-import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.annotation.JSONType;
+import org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib;
+import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.data.node.UniValueNode;
+import org.comroid.varbind.GroupBind;
+import org.comroid.varbind.VarBind;
+import org.comroid.varbind.VariableCarrier;
 
-@JSONType
-public final class NGinXFSNode {
-    private final String name;
-    private final String type;
-    private final String mtime;
-
-    @JSONCreator
-    public NGinXFSNode(
-            @JSONField(name = "name") String name,
-            @JSONField(name = "type") String type,
-            @JSONField(name = "mtime") String mtime
-    ) {
-        this.name = name;
-        this.type = type;
-        this.mtime = mtime;
+@VarBind.Location(NGinXFSNode.Bind.class)
+public final class NGinXFSNode extends VariableCarrier<Void> {
+    protected NGinXFSNode(UniObjectNode initialData) {
+        super(FastJSONLib.fastJsonLib, initialData, null);
     }
 
     public String getName() {
-        return name;
+        return get(Bind.Name);
     }
 
     public String getType() {
-        return type;
+        return get(Bind.Type);
     }
 
     public String getMtime() {
-        return mtime;
+        return get(Bind.MTime);
+    }
+
+    interface Bind {
+        @VarBind.Root
+        GroupBind root = new GroupBind(FastJSONLib.fastJsonLib, "fsnode");
+        VarBind.Uno<String> Name = root.bind1stage("name", UniValueNode.ValueType.STRING);
+        VarBind.Uno<String> Type = root.bind1stage("type", UniValueNode.ValueType.STRING);
+        VarBind.Uno<String> MTime = root.bind1stage("mtime", UniValueNode.ValueType.STRING);
     }
 }

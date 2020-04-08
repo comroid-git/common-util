@@ -20,7 +20,7 @@ public interface VarCarrier<DEP> {
         return Optional.ofNullable(get(bind));
     }
 
-    <T> @Nullable T get(VarBind<Object, ? super DEP, ?, T> bind);
+    <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> bind);
 
     default @NotNull <T> T requireNonNull(VarBind<Object, ? super DEP, ?, T> bind) {
         return Objects.requireNonNull(get(bind));

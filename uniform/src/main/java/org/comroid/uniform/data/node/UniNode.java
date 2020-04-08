@@ -8,6 +8,8 @@ import org.comroid.common.info.MessageSupplier;
 import org.comroid.common.ref.Specifiable;
 import org.comroid.uniform.data.SerializationAdapter;
 
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +55,10 @@ public abstract class UniNode implements Specifiable<UniNode> {
             return fallback;
 
         return unsupported("GET_RAW", Type.VALUE);
+    }
+
+    public <R> R as(UniValueNode.ValueType<R> type) {
+        return unsupported("GET_AS", Type.VALUE);
     }
 
     public String asString(@Nullable String fallback) {

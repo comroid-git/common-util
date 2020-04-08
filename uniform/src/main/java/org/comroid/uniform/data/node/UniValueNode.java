@@ -71,11 +71,16 @@ public class UniValueNode<T> extends UniNode {
     }
 
     @Override
+    public <R> R as(ValueType<R> type) {
+        return adapter.get(type);
+    }
+
+    @Override
     public String asString(@Nullable String fallback) {
         if (isNull() && fallback != null)
             return fallback;
 
-        return adapter.get(Adapter.ValueType.STRING);
+        return adapter.get(ValueType.STRING);
     }
 
     @Override
@@ -83,7 +88,7 @@ public class UniValueNode<T> extends UniNode {
         if (isNull())
             return fallback;
 
-        return adapter.get(Adapter.ValueType.BOOLEAN);
+        return adapter.get(ValueType.BOOLEAN);
     }
 
     @Override
@@ -91,7 +96,7 @@ public class UniValueNode<T> extends UniNode {
         if (isNull())
             return fallback;
 
-        return adapter.get(Adapter.ValueType.INTEGER);
+        return adapter.get(ValueType.INTEGER);
     }
 
     @Override
@@ -99,7 +104,7 @@ public class UniValueNode<T> extends UniNode {
         if (isNull())
             return fallback;
 
-        return adapter.get(Adapter.ValueType.LONG);
+        return adapter.get(ValueType.LONG);
     }
 
     @Override
@@ -107,7 +112,7 @@ public class UniValueNode<T> extends UniNode {
         if (isNull())
             return fallback;
 
-        return adapter.get(Adapter.ValueType.DOUBLE);
+        return adapter.get(ValueType.DOUBLE);
     }
 
     @Override
@@ -115,7 +120,7 @@ public class UniValueNode<T> extends UniNode {
         if (isNull())
             return fallback;
 
-        return adapter.get(Adapter.ValueType.FLOAT);
+        return adapter.get(ValueType.FLOAT);
     }
 
     @Override
@@ -123,7 +128,7 @@ public class UniValueNode<T> extends UniNode {
         if (isNull())
             return fallback;
 
-        return adapter.get(Adapter.ValueType.SHORT);
+        return adapter.get(ValueType.SHORT);
     }
 
     @Override
@@ -131,7 +136,7 @@ public class UniValueNode<T> extends UniNode {
         if (isNull())
             return fallback;
 
-        return adapter.get(Adapter.ValueType.CHARACTER);
+        return adapter.get(ValueType.CHARACTER);
     }
 
     @Override
@@ -140,24 +145,7 @@ public class UniValueNode<T> extends UniNode {
     }
 
     public interface Adapter<T> extends UniNode.Adapter {
-        @Nullable <R> R get(ValueType<R> as);
-
-        final class ValueType<T> {
-            public static final ValueType<String> STRING = new ValueType<>(Function.identity());
-            public static final ValueType<Boolean> BOOLEAN = new ValueType<>(Boolean::parseBoolean);
-            public static final ValueType<Integer> INTEGER = new ValueType<>(Integer::parseInt);
-            public static final ValueType<Long> LONG = new ValueType<>(Long::parseLong);
-            public static final ValueType<Double> DOUBLE = new ValueType<>(Double::parseDouble);
-            public static final ValueType<Float> FLOAT = new ValueType<>(Float::parseFloat);
-            public static final ValueType<Short> SHORT = new ValueType<>(Short::parseShort);
-            public static final ValueType<Character> CHARACTER = new ValueType<>(str -> str.toCharArray()[0]);
-
-            private final Function<String, T> mapper;
-
-            public ValueType(Function<String, T> mapper) {
-                this.mapper = mapper;
-            }
-        }
+        @Nullable <R> R get(UniValueNode.ValueType<R> as);
 
         final class ViaString<T> implements Adapter<T> {
             private final Reference<String> sub;
@@ -167,7 +155,7 @@ public class UniValueNode<T> extends UniNode {
             }
 
             @Override
-            public <R> @Nullable R get(ValueType<R> as) {
+            public <R> @Nullable R get(UniValueNode.ValueType<R> as) {
                 return as.mapper.apply(sub.get());
             }
 
@@ -184,5 +172,22 @@ public class UniValueNode<T> extends UniNode {
         }
 
         private static final UniValueNode<?> instance = new Null();
+    }
+
+    public static final class ValueType<R> {
+        public static final UniValueNode.ValueType<String> STRING = new ValueType<>(Function.identity());
+        public static final UniValueNode.ValueType<Boolean> BOOLEAN = new ValueType<>(Boolean::parseBoolean);
+        public static final UniValueNode.ValueType<Integer> INTEGER = new ValueType<>(Integer::parseInt);
+        public static final UniValueNode.ValueType<Long> LONG = new ValueType<>(Long::parseLong);
+        public static final UniValueNode.ValueType<Double> DOUBLE = new ValueType<>(Double::parseDouble);
+        public static final UniValueNode.ValueType<Float> FLOAT = new ValueType<>(Float::parseFloat);
+        public static final UniValueNode.ValueType<Short> SHORT = new ValueType<>(Short::parseShort);
+        public static final UniValueNode.ValueType<Character> CHARACTER = new ValueType<>(str -> str.toCharArray()[0]);
+
+        private final Function<String, R> mapper;
+
+        public ValueType(Function<String, R> mapper) {
+            this.mapper = mapper;
+        }
     }
 }

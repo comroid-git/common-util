@@ -38,7 +38,7 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
     final class Duo<EXTR, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
         private final Function<EXTR, REMAP> remapper;
 
-        public Duo(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Supplier<FINAL> collectionSupplier, Function<EXTR, REMAP> remapper) {
+        public Duo(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Function<EXTR, REMAP> remapper, Supplier<FINAL> collectionSupplier) {
             super(group, fieldName, extractor, collectionSupplier);
 
             this.remapper = remapper;
@@ -53,7 +53,7 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
     final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
         private final BiFunction<EXTR, DPND, REMAP> resolver;
 
-        public Dep(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Supplier<FINAL> collectionSupplier, BiFunction<EXTR, DPND, REMAP> resolver) {
+        public Dep(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, BiFunction<EXTR, DPND, REMAP> resolver, Supplier<FINAL> collectionSupplier) {
             super(group, fieldName, extractor, collectionSupplier);
 
             this.resolver = resolver;

@@ -3,11 +3,10 @@ package org.comroid.test.uniform;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import org.comroid.common.func.bi.PredicateDuo;
 import org.comroid.test.model.NGinXFSNode;
-import org.comroid.uniform.adapter.data.json.fastjson.FastJsonDataConverter;
+import org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib;
+import org.comroid.uniform.adapter.http.jdk.JavaHttpAdapter;
 import org.comroid.uniform.http.REST;
-import org.comroid.uniform.adapter.http.jdk.v11.JavaHttpAdapter;
 
 import org.junit.Before;
 
@@ -19,21 +18,16 @@ import static org.junit.Assert.assertTrue;
 public class TestRestJava11 {
     public final static URL testUrl = url("https://api.cdn.comroid.org/app/SymBLink/");
 
-    private REST<NGinXFSNode> rest;
+    private REST<Void> rest;
 
     @Before
     public void setup() {
-        rest = REST.getOrCreate(
-                NGinXFSNode.class, new JavaHttpAdapter(),
-                new FastJsonDataConverter<>(PredicateDuo.any(),
-                        FastJsonDataConverter.autoConverter(NGinXFSNode.class)
-                )
-        );
+        rest = new REST<>(new JavaHttpAdapter(), null, FastJSONLib.fastJsonLib);
     }
 
     @Before
     public void test() {
-        final REST<NGinXFSNode>.Request request = rest.request(testUrl)
+        final REST<Void>.Request<NGinXFSNode> request = rest.request(NGinXFSNode.class)
                 .method(REST.Method.GET);
 
         try {
