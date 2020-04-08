@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface HttpAdapter {
     CompletableFuture<REST.Response> call(
-            REST.Method method,
+            REST rest, REST.Method method,
             URL url,
             Collection<REST.Header> headers,
             String mimeType,

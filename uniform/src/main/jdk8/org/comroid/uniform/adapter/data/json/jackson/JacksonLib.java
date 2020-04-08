@@ -16,7 +16,7 @@ public final class JacksonLib extends SerializationAdapter<JsonNode, ObjectNode,
     public static final ObjectMapper objectMapper = new ObjectMapper();
 
     protected JacksonLib() {
-        super(ObjectNode.class, ArrayNode.class);
+        super("application/json", ObjectNode.class, ArrayNode.class);
     }
 
     @Override

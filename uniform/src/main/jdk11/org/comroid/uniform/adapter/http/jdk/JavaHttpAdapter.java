@@ -15,6 +15,7 @@ public final class JavaHttpAdapter implements HttpAdapter {
 
     @Override
     public CompletableFuture<REST.Response> call(
+            REST rest,
             REST.Method method,
             URL url,
             Collection<REST.Header> headers,
@@ -37,7 +38,7 @@ public final class JavaHttpAdapter implements HttpAdapter {
                 final HttpResponse<String> response = httpClient.send(
                         request, HttpResponse.BodyHandlers.ofString());
 
-                return new REST.Response(response.statusCode(), response.body());
+                return new REST.Response(rest, response.statusCode(), response.body());
             } catch (Throwable e) {
                 throw new RuntimeException("Request failed", e);
             }

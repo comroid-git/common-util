@@ -22,6 +22,7 @@ public class OkHttp3Adapter implements HttpAdapter {
 
     @Override
     public CompletableFuture<REST.Response> call(
+            REST rest,
             REST.Method method,
             URL url,
             Collection<REST.Header> headers,
@@ -37,13 +38,10 @@ public class OkHttp3Adapter implements HttpAdapter {
                                         body == null && method == REST.Method.GET
                                                 ? null
                                                 : RequestBody.create(
-                                                MediaType.parse(
-                                                        mimeType),
-                                                Objects.requireNonNull(
-                                                        body,
-                                                        "Null body not supported with " + method
-                                                )
-                                        )));
+                                                MediaType.parse(mimeType),
+                                                Objects.requireNonNull(body, "Null body not supported with " + method)
+                                        ))
+                        );
 
                 headers.forEach(header -> builder.addHeader(header.getName(), header.getValue()));
 
@@ -53,7 +51,7 @@ public class OkHttp3Adapter implements HttpAdapter {
                 final ResponseBody responseBody = response.body();
 
                 return new REST.Response(
-                        response.code(), responseBody == null ? null : responseBody.string());
+                        rest, response.code(), responseBody == null ? null : responseBody.string());
             } catch (IOException e) {
                 throw new RuntimeException("Request failed", e);
             }

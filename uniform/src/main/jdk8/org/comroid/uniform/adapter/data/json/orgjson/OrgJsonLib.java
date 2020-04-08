@@ -13,7 +13,7 @@ public final class OrgJsonLib extends SerializationAdapter<Object, JSONObject, J
     public static @Instance final OrgJsonLib orgJsonLib = new OrgJsonLib();
 
     protected OrgJsonLib() {
-        super(JSONObject.class, JSONArray.class);
+        super("application/json", JSONObject.class, JSONArray.class);
     }
 
     @Override

@@ -4,43 +4,31 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.data.SerializationAdapter;
+import org.comroid.uniform.data.node.UniNode;
+import org.comroid.varbind.GroupBind;
+import org.comroid.varbind.VarBind;
+
+import org.jetbrains.annotations.Nullable;
 
 public final class REST {
-    public static REST getOrCreate(
-            HttpAdapter httpAdapter,
-            SerializationAdapter serializationAdapter
-    ) {
-        //noinspection unchecked
-        return (REST<T>) cache.computeIfAbsent(
-                forClass, key -> new REST<>(httpAdapter, dataAdapter));
-    }
-
-    public static <T> Optional<REST<T>> get(Class<T> forClass) {
-        //noinspection unchecked
-        return Optional.ofNullable((REST<T>) cache.getOrDefault(forClass, null));
-    }
     private final HttpAdapter httpAdapter;
-    private final DataConverter<T, ?, ?, ?> dataAdapter;
+    private final SerializationAdapter<Object, Object, Object> serializationAdapter;
 
-    private REST(HttpAdapter httpAdapter, DataConverter<T, ?, ?, ?> dataAdapter) {
+    public REST(HttpAdapter httpAdapter, SerializationAdapter<Object, Object, Object> serializationAdapter) {
         this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
-        this.dataAdapter = Objects.requireNonNull(dataAdapter, "DataAdapter");
+        this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
     }
 
     public Request request(URL url) {
-        return new Request(url);
+        return new Request(this, url);
     }
-    private final static Map<Class<?>, REST<?>> cache = new ConcurrentHashMap<>();
 
     public static final class Header {
         private final String name;
@@ -62,29 +50,33 @@ public final class REST {
 
     public static final class Response {
         private final int statusCode;
-        private final String body;
+        private final UniNode body;
 
-        public Response(int statusCode, String body) {
+        public Response(REST rest, int statusCode, String body) {
             this.statusCode = statusCode;
-            this.body = body;
+            this.body = rest.serializationAdapter.createUniNode(body);
         }
 
         public int getStatusCode() {
             return statusCode;
         }
 
-        public String getBody() {
+        public UniNode getBody() {
             return body;
         }
     }
 
-    public final class Request {
+    public final class Request<T> {
+        private final REST rest;
+        private final URL url;
+        private final Collection<Header> headers;
+        private final @Nullable GroupBind
         private CompletableFuture<REST.Response> execution = null;
-        private URL url;
         private Method method;
         private String body;
-        private Collection<Header> headers;
-        public Request(URL url) {
+
+        public Request(REST rest, URL url) {
+            this.rest = rest;
             this.url = url;
             this.headers = new ArrayList<>();
         }
@@ -127,27 +119,27 @@ public final class REST {
             return headers.removeIf(filter);
         }
 
+        public CompletableFuture<REST.Response> execute() {
+            return execution == null ? (execution = httpAdapter.call(
+                    rest, method, url, headers, serializationAdapter.getMimeType(), body)) : execution;
+        }
+
         public CompletableFuture<Integer> execute$statusCode() {
             return execute().thenApply(Response::getStatusCode);
         }
 
-        public CompletableFuture<REST.Response> execute() {
-            return execution == null ? (execution = httpAdapter.call(
-                    method, url, headers, dataAdapter.mimeType, body)) : execution;
+        public CompletableFuture<UniNode> execute$body() {
+            return execute().thenApply(Response::getBody);
         }
 
-        public <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
-            return execute$deserialize().thenApply(span -> span.stream()
-                    .map(remapper)
-                    .collect(Span.<R>make().collector()));
-        }
-
-        public CompletableFuture<Span<T>> execute$deserialize() {
+        public CompletableFuture<Span<T>> execute$deserialize(Bind) {
             return execute$body().thenApply(dataAdapter::deserialize);
         }
 
-        public CompletableFuture<String> execute$body() {
-            return execute().thenApply(Response::getBody);
+        public <R> CompletableFuture<Span<R>> execute$map(Function<UniNode, R> remapper) {
+            return execute$deserialize().thenApply(span -> span.stream()
+                    .map(remapper)
+                    .collect(Span.<R>make().collector()));
         }
     }
 

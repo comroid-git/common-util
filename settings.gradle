@@ -4,8 +4,6 @@ include(':util')
 
 include(':uniform')
 
-include(':varbind')
-
 include(':spellbind')
 
 include(':upd8r')

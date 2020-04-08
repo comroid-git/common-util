@@ -5,27 +5,31 @@ import org.comroid.uniform.data.node.UniNode;
 import org.comroid.uniform.data.node.UniObjectNode;
 
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
-    public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
-    public final DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
-
     public static SerializationAdapter<?, ?, ?> autodetect() {
         throw new UnsupportedOperationException();
     }
 
+    public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
+    public final DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
+
+    private final String mimeType;
+
     protected SerializationAdapter(
+            String mimeType,
             Class<OBJ> objClass,
-            Class<ARR> arrClass
-    ) {
+            Class<ARR> arrClass) {
         this(
+                mimeType,
                 new DataStructureType.Obj<>(objClass),
                 new DataStructureType.Arr<>(arrClass)
         );
     }
 
     protected SerializationAdapter(
-            DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
+            String mimeType, DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
             DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType
     ) {
+        this.mimeType = mimeType;
         this.objectType = objectType;
         this.arrayType = arrayType;
     }
@@ -48,6 +52,10 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             return (DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR>) arrayType;
 
         throw new IllegalArgumentException("Unknown type: " + node.getClass().getName());
+    }
+
+    public final String getMimeType() {
+        return mimeType;
     }
 
     public final UniNode createUniNode(Object node) {
