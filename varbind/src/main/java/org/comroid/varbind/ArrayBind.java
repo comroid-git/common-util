@@ -16,6 +16,44 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         extends VarBind<NODE, EXTR, DPND, REMAP, FINAL> {
+    AssertionError();
+
+    @Override
+    String getName();
+
+    @Override
+    default Span<EXTR> extract(UniNode<Object, NODE> node) {
+        switch (node.getType()) {
+            case OBJECT:
+                final UniObjectNode uniObject = (UniObjectNode) node;
+                final String key = getName();
+
+                if (!uniObject.containsKey(key)) return Span.zeroSize();
+
+                final UniArrayNode extracted = uniObject.getUniArray(key);
+
+                return Span.<EXTR>make().initialValues((List<EXTR>) extracted)
+                        .fixedSize(true)
+                        .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                        .span();
+        }
+
+        throw new AssertionError("SubNode was not of array type");
+        case ARRAY:
+        throw new IllegalArgumentException("ArrayBind cannot extract from Array node");
+    }
+
+    @Override
+    REMAP remap(EXTR from, DPND dependency);
+
+    @Override
+    default FINAL finish(Span<REMAP> parts) {
+        return (FINAL) parts.reconfigure()
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
+    }
+
     final class Uno<NODE, TARGET, FINAL extends Collection<TARGET>>
             extends AbstractArrayBind<NODE, TARGET, Object, TARGET, FINAL> {
         protected Uno(
@@ -32,6 +70,11 @@ public interface ArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REM
             return from;
         }
     }
+
+        throw new
+
+
+}
 
     final class Duo<NODE, EXTR, REMAP, FINAL extends Collection<REMAP>>
             extends AbstractArrayBind<NODE, EXTR, Object, REMAP, FINAL> {
@@ -74,52 +117,10 @@ public interface ArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REM
         @Override
         public REMAP remap(EXTR from, DPND dependency) {
             return remapper.apply(from,
-                                  Objects.requireNonNull(dependency,
-                                                         "Dependecy object is " + "null"
-                                  )
+                    Objects.requireNonNull(dependency,
+                            "Dependecy object is " + "null"
+                    )
             );
         }
-    }
-
-    AssertionError();    @Override
-    String getName();
-
-    @Override
-    default Span<EXTR> extract(UniNode<Object, NODE> node) {
-        switch (node.getType()) {
-            case OBJECT:
-                final UniObjectNode uniObject = (UniObjectNode) node;
-                final String key = getName();
-
-                if (!uniObject.containsKey(key)) return Span.zeroSize();
-
-                final UniArrayNode extracted = uniObject.getUniArray(key);
-
-                return Span.<EXTR>make().initialValues((List<EXTR>) extracted)
-                                        .fixedSize(true)
-                                        .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                                        .span();
-        }
-
-        throw new AssertionError("SubNode was not of array type");
-        case ARRAY:
-        throw new IllegalArgumentException("ArrayBind cannot extract from Array node");
-    }
-
-        throw new
-
-
-
-}
-
-    @Override
-    REMAP remap(EXTR from, DPND dependency);
-
-    @Override
-    default FINAL finish(Span<REMAP> parts) {
-        return (FINAL) parts.reconfigure()
-                            .fixedSize(true)
-                            .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                            .span();
     }
 }

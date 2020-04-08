@@ -12,12 +12,9 @@ import org.comroid.uniform.data.node.UniObjectNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-@ClassDependency({ "org.json.JSONObject", "org.json.JSONArray" })
+@ClassDependency({"org.json.JSONObject", "org.json.JSONArray"})
 public final class OrgJsonLib extends SeriLib<Object, JSONObject, JSONArray> {
     public static @Instance final OrgJsonLib orgJsonLib = new OrgJsonLib();
-
-    private final static Junction<String, Object> parser = Junction.of(
-            JSONObject::new, Object::toString);
 
     private OrgJsonLib() {
         super(
@@ -42,4 +39,6 @@ public final class OrgJsonLib extends SeriLib<Object, JSONObject, JSONArray> {
     public <CT> UniArrayNode<Object, JSONArray, CT> createUniArrayNode(JSONArray node) {
         throw new UnsupportedOperationException("no class defined");
     }
+    private final static Junction<String, Object> parser = Junction.of(
+            JSONObject::new, Object::toString);
 }

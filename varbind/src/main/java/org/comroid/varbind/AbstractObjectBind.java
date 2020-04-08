@@ -12,23 +12,18 @@ import org.jetbrains.annotations.Nullable;
 
 abstract class AbstractObjectBind<NODE, EXTR, DPND, REMAP>
         implements VarBind<NODE, EXTR, DPND, REMAP, REMAP> {
-    private final           String                                                                       name;
-    private final @Nullable GroupBind                                                                    group;
-    private final           BiFunction<? super UniObjectNode<NODE, ?, ? super EXTR>, String, Span<EXTR>> extractor;
+    private final String name;
+    private final @Nullable GroupBind group;
+    private final BiFunction<? super UniObjectNode<NODE, ?, ? super EXTR>, String, Span<EXTR>> extractor;
 
     protected AbstractObjectBind(
             @Nullable GroupBind group,
             String name,
             BiFunction<? super UniObjectNode<? super NODE, ?, ? super EXTR>, String, EXTR> extractor
     ) {
-        this.name      = name;
-        this.group     = group;
+        this.name = name;
+        this.group = group;
         this.extractor = extractor.andThen(Span::singleton);
-    }
-
-    @Override
-    public final String getName() {
-        return name;
     }
 
     @Override
@@ -41,18 +36,23 @@ abstract class AbstractObjectBind<NODE, EXTR, DPND, REMAP>
     }
 
     @Override
-    public final REMAP finish(Span<REMAP> parts) {
-        return parts.get();
-    }
-
-    @Override
     public String toString() {
         return String.format("VarBind@%s", getPath());
     }
 
+    @Override
+    public final String getName() {
+        return name;
+    }
+
+    @Override
+    public final REMAP finish(Span<REMAP> parts) {
+        return parts.get();
+    }
+
     public final String getPath() {
         return getGroup().map(groupBind -> groupBind.getName() + ".")
-                         .orElse("") + name;
+                .orElse("") + name;
     }
 
     @Override

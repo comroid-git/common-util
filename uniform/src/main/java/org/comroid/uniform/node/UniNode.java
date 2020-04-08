@@ -4,7 +4,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.comroid.common.info.MessageSupplier;
-import org.comroid.common.ref.Reference;
 import org.comroid.common.ref.Specifiable;
 import org.comroid.uniform.data.SeriLib;
 
@@ -18,10 +17,6 @@ public abstract class UniNode implements Specifiable<UniNode> {
     protected UniNode(SeriLib<?, ?, ?> seriLib, Type type) {
         this.seriLib = seriLib;
         this.type = type;
-    }
-
-    protected <T> UniValueNode.Adapter<T> makeValueAdapter(Supplier<String> stringSupplier) {
-        return new UniValueNode.Adapter.ViaString<>(stringSupplier::get);
     }
 
     public abstract @NotNull UniNode get(String fieldName);
@@ -110,6 +105,10 @@ public abstract class UniNode implements Specifiable<UniNode> {
 
     public String getSerializedString() {
         return toString();
+    }
+
+    protected <T> UniValueNode.Adapter<T> makeValueAdapter(Supplier<String> stringSupplier) {
+        return new UniValueNode.Adapter.ViaString<>(stringSupplier::get);
     }
 
     protected final <T> T unsupported(String actionName, Type expected) throws UnsupportedOperationException {

@@ -25,7 +25,7 @@ public class VarBindTest {
                 new InputStreamReader(ClassLoader.getSystemResourceAsStream("dummy/message.json")));
 
         JSONObject data = JSON.parseObject(reader.lines()
-                                                 .collect(Collectors.joining()));
+                .collect(Collectors.joining()));
 
         message = new Message(new DiscordAPI(), data);
     }
@@ -33,26 +33,26 @@ public class VarBindTest {
     @Test
     public void testGetters() {
         assertEquals(1, message.getVar(Message.Binds.REACTIONS)
-                               .size());
+                .size());
         assertFalse(message.getVar(Message.Binds.TTS));
         assertFalse(message.getVar(Message.Binds.TIMESTAMP)
-                           .isEmpty());
+                .isEmpty());
         assertFalse(message.getVar(Message.Binds.MENTIONS_EVERYONE));
         assertEquals(334385199974967042L, message.getID());
         assertFalse(message.getVar(Message.Binds.PINNED));
         assertEquals(0, message.getVar(Message.Binds.EMBEDS)
-                               .size());
+                .size());
         assertEquals(0, message.getVar(Message.Binds.ATTACHMENTS)
-                               .size());
+                .size());
         assertFalse(message.getEditedTimestamp()
-                           .isPresent());
+                .isPresent());
         assertNotNull(message.getVar(Message.Binds.AUTHOR));
         assertEquals(0, message.getVar(Message.Binds.MENTIONED_ROLES)
-                               .size());
+                .size());
         assertEquals("Supa Hot", message.getVar(Message.Binds.CONTENT));
         assertEquals(290926798999357250L, message.getVar(Message.Binds.CHANNEL).id);
         assertEquals(0, message.getVar(Message.Binds.MENTIONED_USERS)
-                               .size());
+                .size());
         assertEquals(0, message.getVar(Message.Binds.TYPE).value);
     }
 }

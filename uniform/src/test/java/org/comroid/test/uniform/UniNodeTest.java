@@ -19,31 +19,31 @@ import org.junit.Test;
 import static org.comroid.uniform.data.impl.json.fastjson.FastJSONLib.fastJsonLib;
 
 public class UniNodeTest {
-    private final Random                                  rng = new Random();
-    private       UniObjectNode<JSON, JSONObject, Integer> object;
-    private       UniArrayNode<JSON, JSONArray, Integer>   array;
-    private       Map<String, Integer>                    randomMap;
-    private       List<Integer>                           randomInts;
+    private final Random rng = new Random();
+    private UniObjectNode<JSON, JSONObject, Integer> object;
+    private UniArrayNode<JSON, JSONArray, Integer> array;
+    private Map<String, Integer> randomMap;
+    private List<Integer> randomInts;
 
     @Before
     public void setup() {
         JSONObject object = new JSONObject();
-        JSONArray  array  = new JSONArray();
+        JSONArray array = new JSONArray();
 
         randomInts = IntStream.range(0, 50)
-                              .mapToObj(x -> rng.nextInt(500))
-                              .distinct()
-                              .collect(Collectors.toList());
-        randomMap  = randomInts.stream()
-                               .collect(Collectors.toMap(x -> {
-                                   return String.valueOf(x * x);
-                               }, x -> x));
+                .mapToObj(x -> rng.nextInt(500))
+                .distinct()
+                .collect(Collectors.toList());
+        randomMap = randomInts.stream()
+                .collect(Collectors.toMap(x -> {
+                    return String.valueOf(x * x);
+                }, x -> x));
 
         object.putAll(randomMap);
         array.addAll(randomInts);
 
         this.object = fastJsonLib.createUniObjectNode(object);
-        this.array  = fastJsonLib.createUniArrayNode(array);
+        this.array = fastJsonLib.createUniArrayNode(array);
     }
 
     @Test

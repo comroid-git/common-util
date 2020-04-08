@@ -6,17 +6,6 @@ import com.alibaba.fastjson.annotation.JSONType;
 
 @JSONType
 public final class NGinXFSNode {
-    public String getName() {
-        return name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getMtime() {
-        return mtime;
-    }
     private final String name;
     private final String type;
     private final String mtime;
@@ -27,8 +16,20 @@ public final class NGinXFSNode {
             @JSONField(name = "type") String type,
             @JSONField(name = "mtime") String mtime
     ) {
-        this.name  = name;
-        this.type  = type;
+        this.name = name;
+        this.type = type;
         this.mtime = mtime;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getMtime() {
+        return mtime;
     }
 }

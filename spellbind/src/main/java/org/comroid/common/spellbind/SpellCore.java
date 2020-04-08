@@ -17,6 +17,17 @@ import org.comroid.common.spellbind.model.MethodInvocation;
 import org.jetbrains.annotations.Nullable;
 
 public class SpellCore implements InvocationHandler {
+    public static String methodString(@Nullable Method method) {
+        if (method == null) return "null";
+
+        return String.format(
+                "%s#%s(%s)%s: %s", method.getDeclaringClass()
+                        .getName(), method.getName(), paramString(method),
+                throwsString(method), method.getReturnType()
+                        .getSimpleName()
+        );
+    }
+
     private static Optional<SpellCore> getInstance(Object ofProxy) {
         final InvocationHandler invocationHandler = Proxy.getInvocationHandler(ofProxy);
 
@@ -24,18 +35,34 @@ public class SpellCore implements InvocationHandler {
                 ? Optional.of((SpellCore) invocationHandler)
                 : Optional.empty();
     }
-    private final Object                 coreObject;
+
+    private static String paramString(Method method) {
+        return Stream.of(method.getParameterTypes())
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(", "));
+    }
+
+    private static String throwsString(Method method) {
+        final Class<?>[] exceptionTypes = method.getExceptionTypes();
+
+        return exceptionTypes.length == 0 ? "" : Stream.of(exceptionTypes)
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(", ", " throws ",
+                        ""
+                ));
+    }
+    private final Object coreObject;
     private final Map<String, Invocable> methodBinds;
 
     SpellCore(Object coreObject, Map<String, Invocable> methodBinds) {
-        this.coreObject  = coreObject;
+        this.coreObject = coreObject;
         this.methodBinds = methodBinds;
     }
 
     @Override
     public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        final String    methodString = methodString(method);
-        final Invocable invoc        = methodBinds.get(methodString);
+        final String methodString = methodString(method);
+        final Invocable invoc = methodBinds.get(methodString);
 
         if (invoc instanceof MethodInvocation) {
             MethodInvocation methodInvocation = (MethodInvocation) invoc;
@@ -68,45 +95,18 @@ public class SpellCore implements InvocationHandler {
         return invoc.invoke(args);
     }
 
-    public static String methodString(@Nullable Method method) {
-        if (method == null) return "null";
-
-        return String.format(
-                "%s#%s(%s)%s: %s", method.getDeclaringClass()
-                                         .getName(), method.getName(), paramString(method),
-                throwsString(method), method.getReturnType()
-                                            .getSimpleName()
-        );
-    }
-
-    private static String paramString(Method method) {
-        return Stream.of(method.getParameterTypes())
-                     .map(Class::getSimpleName)
-                     .collect(Collectors.joining(", "));
-    }
-
-    private static String throwsString(Method method) {
-        final Class<?>[] exceptionTypes = method.getExceptionTypes();
-
-        return exceptionTypes.length == 0 ? "" : Stream.of(exceptionTypes)
-                                                       .map(Class::getSimpleName)
-                                                       .collect(Collectors.joining(", ", " throws ",
-                                                                                   ""
-                                                       ));
-    }
-
     private @Nullable Object invokeDefault(Method method, Object[] args)
             throws IllegalAccessException, InvocationTargetException {
         final Optional<Object> possibleTarget = methodBinds.values()
-                                                           .stream()
-                                                           .filter(MethodInvocation.class::isInstance)
-                                                           .map(MethodInvocation.class::cast)
-                                                           .filter(mic -> Spellbind.Builder.findMatchingMethod(
-                                                                   method,
-                                                                   mic.target.getClass()
-                                                           ) != null)
-                                                           .findAny()
-                                                           .map(mic -> mic.target);
+                .stream()
+                .filter(MethodInvocation.class::isInstance)
+                .map(MethodInvocation.class::cast)
+                .filter(mic -> Spellbind.Builder.findMatchingMethod(
+                        method,
+                        mic.target.getClass()
+                ) != null)
+                .findAny()
+                .map(mic -> mic.target);
 
         return method.invoke(possibleTarget.orElseThrow(
                 () -> new NoSuchElementException("Could not find a matching target!")), args);
@@ -118,8 +118,8 @@ public class SpellCore implements InvocationHandler {
                 ? new UnsupportedOperationException(
                 String.format("Method %s has no implementation in this proxy", methodString))
                 : new UnsupportedOperationException(
-                        String.format("Method %s has no implementation in this proxy",
-                                      methodString
-                        ), e);
+                String.format("Method %s has no implementation in this proxy",
+                        methodString
+                ), e);
     }
 }

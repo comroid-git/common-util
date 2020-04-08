@@ -25,17 +25,17 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
     }
 
     public final SeriLib<BAS, OBJ, ARR> seriLib;
-    public final String                 mimeType;
-
-    public abstract PredicateDuo<OBJ, TAR> getFilter();
+    public final String mimeType;
 
     protected DataConverter(SeriLib<BAS, OBJ, ARR> seriLib, String mimeType) {
-        this.seriLib  = seriLib;
+        this.seriLib = seriLib;
         this.mimeType = mimeType;
     }
 
+    public abstract PredicateDuo<OBJ, TAR> getFilter();
+
     public Span<TAR> deserialize(String data) {
-        final BAS                         node     = seriLib.parser.forward(data);
+        final BAS node = seriLib.parser.forward(data);
         final DataStructureType.Primitive nodeType = seriLib.typeOf(node).typ;
 
         Span<OBJ> elements = null;
@@ -44,20 +44,20 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
             case OBJECT:
                 //noinspection unchecked
                 elements = Span.<OBJ>make().initialValues(((OBJ) node))
-                                           .span();
+                        .span();
 
                 break;
             case ARRAY:
                 //noinspection unchecked
                 elements = (Span<OBJ>) Span.<BAS>make().initialValues(split((ARR) node))
-                                                       .span();
+                        .span();
 
                 break;
         }
 
         return elements.stream()
-                       .map(getConverter()::forward)
-                       .collect(Span.<TAR>make().collector());
+                .map(getConverter()::forward)
+                .collect(Span.<TAR>make().collector());
     }
 
     public abstract Collection<BAS> split(ARR data);
@@ -70,17 +70,17 @@ public abstract class DataConverter<TAR, BAS, OBJ extends BAS, ARR extends BAS> 
         switch (nodeType) {
             case OBJECT:
                 final TAR tar = data.wrap()
-                                    .orElseThrow(AssertionError::new);
+                        .orElseThrow(AssertionError::new);
 
                 assert tar != null;
                 elements = Span.<OBJ>make().initialValues(getConverter().backward(tar))
-                                           .span();
+                        .span();
 
                 break;
             case ARRAY:
                 elements = data.stream()
-                               .map(getConverter()::backward)
-                               .collect(Span.<OBJ>make().collector());
+                        .map(getConverter()::backward)
+                        .collect(Span.<OBJ>make().collector());
 
                 break;
         }

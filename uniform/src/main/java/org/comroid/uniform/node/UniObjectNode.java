@@ -43,5 +43,6 @@ public final class UniObjectNode extends UniNode {
         return adapter.containsKey(fieldName);
     }
 
-    public interface Adapter extends UniNode.Adapter, Map<String, Object> {}
+    public interface Adapter extends UniNode.Adapter, Map<String, Object> {
+    }
 }

@@ -16,21 +16,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @ClassDependency({
-                         "com.fasterxml.jackson.databind.JsonNode",
-                         "com.fasterxml.jackson.databind.node.ObjectNode",
-                         "com.fasterxml.jackson.databind.node.ArrayNode"
-                 })
+        "com.fasterxml.jackson.databind.JsonNode",
+        "com.fasterxml.jackson.databind.node.ObjectNode",
+        "com.fasterxml.jackson.databind.node.ArrayNode"
+})
 public final class JacksonLib extends SeriLib<JsonNode, ObjectNode, ArrayNode> {
-    public static @Instance final JacksonLib   jacksonLib   = new JacksonLib();
-    public static final           ObjectMapper objectMapper = new ObjectMapper();
-
-    private static final Junction<String, JsonNode> parser = Junction.of(str -> {
-        try {
-            return objectMapper.readTree(str);
-        } catch (JsonProcessingException e) {
-            throw new AssertionError(e);
-        }
-    }, JsonNode::toPrettyString);
+    public static @Instance final JacksonLib jacksonLib = new JacksonLib();
+    public static final ObjectMapper objectMapper = new ObjectMapper();
 
     private JacksonLib() {
         super(
@@ -56,4 +48,11 @@ public final class JacksonLib extends SeriLib<JsonNode, ObjectNode, ArrayNode> {
     ) {
         throw new UnsupportedOperationException("no class defined");
     }
+    private static final Junction<String, JsonNode> parser = Junction.of(str -> {
+        try {
+            return objectMapper.readTree(str);
+        } catch (JsonProcessingException e) {
+            throw new AssertionError(e);
+        }
+    }, JsonNode::toPrettyString);
 }

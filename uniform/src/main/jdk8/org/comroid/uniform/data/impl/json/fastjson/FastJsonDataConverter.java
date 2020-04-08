@@ -29,7 +29,7 @@ public class FastJsonDataConverter<T> extends DataConverter<T, JSON, JSONObject,
     }
 
     private final PredicateDuo<JSONObject, T> filter;
-    private final Junction<JSONObject, T>     converter;
+    private final Junction<JSONObject, T> converter;
 
     public FastJsonDataConverter(
             PredicateDuo<JSONObject, T> filter,

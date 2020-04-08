@@ -16,27 +16,27 @@ import org.comroid.uniform.data.node.UniObjectNode;
 
 import org.jetbrains.annotations.Nullable;
 
-import static org.comroid.common.Polyfill.deadCast;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
+import static org.comroid.common.Polyfill.deadCast;
 
 public class VariableCarrier<BAS, OBJ extends BAS, ARR extends BAS, DEP>
         implements VarCarrier<BAS, DEP> {
-    private final SeriLib<BAS, OBJ, ARR>                                                                     seriLib;
-    private final GroupBind<BAS, OBJ, ARR>                                                                   rootBind;
-    private final Map<VarBind<? extends BAS, Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     = new ConcurrentHashMap<>();
-    private final Map<VarBind<? extends BAS, Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed = new ConcurrentHashMap<>();
-    private final DEP                                                                                        dependencyObject;
-    private final Set<VarBind<? extends BAS, Object, ? super DEP, ?, Object>>                                initiallySet;
+    private final SeriLib<BAS, OBJ, ARR> seriLib;
+    private final GroupBind<BAS, OBJ, ARR> rootBind;
+    private final Map<VarBind<? extends BAS, Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
+    private final Map<VarBind<? extends BAS, Object, ? super DEP, ?, Object>, OutdateableReference<Object>> computed = new ConcurrentHashMap<>();
+    private final DEP dependencyObject;
+    private final Set<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> initiallySet;
 
     protected VariableCarrier(
             SeriLib<BAS, OBJ, ARR> seriLib,
             @Nullable OBJ initialData,
             @Nullable DEP dependencyObject
     ) {
-        this.seriLib          = seriLib;
-        this.rootBind         = findRootBind(getClass());
-        this.initiallySet     = unmodifiableSet(updateVars(seriLib.createUniObjectNode(initialData)));
+        this.seriLib = seriLib;
+        this.rootBind = findRootBind(getClass());
+        this.initiallySet = unmodifiableSet(updateVars(seriLib.createUniObjectNode(initialData)));
         this.dependencyObject = dependencyObject;
     }
 
@@ -50,11 +50,11 @@ public class VariableCarrier<BAS, OBJ extends BAS, ARR extends BAS, DEP>
         ));
 
         return (GroupBind<BAS, OBJ, ARR>) ReflectionHelper.collectStaticFields(GroupBind.class,
-                                                                               location.value(),
-                                                                               true,
-                                                                               VarBind.Root.class
+                location.value(),
+                true,
+                VarBind.Root.class
         )
-                                                          .requireNonNull();
+                .requireNonNull();
     }
 
     private Set<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> updateVars(
@@ -68,18 +68,34 @@ public class VariableCarrier<BAS, OBJ extends BAS, ARR extends BAS, DEP>
         final HashSet<VarBind<? extends BAS, Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
         getBindings().getChildren()
-                     .stream()
-                     .filter(bind -> data.containsKey(bind.getName()))
-                     .map(it -> (VarBind<? extends BAS, Object, Object, Object, Object>) (Object) it)
-                     .forEach(bind -> {
-                         Span<Object> extract = bind.extract((UniNode) data);
+                .stream()
+                .filter(bind -> data.containsKey(bind.getName()))
+                .map(it -> (VarBind<? extends BAS, Object, Object, Object, Object>) (Object) it)
+                .forEach(bind -> {
+                    Span<Object> extract = bind.extract((UniNode) data);
 
-                         ref(bind).set(extract);
-                         compRef(bind).outdate();
-                         changed.add(bind);
-                     });
+                    ref(bind).set(extract);
+                    compRef(bind).outdate();
+                    changed.add(bind);
+                });
 
         return unmodifiableSet(changed);
+    }
+
+    private <T> AtomicReference<Span<T>> ref(
+            VarBind<? extends BAS, T, ? super DEP, ?, Object> bind
+    ) {
+        return deadCast(vars.computeIfAbsent((VarBind<? extends BAS, Object, ? super DEP, ?, Object>) bind,
+                key -> new AtomicReference<>(Span.zeroSize())
+        ));
+    }
+
+    private <T> OutdateableReference<T> compRef(
+            VarBind<? extends BAS, Object, ? super DEP, ?, T> bind
+    ) {
+        return deadCast(vars.computeIfAbsent((VarBind<? extends BAS, Object, ? super DEP, ?, Object>) bind,
+                key -> new AtomicReference<>(Span.zeroSize())
+        ));
     }
 
     @Override
@@ -107,36 +123,20 @@ public class VariableCarrier<BAS, OBJ extends BAS, ARR extends BAS, DEP>
     @Override
     public final <T> @Nullable T get(VarBind<? extends BAS, Object, ? super DEP, ?, T> pBind) {
         VarBind<? extends BAS, Object, ? super DEP, Object, Object> bind = (VarBind<? extends BAS, Object, ? super DEP, Object, Object>) pBind;
-        OutdateableReference<T>                                     ref  = compRef(pBind);
+        OutdateableReference<T> ref = compRef(pBind);
 
         if (ref.isOutdated()) {
             // recompute
 
             AtomicReference<Span<Object>> reference = ref(bind);
             Span<Object> remapped = reference.get()
-                                             .stream()
-                                             .map(each -> bind.remap(each, dependencyObject))
-                                             .collect(Span.collector());
+                    .stream()
+                    .map(each -> bind.remap(each, dependencyObject))
+                    .collect(Span.collector());
             final T yield = (T) bind.finish(remapped);
             ref.update(yield);
         }
 
         return ref.get();
-    }
-
-    private <T> AtomicReference<Span<T>> ref(
-            VarBind<? extends BAS, T, ? super DEP, ?, Object> bind
-    ) {
-        return deadCast(vars.computeIfAbsent((VarBind<? extends BAS, Object, ? super DEP, ?, Object>) bind,
-                                             key -> new AtomicReference<>(Span.zeroSize())
-        ));
-    }
-
-    private <T> OutdateableReference<T> compRef(
-            VarBind<? extends BAS, Object, ? super DEP, ?, T> bind
-    ) {
-        return deadCast(vars.computeIfAbsent((VarBind<? extends BAS, Object, ? super DEP, ?, Object>) bind,
-                                             key -> new AtomicReference<>(Span.zeroSize())
-        ));
     }
 }

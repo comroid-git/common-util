@@ -25,10 +25,10 @@ import org.jetbrains.annotations.Nullable;
  */
 abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         implements ArrayBind<NODE, EXTR, DPND, REMAP, FINAL> {
-    private final           String                                                                            name;
-    private final @Nullable GroupBind                                                                         group;
-    private final           BiFunction<? super UniArrayNode<NODE, ?, ? super EXTR>, String, Collection<EXTR>> extractor;
-    private final           Function<Span<REMAP>, FINAL>                                                      collectionFinalizer;
+    private final String name;
+    private final @Nullable GroupBind group;
+    private final BiFunction<? super UniArrayNode<NODE, ?, ? super EXTR>, String, Collection<EXTR>> extractor;
+    private final Function<Span<REMAP>, FINAL> collectionFinalizer;
 
     protected AbstractArrayBind(
             @Nullable GroupBind group,
@@ -36,15 +36,10 @@ abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collecti
             BiFunction<? super UniArrayNode<NODE, ?, ? super EXTR>, String, Collection<EXTR>> extractor,
             Function<Span<REMAP>, FINAL> collectionFinalizer
     ) {
-        this.name                = name;
-        this.group               = group;
-        this.extractor           = extractor;
+        this.name = name;
+        this.group = group;
+        this.extractor = extractor;
         this.collectionFinalizer = collectionFinalizer;
-    }
-
-    @Override
-    public final String getName() {
-        return name;
     }
 
     @Override
@@ -57,6 +52,16 @@ abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collecti
     }
 
     @Override
+    public String toString() {
+        return String.format("VarBind@%s", getPath());
+    }
+
+    @Override
+    public final String getName() {
+        return name;
+    }
+
+    @Override
     public abstract REMAP remap(EXTR from, DPND dependency);
 
     @Override
@@ -64,14 +69,9 @@ abstract class AbstractArrayBind<NODE, EXTR, DPND, REMAP, FINAL extends Collecti
         return collectionFinalizer.apply(parts);
     }
 
-    @Override
-    public String toString() {
-        return String.format("VarBind@%s", getPath());
-    }
-
     public final String getPath() {
         return getGroup().map(groupBind -> groupBind.getName() + ".")
-                         .orElse("") + name;
+                .orElse("") + name;
     }
 
     @Override

@@ -4,8 +4,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.comroid.uniform.data.SeriLib;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

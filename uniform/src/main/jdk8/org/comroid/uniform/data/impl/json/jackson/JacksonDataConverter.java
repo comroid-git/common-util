@@ -36,7 +36,7 @@ public class JacksonDataConverter<T> extends DataConverter<T, JsonNode, ObjectNo
     }
 
     private final PredicateDuo<ObjectNode, T> filter;
-    private final Junction<ObjectNode, T>     converter;
+    private final Junction<ObjectNode, T> converter;
 
     public JacksonDataConverter(
             PredicateDuo<ObjectNode, T> filter,

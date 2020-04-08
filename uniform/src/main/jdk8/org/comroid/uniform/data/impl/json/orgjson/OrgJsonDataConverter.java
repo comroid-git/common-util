@@ -20,7 +20,7 @@ public class OrgJsonDataConverter<T> extends DataConverter<T, Object, JSONObject
     }
 
     private final PredicateDuo<JSONObject, T> filter;
-    private final Junction<JSONObject, T>     converter;
+    private final Junction<JSONObject, T> converter;
 
     public OrgJsonDataConverter(
             PredicateDuo<JSONObject, T> filter,

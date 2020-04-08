@@ -30,42 +30,7 @@ public final class REST<T> {
         //noinspection unchecked
         return Optional.ofNullable((REST<T>) cache.getOrDefault(forClass, null));
     }
-    private final static Map<Class<?>, REST<?>> cache = new ConcurrentHashMap<>();
-
-    public static final class Header {
-        public String getName() {
-            return name;
-        }
-
-        public String getValue() {
-            return value;
-        }
-        private final String name;
-        private final String value;
-
-        public Header(String name, String value) {
-            this.name  = name;
-            this.value = value;
-        }
-    }
-
-    public static final class Response {
-        public int getStatusCode() {
-            return statusCode;
-        }
-
-        public String getBody() {
-            return body;
-        }
-        private final int    statusCode;
-        private final String body;
-
-        public Response(int statusCode, String body) {
-            this.statusCode = statusCode;
-            this.body       = body;
-        }
-    }
-    private final HttpAdapter               httpAdapter;
+    private final HttpAdapter httpAdapter;
     private final DataConverter<T, ?, ?, ?> dataAdapter;
 
     private REST(HttpAdapter httpAdapter, DataConverter<T, ?, ?, ?> dataAdapter) {
@@ -76,25 +41,55 @@ public final class REST<T> {
     public Request request(URL url) {
         return new Request(url);
     }
+    private final static Map<Class<?>, REST<?>> cache = new ConcurrentHashMap<>();
 
-    public enum Method {
-        GET,
+    public static final class Header {
+        private final String name;
+        private final String value;
 
-        PUT,
+        public Header(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
 
-        POST,
+        public String getName() {
+            return name;
+        }
 
-        PATCH,
+        public String getValue() {
+            return value;
+        }
+    }
 
-        DELETE;
+    public static final class Response {
+        private final int statusCode;
+        private final String body;
 
-        @Override
-        public String toString() {
-            return name();
+        public Response(int statusCode, String body) {
+            this.statusCode = statusCode;
+            this.body = body;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public String getBody() {
+            return body;
         }
     }
 
     public final class Request {
+        private CompletableFuture<REST.Response> execution = null;
+        private URL url;
+        private Method method;
+        private String body;
+        private Collection<Header> headers;
+        public Request(URL url) {
+            this.url = url;
+            this.headers = new ArrayList<>();
+        }
+
         public URL getUrl() {
             return url;
         }
@@ -109,16 +104,6 @@ public final class REST<T> {
 
         public Collection<Header> getHeaders() {
             return Collections.unmodifiableCollection(headers);
-        }
-        private CompletableFuture<REST.Response> execution = null;
-        private URL                              url;
-        private Method                           method;
-        private String                           body;
-        private Collection<Header>               headers;
-
-        public Request(URL url) {
-            this.url     = url;
-            this.headers = new ArrayList<>();
         }
 
         public Request method(REST.Method method) {
@@ -154,8 +139,8 @@ public final class REST<T> {
 
         public <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> span.stream()
-                                                               .map(remapper)
-                                                               .collect(Span.<R>make().collector()));
+                    .map(remapper)
+                    .collect(Span.<R>make().collector()));
         }
 
         public CompletableFuture<Span<T>> execute$deserialize() {
@@ -164,6 +149,23 @@ public final class REST<T> {
 
         public CompletableFuture<String> execute$body() {
             return execute().thenApply(Response::getBody);
+        }
+    }
+
+    public enum Method {
+        GET,
+
+        PUT,
+
+        POST,
+
+        PATCH,
+
+        DELETE;
+
+        @Override
+        public String toString() {
+            return name();
         }
     }
 }

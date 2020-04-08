@@ -83,12 +83,6 @@ public final class HTTPStatusCodes {
     public static final int NETWORK_READ_TIMEOUT_ERROR = 598;
     public static final int NETWORK_CONNECTION_TIMEOUT_ERROR = 599;
 
-    private static final Field[] fields = HTTPStatusCodes.class.getFields();
-
-    private HTTPStatusCodes() {
-        // nope
-    }
-
     public static @Nullable String toString(int code) {
         try {
             for (Field field : fields)
@@ -100,4 +94,9 @@ public final class HTTPStatusCodes {
 
         return null;
     }
+
+    private HTTPStatusCodes() {
+        // nope
+    }
+    private static final Field[] fields = HTTPStatusCodes.class.getFields();
 }

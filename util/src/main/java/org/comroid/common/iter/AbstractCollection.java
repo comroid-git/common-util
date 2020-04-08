@@ -23,7 +23,7 @@ public interface AbstractCollection<T> extends Collection<T> {
     @Override
     default boolean containsAll(@NotNull Collection<?> objects) {
         return objects.stream()
-                      .allMatch(this::contains);
+                .allMatch(this::contains);
     }
 
     @Override

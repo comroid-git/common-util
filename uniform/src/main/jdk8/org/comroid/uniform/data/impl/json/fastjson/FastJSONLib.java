@@ -19,19 +19,12 @@ import com.alibaba.fastjson.JSONAware;
 import com.alibaba.fastjson.JSONObject;
 
 @ClassDependency({
-                         "com.alibaba.fastjson.JSON",
-                         "com.alibaba.fastjson.JSONObject",
-                         "com.alibaba.fastjson.JSONArray"
-                 })
+        "com.alibaba.fastjson.JSON",
+        "com.alibaba.fastjson.JSONObject",
+        "com.alibaba.fastjson.JSONArray"
+})
 public final class FastJSONLib extends SeriLib<JSON, JSONObject, JSONArray> {
     public static @Instance final FastJSONLib fastJsonLib = new FastJSONLib();
-
-    private static final Junction<String, JSON> parser = Junction.of(str -> {
-        if (JSON.isValidObject(str)) return JSON.parseObject(str);
-        if (JSON.isValidArray(str)) return JSON.parseArray(str);
-
-        throw new IllegalArgumentException("Could not parse JSON String " + str);
-    }, JSONAware::toJSONString);
 
     private FastJSONLib() {
         super(
@@ -50,42 +43,48 @@ public final class FastJSONLib extends SeriLib<JSON, JSONObject, JSONArray> {
     @Override
     public <T> UniObjectNode<JSON, JSONObject, T> createUniObjectNode(JSONObject node) {
         return Spellbind.builder(UniObjectNode.class)
-                        .coreObject(node)
-                        .subImplement(node, Map.class)
-                        .subImplement(new UniNodeExtensions<JSON, JSONObject>() {
-                            private final JSONObject base = node;
+                .coreObject(node)
+                .subImplement(node, Map.class)
+                .subImplement(new UniNodeExtensions<JSON, JSONObject>() {
+                    private final JSONObject base = node;
 
-                            @Override
-                            public JSONObject getBaseNode() {
-                                return base;
-                            }
+                    @Override
+                    public JSONObject getBaseNode() {
+                        return base;
+                    }
 
-                            @Override
-                            public SeriLib getSeriLib() {
-                                return fastJsonLib;
-                            }
-                        }, UniNodeExtensions.class)
-                        .build();
+                    @Override
+                    public SeriLib getSeriLib() {
+                        return fastJsonLib;
+                    }
+                }, UniNodeExtensions.class)
+                .build();
     }
 
     @Override
     public <T> UniArrayNode<JSON, JSONArray, T> createUniArrayNode(JSONArray node) {
         return Spellbind.builder(UniArrayNode.class)
-                        .coreObject(node)
-                        .subImplement(node, List.class)
-                        .subImplement(new UniNodeExtensions<JSON, JSONArray>() {
-                            private final JSONArray base = node;
+                .coreObject(node)
+                .subImplement(node, List.class)
+                .subImplement(new UniNodeExtensions<JSON, JSONArray>() {
+                    private final JSONArray base = node;
 
-                            @Override
-                            public JSONArray getBaseNode() {
-                                return base;
-                            }
+                    @Override
+                    public JSONArray getBaseNode() {
+                        return base;
+                    }
 
-                            @Override
-                            public SeriLib getSeriLib() {
-                                return fastJsonLib;
-                            }
-                        }, UniNodeExtensions.class)
-                        .build();
+                    @Override
+                    public SeriLib getSeriLib() {
+                        return fastJsonLib;
+                    }
+                }, UniNodeExtensions.class)
+                .build();
     }
+    private static final Junction<String, JSON> parser = Junction.of(str -> {
+        if (JSON.isValidObject(str)) return JSON.parseObject(str);
+        if (JSON.isValidArray(str)) return JSON.parseArray(str);
+
+        throw new IllegalArgumentException("Could not parse JSON String " + str);
+    }, JSONAware::toJSONString);
 }

@@ -9,7 +9,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.node.UniArrayNode;
 import org.comroid.uniform.data.node.UniNode;
 import org.comroid.uniform.data.node.UniObjectNode;
 
@@ -26,6 +25,44 @@ import org.jetbrains.annotations.Nullable;
  * @param <NODE> Serialization Library Type of the serialization Node
  */
 public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
+    String getName();
+
+    default Span<EXTR> extract(UniNode<Object, NODE> node) {
+        switch (node.getType()) {
+            case OBJECT:
+                final UniObjectNode uniObject = (UniObjectNode) node;
+                final String key = getName();
+
+                if (!uniObject.containsKey(key))
+                    return Span.zeroSize();
+
+                final EXTR extracted = (EXTR) uniObject.get(key);
+
+                return Span.singleton(extracted);
+            case ARRAY:
+                throw new IllegalArgumentException("VarBind cannot extract from Array node");
+        }
+
+        throw new AssertionError();
+    }
+
+    REMAP remap(EXTR from, DPND dependency);
+
+    FINAL finish(Span<REMAP> parts);
+
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Location {
+        Class<?> value();
+
+        String rootNode() default "";
+    }
+
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Root {
+    }
+
     /**
      * Variable definition with 0 mapping Stages.
      *
@@ -102,47 +139,10 @@ public interface VarBind<NODE, EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         @Override
         public TARGET remap(EXTR from, DPND dependency) {
             return remapper.apply(from,
-                                  Objects.requireNonNull(dependency,
-                                                         "Dependency Object " + "Required"
-                                  )
+                    Objects.requireNonNull(dependency,
+                            "Dependency Object " + "Required"
+                    )
             );
         }
     }
-
-    String getName();
-
-    default Span<EXTR> extract(UniNode<Object, NODE> node) {
-        switch (node.getType()) {
-            case OBJECT:
-                final UniObjectNode uniObject = (UniObjectNode) node;
-                final String key = getName();
-
-                if (!uniObject.containsKey(key))
-                    return Span.zeroSize();
-
-                final EXTR extracted = (EXTR) uniObject.get(key);
-
-                return Span.singleton(extracted);
-            case ARRAY:
-                throw new IllegalArgumentException("VarBind cannot extract from Array node");
-        }
-
-        throw new AssertionError();
-    }
-
-    REMAP remap(EXTR from, DPND dependency);
-
-    FINAL finish(Span<REMAP> parts);
-
-    @Target(ElementType.TYPE)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Location {
-        Class<?> value();
-
-        String rootNode() default "";
-    }
-
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Root {}
 }
