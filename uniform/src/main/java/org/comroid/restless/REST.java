@@ -182,6 +182,10 @@ public final class REST<D> {
             });
         }
 
+        public final CompletableFuture<T> execute$deserializeSingle() {
+            return execute$deserialize().thenApply(Span::requireNonNull);
+        }
+
         public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> span.stream()
                     .map(remapper)
