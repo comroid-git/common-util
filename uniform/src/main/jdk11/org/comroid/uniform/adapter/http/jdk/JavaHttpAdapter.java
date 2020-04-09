@@ -7,6 +7,7 @@ import java.net.http.HttpResponse;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
+import org.comroid.common.func.Provider;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
 
@@ -17,14 +18,14 @@ public final class JavaHttpAdapter implements HttpAdapter {
     public CompletableFuture<REST.Response> call(
             REST rest,
             REST.Method method,
-            URL url,
+            Provider<URL> urlProvider,
             Collection<REST.Header> headers,
             String mimeType,
             String body
     ) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                final HttpRequest.Builder builder = HttpRequest.newBuilder(url.toURI())
+                final HttpRequest.Builder builder = HttpRequest.newBuilder(urlProvider.now().toURI())
                         .method(
                                 method.toString(),
                                 HttpRequest.BodyPublishers.ofString(

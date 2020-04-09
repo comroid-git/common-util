@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import org.comroid.common.func.Provider;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
 
@@ -24,14 +25,14 @@ public class OkHttp3Adapter implements HttpAdapter {
     public CompletableFuture<REST.Response> call(
             REST rest,
             REST.Method method,
-            URL url,
+            Provider<URL> urlProvider,
             Collection<REST.Header> headers,
             String mimeType,
             String body
     ) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                final Request.Builder builder = new Request.Builder().url(url)
+                final Request.Builder builder = new Request.Builder().url(urlProvider.now())
                         // only support null body for GET method, else throw
                         .method(
                                 method.toString(), (

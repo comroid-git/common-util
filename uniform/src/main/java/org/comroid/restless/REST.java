@@ -11,6 +11,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.func.Provider;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniNode;
@@ -76,7 +77,7 @@ public final class REST<D> {
         private final           Collection<Header>               headers;
         private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
         private                 CompletableFuture<REST.Response> execution = null;
-        private                 URL                              url;
+        private                 Provider<URL>                    urlProvider;
         private                 Method                           method;
         private                 String                           body;
 
@@ -90,68 +91,78 @@ public final class REST<D> {
             this(rest, VariableCarrier.findRootBind(type).autoConstructor(type, (Class<D>) (dependencyObject == null ? Object.class : dependencyObject.getClass())));
         }
 
-        public URL getUrl() {
-            return url;
+        public final Provider<URL> getUrlProvider() {
+            return urlProvider;
         }
 
-        public Method getMethod() {
+        public final URL getUrl() {
+            return urlProvider.now();
+        }
+
+        public final Method getMethod() {
             return method;
         }
 
-        public String getBody() {
+        public final String getBody() {
             return body;
         }
 
-        public Collection<Header> getHeaders() {
+        public final Collection<Header> getHeaders() {
             return Collections.unmodifiableCollection(headers);
         }
 
-        public Request<T> url(URL url) {
-            this.url = url;
+        public final Request<T> url(Provider<URL> urlProvider) {
+            this.urlProvider = urlProvider;
 
             return this;
         }
 
-        public Request<T> url(String spec) throws AssertionError {
+        public final Request<T> url(URL url) {
+            this.urlProvider = Provider.of(url);
+
+            return this;
+        }
+
+        public final Request<T> url(String spec) throws AssertionError {
             return url(Polyfill.url(spec));
         }
 
-        public Request<T> method(REST.Method method) {
+        public final Request<T> method(REST.Method method) {
             this.method = method;
 
             return this;
         }
 
-        public Request<T> body(String body) {
+        public final Request<T> body(String body) {
             this.body = body;
 
             return this;
         }
 
-        public Request<T> addHeader(String name, String value) {
+        public final Request<T> addHeader(String name, String value) {
             this.headers.add(new Header(name, value));
 
             return this;
         }
 
-        public boolean removeHeaders(Predicate<Header> filter) {
+        public final boolean removeHeaders(Predicate<Header> filter) {
             return headers.removeIf(filter);
         }
 
-        public CompletableFuture<REST.Response> execute() {
+        public final CompletableFuture<REST.Response> execute() {
             return execution == null ? (execution = httpAdapter.call(
-                    rest, method, url, headers, serializationAdapter.getMimeType(), body)) : execution;
+                    rest, method, urlProvider, headers, serializationAdapter.getMimeType(), body)) : execution;
         }
 
-        public CompletableFuture<Integer> execute$statusCode() {
+        public final CompletableFuture<Integer> execute$statusCode() {
             return execute().thenApply(Response::getStatusCode);
         }
 
-        public CompletableFuture<UniNode> execute$body() {
+        public final CompletableFuture<UniNode> execute$body() {
             return execute().thenApply(Response::getBody);
         }
 
-        public CompletableFuture<Span<T>> execute$deserialize() {
+        public final CompletableFuture<Span<T>> execute$deserialize() {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
@@ -171,13 +182,13 @@ public final class REST<D> {
             });
         }
 
-        public <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
+        public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> span.stream()
                     .map(remapper)
                     .collect(Span.collector()));
         }
 
-        public <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
+        public final <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> {
                 if (!span.isSingle())
                     throw new IllegalArgumentException("Span too large");
