@@ -27,17 +27,15 @@ dependencies {
 }
 
 task allJavadoc(type: Javadoc) {
-    source = files(exportedProjects.stream()
-            .map { rootProject.findProject(it.toString()) }
+    source = files(rootProject.allprojects.stream()
             .filter { !Objects.isNull(it) }
             .filter { it.hasProperty("sourceSet") }
-            .map { it.sourceSets.main.allJava }
+            .map { it.sourceSets.allSource }
             .collect(Collectors.toList()))
-    classpath = files(exportedProjects.stream()
-            .map { rootProject.findProject(it.toString()) }
+    source = files(rootProject.allprojects.stream()
             .filter { !Objects.isNull(it) }
             .filter { it.hasProperty("sourceSet") }
-            .map { it.sourceSets.main.compileClasspath }
+            .map { it.sourceSets.allJava }
             .collect(Collectors.toList()))
     options {
         destinationDirectory(file("$rootDir/docs/"))
