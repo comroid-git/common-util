@@ -8,6 +8,7 @@ apply plugin: 'maven-publish'
 
 publishing {
     repositories {
+        mavenLocal()
         maven {
             name = 'Space'
             url = 'https://maven.jetbrains.space/comroid/repo'
