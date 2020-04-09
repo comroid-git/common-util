@@ -33,7 +33,11 @@ public final class REST<D> {
     }
 
     public <T extends VarCarrier<D>> Request<T> request(Class<T> type) {
-        return new Request<>(this, type);
+        return new Request<>(this, VariableCarrier.findRootBind(type).autoConstructor(type, (Class<D>) (dependencyObject == null ? Object.class : dependencyObject.getClass())));
+    }
+
+    public Request<UniObjectNode> request() {
+        return new Request<>(this, (dep, node) -> node);
     }
 
     public static final class Header {
@@ -72,7 +76,7 @@ public final class REST<D> {
         }
     }
 
-    public final class Request<T extends VarCarrier<D>> {
+    public final class Request<T> {
         private final           REST                             rest;
         private final           Collection<Header>               headers;
         private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
@@ -85,10 +89,6 @@ public final class REST<D> {
             this.rest = rest;
             this.tProducer = tProducer;
             this.headers = new ArrayList<>();
-        }
-
-        public Request(REST rest, Class<T> type) {
-            this(rest, VariableCarrier.findRootBind(type).autoConstructor(type, (Class<D>) (dependencyObject == null ? Object.class : dependencyObject.getClass())));
         }
 
         public final Provider<URL> getUrlProvider() {
