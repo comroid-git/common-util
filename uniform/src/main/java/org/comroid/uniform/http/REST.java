@@ -15,14 +15,15 @@ import org.comroid.common.iter.Span;
 import org.comroid.uniform.data.SerializationAdapter;
 import org.comroid.uniform.data.node.UniNode;
 import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.varbind.VarCarrier;
 import org.comroid.varbind.VariableCarrier;
 
 import org.jetbrains.annotations.Nullable;
 
 public final class REST<D> {
-    private final HttpAdapter httpAdapter;
-    private final @Nullable D dependencyObject;
-    private final SerializationAdapter<?, ?, ?> serializationAdapter;
+    private final           HttpAdapter                   httpAdapter;
+    private final @Nullable D                             dependencyObject;
+    private final           SerializationAdapter<?, ?, ?> serializationAdapter;
 
     public REST(HttpAdapter httpAdapter, @Nullable D dependencyObject, SerializationAdapter<?, ?, ?> serializationAdapter) {
         this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
@@ -30,7 +31,7 @@ public final class REST<D> {
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
     }
 
-    public <T extends VariableCarrier<D>> Request<T> request(Class<T> type) {
+    public <T extends VarCarrier<D>> Request<T> request(Class<T> type) {
         return new Request<>(this, type);
     }
 
@@ -53,7 +54,7 @@ public final class REST<D> {
     }
 
     public static final class Response {
-        private final int statusCode;
+        private final int     statusCode;
         private final UniNode body;
 
         public Response(REST rest, int statusCode, String body) {
@@ -70,14 +71,14 @@ public final class REST<D> {
         }
     }
 
-    public final class Request<T extends VariableCarrier<D>> {
-        private final REST rest;
-        private final Collection<Header> headers;
-        private final @Nullable BiFunction<D, UniObjectNode, T> tProducer;
-        private CompletableFuture<REST.Response> execution = null;
-        private URL url;
-        private Method method;
-        private String body;
+    public final class Request<T extends VarCarrier<D>> {
+        private final           REST                             rest;
+        private final           Collection<Header>               headers;
+        private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
+        private                 CompletableFuture<REST.Response> execution = null;
+        private                 URL                              url;
+        private                 Method                           method;
+        private                 String                           body;
 
         public Request(REST rest, @Nullable BiFunction<D, UniObjectNode, T> tProducer) {
             this.rest = rest;

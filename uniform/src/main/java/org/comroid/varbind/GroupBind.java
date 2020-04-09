@@ -29,7 +29,7 @@ public final class GroupBind {
         this.groupName = groupName;
     }
 
-    public <R extends VariableCarrier<D>, D> BiFunction<D, UniObjectNode, R> autoConstructor(
+    public <R extends VarCarrier<D>, D> BiFunction<D, UniObjectNode, R> autoConstructor(
             Class<R> resultType, Class<D> dependencyType
     ) {
         final Class<?>[] typesUnordered = {
