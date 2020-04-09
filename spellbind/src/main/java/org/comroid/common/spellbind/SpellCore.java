@@ -52,7 +52,7 @@ public class SpellCore implements InvocationHandler {
                 ));
     }
 
-    private final Object coreObject;
+    private final Object                 coreObject;
     private final Map<String, Invocable> methodBinds;
 
     SpellCore(Object coreObject, Map<String, Invocable> methodBinds) {
@@ -62,8 +62,8 @@ public class SpellCore implements InvocationHandler {
 
     @Override
     public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        final String methodString = methodString(method);
-        final Invocable invoc = methodBinds.get(methodString);
+        final String    methodString = methodString(method);
+        final Invocable invoc        = methodBinds.get(methodString);
 
         if (invoc instanceof MethodInvocation) {
             MethodInvocation methodInvocation = (MethodInvocation) invoc;

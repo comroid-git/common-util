@@ -45,9 +45,9 @@ public class OkHttp3Adapter implements HttpAdapter {
 
                 headers.forEach(header -> builder.addHeader(header.getName(), header.getValue()));
 
-                final Request request = builder.build();
-                final Call call = httpClient.newCall(request);
-                final Response response = call.execute();
+                final Request      request      = builder.build();
+                final Call         call         = httpClient.newCall(request);
+                final Response     response     = call.execute();
                 final ResponseBody responseBody = response.body();
 
                 return new REST.Response(

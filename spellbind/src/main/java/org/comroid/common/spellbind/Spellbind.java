@@ -45,11 +45,11 @@ public final class Spellbind {
                     .equals(method.getReturnType());
         }
 
-        private final Class<T> mainInterface;
+        private final Class<T>               mainInterface;
         private final Map<String, Invocable> methodBinds;
-        private final Collection<Class<?>> interfaces;
-        private Object coreObject;
-        private ClassLoader classLoader;
+        private final Collection<Class<?>>   interfaces;
+        private       Object                 coreObject;
+        private       ClassLoader            classLoader;
 
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;

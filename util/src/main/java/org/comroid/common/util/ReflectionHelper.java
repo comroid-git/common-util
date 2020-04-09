@@ -118,7 +118,7 @@ public final class ReflectionHelper {
             boolean forceAccess,
             @Nullable Class<? extends Annotation> withAnnotation
     ) {
-        final Field[] fields = inClass.getFields();
+        final Field[]    fields = inClass.getFields();
         final HashSet<T> values = new HashSet<>(fields.length);
 
         for (Field field : fields) {

@@ -26,9 +26,9 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 public class Span<T> implements AbstractCollection<T>, Reference<T> {
-    public static final int DEFAULT_INITIAL_CAPACITY = 0;
-    public static final ModifyPolicy DEFAULT_MODIFY_POLICY = ModifyPolicy.SKIP_NULLS;
-    public static final boolean DEFAULT_FIXED_SIZE = false;
+    public static final int          DEFAULT_INITIAL_CAPACITY = 0;
+    public static final ModifyPolicy DEFAULT_MODIFY_POLICY    = ModifyPolicy.SKIP_NULLS;
+    public static final boolean      DEFAULT_FIXED_SIZE       = false;
 
     public static <T> Collector<T, ?, Span<T>> collector() {
         return Span.<T>make()
@@ -68,12 +68,12 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     }
 
     private final ModifyPolicy modifyPolicy;
-    private final Object dataLock = new Object() {
+    private final Object       dataLock = new Object() {
         private volatile Object selfaware_keepalive = Span.this.dataLock;
     };
     //endregion
-    private Object[] data;
-    private boolean fixedSize;
+    private       Object[]     data;
+    private       boolean      fixedSize;
 
     public Span() {
         this(new Object[DEFAULT_INITIAL_CAPACITY], DEFAULT_MODIFY_POLICY, DEFAULT_FIXED_SIZE);
@@ -200,7 +200,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                     }
                 }
             } else {
-                final int ol = data.length;
+                final int           ol      = data.length;
                 final Collection<T> newData = new ArrayList<>();
 
                 for (int i = 0; i < data.length; i++) {
@@ -285,8 +285,8 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     //region API Class
     public static final class API<T> {
         private Collection<T> initialValues;
-        private ModifyPolicy modifyPolicy;
-        private boolean fixedSize;
+        private ModifyPolicy  modifyPolicy;
+        private boolean       fixedSize;
 
         public API() {
             this.initialValues = new ArrayList<>();
@@ -309,17 +309,17 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
         public Collector<T, ?, Span<T>> collector() {
             class SpanCollector implements Collector<T, Span<T>, Span<T>> {
-                private final Supplier<Span<T>> supplier = Span::new;
-                private final BiConsumer<Span<T>, T> accumulator = Span::add;
-                private final BinaryOperator<Span<T>> combiner = (ts, ts2) -> {
+                private final Supplier<Span<T>>          supplier    = Span::new;
+                private final BiConsumer<Span<T>, T>     accumulator = Span::add;
+                private final BinaryOperator<Span<T>>    combiner    = (ts, ts2) -> {
                     ts.addAll(ts2);
 
                     return ts;
                 };
-                private final Collection<T> initialValues;
-                private final ModifyPolicy nullPolicy;
-                private final boolean fixedSize;
-                private final Function<Span<T>, Span<T>> finisher = new Function<Span<T>, Span<T>>() {
+                private final Collection<T>              initialValues;
+                private final ModifyPolicy               nullPolicy;
+                private final boolean                    fixedSize;
+                private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>, Span<T>>() {
                     @Override
                     public Span<T> apply(Span<T> ts) {
                         return Span.<T>make().modifyPolicy(nullPolicy)
@@ -400,9 +400,9 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     }
 
     public final class Iterator implements java.util.Iterator<T> {
-        private final Object[] dataSnapshot = toArray();
-        private int previousIndex = -1;
-        private @Nullable Object next;
+        private final     Object[] dataSnapshot  = toArray();
+        private           int      previousIndex = -1;
+        private @Nullable Object   next;
 
         @Override
         public boolean hasNext() {
@@ -475,11 +475,11 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         );
         //startformatting
 
-        private final Predicate<Object> initVarTester;
-        private final Predicate<Object> iterateVarTester;
+        private final Predicate<Object>           initVarTester;
+        private final Predicate<Object>           iterateVarTester;
         private final BiPredicate<Object, Object> overwriteTester;
-        private final Predicate<Object> removeTester;
-        private final Predicate<Object> cleanupTester;
+        private final Predicate<Object>           removeTester;
+        private final Predicate<Object>           cleanupTester;
 
         ModifyPolicy(
                 Predicate<Object> initVarTester,

@@ -20,7 +20,7 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
 
     private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
     //endregion
-    private final Function<String, K> keyMapper;
+    private final Function<String, K>          keyMapper;
 
     public TrieMap(Function<String, K> keyMapper) {
         this.keyMapper = keyMapper;
@@ -115,7 +115,7 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
     @Contract
     public @NotNull Set<K> keySet() {
         class Pair {
-            String key;
+            String       key;
             TrieStage<V> stage;
 
             Pair(String key, TrieStage<V> stage) {
@@ -147,7 +147,7 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
     @Contract
     public @NotNull Set<Entry<K, V>> entrySet() {
         class Local implements Map.Entry<K, V> {
-            private final K key;
+            private final K            key;
             private final TrieStage<V> stage;
 
             public Local(K key, TrieStage<V> stage) {
@@ -187,8 +187,8 @@ public class TrieMap<K extends CharSequence, V> implements Map<K, V> {
 
     //region Stage Class
     private static class TrieStage<V> {
-        private final Map<Character, TrieStage<V>> subStages = new ConcurrentHashMap<>();
-        private @Nullable V value;
+        private final     Map<Character, TrieStage<V>> subStages = new ConcurrentHashMap<>();
+        private @Nullable V                            value;
 
         @Nullable V get(char[] chars, int index) {
             if (chars.length == 0 || index >= chars.length) return value;

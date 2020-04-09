@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
-    private final Type type;
+    private final   Type                          type;
 
     protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
         this.serializationAdapter = serializationAdapter;

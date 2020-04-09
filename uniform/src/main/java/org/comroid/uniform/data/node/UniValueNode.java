@@ -1,6 +1,5 @@
 package org.comroid.uniform.data.node;
 
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.ref.Reference;
@@ -186,14 +185,14 @@ public class UniValueNode<T> extends UniNode {
     }
 
     public static final class ValueType<R> {
-        public static final UniValueNode.ValueType<String> STRING = new ValueType<>(Function.identity());
-        public static final UniValueNode.ValueType<Boolean> BOOLEAN = new ValueType<>(Boolean::parseBoolean);
-        public static final UniValueNode.ValueType<Integer> INTEGER = new ValueType<>(Integer::parseInt);
-        public static final UniValueNode.ValueType<Long> LONG = new ValueType<>(Long::parseLong);
-        public static final UniValueNode.ValueType<Double> DOUBLE = new ValueType<>(Double::parseDouble);
-        public static final UniValueNode.ValueType<Float> FLOAT = new ValueType<>(Float::parseFloat);
-        public static final UniValueNode.ValueType<Short> SHORT = new ValueType<>(Short::parseShort);
-        public static final UniValueNode.ValueType<Character>                CHARACTER   = new ValueType<>(str -> str.toCharArray()[0]);
+        public static final UniValueNode.ValueType<String>    STRING    = new ValueType<>(Function.identity());
+        public static final UniValueNode.ValueType<Boolean>   BOOLEAN   = new ValueType<>(Boolean::parseBoolean);
+        public static final UniValueNode.ValueType<Integer>   INTEGER   = new ValueType<>(Integer::parseInt);
+        public static final UniValueNode.ValueType<Long>      LONG      = new ValueType<>(Long::parseLong);
+        public static final UniValueNode.ValueType<Double>    DOUBLE    = new ValueType<>(Double::parseDouble);
+        public static final UniValueNode.ValueType<Float>     FLOAT     = new ValueType<>(Float::parseFloat);
+        public static final UniValueNode.ValueType<Short>     SHORT     = new ValueType<>(Short::parseShort);
+        public static final UniValueNode.ValueType<Character> CHARACTER = new ValueType<>(str -> str.toCharArray()[0]);
 
         private final Function<String, R> mapper;
 

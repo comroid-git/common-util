@@ -30,7 +30,7 @@ public abstract class CloseableReference<T> implements Reference<T>, Closeable {
 
     public static class ClosedEvent<T> {
         private final CloseableReference<T> ref;
-        private final Class<?> closing;
+        private final Class<?>              closing;
 
         private ClosedEvent(CloseableReference<T> ref, Class<?> closing) {
             this.ref = ref;

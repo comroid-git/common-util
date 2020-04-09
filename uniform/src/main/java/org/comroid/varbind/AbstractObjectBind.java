@@ -7,9 +7,9 @@ import org.comroid.common.iter.Span;
 import org.comroid.uniform.data.node.UniObjectNode;
 
 abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<EXTR, DPND, REMAP, REMAP> {
-    private final String fieldName;
+    private final String                                        fieldName;
     private final BiFunction<UniObjectNode, String, Span<EXTR>> extractor;
-    private final GroupBind group;
+    private final GroupBind                                     group;
 
     protected AbstractObjectBind(GroupBind group, String fieldName, BiFunction<UniObjectNode, String, Span<EXTR>> extractor) {
         this.fieldName = fieldName;

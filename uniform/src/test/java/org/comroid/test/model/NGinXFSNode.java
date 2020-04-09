@@ -28,8 +28,8 @@ public final class NGinXFSNode extends VariableCarrier<Void> {
     interface Bind {
         @VarBind.Root
         GroupBind root = new GroupBind(FastJSONLib.fastJsonLib, "fsnode");
-        VarBind.Uno<String> Name = root.bind1stage("name", UniValueNode.ValueType.STRING);
-        VarBind.Uno<String> Type = root.bind1stage("type", UniValueNode.ValueType.STRING);
+        VarBind.Uno<String> Name  = root.bind1stage("name", UniValueNode.ValueType.STRING);
+        VarBind.Uno<String> Type  = root.bind1stage("type", UniValueNode.ValueType.STRING);
         VarBind.Uno<String> MTime = root.bind1stage("mtime", UniValueNode.ValueType.STRING);
     }
 }

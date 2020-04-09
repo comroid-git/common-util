@@ -12,13 +12,13 @@ import static java.lang.Integer.parseInt;
 import static org.comroid.common.Polyfill.regexGroupOrDefault;
 
 public final class Version implements Comparable<Version> {
-    public static final Pattern PATTERN = Pattern.compile(
+    public static final Pattern     PATTERN = Pattern.compile(
             "(?<major>\\d+)\\.(?<minor>\\d+)\\.?(?<patch>\\d+)?[.\\-_]?(?<candidate>(a(lpha)?|b(eta)?|(r(elease)?|c?))+)?[.\\-_]?(?<hotfix>\\d+)?");
-    private final int major;
-    private final int minor;
-    private final int patch;
-    private final ReleaseType releaseType;
-    private final int hotfix;
+    private final       int         major;
+    private final       int         minor;
+    private final       int         patch;
+    private final       ReleaseType releaseType;
+    private final       int         hotfix;
 
     public Version(int major, int minor, int patch, ReleaseType releaseType, int hotfix) {
         this.major = major;

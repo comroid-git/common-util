@@ -6,7 +6,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 public class JsonFileInfo {
     private final String fileName;
     private final String myTime;
-    private final int size;
+    private final int    size;
 
     @JSONCreator
     public JsonFileInfo(

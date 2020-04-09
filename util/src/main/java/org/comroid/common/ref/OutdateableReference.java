@@ -3,11 +3,11 @@ package org.comroid.common.ref;
 import org.jetbrains.annotations.Nullable;
 
 public final class OutdateableReference<T> implements Reference<T> {
-    private final Object lock = new Object() {
+    private final Object  lock = new Object() {
         private volatile Object selfaware_keepalive = OutdateableReference.this.lock;
     };
-    private boolean outdated;
-    private T it;
+    private       boolean outdated;
+    private       T       it;
 
     public boolean isOutdated() {
         synchronized (lock) {

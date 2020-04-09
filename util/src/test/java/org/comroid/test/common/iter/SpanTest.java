@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SpanTest {
-    private Span<String> span;
+    private Span<String>                span;
     private List<Pair<String, Integer>> generated;
 
     @Test
@@ -71,7 +71,7 @@ public class SpanTest {
         System.out.println("span before      = " + span);
 
         final int size_beforeBulk = span.size();
-        final int remove = (size_beforeBulk / 4) + (size_beforeBulk / 2);
+        final int remove          = (size_beforeBulk / 4) + (size_beforeBulk / 2);
         System.out.printf("removing values  = [%d]{", remove);
         final long successful = IntStream.range(0, remove)
                 .sequential()
@@ -108,6 +108,6 @@ public class SpanTest {
                 .getFirst();
     }
 
-    private static final Random rng = new Random();
-    private static int bound = rng.nextInt(100) + 50;
+    private static final Random rng   = new Random();
+    private static       int    bound = rng.nextInt(100) + 50;
 }

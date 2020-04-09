@@ -23,9 +23,9 @@ public class NGinXUpdateChannel implements UpdateChannel {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
     private final Function<String, Version> filenameVersioning;
-    private final Function<String, URL> fileDownloadLink;
-    private final Version.Container versionContainer;
-    private final String baseURL;
+    private final Function<String, URL>     fileDownloadLink;
+    private final Version.Container         versionContainer;
+    private final String                    baseURL;
 
     /**
      * @param versionContainer   The container whose version to use for comparison
@@ -107,9 +107,9 @@ public class NGinXUpdateChannel implements UpdateChannel {
 
                         //stream.transferTo(outputStream);
                         Objects.requireNonNull(outputStream, "outputStream");
-                        long transferred = 0;
-                        byte[] buffer = new byte[128];
-                        int read;
+                        long   transferred = 0;
+                        byte[] buffer      = new byte[128];
+                        int    read;
                         while ((read = stream.read(buffer, 0, 128)) >= 0) {
                             outputStream.write(buffer, 0, read);
                             transferred += read;

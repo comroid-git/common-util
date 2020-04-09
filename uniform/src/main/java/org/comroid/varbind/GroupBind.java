@@ -22,7 +22,7 @@ import org.comroid.uniform.data.node.UniValueNode;
 public final class GroupBind {
     private final SerializationAdapter<?, ?, ?>       serializationAdapter;
     private final String                              groupName;
-    final List<? extends VarBind<?, ?, ?, ?>> children = new ArrayList<>();
+    final         List<? extends VarBind<?, ?, ?, ?>> children = new ArrayList<>();
 
     public GroupBind(SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
         this.serializationAdapter = serializationAdapter;
@@ -160,5 +160,6 @@ public final class GroupBind {
     public final <T, D, R, C extends Collection<R>> ArrayBind.Dep<T, D, R, C> listDependent(String fieldName, Function<? extends UniNode, T> extractor, BiFunction<D, T, R> resolver, Supplier<C> collectionSupplier) {
         return new ArrayBind.Dep<>(this, fieldName, extractor, resolver, collectionSupplier);
     }
+
     private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub).asObjectNode();
 }

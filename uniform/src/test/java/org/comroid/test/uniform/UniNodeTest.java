@@ -18,16 +18,16 @@ import org.junit.Test;
 import static org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib.fastJsonLib;
 
 public class UniNodeTest {
-    private final Random rng = new Random();
-    private UniObjectNode object;
-    private UniArrayNode array;
-    private Map<String, Integer> randomMap;
-    private List<Integer> randomInts;
+    private final Random               rng = new Random();
+    private       UniObjectNode        object;
+    private       UniArrayNode         array;
+    private       Map<String, Integer> randomMap;
+    private       List<Integer>        randomInts;
 
     @Before
     public void setup() {
         JSONObject object = new JSONObject();
-        JSONArray array = new JSONArray();
+        JSONArray  array  = new JSONArray();
 
         randomInts = IntStream.range(0, 50)
                 .mapToObj(x -> rng.nextInt(500))

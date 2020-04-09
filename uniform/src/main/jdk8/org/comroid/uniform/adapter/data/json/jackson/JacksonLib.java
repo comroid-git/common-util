@@ -12,8 +12,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class JacksonLib extends SerializationAdapter<JsonNode, ObjectNode, ArrayNode> {
-    public static @Instance final JacksonLib jacksonLib = new JacksonLib();
-    public static final ObjectMapper objectMapper = new ObjectMapper();
+    public static @Instance final JacksonLib   jacksonLib   = new JacksonLib();
+    public static final           ObjectMapper objectMapper = new ObjectMapper();
 
     protected JacksonLib() {
         super("application/json", ObjectNode.class, ArrayNode.class);

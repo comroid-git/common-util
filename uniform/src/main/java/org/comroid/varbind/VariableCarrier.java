@@ -39,12 +39,12 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
                 .requireNonNull();
     }
 
-    private final SerializationAdapter<?, ?, ?> serializationAdapter;
-    private final GroupBind rootBind;
-    private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars = new ConcurrentHashMap<>();
-    private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>> computed = new ConcurrentHashMap<>();
-    private final DEP dependencyObject;
-    private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
+    private final SerializationAdapter<?, ?, ?>                                               serializationAdapter;
+    private final GroupBind                                                                   rootBind;
+    private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     = new ConcurrentHashMap<>();
+    private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed = new ConcurrentHashMap<>();
+    private final DEP                                                                         dependencyObject;
+    private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
 
     protected <BAS, OBJ extends BAS> VariableCarrier(
             SerializationAdapter<BAS, OBJ, ?> serializationAdapter,
@@ -121,13 +121,13 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     @Override
     public final <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> pBind) {
         VarBind<Object, ? super DEP, Object, T> bind = (VarBind<Object, ? super DEP, Object, T>) pBind;
-        OutdateableReference<T> ref = compRef(bind);
+        OutdateableReference<T>                 ref  = compRef(bind);
 
         if (ref.isOutdated()) {
             // recompute
 
             AtomicReference<Span<Object>> reference = ref(Polyfill.deadCast(bind));
-            final T yield = bind.process(dependencyObject, reference.get());
+            final T                       yield     = bind.process(dependencyObject, reference.get());
             ref.update(yield);
         }
 
