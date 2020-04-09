@@ -17,7 +17,7 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
     CompletableFuture<T> get();
 
     @Blocking
-    default T join() {
+    default T now() {
         return get().join();
     }
 }

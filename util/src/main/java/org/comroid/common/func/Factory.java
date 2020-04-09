@@ -11,4 +11,9 @@ public interface Factory<T> extends Provider<T> {
     default CompletableFuture<T> get() {
         return CompletableFuture.completedFuture(create());
     }
+
+    @Override
+    default T now() {
+        return create();
+    }
 }

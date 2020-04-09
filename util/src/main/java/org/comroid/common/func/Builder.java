@@ -9,4 +9,9 @@ public interface Builder<T> extends Provider<T> {
     default CompletableFuture<T> get() {
         return CompletableFuture.completedFuture(build());
     }
+
+    @Override
+    default T now() {
+        return build();
+    }
 }
