@@ -65,13 +65,10 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
         return new UniArrayNode(this, arrayAdapter(node));
     }
 
-    private UniObjectNode.Adapter objectAdapter(JSONObject parseObject) {
-        class Local extends AbstractMap<String, Object> implements UniObjectNode.Adapter {
-            private final JSONObject baseNode = parseObject;
-
-            @Override
-            public Object getBaseNode() {
-                return baseNode;
+    private UniObjectNode.Adapter objectAdapter(JSONObject node) {
+        class Local extends UniObjectNode.Adapter<JSONObject> {
+            protected Local(JSONObject baseNode) {
+                super(baseNode);
             }
 
             @Override
@@ -79,23 +76,19 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
                 return baseNode.put(key, value);
             }
 
-            @NotNull
             @Override
-            public Set<Entry<String, Object>> entrySet() {
+            public @NotNull Set<Entry<String, Object>> entrySet() {
                 return baseNode.entrySet();
             }
         }
 
-        return new Local();
+        return new Local(node);
     }
 
-    private UniArrayNode.Adapter arrayAdapter(JSONArray parseObject) {
-        class Local extends AbstractList<Object> implements UniArrayNode.Adapter {
-            private final JSONArray baseNode = parseObject;
-
-            @Override
-            public Object getBaseNode() {
-                return baseNode;
+    private UniArrayNode.Adapter arrayAdapter(JSONArray node) {
+        class Local extends UniArrayNode.Adapter<JSONArray> {
+            private Local(JSONArray node) {
+                super(node);
             }
 
             @Override
@@ -124,6 +117,6 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
             }
         }
 
-        return new Local();
+        return new Local(node);
     }
 }

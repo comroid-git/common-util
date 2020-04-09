@@ -1,5 +1,6 @@
 package org.comroid.uniform.node;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -77,6 +78,28 @@ public final class UniArrayNode extends UniNode {
         return adapter.getBaseNode();
     }
 
-    public interface Adapter extends UniNode.Adapter, List<Object> {
+    public static abstract class Adapter<B> extends AbstractList<Object> implements UniNode.Adapter<B> {
+        protected final B baseNode;
+
+        protected Adapter(B baseNode) {
+            this.baseNode = baseNode;
+        }
+
+        @Override
+        public abstract Object get(int index);
+
+        @Override
+        public abstract Object set(int index, Object element);
+
+        @Override
+        public abstract void add(int index, Object element);
+
+        @Override
+        public abstract Object remove(int index);
+
+        @Override
+        public B getBaseNode() {
+            return baseNode;
+        }
     }
 }

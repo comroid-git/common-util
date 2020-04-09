@@ -1,6 +1,7 @@
 package org.comroid.uniform.node;
 
-import java.util.Map;
+import java.util.AbstractMap;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.comroid.uniform.DataStructureType;
@@ -51,6 +52,23 @@ public final class UniObjectNode extends UniNode {
         return adapter.getBaseNode();
     }
 
-    public interface Adapter extends UniNode.Adapter, Map<String, Object> {
+    public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {
+        protected final B baseNode;
+
+        protected Adapter(B baseNode) {
+            this.baseNode = baseNode;
+        }
+
+        @Override
+        public abstract Object put(String key, Object value);
+
+        @NotNull
+        @Override
+        public abstract Set<Entry<String, Object>> entrySet();
+
+        @Override
+        public B getBaseNode() {
+            return baseNode;
+        }
     }
 }

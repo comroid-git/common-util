@@ -169,8 +169,8 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return as(UniValueNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.VALUE));
     }
 
-    public interface Adapter {
-        Object getBaseNode();
+    public interface Adapter<B> {
+        B getBaseNode();
     }
 
     public enum Type {
