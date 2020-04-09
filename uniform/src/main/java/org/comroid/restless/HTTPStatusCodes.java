@@ -1,4 +1,4 @@
-package org.comroid.uniform.http;
+package org.comroid.restless;
 
 import java.lang.reflect.Field;
 

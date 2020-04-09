@@ -1,9 +1,9 @@
-package org.comroid.uniform.data.node;
+package org.comroid.uniform.node;
 
 import java.util.function.Function;
 
 import org.comroid.common.ref.Reference;
-import org.comroid.uniform.data.SerializationAdapter;
+import org.comroid.uniform.SerializationAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

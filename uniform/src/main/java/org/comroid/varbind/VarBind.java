@@ -9,7 +9,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     String getFieldName();

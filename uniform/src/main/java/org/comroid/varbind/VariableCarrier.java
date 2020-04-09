@@ -10,8 +10,8 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.data.SerializationAdapter;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.node.UniObjectNode;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;

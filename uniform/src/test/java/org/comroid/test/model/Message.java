@@ -7,9 +7,9 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.comroid.common.Polyfill;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
-import org.comroid.uniform.data.node.UniValueNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.node.UniValueNode;
 import org.comroid.varbind.ArrayBind;
 import org.comroid.varbind.GroupBind;
 import org.comroid.varbind.VarBind;

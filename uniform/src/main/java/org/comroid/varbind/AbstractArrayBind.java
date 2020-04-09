@@ -6,8 +6,8 @@ import java.util.function.Supplier;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 /**
  * {@link Collection} building Variable definition with 2 mapping Stages. Used for deserializing

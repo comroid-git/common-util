@@ -13,11 +13,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.data.SerializationAdapter;
-import org.comroid.uniform.data.node.UniArrayNode;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
-import org.comroid.uniform.data.node.UniValueNode;
+import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.node.UniValueNode;
 
 public final class GroupBind {
     private final SerializationAdapter<?, ?, ?>       serializationAdapter;

@@ -1,4 +1,4 @@
-package org.comroid.uniform.http;
+package org.comroid.restless;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -12,9 +12,9 @@ import java.util.function.Predicate;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.SerializationAdapter;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.VarCarrier;
 import org.comroid.varbind.VariableCarrier;
 

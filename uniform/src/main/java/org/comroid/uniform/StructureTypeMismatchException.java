@@ -1,4 +1,4 @@
-package org.comroid.uniform.data;
+package org.comroid.uniform;
 
 import java.util.Arrays;
 

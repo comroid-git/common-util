@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import org.comroid.uniform.http.HttpAdapter;
-import org.comroid.uniform.http.REST;
+import org.comroid.restless.HttpAdapter;
+import org.comroid.restless.REST;
 
 import okhttp3.Call;
 import okhttp3.MediaType;

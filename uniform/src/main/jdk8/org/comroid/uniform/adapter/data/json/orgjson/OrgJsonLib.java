@@ -1,10 +1,10 @@
 package org.comroid.uniform.adapter.data.json.orgjson;
 
 import org.comroid.common.annotation.Instance;
-import org.comroid.uniform.data.SerializationAdapter;
-import org.comroid.uniform.data.node.UniArrayNode;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

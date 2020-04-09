@@ -1,6 +1,6 @@
 package org.comroid.test.model;
 
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 import com.alibaba.fastjson.JSONObject;
 

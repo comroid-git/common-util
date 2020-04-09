@@ -1,8 +1,8 @@
-package org.comroid.uniform.data;
+package org.comroid.uniform;
 
-import org.comroid.uniform.data.node.UniArrayNode;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
     public static SerializationAdapter<?, ?, ?> autodetect() {

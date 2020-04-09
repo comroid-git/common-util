@@ -1,10 +1,10 @@
-package org.comroid.uniform.data.node;
+package org.comroid.uniform.node;
 
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.comroid.uniform.data.DataStructureType;
-import org.comroid.uniform.data.SerializationAdapter;
+import org.comroid.uniform.DataStructureType;
+import org.comroid.uniform.SerializationAdapter;
 
 import org.jetbrains.annotations.NotNull;
 

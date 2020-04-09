@@ -1,8 +1,8 @@
 package org.comroid.test.model;
 
 import org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib;
-import org.comroid.uniform.data.node.UniObjectNode;
-import org.comroid.uniform.data.node.UniValueNode;
+import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.node.UniValueNode;
 import org.comroid.varbind.GroupBind;
 import org.comroid.varbind.VarBind;
 import org.comroid.varbind.VariableCarrier;

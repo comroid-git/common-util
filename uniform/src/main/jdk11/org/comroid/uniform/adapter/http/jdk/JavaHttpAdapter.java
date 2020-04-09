@@ -7,8 +7,8 @@ import java.net.http.HttpResponse;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
-import org.comroid.uniform.http.HttpAdapter;
-import org.comroid.uniform.http.REST;
+import org.comroid.restless.HttpAdapter;
+import org.comroid.restless.REST;
 
 public final class JavaHttpAdapter implements HttpAdapter {
     private final HttpClient httpClient = HttpClient.newHttpClient();

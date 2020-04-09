@@ -7,8 +7,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.comroid.common.iter.Span;
-import org.comroid.uniform.data.node.UniNode;
-import org.comroid.uniform.data.node.UniObjectNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         extends VarBind<EXTR, DPND, REMAP, FINAL> {
