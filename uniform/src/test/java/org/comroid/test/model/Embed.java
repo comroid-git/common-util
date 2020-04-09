@@ -6,7 +6,7 @@ import org.comroid.varbind.VariableCarrier;
 
 import com.alibaba.fastjson.JSONObject;
 
-import static org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib.fastJsonLib;
+import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
 
 @VarBind.Location(Embed.Binds.class)
 public class Embed extends VariableCarrier<DiscordAPI> {

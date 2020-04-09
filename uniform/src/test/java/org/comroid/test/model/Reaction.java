@@ -5,7 +5,7 @@ import org.comroid.varbind.GroupBind;
 import org.comroid.varbind.VarBind;
 import org.comroid.varbind.VariableCarrier;
 
-import static org.comroid.uniform.adapter.data.json.fastjson.FastJSONLib.fastJsonLib;
+import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
 
 @VarBind.Location(Reaction.Binds.class)
 public class Reaction extends VariableCarrier<DiscordAPI> {

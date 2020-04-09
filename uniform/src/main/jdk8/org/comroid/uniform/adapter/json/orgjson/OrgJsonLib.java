@@ -1,4 +1,4 @@
-package org.comroid.uniform.adapter.data.json.orgjson;
+package org.comroid.uniform.adapter.json.orgjson;
 
 import org.comroid.common.annotation.Instance;
 import org.comroid.uniform.SerializationAdapter;

@@ -1,8 +1,6 @@
-package org.comroid.uniform.adapter.data.json.fastjson;
+package org.comroid.uniform.adapter.json.fastjson;
 
 import java.io.IOException;
-import java.util.AbstractList;
-import java.util.AbstractMap;
 import java.util.Objects;
 import java.util.Set;
 

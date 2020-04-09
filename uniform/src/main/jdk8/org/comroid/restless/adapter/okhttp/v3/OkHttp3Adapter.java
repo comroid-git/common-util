@@ -1,4 +1,4 @@
-package org.comroid.uniform.adapter.http.okhttp.v3;
+package org.comroid.restless.adapter.okhttp.v3;
 
 import java.io.IOException;
 import java.net.URL;
