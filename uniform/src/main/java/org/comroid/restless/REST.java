@@ -19,6 +19,7 @@ import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.VarCarrier;
 import org.comroid.varbind.VariableCarrier;
 
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Nullable;
 
 public final class REST<D> {
@@ -80,10 +81,11 @@ public final class REST<D> {
         private final           REST                             rest;
         private final           Collection<Header>               headers;
         private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
-        private                 CompletableFuture<REST.Response> execution = null;
+        private                 CompletableFuture<REST.Response> execution    = null;
         private                 Provider<URL>                    urlProvider;
         private                 Method                           method;
         private                 String                           body;
+        private                 int                              expectedCode = HTTPStatusCodes.OK;
 
         public Request(REST rest, @Nullable BiFunction<D, UniObjectNode, T> tProducer) {
             this.rest = rest;
@@ -109,6 +111,12 @@ public final class REST<D> {
 
         public final Collection<Header> getHeaders() {
             return Collections.unmodifiableCollection(headers);
+        }
+
+        public final Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
+            this.expectedCode = code;
+
+            return this;
         }
 
         public final Request<T> url(Provider<URL> urlProvider) {
@@ -150,8 +158,8 @@ public final class REST<D> {
         }
 
         public final CompletableFuture<REST.Response> execute() {
-            return execution == null ? (execution = httpAdapter.call(
-                    rest, method, urlProvider, headers, serializationAdapter.getMimeType(), body)) : execution;
+            return (execution == null ? (execution = httpAdapter.call(
+                    rest, method, urlProvider, headers, serializationAdapter.getMimeType(), body)) : execution);
         }
 
         public final CompletableFuture<Integer> execute$statusCode() {
