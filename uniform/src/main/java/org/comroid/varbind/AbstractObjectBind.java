@@ -2,6 +2,7 @@ package org.comroid.varbind;
 
 import java.util.function.BiFunction;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.data.node.UniObjectNode;
 
@@ -14,6 +15,8 @@ abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<EXTR, DP
         this.fieldName = fieldName;
         this.extractor = extractor;
         this.group = group;
+
+        group.children.add(Polyfill.deadCast(this));
     }
 
     @Override

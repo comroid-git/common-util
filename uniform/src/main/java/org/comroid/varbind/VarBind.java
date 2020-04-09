@@ -11,16 +11,6 @@ import java.util.function.Function;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.data.node.UniObjectNode;
 
-/**
- * Basic Variable Binding definition Serves as an interface to handling data when serializing.
- *
- * @param <S>    The (singular) remapping input Type
- * @param <A>    The (singular) remapping output Type
- * @param <D>    The (singular) dependency Type; {@link Void} is default for {@code independent}
- * @param <R>    The (singular) output Type, this is what you get from {@link
- *               VariableCarrier#getVar(VarBind)}
- * @param <NODE> Serialization Library Type of the serialization Node
- */
 public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     String getFieldName();
 
@@ -53,12 +43,6 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     @interface Root {
     }
 
-    /**
-     * Variable definition with 0 mapping Stages.
-     *
-     * @param <NODE> Serialization Library Type of the serialization Node
-     * @param <S>    The serialization input & output Type
-     */
     final class Uno<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
         public Uno(GroupBind group, String fieldName, BiFunction<UniObjectNode, String, TARGET> extractor) {
             super(group, fieldName, extractor.andThen(Span::singleton));
@@ -70,13 +54,6 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         }
     }
 
-    /**
-     * Variable definition with 1 mapping Stage.
-     *
-     * @param <NODE> Serialization Library Type of the serialization Node
-     * @param <S>    The serialization input Type
-     * @param <A>    The mapping output Type
-     */
     final class Duo<EXTR, TARGET> extends AbstractObjectBind<EXTR, Object, TARGET> {
         private final Function<EXTR, TARGET> remapper;
 
@@ -92,21 +69,10 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         }
     }
 
-    /**
-     * Variable definition with 2 mapping Stages, one of which uses an environmentally global
-     * variable.
-     *
-     * @param <NODE> Serialization Library Type of the serialization Node
-     * @param <S>    The serialization input Type
-     * @param <A>    The mapping output Type
-     * @param <D>    The dependency Type
-     *
-     * @see VariableCarrier Dependency Type
-     */
     final class Dep<EXTR, DPND, TARGET> extends AbstractObjectBind<EXTR, DPND, TARGET> {
-        private final BiFunction<EXTR, DPND, TARGET> resolver;
+        private final BiFunction<DPND, EXTR, TARGET> resolver;
 
-        public Dep(GroupBind group, String fieldName, BiFunction<UniObjectNode, String, EXTR> extractor, BiFunction<EXTR, DPND, TARGET> resolver) {
+        public Dep(GroupBind group, String fieldName, BiFunction<UniObjectNode, String, EXTR> extractor, BiFunction<DPND, EXTR, TARGET> resolver) {
             super(group, fieldName, extractor.andThen(Span::singleton));
 
             this.resolver = resolver;
@@ -114,7 +80,7 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
 
         @Override
         public TARGET remap(EXTR from, DPND dependency) {
-            return resolver.apply(from, Objects.requireNonNull(dependency, "Dependency Object"));
+            return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object"), from);
         }
     }
 }

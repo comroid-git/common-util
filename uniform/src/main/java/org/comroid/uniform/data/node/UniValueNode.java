@@ -1,5 +1,6 @@
 package org.comroid.uniform.data.node;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.comroid.common.ref.Reference;
@@ -168,7 +169,17 @@ public class UniValueNode<T> extends UniNode {
 
     static final class Null extends UniValueNode<Void> {
         private Null() {
-            super(null, null);
+            super(null, new UniValueNode.Adapter<Void>() {
+                @Override
+                public <R> @Nullable R get(ValueType<R> as) {
+                    return null;
+                }
+
+                @Override
+                public Object getBaseNode() {
+                    return instance;
+                }
+            });
         }
 
         private static final UniValueNode<?> instance = new Null();
@@ -182,7 +193,7 @@ public class UniValueNode<T> extends UniNode {
         public static final UniValueNode.ValueType<Double> DOUBLE = new ValueType<>(Double::parseDouble);
         public static final UniValueNode.ValueType<Float> FLOAT = new ValueType<>(Float::parseFloat);
         public static final UniValueNode.ValueType<Short> SHORT = new ValueType<>(Short::parseShort);
-        public static final UniValueNode.ValueType<Character> CHARACTER = new ValueType<>(str -> str.toCharArray()[0]);
+        public static final UniValueNode.ValueType<Character>                CHARACTER   = new ValueType<>(str -> str.toCharArray()[0]);
 
         private final Function<String, R> mapper;
 

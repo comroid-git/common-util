@@ -432,7 +432,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
             }
 
             previousIndex = nextIndex;
-            return true;
+            return next != null;
         }
     }
 

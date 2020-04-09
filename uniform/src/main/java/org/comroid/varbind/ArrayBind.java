@@ -51,9 +51,9 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
     }
 
     final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
-        private final BiFunction<EXTR, DPND, REMAP> resolver;
+        private final BiFunction<DPND, EXTR, REMAP> resolver;
 
-        public Dep(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, BiFunction<EXTR, DPND, REMAP> resolver, Supplier<FINAL> collectionSupplier) {
+        public Dep(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, BiFunction<DPND, EXTR, REMAP> resolver, Supplier<FINAL> collectionSupplier) {
             super(group, fieldName, extractor, collectionSupplier);
 
             this.resolver = resolver;
@@ -61,7 +61,7 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
 
         @Override
         public REMAP remap(EXTR from, DPND dependency) {
-            return resolver.apply(from, Objects.requireNonNull(dependency, "Dependency Object"));
+            return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object"), from);
         }
     }
 }

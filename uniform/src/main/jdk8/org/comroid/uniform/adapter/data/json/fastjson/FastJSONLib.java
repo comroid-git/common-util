@@ -1,7 +1,10 @@
 package org.comroid.uniform.adapter.data.json.fastjson;
 
 import java.io.IOException;
+import java.util.AbstractList;
+import java.util.AbstractMap;
 import java.util.Objects;
+import java.util.Set;
 
 import org.comroid.common.annotation.Instance;
 import org.comroid.uniform.data.SerializationAdapter;
@@ -13,6 +16,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
+import org.jetbrains.annotations.NotNull;
 
 public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JSONArray> {
     public static @Instance final FastJSONLib fastJsonLib = new FastJSONLib();
@@ -38,10 +42,10 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
 
             switch (type) {
                 case Object:
-                    node = new UniObjectNode(this, objectAdapter(JSONObject.parseObject(data)));
+                    node = createUniObjectNode(JSONObject.parseObject(data));
                     break;
                 case Array:
-                    node = new UniArrayNode(this, arrayAdapter(JSONArray.parseArray(data)));
+                    node = createUniArrayNode(JSONArray.parseArray(data));
                     break;
                 case Value:
                     throw new IllegalArgumentException("Cannot parse JSON Value");
@@ -53,21 +57,32 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
 
     @Override
     public UniObjectNode createUniObjectNode(JSONObject node) {
-        return null;
+        return new UniObjectNode(this, objectAdapter(node));
     }
 
     @Override
     public UniArrayNode createUniArrayNode(JSONArray node) {
-        return null;
+        return new UniArrayNode(this, arrayAdapter(node));
     }
 
     private UniObjectNode.Adapter objectAdapter(JSONObject parseObject) {
-        class Local extends JSONObject implements UniObjectNode.Adapter {
+        class Local extends AbstractMap<String, Object> implements UniObjectNode.Adapter {
             private final JSONObject baseNode = parseObject;
 
             @Override
             public Object getBaseNode() {
                 return baseNode;
+            }
+
+            @Override
+            public Object put(String key, Object value) {
+                return baseNode.put(key, value);
+            }
+
+            @NotNull
+            @Override
+            public Set<Entry<String, Object>> entrySet() {
+                return baseNode.entrySet();
             }
         }
 
@@ -75,12 +90,37 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
     }
 
     private UniArrayNode.Adapter arrayAdapter(JSONArray parseObject) {
-        class Local extends JSONArray implements UniArrayNode.Adapter {
+        class Local extends AbstractList<Object> implements UniArrayNode.Adapter {
             private final JSONArray baseNode = parseObject;
 
             @Override
             public Object getBaseNode() {
                 return baseNode;
+            }
+
+            @Override
+            public Object get(int index) {
+                return baseNode.get(index);
+            }
+
+            @Override
+            public Object set(int index, Object element) {
+                return baseNode.set(index, element);
+            }
+
+            @Override
+            public void add(int index, Object element) {
+                baseNode.add(index, element);
+            }
+
+            @Override
+            public Object remove(int index) {
+                return baseNode.remove(index);
+            }
+
+            @Override
+            public int size() {
+                return baseNode.size();
             }
         }
 

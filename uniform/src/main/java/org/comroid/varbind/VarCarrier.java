@@ -16,19 +16,17 @@ public interface VarCarrier<DEP> {
 
     Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet();
 
-    default <T> @NotNull Optional<T> wrap(VarBind<Object, ? super DEP, ?, T> bind) {
+    <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> bind);
+
+    default <T> @NotNull Optional<T> wrap(VarBind<?, ? super DEP, ?, T> bind) {
         return Optional.ofNullable(get(bind));
     }
 
-    <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> bind);
-
-    default @NotNull <T> T requireNonNull(VarBind<Object, ? super DEP, ?, T> bind) {
-        return Objects.requireNonNull(get(bind));
+    default @NotNull <T> T requireNonNull(VarBind<?, ? super DEP, ?, T> bind) {
+        return requireNonNull(bind, "No value defined");
     }
 
-    default @NotNull <T> T requireNonNull(
-            VarBind<Object, ? super DEP, ?, T> bind, String message
-    ) {
-        return Objects.requireNonNull(get(bind), message);
+    default @NotNull <T> T requireNonNull(VarBind<?, ? super DEP, ?, T> bind, String message) {
+        return wrap(bind).orElseThrow(() -> new NullPointerException(message));
     }
 }

@@ -30,10 +30,13 @@ public final class UniArrayNode extends UniNode {
         if (value == null)
             return UniValueNode.nullNode();
 
+        if (value instanceof UniNode)
+            return (UniNode) value;
+
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> (String) adapter.get(index)));
+            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(index))));
         } else return serializationAdapter.createUniNode(value);
     }
 
@@ -52,18 +55,18 @@ public final class UniArrayNode extends UniNode {
         final List<Object> yields = new ArrayList<>();
 
         for (int i = 0; i < size(); i++) {
-            yields.set(i, get(i).asRaw(null));
+            yields.add(get(i).asRaw(null));
         }
 
         return yields;
     }
 
     @Override
-    public List<? extends UniNode> asNodeList() {
+    public synchronized List<? extends UniNode> asNodeList() {
         final List<UniNode> yields = new ArrayList<>();
 
         for (int i = 0; i < size(); i++) {
-            yields.set(i, get(i));
+            yields.add(get(i));
         }
 
         return yields;

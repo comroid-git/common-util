@@ -23,14 +23,16 @@ import org.comroid.uniform.data.node.UniObjectNode;
 abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> implements ArrayBind<EXTR, DPND, REMAP, FINAL> {
     private final String fieldName;
     private final Function<? extends UniNode, EXTR> extractor;
-    private final Supplier<FINAL> collectionSupplier;
     private final GroupBind group;
+    final Supplier<FINAL> collectionSupplier;
 
     protected AbstractArrayBind(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Supplier<FINAL> collectionSupplier) {
         this.fieldName = fieldName;
         this.extractor = extractor;
         this.collectionSupplier = collectionSupplier;
         this.group = group;
+
+        group.children.add(Polyfill.deadCast(this));
     }
 
     @Override

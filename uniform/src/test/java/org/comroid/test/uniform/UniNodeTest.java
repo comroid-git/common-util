@@ -47,7 +47,7 @@ public class UniNodeTest {
 
     @Test
     public void testObject() {
-        randomMap.forEach((key, value) -> Assert.assertEquals(object.get(key).asInt(0), (int) value));
+        randomMap.forEach((key, value) -> Assert.assertEquals((int) value, object.get(key).asInt(0)));
     }
 
     @Test

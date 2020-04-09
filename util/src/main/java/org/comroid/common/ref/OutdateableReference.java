@@ -11,7 +11,7 @@ public final class OutdateableReference<T> implements Reference<T> {
 
     public boolean isOutdated() {
         synchronized (lock) {
-            return outdated;
+            return outdated || it == null;
         }
     }
 
