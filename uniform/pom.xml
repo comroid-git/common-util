@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.comroid</groupId>
   <artifactId>uniform</artifactId>
-  <version>0.10.0-SNAPSHOT</version>
+  <version>0.11.0-SNAPSHOT</version>
   <name>common-util</name>
   <description>Java Uniform Adapters</description>
   <url>https://github.com/comroid-git/common-util</url>
@@ -42,7 +42,7 @@
     <dependency>
       <groupId>org.comroid</groupId>
       <artifactId>common-util</artifactId>
-      <version>1.3.1-SNAPSHOT</version>
+      <version>1.4.0-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
