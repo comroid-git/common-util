@@ -103,9 +103,11 @@ task generateGithubPom(type: GenerateMavenPom) {
     pom = publishing.publications.mavenJava.pom
 }
 
-apply plugin: 'signing'
+if (System.getenv().containsKey('GPG_PASSPHRASE')) {
+    apply plugin: 'signing'
 
-signing {
-    useGpgCmd()
-    sign publishing.publications.mavenJava
+    signing {
+        useGpgCmd()
+        sign publishing.publications.mavenJava
+    }
 }
