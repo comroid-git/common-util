@@ -4,6 +4,8 @@ include(':util')
 
 include(':uniform')
 
+include(':dreadpool')
+
 include(':spellbind')
 
 include(':upd8r')
