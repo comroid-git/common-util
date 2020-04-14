@@ -1,10 +1,26 @@
 package org.comroid.dreadpool.loop;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 import org.comroid.dreadpool.model.Loop;
 
 public abstract class ForEach<T> extends Loop<T> {
+    public static final class Func<T> extends ForEach<T> {
+        private final Consumer<T> action;
+
+        public Func(int priority, Iterable<T> iterable, Consumer<T> action) {
+            super(priority, iterable);
+
+            this.action = action;
+        }
+
+        @Override
+        protected void execute(T each) {
+            action.accept(each);
+        }
+    }
+
     private final Iterator<T> iterator;
 
     public ForEach(int priority, Iterable<T> iterable) {
@@ -12,6 +28,9 @@ public abstract class ForEach<T> extends Loop<T> {
 
         this.iterator = iterable.iterator();
     }
+
+    @Override
+    protected abstract void execute(T each);
 
     @Override
     protected final T produce(int loop) {

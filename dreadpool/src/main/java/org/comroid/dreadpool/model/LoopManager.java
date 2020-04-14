@@ -1,10 +1,12 @@
 package org.comroid.dreadpool.model;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.stream.IntStream;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class LoopManager {
@@ -37,9 +39,9 @@ public final class LoopManager {
     private LoopManager() {
     }
 
-    public void queue(Loop<?> loop) {
+    public void queue(@NotNull Loop<?> loop) {
         synchronized (lock) {
-            loops.add(loop);
+            loops.add(Objects.requireNonNull(loop, "Loop is null"));
             lock.notifyAll();
         }
     }
