@@ -11,7 +11,7 @@ public abstract class Loop<L> implements Comparable<Loop<?>> {
 
     public static final Comparator<Loop<?>> LoopComparator = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
 
-    protected     int counter = 0;
+    protected     int counter = 0; 
     private final int priority;
 
     protected Loop(int priority) {
@@ -37,11 +37,15 @@ public abstract class Loop<L> implements Comparable<Loop<?>> {
 
     protected abstract L produce(int loop);
 
-    public final int nextInt() {
+    private int nextInt() {
         return counter++;
     }
 
     protected abstract void execute(L each);
+
+    public int lastInt() {
+        return counter;
+    }
 
     public final int priority() {
         return priority;
