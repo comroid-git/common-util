@@ -1,13 +1,14 @@
-package org.comroid.dreadpool.loop;
+package org.comroid.dreadpool.model;
 
 import java.util.Comparator;
 
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Loop<L> implements Comparable<Loop<?>> {
-    private static final Comparator<Loop<?>> LoopComparator = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
-    private final        int                 priority;
-    private              int                 counter        = 0;
+    public static final Comparator<Loop<?>> LoopComparator = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
+
+    protected     int counter = 0;
+    private final int priority;
 
     protected Loop(int priority) {
         this.priority = priority;

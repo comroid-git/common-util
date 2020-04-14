@@ -1,34 +1,33 @@
 package org.comroid.dreadpool.model;
 
-import java.util.PriorityQueue;
-import java.util.Queue;
-
-import org.comroid.dreadpool.loop.Loop;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LoopWorker extends Worker {
-    private final Queue<Loop<?>> loopQueue = new PriorityQueue<>();
+public final class LoopWorker extends Worker {
+    private final LoopManager manager;
 
-    public LoopWorker(@Nullable ThreadGroup group, @NotNull String name) {
+    public LoopWorker(
+            @NotNull LoopManager manager, @Nullable ThreadGroup group, @NotNull String name
+    ) {
         super(group, name);
+
+        this.manager = manager;
     }
 
     @Override
     @SuppressWarnings("InfiniteLoopStatement")
     public void run() {
         while (true) {
-            synchronized (loopQueue) {
+            synchronized (manager.lock) {
                 try {
-                    while (loopQueue.isEmpty()) {
-                        loopQueue.wait();
+                    while (manager.size() == 0) {
+                        manager.lock.wait();
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
 
-                final Loop<?> poll = loopQueue.poll();
+                final Loop<?> poll = manager.mostImportant();
             }
         }
     }
