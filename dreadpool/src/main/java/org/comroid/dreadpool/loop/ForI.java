@@ -4,6 +4,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import org.comroid.dreadpool.model.Loop;
+
 public abstract class ForI<V> extends Loop<V> {
     private final Supplier<V> initOp;
     private final Predicate<V> continueTester;
