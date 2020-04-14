@@ -7,24 +7,25 @@ import java.util.function.Supplier;
 import org.comroid.dreadpool.model.Loop;
 
 public abstract class ForI<V> extends Loop<V> {
-    private final Supplier<V> initOp;
-    private final Predicate<V> continueTester;
+    private final Supplier<V>    initOp;
+    private final Predicate<V>   continueTester;
     private final Function<V, V> accumulator;
 
     private V v;
 
-    public ForI(Supplier<V> initOp, Predicate<V> continueTester, Function<V, V> accumulator) {
+    public ForI(
+            int priority,
+            Supplier<V> initOp,
+            Predicate<V> continueTester,
+            Function<V, V> accumulator
+    ) {
         super(priority);
+
         this.initOp         = initOp;
         this.continueTester = continueTester;
         this.accumulator    = accumulator;
 
         this.v = initOp.get();
-    }
-
-    @Override
-    protected V produce(int loop) {
-        return v;
     }
 
     @Override
@@ -39,5 +40,10 @@ public abstract class ForI<V> extends Loop<V> {
     @Override
     protected boolean canContinue() {
         return continueTester.test(v);
+    }
+
+    @Override
+    protected V produce(int loop) {
+        return v;
     }
 }

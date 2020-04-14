@@ -7,8 +7,9 @@ import org.comroid.dreadpool.model.Loop;
 public abstract class ForEach<T> extends Loop<T> {
     private final Iterator<T> iterator;
 
-    public ForEach(Iterable<T> iterable) {
+    public ForEach(int priority, Iterable<T> iterable) {
         super(priority);
+
         this.iterator = iterable.iterator();
     }
 

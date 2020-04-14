@@ -5,6 +5,10 @@ import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Loop<L> implements Comparable<Loop<?>> {
+    public static final int LOW_PRIO    = 0;
+    public static final int MEDIUM_PRIO = 100;
+    public static final int HIGH_PRIO   = 200;
+
     public static final Comparator<Loop<?>> LoopComparator = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
 
     protected     int counter = 0;

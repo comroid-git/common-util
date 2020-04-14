@@ -7,8 +7,9 @@ import org.comroid.dreadpool.model.Loop;
 public abstract class While<T> extends Loop<T> {
     private final IntFunction<T> producer;
 
-    public While(IntFunction<T> producer) {
+    public While(int priority, IntFunction<T> producer) {
         super(priority);
+
         this.producer = producer;
     }
 
