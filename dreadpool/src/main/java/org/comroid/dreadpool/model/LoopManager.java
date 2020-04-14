@@ -17,7 +17,7 @@ public final class LoopManager {
     public static LoopManager start(int parallelism, @Nullable ThreadGroup group) {
         final LoopManager manager = new LoopManager();
 
-        IntStream.range(0, parallelism + 1)
+        IntStream.range(1, parallelism + 1)
                  .mapToObj(iter -> new LoopWorker(
                          manager,
                          group,
@@ -26,11 +26,6 @@ public final class LoopManager {
                  .forEach(Thread::start);
 
         return manager;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("LoopManager{loops=%s}", loops);
     }
 
     final         Object         lock  = new Object() {
@@ -53,13 +48,13 @@ public final class LoopManager {
         return loops.size();
     }
 
-    public Optional<Loop<?>> pollMostImportant() {
+    Optional<Loop<?>> pollMostImportant() {
         synchronized (lock) {
             return Optional.ofNullable(loops.poll());
         }
     }
 
-    public Optional<Loop<?>> pollMoreImportant(Loop<?> than) {
+    Optional<Loop<?>> pollMoreImportant(Loop<?> than) {
         synchronized (lock) {
             final Loop<?> peek = loops.peek();
 
