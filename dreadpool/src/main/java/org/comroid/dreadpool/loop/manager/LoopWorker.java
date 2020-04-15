@@ -1,5 +1,6 @@
 package org.comroid.dreadpool.loop.manager;
 
+import org.comroid.dreadpool.Worker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
