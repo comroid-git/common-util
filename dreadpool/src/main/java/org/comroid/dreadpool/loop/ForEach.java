@@ -3,7 +3,7 @@ package org.comroid.dreadpool.loop;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
-import org.comroid.dreadpool.model.Loop;
+import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class ForEach<T> extends Loop<T> {
     public static final class Func<T> extends ForEach<T> {

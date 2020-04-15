@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import org.comroid.dreadpool.model.Loop;
+import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class ForI<V> extends Loop<V> {
     public static final class IntFunc extends ForI<Integer> {

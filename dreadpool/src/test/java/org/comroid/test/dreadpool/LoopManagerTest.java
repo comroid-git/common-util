@@ -1,8 +1,8 @@
 package org.comroid.test.dreadpool;
 
 import org.comroid.dreadpool.loop.WhileDo;
-import org.comroid.dreadpool.model.Loop;
-import org.comroid.dreadpool.model.LoopManager;
+import org.comroid.dreadpool.loop.manager.Loop;
+import org.comroid.dreadpool.loop.manager.LoopManager;
 import org.junit.Before;
 import org.junit.Test;
 

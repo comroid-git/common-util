@@ -3,7 +3,7 @@ package org.comroid.dreadpool.loop;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntFunction;
 
-import org.comroid.dreadpool.model.Loop;
+import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class WhileDo<T> extends Loop<T> {
     public static final class Func extends WhileDo<Integer> {

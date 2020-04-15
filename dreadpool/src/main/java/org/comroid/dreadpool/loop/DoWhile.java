@@ -2,7 +2,7 @@ package org.comroid.dreadpool.loop;
 
 import java.util.function.BooleanSupplier;
 
-import org.comroid.dreadpool.model.Loop;
+import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class DoWhile extends Loop<Integer> {
     public static final class Func extends DoWhile {

@@ -1,4 +1,4 @@
-package org.comroid.dreadpool.model;
+package org.comroid.dreadpool.loop.manager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
