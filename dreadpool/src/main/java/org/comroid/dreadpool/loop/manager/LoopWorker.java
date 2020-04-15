@@ -27,10 +27,10 @@ public final class LoopWorker extends Worker {
                 if (!peek.continueLoop()) {
                     current = null;
                 } else peek.oneCycle();
-            } else synchronized (manager.lock) {
+            } else synchronized (manager.loops) {
                 try {
                     while (manager.size() == 0) {
-                        manager.lock.wait();
+                        manager.loops.wait();
                     }
 
                     swapCurrent(manager.pollMostImportant()

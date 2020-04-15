@@ -68,7 +68,9 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
             throw new UnsupportedOperationException("Loop is closed!");
 
         if (canContinue.isOutdated())
-            return canContinue.update(continueLoop());
+            if (canContinue.update(continueLoop()))
+                return true;
+            else if (!result.isDone()) result.complete(null);
         return canContinue.get();
     }
 
