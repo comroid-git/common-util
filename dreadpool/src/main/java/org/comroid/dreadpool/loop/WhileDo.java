@@ -18,7 +18,7 @@ public abstract class WhileDo<T> extends Loop<T> {
         }
 
         @Override
-        protected boolean canContinue() {
+        protected boolean continueLoop() {
             return predicate.getAsBoolean();
         }
 
@@ -37,7 +37,7 @@ public abstract class WhileDo<T> extends Loop<T> {
     }
 
     @Override
-    protected abstract boolean canContinue();
+    protected abstract boolean continueLoop();
 
     @Override
     protected final T produce(int loop) {

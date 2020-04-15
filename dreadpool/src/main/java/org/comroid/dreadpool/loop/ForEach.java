@@ -38,7 +38,7 @@ public abstract class ForEach<T> extends Loop<T> {
     }
 
     @Override
-    protected final boolean canContinue() {
+    protected final boolean continueLoop() {
         return iterator.hasNext();
     }
 }

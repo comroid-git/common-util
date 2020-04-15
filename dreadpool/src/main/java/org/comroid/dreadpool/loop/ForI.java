@@ -120,7 +120,7 @@ public abstract class ForI<V> extends Loop<V> {
     protected abstract V accumulate(V value);
 
     @Override
-    protected boolean canContinue() {
+    protected boolean continueLoop() {
         return canContinueWith(v);
     }
 

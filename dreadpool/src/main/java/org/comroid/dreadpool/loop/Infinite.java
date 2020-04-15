@@ -27,7 +27,7 @@ public abstract class Infinite<T> extends Loop<T> {
     }
 
     @Override
-    protected boolean canContinue() {
+    protected boolean continueLoop() {
         return true;
     }
 

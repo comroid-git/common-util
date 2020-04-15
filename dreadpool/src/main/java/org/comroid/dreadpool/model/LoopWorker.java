@@ -23,7 +23,7 @@ public final class LoopWorker extends Worker {
         while (true) {
             if (current != null) {
                 final Loop<?> peek = peek();
-                if (!peek.canContinue()) {
+                if (!peek.continueLoop()) {
                     current = null;
                 } else peek.oneCycle();
             } else synchronized (manager.lock) {

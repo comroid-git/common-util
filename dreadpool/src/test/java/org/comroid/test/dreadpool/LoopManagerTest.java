@@ -13,7 +13,7 @@ public class LoopManagerTest {
     private final List<String> results = new ArrayList<>();
     private final Loop<Integer> lowPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
-        protected boolean canContinue() {
+        protected boolean continueLoop() {
             return !results.contains("low-while1-#2");
         }
 
@@ -25,7 +25,7 @@ public class LoopManagerTest {
     private LoopManager loopManager;
     private Loop<Integer> lowPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
-        protected boolean canContinue() {
+        protected boolean continueLoop() {
             return !results.contains("low-while2-#2");
         }
 
@@ -36,7 +36,7 @@ public class LoopManagerTest {
     };
     private Loop<Integer> medPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
-        protected boolean canContinue() {
+        protected boolean continueLoop() {
             return !results.contains("med-while1-#2");
         }
 
@@ -47,7 +47,7 @@ public class LoopManagerTest {
     };
     private Loop<Integer> medPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
-        protected boolean canContinue() {
+        protected boolean continueLoop() {
             return !results.contains("med-while2-#2");
         }
 
@@ -58,7 +58,7 @@ public class LoopManagerTest {
     };
     private Loop<Integer> higPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
-        protected boolean canContinue() {
+        protected boolean continueLoop() {
             return !results.contains("hig-while1-#2");
         }
 
@@ -69,7 +69,7 @@ public class LoopManagerTest {
     };
     private Loop<Integer> higPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
-        protected boolean canContinue() {
+        protected boolean continueLoop() {
             return !results.contains("hig-while2-#2");
         }
 

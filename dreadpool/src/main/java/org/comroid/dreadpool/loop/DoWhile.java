@@ -10,7 +10,7 @@ public abstract class DoWhile extends Loop<Integer> {
         private final Runnable        action;
 
         @Override
-        protected boolean canContinue() {
+        protected boolean continueLoop() {
             return continueTester.getAsBoolean();
         }
 
@@ -40,7 +40,7 @@ public abstract class DoWhile extends Loop<Integer> {
     }
 
     @Override
-    protected abstract boolean canContinue();
+    protected abstract boolean continueLoop();
 
     @Override
     protected Integer produce(int loop) {
