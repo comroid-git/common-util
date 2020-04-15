@@ -1,14 +1,7 @@
 package org.comroid.common.func;
 
-import java.util.concurrent.CompletableFuture;
-
-public interface Builder<T> extends Provider<T> {
+public interface Builder<T> extends Provider.Now<T> {
     T build();
-
-    @Override
-    default CompletableFuture<T> get() {
-        return CompletableFuture.completedFuture(build());
-    }
 
     @Override
     default T now() {
