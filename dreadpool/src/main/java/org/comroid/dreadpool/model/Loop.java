@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class Loop<L> implements Comparable<Loop<?>> {
+public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable {
     public static final int LOW_PRIO = 0;
     public static final int MEDIUM_PRIO = 100;
     public static final int HIGH_PRIO = 200;
@@ -51,5 +51,10 @@ public abstract class Loop<L> implements Comparable<Loop<?>> {
 
     public final int priority() {
         return priority;
+    }
+
+    @Override
+    public final void run() {
+        while (canContinue()) oneCycle();
     }
 }
