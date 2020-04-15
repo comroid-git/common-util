@@ -1,57 +1,83 @@
 package org.comroid.test.dreadpool;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.comroid.dreadpool.loop.ForI;
 import org.comroid.dreadpool.loop.WhileDo;
 import org.comroid.dreadpool.model.Loop;
 import org.comroid.dreadpool.model.LoopManager;
-
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoopManagerTest {
-    private LoopManager loopManager;
-
     private final List<String> results = new ArrayList<>();
-
     private final Loop<Integer> lowPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
         protected boolean canContinue() {
-            return !results.contains("low-while-#2");
+            return !results.contains("low-while1-#2");
         }
 
         @Override
         protected void execute(Integer each) {
-            results.add("low-while-#" + each);
+            results.add("low-while1-#" + each);
         }
     };
-    private Loop<Integer> lowPrioLoop2 = new ForI<Integer>(Loop.LOW_PRIO) {
+    private LoopManager loopManager;
+    private Loop<Integer> lowPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+        @Override
+        protected boolean canContinue() {
+            return !results.contains("low-while2-#2");
+        }
+
         @Override
         protected void execute(Integer each) {
-
-        }
-
-        @Override
-        protected Integer init() {
-            return null;
-        }
-
-        @Override
-        protected boolean canContinueWith(Integer value) {
-            return false;
-        }
-
-        @Override
-        protected Integer accumulate(Integer value) {
-            return null;
+            results.add("low-while2-#" + each);
         }
     };
-    private Loop<Integer> medPrioLoop1;
-    private Loop<Integer> medPrioLoop2;
-    private Loop<Integer> higPrioLoop1;
-    private Loop<Integer> higPrioLoop2;
+    private Loop<Integer> medPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+        @Override
+        protected boolean canContinue() {
+            return !results.contains("med-while1-#2");
+        }
+
+        @Override
+        protected void execute(Integer each) {
+            results.add("med-while1-#" + each);
+        }
+    };
+    private Loop<Integer> medPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+        @Override
+        protected boolean canContinue() {
+            return !results.contains("med-while2-#2");
+        }
+
+        @Override
+        protected void execute(Integer each) {
+            results.add("med-while2-#" + each);
+        }
+    };
+    private Loop<Integer> higPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+        @Override
+        protected boolean canContinue() {
+            return !results.contains("hig-while1-#2");
+        }
+
+        @Override
+        protected void execute(Integer each) {
+            results.add("hig-while1-#" + each);
+        }
+    };
+    private Loop<Integer> higPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+        @Override
+        protected boolean canContinue() {
+            return !results.contains("hig-while2-#2");
+        }
+
+        @Override
+        protected void execute(Integer each) {
+            results.add("hig-while2-#" + each);
+        }
+    };
 
     @Before
     public void setup() {
@@ -66,5 +92,7 @@ public class LoopManagerTest {
         loopManager.queue(higPrioLoop2);
         loopManager.queue(medPrioLoop2);
         loopManager.queue(lowPrioLoop2);
+
+        results.forEach(System.out::println);
     }
 }

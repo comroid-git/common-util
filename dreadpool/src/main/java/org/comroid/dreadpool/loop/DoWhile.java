@@ -28,7 +28,9 @@ public abstract class DoWhile extends Loop<Integer> {
     }
 
     public DoWhile(int priority) {
-        this(priority, super::oneCycle);
+        super(priority);
+
+        execute(-1);
     }
 
     private DoWhile(int priority, Runnable initCall) {
