@@ -20,4 +20,14 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
     default T now() {
         return get().join();
     }
+
+    interface Now<T> extends Provider<T> {
+        @Override
+        default CompletableFuture<T> get() {
+            return CompletableFuture.completedFuture(now());
+        }
+
+        @Override
+        T now();
+    }
 }
