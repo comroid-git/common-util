@@ -23,7 +23,7 @@ public abstract class WhileDo<T> extends Loop<T> {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             action.run();
         }
     }
@@ -45,5 +45,5 @@ public abstract class WhileDo<T> extends Loop<T> {
     }
 
     @Override
-    protected abstract void executeLoop(T each);
+    protected abstract boolean executeLoop(T each);
 }

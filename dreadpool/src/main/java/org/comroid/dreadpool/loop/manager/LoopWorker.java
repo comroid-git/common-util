@@ -5,10 +5,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public final class LoopWorker extends Worker {
     private final LoopManager manager;
-    private Loop<?> current;
+    private       Loop<?>     current;
 
     public LoopWorker(
             @NotNull LoopManager manager, @Nullable ThreadGroup group, @NotNull String name
@@ -23,23 +24,24 @@ public final class LoopWorker extends Worker {
     public void run() {
         while (true) {
             if (current != null) {
-                final Loop<?> peek = peek();
-                if (!peek.continueLoop()) {
+                if (!current.continueLoop()) {
                     current = null;
-                } else peek.oneCycle();
-            } else synchronized (manager.loops) {
-                try {
-                    while (manager.size() == 0) {
-                        manager.loops.wait();
+                } else current.oneCycle();
+            } else synchronized (manager.lock) {
+                    Optional<Loop<?>> mostImportant = manager.pollMostImportant();
+                    try {
+                        if (!mostImportant.isPresent()) {
+                            while (!mostImportant.isPresent() || manager.size() == 0) {
+                                manager.lock.wait();
+                                mostImportant = manager.pollMostImportant();
+                            }
+                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    } finally {
+                        mostImportant.ifPresent(this::swapCurrent);
                     }
-
-                    swapCurrent(manager.pollMostImportant()
-                            .orElseThrow(() -> new AssertionError(
-                                    "Could not retrieve most important loop")));
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
                 }
-            }
         }
     }
 
@@ -50,17 +52,5 @@ public final class LoopWorker extends Worker {
         }
 
         current = loop;
-    }
-
-    private Loop<?> peek() {
-        manager.pollMoreImportant(current)
-                .ifPresent(prio -> {
-                    if (prio == current)
-                        throw new AssertionError();
-
-                    swapCurrent(prio);
-                });
-
-        return current;
     }
 }

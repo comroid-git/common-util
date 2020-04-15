@@ -1,5 +1,6 @@
 package org.comroid.dreadpool.loop;
 
+import java.util.HashSet;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
@@ -51,8 +52,10 @@ public abstract class ForI<V> extends Loop<V> {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             action.accept(each);
+
+            return continueTester.test(this.peekNextInt());
         }
     }
 
@@ -65,14 +68,23 @@ public abstract class ForI<V> extends Loop<V> {
         public Func(
                 int priority,
                 Supplier<T> initOp,
-                Predicate<T> continueTester,
+                final Predicate<T> pContinueTester,
                 UnaryOperator<T> accumulator,
                 Consumer<T> action
         ) {
             super(priority);
 
             this.initOp         = initOp;
-            this.continueTester = continueTester;
+            this.continueTester = new Predicate<T>() {
+                private final HashSet<T> cache = new HashSet<>();
+
+                @Override
+                public boolean test(T t) {
+                    if (cache.add(t))
+                        return pContinueTester.test(t);
+                    return false;
+                }
+            };
             this.accumulator    = accumulator;
             this.action         = action;
         }
@@ -93,8 +105,10 @@ public abstract class ForI<V> extends Loop<V> {
         }
 
         @Override
-        protected void executeLoop(T each) {
+        protected boolean executeLoop(T each) {
             action.accept(each);
+
+            return continueTester.test(produce(this.peekNextInt()));
         }
     }
 

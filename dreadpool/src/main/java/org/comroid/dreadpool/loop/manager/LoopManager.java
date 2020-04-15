@@ -1,17 +1,19 @@
 package org.comroid.dreadpool.loop.manager;
 
+import org.comroid.common.Polyfill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public final class LoopManager {
-    public static final ThreadGroup THREAD_GROUP = new ThreadGroup("LoopManager");
-    final               Queue<Loop<?>> loops     = new PriorityBlockingQueue<>();
+    public static final ThreadGroup     THREAD_GROUP = new ThreadGroup("LoopManager");
+    final               Object          lock         = Polyfill.selfawareLock();
+    private final       Queue<Loop<?>>  queue        = new PriorityQueue<>();
+    private             Set<LoopWorker> workers;
 
     private LoopManager() {
     }
@@ -23,44 +25,47 @@ public final class LoopManager {
     public static LoopManager start(int parallelism, @Nullable ThreadGroup group) {
         final LoopManager manager = new LoopManager();
 
-        IntStream.range(1, parallelism + 1).mapToObj(iter -> new LoopWorker(manager,
-                                                                            group,
-                                                                            String.format("LoopWorker @ %s#%4d",
-                                                                                          manager.toString(),
-                                                                                          iter
-                                                                            )
-        )).forEach(Thread::start);
+        manager.workers = Collections.unmodifiableSet(IntStream.range(1, parallelism + 1)
+                .mapToObj(iter -> new LoopWorker(manager,
+                        group,
+                        String.format("LoopWorker @" + " " + "%s#%4d", manager.toString(), iter)
+                ))
+                .collect(Collectors.toSet()));
+        manager.workers.forEach(Thread::start);
 
         return manager;
     }
 
-    public void queue(@NotNull Loop<?> loop) {
-        synchronized (loops) {
-            loops.add(Objects.requireNonNull(loop, "Loop is null"));
-            loops.notifyAll();
+    public <T> CompletableFuture<T> queue(@NotNull Loop<T> loop) {
+        synchronized (lock) {
+            queue.add(Objects.requireNonNull(loop, "Loop is null"));
+            lock.notifyAll();
         }
+
+        return loop.result;
     }
 
     public int size() {
-        return loops.size();
+        return queue.size();
     }
 
     Optional<Loop<?>> pollMostImportant() {
-        synchronized (loops) {
-            return Optional.ofNullable(loops.poll());
+        synchronized (lock) {
+            return Optional.ofNullable(queue.poll());
         }
     }
 
+    @Deprecated
     Optional<Loop<?>> pollMoreImportant(Loop<?> than) {
-        synchronized (loops) {
-            final Loop<?> peek = loops.peek();
+        synchronized (lock) {
+            final Loop<?> peek = queue.peek();
 
             if (peek == null) {
                 return Optional.empty();
             }
 
             if (peek.compareTo(than) > 0) {
-                loops.remove();
+                queue.remove();
 
                 return Optional.of(peek);
             } else
@@ -70,6 +75,6 @@ public final class LoopManager {
 
     @Override
     public String toString() {
-        return String.format("LoopManager{lock=%s}", loops);
+        return String.format("LoopManager{lock=%s}", queue);
     }
 }

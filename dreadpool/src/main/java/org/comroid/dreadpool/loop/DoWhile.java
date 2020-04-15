@@ -15,8 +15,10 @@ public abstract class DoWhile extends Loop<Integer> {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             action.run();
+
+            return true;
         }
 
         public Func(int priority, BooleanSupplier continueTester, Runnable action) {
@@ -48,5 +50,5 @@ public abstract class DoWhile extends Loop<Integer> {
     }
 
     @Override
-    protected abstract void executeLoop(Integer each);
+    protected abstract boolean executeLoop(Integer each);
 }

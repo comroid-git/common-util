@@ -8,17 +8,18 @@ import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoCloseable {
-    public static final int LOW_PRIO = 0;
+    public static final int LOW_PRIO    = 0;
     public static final int MEDIUM_PRIO = 100;
-    public static final int HIGH_PRIO = 200;
+    public static final int HIGH_PRIO   = 200;
 
-    public static final Comparator<Loop<?>> LOOP_COMPARATOR = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
+    public static final Comparator<Loop<?>> LOOP_COMPARATOR
+            = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
 
-    public final CompletableFuture<L> result = new CompletableFuture<>();
+    public final  CompletableFuture<L>          result      = new CompletableFuture<>();
     private final OutdateableReference<Boolean> canContinue = new OutdateableReference<>();
-    private final int priority;
-    protected int counter = 0;
-    private boolean closed;
+    private final int                           priority;
+    protected     int                           counter     = 0;
+    private       boolean                       closed;
 
     protected Loop(int priority) {
         this.priority = priority;
@@ -26,7 +27,8 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
     @Internal
     protected boolean oneCycle() throws UnsupportedOperationException {
-        if (!canContinue()) return false;
+        if (!canContinue())
+            return false;
 
         final L it = produce(nextInt());
 
@@ -38,8 +40,12 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     @Internal
     protected abstract boolean continueLoop();
 
+    /**
+     * @param each
+     * @return Whether we can continue after this.
+     */
     @Internal
-    protected abstract void executeLoop(L each);
+    protected abstract boolean executeLoop(L each);
 
     @Internal
     protected abstract L produce(int loop);
@@ -49,6 +55,11 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
         return counter++;
     }
 
+    @Internal
+    protected int peekNextInt() {
+        return counter + 1;
+    }
+
     @Override
     public int compareTo(@NotNull Loop<?> other) {
         return LOOP_COMPARATOR.compare(this, other);
@@ -56,10 +67,8 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
     @Internal
     public final void execute(L each) {
-        // itsy bitsy boolean operations to check whether we should continue
-        if (canContinue.outdate() || canContinue()) {
-            executeLoop(each);
-        }
+        if (canContinue() && !executeLoop(each))
+            close();
     }
 
     @Internal
@@ -67,10 +76,9 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
         if (isClosed())
             throw new UnsupportedOperationException("Loop is closed!");
 
-        if (canContinue.isOutdated())
-            if (canContinue.update(continueLoop()))
-                return true;
-            else if (!result.isDone()) result.complete(null);
+        if (canContinue.isOutdated() && canContinue.update(continueLoop()))
+            return true;
+
         return canContinue.get();
     }
 
@@ -84,7 +92,8 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
     @Override
     public final void run() throws UnsupportedOperationException {
-        while (canContinue()) oneCycle();
+        while (canContinue())
+            oneCycle();
 
         close();
     }
@@ -96,5 +105,8 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     @Override
     public void close() {
         this.closed = true;
+
+        if (!result.isDone())
+            result.complete(null);
     }
 }

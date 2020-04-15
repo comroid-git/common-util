@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class LoopManagerTest {
     private final List<String>  results      = new ArrayList<>();
     private final Loop<Integer> lowPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
@@ -19,7 +22,7 @@ public class LoopManagerTest {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             results.add("low-while1-#" + each);
         }
     };
@@ -31,7 +34,7 @@ public class LoopManagerTest {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             results.add("low-while2-#" + each);
         }
     };
@@ -42,7 +45,7 @@ public class LoopManagerTest {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             results.add("med-while1-#" + each);
         }
     };
@@ -53,7 +56,7 @@ public class LoopManagerTest {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             results.add("med-while2-#" + each);
         }
     };
@@ -64,7 +67,7 @@ public class LoopManagerTest {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             results.add("hig-while1-#" + each);
         }
     };
@@ -75,7 +78,7 @@ public class LoopManagerTest {
         }
 
         @Override
-        protected void executeLoop(Integer each) {
+        protected boolean executeLoop(Integer each) {
             results.add("hig-while2-#" + each);
         }
     };
@@ -90,9 +93,12 @@ public class LoopManagerTest {
         loopManager.queue(lowPrioLoop1);
         loopManager.queue(medPrioLoop1);
         loopManager.queue(higPrioLoop1);
+        higPrioLoop2.result.join();
+
         loopManager.queue(higPrioLoop2);
         loopManager.queue(medPrioLoop2);
         loopManager.queue(lowPrioLoop2);
+        higPrioLoop2.result.join();
 
         System.out.println("Results:");
         results.forEach(System.out::println);
@@ -101,12 +107,24 @@ public class LoopManagerTest {
                 lowPrioLoop1.result,
                 lowPrioLoop2.result,
                 medPrioLoop1.result,
-                medPrioLoop2.result,
-                higPrioLoop1.result,
-                higPrioLoop2.result
+                medPrioLoop2.result
         ).join();
 
         System.out.println("Results:");
         results.forEach(System.out::println);
+
+        assertEquals(12, results.size());
+
+        assertTrue(results.stream()
+                          .limit(4)
+                          .allMatch(str -> str.startsWith("hig")));
+        assertTrue(results.stream()
+                          .skip(4)
+                          .limit(4)
+                          .allMatch(str -> str.startsWith("med")));
+        assertTrue(results.stream()
+                          .skip(8)
+                          .limit(4)
+                          .allMatch(str -> str.startsWith("low")));
     }
 }
