@@ -16,7 +16,7 @@ public abstract class ForEach<T> extends Loop<T> {
         }
 
         @Override
-        protected void execute(T each) {
+        protected void executeLoop(T each) {
             action.accept(each);
         }
     }
@@ -30,7 +30,7 @@ public abstract class ForEach<T> extends Loop<T> {
     }
 
     @Override
-    protected abstract void execute(T each);
+    protected abstract void executeLoop(T each);
 
     @Override
     protected final T produce(int loop) {

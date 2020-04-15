@@ -37,7 +37,7 @@ public abstract class Infinite<T> extends Loop<T> {
     }
 
     @Override
-    protected void execute(T constant) {
+    protected void executeLoop(T constant) {
         execute();
     }
 

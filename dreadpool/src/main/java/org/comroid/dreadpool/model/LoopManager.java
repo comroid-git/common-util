@@ -1,5 +1,6 @@
 package org.comroid.dreadpool.model;
 
+import org.comroid.common.Polyfill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,15 +12,7 @@ import java.util.stream.IntStream;
 
 public final class LoopManager {
     public static final ThreadGroup THREAD_GROUP = new ThreadGroup("LoopManager");
-    final Object lock = new Object() {
-        @SuppressWarnings("FieldMayBeFinal")
-        private volatile Object selfaware_keepalive = LoopManager.this.lock;
-
-        @Override
-        public String toString() {
-            return "SelfAware Lock";
-        }
-    };
+    final Object lock = Polyfill.selfawareLock();
     private final Queue<Loop<?>> loops = new PriorityQueue<>();
 
     private LoopManager() {

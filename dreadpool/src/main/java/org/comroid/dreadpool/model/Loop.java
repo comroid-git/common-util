@@ -1,5 +1,6 @@
 package org.comroid.dreadpool.model;
 
+import org.comroid.common.ref.OutdateableReference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +15,7 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     public static final Comparator<Loop<?>> LOOP_COMPARATOR = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
 
     public final CompletableFuture<L> result = new CompletableFuture<>();
+    private final OutdateableReference<Boolean> canContinue = new OutdateableReference<>();
     private final int priority;
     protected int counter = 0;
     private boolean closed;
@@ -28,7 +30,7 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
         final L it = produce(nextInt());
 
-        execute(it);
+        this.execute(it);
 
         return canContinue();
     }
@@ -37,10 +39,10 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     protected abstract boolean continueLoop();
 
     @Internal
-    protected abstract L produce(int loop);
+    protected abstract void executeLoop(L each);
 
     @Internal
-    protected abstract void execute(L each);
+    protected abstract L produce(int loop);
 
     @Internal
     private int nextInt() {
@@ -52,11 +54,22 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
         return LOOP_COMPARATOR.compare(this, other);
     }
 
+    @Internal
+    public final void execute(L each) {
+        // itsy bitsy boolean operations to check whether we should continue
+        if (canContinue.outdate() || canContinue()) {
+            executeLoop(each);
+        }
+    }
+
+    @Internal
     public final boolean canContinue() throws UnsupportedOperationException {
         if (isClosed())
             throw new UnsupportedOperationException("Loop is closed!");
 
-        return continueLoop();
+        if (canContinue.isOutdated())
+            return canContinue.update(continueLoop());
+        return canContinue.get();
     }
 
     public int prevInt() {

@@ -18,7 +18,7 @@ public class LoopManagerTest {
         }
 
         @Override
-        protected void execute(Integer each) {
+        protected void executeLoop(Integer each) {
             results.add("low-while1-#" + each);
         }
     };
@@ -30,51 +30,51 @@ public class LoopManagerTest {
         }
 
         @Override
-        protected void execute(Integer each) {
+        protected void executeLoop(Integer each) {
             results.add("low-while2-#" + each);
         }
     };
-    private Loop<Integer> medPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+    private Loop<Integer> medPrioLoop1 = new WhileDo<Integer>(Loop.MEDIUM_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("med-while1-#2");
         }
 
         @Override
-        protected void execute(Integer each) {
+        protected void executeLoop(Integer each) {
             results.add("med-while1-#" + each);
         }
     };
-    private Loop<Integer> medPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+    private Loop<Integer> medPrioLoop2 = new WhileDo<Integer>(Loop.MEDIUM_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("med-while2-#2");
         }
 
         @Override
-        protected void execute(Integer each) {
+        protected void executeLoop(Integer each) {
             results.add("med-while2-#" + each);
         }
     };
-    private Loop<Integer> higPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+    private Loop<Integer> higPrioLoop1 = new WhileDo<Integer>(Loop.HIGH_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("hig-while1-#2");
         }
 
         @Override
-        protected void execute(Integer each) {
+        protected void executeLoop(Integer each) {
             results.add("hig-while1-#" + each);
         }
     };
-    private Loop<Integer> higPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+    private Loop<Integer> higPrioLoop2 = new WhileDo<Integer>(Loop.HIGH_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("hig-while2-#2");
         }
 
         @Override
-        protected void execute(Integer each) {
+        protected void executeLoop(Integer each) {
             results.add("hig-while2-#" + each);
         }
     };
@@ -93,6 +93,7 @@ public class LoopManagerTest {
         loopManager.queue(medPrioLoop2);
         loopManager.queue(lowPrioLoop2);
 
+        System.out.println("Results:");
         results.forEach(System.out::println);
     }
 }

@@ -15,7 +15,7 @@ public abstract class DoWhile extends Loop<Integer> {
         }
 
         @Override
-        protected void execute(Integer each) {
+        protected void executeLoop(Integer each) {
             action.run();
         }
 
@@ -30,7 +30,7 @@ public abstract class DoWhile extends Loop<Integer> {
     public DoWhile(int priority) {
         super(priority);
 
-        execute(-1);
+        this.executeLoop(-1);
     }
 
     private DoWhile(int priority, Runnable initCall) {
@@ -48,5 +48,5 @@ public abstract class DoWhile extends Loop<Integer> {
     }
 
     @Override
-    protected abstract void execute(Integer each);
+    protected abstract void executeLoop(Integer each);
 }

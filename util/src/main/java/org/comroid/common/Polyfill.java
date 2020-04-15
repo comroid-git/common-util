@@ -1,5 +1,10 @@
 package org.comroid.common;
 
+import org.comroid.common.annotation.OptionalVararg;
+import org.comroid.common.func.ThrowingRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -7,12 +12,6 @@ import java.net.URL;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
-
-import org.comroid.common.annotation.OptionalVararg;
-import org.comroid.common.func.ThrowingRunnable;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static java.util.Objects.isNull;
 
@@ -113,5 +112,21 @@ public final class Polyfill {
                 throw new AssertionError(msg);
             }
         };
+    }
+
+    public static Object selfawareLock() {
+        class Lock {
+            private volatile Object selfaware_keepalive;
+
+            @Override
+            public String toString() {
+                return String.format("SelfAwareLock@%s", Integer.toHexString(hashCode()));
+            }
+        }
+
+        final Lock lock = new Lock();
+        lock.selfaware_keepalive = lock;
+
+        return lock;
     }
 }

@@ -43,8 +43,11 @@ public final class LoopWorker extends Worker {
     }
 
     private void swapCurrent(Loop<?> loop) {
-        manager.queue(current);
-        current = null; // explicit overwriting
+        if (current != null) {
+            manager.queue(current);
+            current = null; // explicit overwriting
+        }
+
         current = loop;
     }
 

@@ -51,7 +51,7 @@ public abstract class ForI<V> extends Loop<V> {
         }
 
         @Override
-        protected void execute(Integer each) {
+        protected void executeLoop(Integer each) {
             action.accept(each);
         }
     }
@@ -93,7 +93,7 @@ public abstract class ForI<V> extends Loop<V> {
         }
 
         @Override
-        protected void execute(T each) {
+        protected void executeLoop(T each) {
             action.accept(each);
         }
     }
