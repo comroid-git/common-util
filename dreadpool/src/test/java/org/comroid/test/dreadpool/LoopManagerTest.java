@@ -89,7 +89,7 @@ public class LoopManagerTest {
     }
 
     @Test
-    public void test() throws InterruptedException {
+    public void test() {
         loopManager.queue(lowPrioLoop1);
         loopManager.queue(medPrioLoop1);
         loopManager.queue(higPrioLoop1);
