@@ -23,7 +23,7 @@ public final class LoopManager {
                  .mapToObj(iter -> new LoopWorker(
                          manager,
                          group,
-                         String.format("LoopWorker @ %s#%4.0d", manager.toString(), iter)
+                         String.format("LoopWorker @ %s#%4d", manager.toString(), iter)
                  ))
                  .forEach(Thread::start);
 

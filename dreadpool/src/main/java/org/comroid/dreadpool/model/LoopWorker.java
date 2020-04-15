@@ -1,15 +1,13 @@
 package org.comroid.dreadpool.model;
 
-import java.util.Objects;
-import java.util.PriorityQueue;
-import java.util.Queue;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public final class LoopWorker extends Worker {
-    private final LoopManager    manager;
-    private final Queue<Loop<?>> stack = new PriorityQueue<>();
+    private final LoopManager manager;
+    private Loop<?> current;
 
     public LoopWorker(
             @NotNull LoopManager manager, @Nullable ThreadGroup group, @NotNull String name
@@ -23,10 +21,10 @@ public final class LoopWorker extends Worker {
     @SuppressWarnings("InfiniteLoopStatement")
     public void run() {
         while (true) {
-            if (!stack.isEmpty()) {
+            if (current != null) {
                 final Loop<?> peek = peek();
                 if (!peek.canContinue()) {
-                    stack.remove();
+                    current = null;
                 } else peek.oneCycle();
             } else synchronized (manager.lock) {
                 try {
@@ -34,9 +32,9 @@ public final class LoopWorker extends Worker {
                         manager.lock.wait();
                     }
 
-                    stack.add(manager.pollMostImportant()
-                                     .orElseThrow(() -> new AssertionError(
-                                             "Could not retrieve most important loop")));
+                    swapCurrent(manager.pollMostImportant()
+                            .orElseThrow(() -> new AssertionError(
+                                    "Could not retrieve most important loop")));
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -44,10 +42,21 @@ public final class LoopWorker extends Worker {
         }
     }
 
-    private Loop<?> peek() {
-        manager.pollMoreImportant(stack.peek())
-               .ifPresent(stack::add);
+    private void swapCurrent(Loop<?> loop) {
+        manager.queue(current);
+        current = null; // explicit overwriting
+        current = loop;
+    }
 
-        return stack.peek();
+    private Loop<?> peek() {
+        manager.pollMoreImportant(current)
+                .ifPresent(prio -> {
+                    if (prio == current)
+                        throw new AssertionError();
+
+                    swapCurrent(prio);
+                });
+
+        return current;
     }
 }
