@@ -1,16 +1,29 @@
 package org.comroid.dreadpool.model;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.stream.IntStream;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 public final class LoopManager {
     public static final ThreadGroup THREAD_GROUP = new ThreadGroup("LoopManager");
+    final Object lock = new Object() {
+        @SuppressWarnings("FieldMayBeFinal")
+        private volatile Object selfaware_keepalive = LoopManager.this.lock;
+
+        @Override
+        public String toString() {
+            return "SelfAware Lock";
+        }
+    };
+    private final Queue<Loop<?>> loops = new PriorityQueue<>();
+
+    private LoopManager() {
+    }
 
     public static LoopManager start(int parallelism) {
         return start(parallelism, THREAD_GROUP);
@@ -20,23 +33,14 @@ public final class LoopManager {
         final LoopManager manager = new LoopManager();
 
         IntStream.range(1, parallelism + 1)
-                 .mapToObj(iter -> new LoopWorker(
-                         manager,
-                         group,
-                         String.format("LoopWorker @ %s#%4d", manager.toString(), iter)
-                 ))
-                 .forEach(Thread::start);
+                .mapToObj(iter -> new LoopWorker(
+                        manager,
+                        group,
+                        String.format("LoopWorker @ %s#%4d", manager.toString(), iter)
+                ))
+                .forEach(Thread::start);
 
         return manager;
-    }
-
-    final         Object         lock  = new Object() {
-        @SuppressWarnings("FieldMayBeFinal")
-        private volatile Object selfaware_keepalive = LoopManager.this.lock;
-    };
-    private final Queue<Loop<?>> loops = new PriorityQueue<>();
-
-    private LoopManager() {
     }
 
     public void queue(@NotNull Loop<?> loop) {
