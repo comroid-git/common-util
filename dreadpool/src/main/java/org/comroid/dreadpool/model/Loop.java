@@ -1,6 +1,5 @@
 package org.comroid.dreadpool.model;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,8 +73,7 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
         close();
     }
-
-
+    
     public final boolean isClosed() {
         return closed;
     }
