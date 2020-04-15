@@ -26,9 +26,9 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     }
 
     @Internal
-    protected boolean oneCycle() throws UnsupportedOperationException {
+    protected boolean oneCycle() {
         if (!canContinue())
-            return false;
+            throw new UnsupportedOperationException("Loop is closed");
 
         final L it = produce(nextInt());
 
@@ -41,8 +41,8 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     protected abstract boolean continueLoop();
 
     /**
-     * @param each
-     * @return Whether we can continue after this.
+     * @param each The current loop variable.
+     * @return Whether or not the loop should be closed after this invocation.
      */
     @Internal
     protected abstract boolean executeLoop(L each);
@@ -69,17 +69,20 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     public final void execute(L each) {
         if (canContinue() && !executeLoop(each))
             close();
+        else canContinue.outdate();
     }
 
     @Internal
-    public final boolean canContinue() throws UnsupportedOperationException {
-        if (isClosed())
-            throw new UnsupportedOperationException("Loop is closed!");
+    public final boolean canContinue() {
+        if (isClosed()) return false;
 
         if (canContinue.isOutdated() && canContinue.update(continueLoop()))
             return true;
 
-        return canContinue.get();
+        if (!canContinue.get()) {
+            close();
+            return false;
+        } else return true;
     }
 
     public int prevInt() {
@@ -91,7 +94,7 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     }
 
     @Override
-    public final void run() throws UnsupportedOperationException {
+    public final void run() {
         while (canContinue())
             oneCycle();
 
@@ -103,6 +106,7 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     }
 
     @Override
+    @Internal
     public void close() {
         this.closed = true;
 

@@ -25,6 +25,8 @@ public abstract class WhileDo<T> extends Loop<T> {
         @Override
         protected boolean executeLoop(Integer each) {
             action.run();
+
+            return continueLoop();
         }
     }
 

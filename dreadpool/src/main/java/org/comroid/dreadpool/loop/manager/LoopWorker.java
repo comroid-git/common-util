@@ -1,13 +1,16 @@
 package org.comroid.dreadpool.loop.manager;
 
+import com.google.common.flogger.FluentLogger;
 import org.comroid.dreadpool.Worker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
 
 public final class LoopWorker extends Worker {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final LoopManager manager;
     private       Loop<?>     current;
 
@@ -24,7 +27,7 @@ public final class LoopWorker extends Worker {
     public void run() {
         while (true) {
             if (current != null) {
-                if (!current.continueLoop()) {
+                if (!current.canContinue()) {
                     current = null;
                 } else current.oneCycle();
             } else synchronized (manager.lock) {
@@ -37,7 +40,7 @@ public final class LoopWorker extends Worker {
                             }
                         }
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        logger.at(Level.FINE).log("{} stopping!", toString());
                     } finally {
                         mostImportant.ifPresent(this::swapCurrent);
                     }

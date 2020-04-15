@@ -23,7 +23,7 @@ public class LoopManagerTest {
 
         @Override
         protected boolean executeLoop(Integer each) {
-            results.add("low-while1-#" + each);
+            return results.add("low-while1-#" + each);
         }
     };
     private       LoopManager   loopManager;
@@ -35,7 +35,7 @@ public class LoopManagerTest {
 
         @Override
         protected boolean executeLoop(Integer each) {
-            results.add("low-while2-#" + each);
+            return results.add("low-while2-#" + each);
         }
     };
     private       Loop<Integer> medPrioLoop1 = new WhileDo<Integer>(Loop.MEDIUM_PRIO, val -> val + 1) {
@@ -46,7 +46,7 @@ public class LoopManagerTest {
 
         @Override
         protected boolean executeLoop(Integer each) {
-            results.add("med-while1-#" + each);
+            return results.add("med-while1-#" + each);
         }
     };
     private       Loop<Integer> medPrioLoop2 = new WhileDo<Integer>(Loop.MEDIUM_PRIO, val -> val + 1) {
@@ -57,7 +57,7 @@ public class LoopManagerTest {
 
         @Override
         protected boolean executeLoop(Integer each) {
-            results.add("med-while2-#" + each);
+            return results.add("med-while2-#" + each);
         }
     };
     private       Loop<Integer> higPrioLoop1 = new WhileDo<Integer>(Loop.HIGH_PRIO, val -> val + 1) {
@@ -68,7 +68,7 @@ public class LoopManagerTest {
 
         @Override
         protected boolean executeLoop(Integer each) {
-            results.add("hig-while1-#" + each);
+            return results.add("hig-while1-#" + each);
         }
     };
     private       Loop<Integer> higPrioLoop2 = new WhileDo<Integer>(Loop.HIGH_PRIO, val -> val + 1) {
@@ -79,7 +79,7 @@ public class LoopManagerTest {
 
         @Override
         protected boolean executeLoop(Integer each) {
-            results.add("hig-while2-#" + each);
+            return results.add("hig-while2-#" + each);
         }
     };
 
@@ -93,21 +93,17 @@ public class LoopManagerTest {
         loopManager.queue(lowPrioLoop1);
         loopManager.queue(medPrioLoop1);
         loopManager.queue(higPrioLoop1);
-        higPrioLoop2.result.join();
-
         loopManager.queue(higPrioLoop2);
         loopManager.queue(medPrioLoop2);
         loopManager.queue(lowPrioLoop2);
-        higPrioLoop2.result.join();
-
-        System.out.println("Results:");
-        results.forEach(System.out::println);
 
         CompletableFuture.allOf(
                 lowPrioLoop1.result,
                 lowPrioLoop2.result,
                 medPrioLoop1.result,
-                medPrioLoop2.result
+                medPrioLoop2.result,
+                higPrioLoop1.result,
+                higPrioLoop2.result
         ).join();
 
         System.out.println("Results:");
@@ -116,15 +112,15 @@ public class LoopManagerTest {
         assertEquals(12, results.size());
 
         assertTrue(results.stream()
-                          .limit(4)
-                          .allMatch(str -> str.startsWith("hig")));
+                .limit(4)
+                .allMatch(str -> str.startsWith("hig")));
         assertTrue(results.stream()
-                          .skip(4)
-                          .limit(4)
-                          .allMatch(str -> str.startsWith("med")));
+                .skip(4)
+                .limit(4)
+                .allMatch(str -> str.startsWith("med")));
         assertTrue(results.stream()
-                          .skip(8)
-                          .limit(4)
-                          .allMatch(str -> str.startsWith("low")));
+                .skip(8)
+                .limit(4)
+                .allMatch(str -> str.startsWith("low")));
     }
 }

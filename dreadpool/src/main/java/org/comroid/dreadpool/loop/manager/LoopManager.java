@@ -4,12 +4,14 @@ import org.comroid.common.Polyfill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public final class LoopManager {
+public final class LoopManager implements Closeable {
     public static final ThreadGroup     THREAD_GROUP = new ThreadGroup("LoopManager");
     final               Object          lock         = Polyfill.selfawareLock();
     private final       Queue<Loop<?>>  queue        = new PriorityQueue<>();
@@ -76,5 +78,15 @@ public final class LoopManager {
     @Override
     public String toString() {
         return String.format("LoopManager{lock=%s}", queue);
+    }
+
+    @Override
+    public void close() {
+        workers.forEach(loopWorker -> {
+            try {
+                loopWorker.stop();
+            } catch (Exception ignored) {
+            }
+        });
     }
 }
