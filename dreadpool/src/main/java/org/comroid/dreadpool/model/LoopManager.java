@@ -71,4 +71,9 @@ public final class LoopManager {
             } else return Optional.empty();
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("LoopManager{lock=%s}", lock);
+    }
 }

@@ -73,7 +73,7 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
         close();
     }
-    
+
     public final boolean isClosed() {
         return closed;
     }
