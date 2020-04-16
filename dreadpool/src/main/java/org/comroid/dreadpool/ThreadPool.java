@@ -12,6 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static java.lang.System.nanoTime;
+
 public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
     static FixedSizeThreadPool fixedSize(ThreadGroup group, int corePoolSize) {
         return new FixedSizeThreadPool(corePoolSize, new WorkerFactory(group, corePoolSize), new ThreadErrorHandler());
@@ -35,7 +37,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
     final class Task implements Comparable<Task> {
         public static final Comparator<Task> TASK_COMPARATOR = Comparator.comparingLong(Task::getIssuedAt);
 
-        private final long     issuedAt = System.nanoTime();
+        private final long     issuedAt = nanoTime();
         private final Runnable runnable;
 
         public Task(Runnable runnable) {
@@ -101,6 +103,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
                     while (!queue.isEmpty())
                         queue.poll()
                                 .run();
+                    lastOp = nanoTime();
                     busy = false;
                 }
             }
