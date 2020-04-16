@@ -1,4 +1,4 @@
-package org.comroid.test.dreadpool;
+package org.comroid.test.dreadpool.loop;
 
 import org.comroid.dreadpool.loop.WhileDo;
 import org.comroid.dreadpool.loop.manager.Loop;
