@@ -1,6 +1,5 @@
 package org.comroid.dreadpool;
 
-import com.google.common.flogger.FluentLogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -9,16 +8,12 @@ import java.util.Queue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
 
-public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor
-        implements ThreadPool {
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
+public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor implements ThreadPool {
     private final Lock                   lock      = new ReentrantLock();
     private final Queue<ThreadPool.Task> taskQueue = new PriorityQueue<>();
 
-    FixedSizeThreadPool(int corePoolSize, WorkerFactory threadFactory, RejectedHandler handler) {
+    public FixedSizeThreadPool(int corePoolSize, WorkerFactory threadFactory, ThreadErrorHandler handler) {
         super(corePoolSize, threadFactory, handler);
 
         threadFactory.threadPool = this;
@@ -30,8 +25,8 @@ public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor
     }
 
     @Override
-    public final RejectedHandler getRejectedExecutionHandler() {
-        return (RejectedHandler) super.getRejectedExecutionHandler();
+    public final ThreadErrorHandler getThreadErrorHandler() {
+        return (ThreadErrorHandler) super.getRejectedExecutionHandler();
     }
 
     @Override
@@ -41,20 +36,13 @@ public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor
     }
 
     @Override
-    public void handleInterrupted(InterruptedException IEx) {
-        logger.at(Level.SEVERE)
-                .withCause(IEx)
-                .log();
-    }
-
-    @Override
     public void flush() {
         try {
             // we need the lock here
             if (!lock.tryLock())
                 lock.lockInterruptibly();
         } catch (InterruptedException e) {
-            handleInterrupted(e);
+            getThreadErrorHandler().handleInterrupted(e);
         } finally {
             taskQueue.stream()
                     .map(Task::getRunnable)
@@ -74,7 +62,7 @@ public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor
             if (!lock.tryLock())
                 lock.lockInterruptibly();
         } catch (InterruptedException e) {
-            handleInterrupted(e);
+            getThreadErrorHandler().handleInterrupted(e);
         } finally {
             task = new Task(runnable);
             taskQueue.add(task);
@@ -94,7 +82,7 @@ public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor
             if (!lock.tryLock())
                 lock.lockInterruptibly();
         } catch (InterruptedException e) {
-            handleInterrupted(e);
+            getThreadErrorHandler().handleInterrupted(e);
         } finally {
             result = taskQueue.stream()
                     .filter(task -> task.getIssuedAt() == timestamp)

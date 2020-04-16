@@ -1,13 +1,12 @@
 package org.comroid.dreadpool;
 
 import com.google.common.flogger.FluentLogger;
-import org.comroid.dreadpool.ThreadPool;
 
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 
-public class RejectedHandler implements RejectedExecutionHandler {
+public class ThreadErrorHandler implements RejectedExecutionHandler {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
     @Override
@@ -22,5 +21,11 @@ public class RejectedHandler implements RejectedExecutionHandler {
                             "Ignored suspicious RejectedExecutionEvent; didnt come from %s",
                             ThreadPool.class.getName()
                     );
+    }
+
+    public void handleInterrupted(InterruptedException IEx) {
+        logger.at(Level.SEVERE)
+                .withCause(IEx)
+                .log();
     }
 }

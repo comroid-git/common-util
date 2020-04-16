@@ -14,14 +14,16 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
-    static <W extends Worker> FixedSizeThreadPool<W> fixedSize(ThreadGroup group, int corePoolSize) {
-        return new FixedSizeThreadPool<>(corePoolSize, new WorkerFactory(group, corePoolSize), new RejectedHandler());
+    static FixedSizeThreadPool fixedSize(ThreadGroup group, int corePoolSize) {
+        return new FixedSizeThreadPool(corePoolSize, new WorkerFactory(group, corePoolSize), new ThreadErrorHandler());
     }
 
     @Override
     void execute(@NotNull Runnable command);
 
-    void handleInterrupted(InterruptedException IEx);
+    WorkerFactory getThreadFactory();
+
+    ThreadErrorHandler getThreadErrorHandler();
 
     void flush();
 
@@ -32,7 +34,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
     final class Task implements Comparable<Task> {
         public static final Comparator<Task> TASK_COMPARATOR = Comparator.comparingLong(Task::getIssuedAt);
 
-        private final long issuedAt = System.nanoTime();
+        private final long     issuedAt = System.nanoTime();
         private final Runnable runnable;
 
         public Task(Runnable runnable) {
@@ -89,7 +91,8 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
                         try {
                             lock.lockInterruptibly();
                         } catch (InterruptedException e) {
-                            threadPool.handleInterrupted(e);
+                            threadPool.getThreadErrorHandler()
+                                    .handleInterrupted(e);
                         }
                     }
 

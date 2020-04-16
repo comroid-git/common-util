@@ -1,21 +1,16 @@
 package org.comroid.dreadpool;
 
-import com.google.common.flogger.FluentLogger;
 import org.comroid.common.func.Factory;
 import org.comroid.common.func.Provider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 
 public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, ThreadFactory {
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
     private final Queue<ThreadPool.Worker>    workers    = new PriorityQueue<>();
     private final Provider<ThreadPool.Worker> workerProvider;
     private final int                         maxSize;
@@ -49,7 +44,7 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
             newWorker.threadPool = this.threadPool;
             workers.add(newWorker);
         } else if (workers.stream()
-                    .allMatch(ThreadPool.Worker::isBusy))
+                .allMatch(ThreadPool.Worker::isBusy))
             return null;
 
         return workers.peek();
@@ -71,6 +66,7 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
 
     @Override
     public void execute(@NotNull Runnable task) {
-        workers.peek().execute(task);
+        workers.peek()
+                .execute(task);
     }
 }
