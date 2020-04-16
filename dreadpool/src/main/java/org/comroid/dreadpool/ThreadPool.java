@@ -89,7 +89,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
                 synchronized (lock) {
                     while (queue.isEmpty()) {
                         try {
-                            lock.lockInterruptibly();
+                            lock.newCondition().await();
                         } catch (InterruptedException e) {
                             threadPool.getThreadErrorHandler()
                                     .handleInterrupted(e);
@@ -114,7 +114,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
 
             synchronized (lock) {
                 queue.add(task);
-                lock.unlock();
+                lock.newCondition().signal();
             }
         }
 
