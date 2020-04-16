@@ -9,7 +9,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor implements ThreadPool {
+public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor implements ThreadPool {
     private final Lock                   lock      = new ReentrantLock();
     private final Queue<ThreadPool.Task> taskQueue = new PriorityQueue<>();
 
@@ -98,5 +98,10 @@ public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor implements 
     @Override
     public int queueSize() {
         return taskQueue.size();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("FixedSizeThreadPool{lock=%s}", lock);
     }
 }

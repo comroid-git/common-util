@@ -80,4 +80,9 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
         workers.peek()
                 .execute(task);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s{threadPool=%s, maxSize=%d}", getClass().getSimpleName(), threadPool, maxSize);
+    }
 }

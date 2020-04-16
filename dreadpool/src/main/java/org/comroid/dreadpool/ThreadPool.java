@@ -1,5 +1,6 @@
 package org.comroid.dreadpool;
 
+import org.comroid.common.Polyfill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,8 +11,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
     static FixedSizeThreadPool fixedSize(ThreadGroup group, int corePoolSize) {
@@ -61,7 +60,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
         public static final int                ERR_STACKSIZE     = 5;
         public static final Comparator<Worker> WORKER_COMPARATOR = Comparator.comparingLong(Worker::lastOp);
 
-        private final Lock            lock  = new ReentrantLock(true);
+        private final Object          lock  = Polyfill.selfawareLock();
         private final Queue<Runnable> queue = new LinkedBlockingQueue<>();
         ThreadPool threadPool;
         private boolean busy     = true;
@@ -91,7 +90,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
                 synchronized (lock) {
                     while (queue.isEmpty()) {
                         try {
-                            lock.newCondition().await();
+                            lock.wait();
                         } catch (InterruptedException e) {
                             threadPool.getThreadErrorHandler()
                                     .handleInterrupted(e);
@@ -113,13 +112,24 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
 
             synchronized (lock) {
                 queue.add(task);
-                lock.newCondition().signal();
+                lock.notifyAll();
             }
         }
 
         @Override
         public int compareTo(@NotNull ThreadPool.Worker other) {
             return WORKER_COMPARATOR.compare(this, other);
+        }
+
+        @Override
+        public String toString() {
+            return String.format(
+                    "%s{threadPool=%s, busy=%s, lock=%s}",
+                    getClass().getSimpleName(),
+                    threadPool,
+                    busy,
+                    lock
+            );
         }
     }
 }
