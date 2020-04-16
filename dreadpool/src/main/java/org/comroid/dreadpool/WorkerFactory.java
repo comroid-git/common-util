@@ -70,6 +70,13 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
 
     @Override
     public void execute(@NotNull Runnable task) {
+        if (allBusy() && workers.size() < maxSize && create() == null)
+            throw new IllegalThreadStateException("Could not create worker even though\n" +
+                    "- all workers are busy, and\n" +
+                    "- there's less workers than allowed, and\n" +
+                    "- worker creation failed\n" +
+                    "\t");
+
         workers.peek()
                 .execute(task);
     }
