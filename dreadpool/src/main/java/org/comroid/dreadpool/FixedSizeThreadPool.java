@@ -11,7 +11,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
-public class FixedSizeThreadPool<W extends ThreadPool.Worker> extends ScheduledThreadPoolExecutor
+public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor
         implements ThreadPool {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
