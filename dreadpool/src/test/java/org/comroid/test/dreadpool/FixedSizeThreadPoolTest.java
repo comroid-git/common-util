@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 public class FixedSizeThreadPoolTest {
     private ThreadPool     threadPool;
     private List<SomeTask> someTasks;
-    private Span<UUID>     yields;
+    private List<UUID>     yields;
 
     @Before
     public void setup() {
@@ -24,17 +24,19 @@ public class FixedSizeThreadPoolTest {
         someTasks = new ArrayList<>();
         IntStream.range(0, 50)
                 .forEach(nil -> someTasks.add(new SomeTask()));
-        yields = new Span<>();
+        yields = new ArrayList<>();
     }
 
     @Test
-    public void test() {
+    public void test() throws InterruptedException {
         someTasks.stream()
                 .limit(10)
                 .sequential()
                 .forEachOrdered(threadPool::execute);
         assertEquals(0, threadPool.queueSize());
         threadPool.flush();
+        Thread.sleep(200);
+        assertEquals(10, yields.size());
 
         ArrayDeque<Runnable> reverse1 = someTasks.stream()
                 .skip(10)
@@ -47,6 +49,8 @@ public class FixedSizeThreadPoolTest {
         reverse1.forEach(threadPool::queue);
         assertEquals(10, threadPool.queueSize());
         threadPool.flush();
+        Thread.sleep(200);
+        assertEquals(20, yields.size());
 
         List<Long> added = someTasks.stream()
                 .skip(20)
@@ -62,6 +66,8 @@ public class FixedSizeThreadPoolTest {
                 .forEachOrdered(threadPool::unqueue);
         assertEquals(5, threadPool.queueSize());
         threadPool.flush();
+        Thread.sleep(200);
+        assertEquals(25, yields.size());
 
         ArrayDeque<Runnable> reverse2 = someTasks.stream()
                 .skip(30)
@@ -74,6 +80,8 @@ public class FixedSizeThreadPoolTest {
         reverse2.forEach(threadPool::execute);
         assertEquals(0, threadPool.queueSize());
         threadPool.flush();
+        Thread.sleep(200);
+        assertEquals(35, yields.size());
 
         someTasks.stream()
                 .skip(40)
@@ -82,29 +90,36 @@ public class FixedSizeThreadPoolTest {
                 .forEachOrdered(threadPool::queue);
         assertEquals(10, threadPool.queueSize());
         threadPool.flush();
+        Thread.sleep(200);
+        assertEquals(45, yields.size());
+
 
         final UUID[] array = yields.toArray(new UUID[0]);
         assertEquals(45, array.length);
 
         UUID[] arr1 = Arrays.copyOfRange(array, 0, 10);
         for (int i = 0; i < arr1.length; i++)
-            assertEquals(someTasks.get(i).uuid, arr1[i]);
+            assertEquals("index: " + i, someTasks.get(i).uuid, arr1[i]);
 
-        UUID[] arr2 = Arrays.copyOfRange(array, 10, 20); // reversed
+        List<UUID> reversed1 = Arrays.asList(Arrays.copyOfRange(array, 10, 20));
+        reversed1.sort(Comparator.reverseOrder());
+        UUID[] arr2 = reversed1.toArray(new UUID[0]); // reversed
         for (int i = 0; i < arr2.length; i++)
-            assertEquals(someTasks.get(20 - i).uuid, arr2[i]);
+            assertEquals("index: " + i, someTasks.get(i + 10).uuid, arr2[i]);
 
         UUID[] arr3 = Arrays.copyOfRange(array, 20, 25); // orig ind[20-30;first half]
         for (int i = 0; i < arr3.length; i++)
-            assertEquals(someTasks.get(i + 20).uuid, arr3[i]);
+            assertEquals("index: " + i, someTasks.get(i + 20).uuid, arr3[i]);
 
-        UUID[] arr4 = Arrays.copyOfRange(array, 25, 35); // reversed
+        List<UUID> reversed2 = Arrays.asList(Arrays.copyOfRange(array, 25, 35));
+        reversed2.sort(Comparator.reverseOrder());
+        UUID[] arr4 = reversed2.toArray(new UUID[0]); // reversed
         for (int i = 0; i < arr4.length; i++)
-            assertEquals(someTasks.get(35 - i).uuid, arr4[i]);
+            assertEquals("index: " + i, someTasks.get(i + 25).uuid, arr4[i]);
 
         UUID[] arr5 = Arrays.copyOfRange(array, 35, 45);
         for (int i = 0; i < arr5.length; i++)
-            assertEquals(someTasks.get(i + 35).uuid, arr5[i]);
+            assertEquals("index: " + i, someTasks.get(i + 35).uuid, arr5[i]);
     }
 
     public class SomeTask implements Runnable {

@@ -4,6 +4,7 @@ import org.comroid.common.Polyfill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Flushable;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Queue;
@@ -14,7 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static java.lang.System.nanoTime;
 
-public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
+public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecutorService {
     static FixedSizeThreadPool fixedSize(ThreadGroup group, int corePoolSize) {
         return new FixedSizeThreadPool(corePoolSize, new WorkerFactory(group, corePoolSize), new ThreadErrorHandler());
     }
@@ -22,11 +23,12 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
     @Override
     void execute(@NotNull Runnable command);
 
+    @Override
+    void flush();
+
     WorkerFactory getThreadFactory();
 
     ThreadErrorHandler getThreadErrorHandler();
-
-    void flush();
 
     long queue(@NotNull Runnable runnable);
 
@@ -104,7 +106,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
                         queue.poll()
                                 .run();
                     lastOp = nanoTime();
-                    busy = false;
+                    busy   = false;
                 }
             }
         }
@@ -126,8 +128,7 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
 
         @Override
         public String toString() {
-            return String.format(
-                    "%s{threadPool=%s, busy=%s, lock=%s}",
+            return String.format("%s{threadPool=%s, busy=%s, lock=%s}",
                     getClass().getSimpleName(),
                     threadPool,
                     busy,
