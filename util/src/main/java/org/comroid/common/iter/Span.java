@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.ref.Reference;
 
 import org.jetbrains.annotations.Contract;
@@ -68,9 +69,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     }
 
     private final ModifyPolicy modifyPolicy;
-    private final Object       dataLock = new Object() {
-        private volatile Object selfaware_keepalive = Span.this.dataLock;
-    };
+    private final Object       dataLock = Polyfill.selfawareLock();
     //endregion
     private       Object[]     data;
     private       boolean      fixedSize;
