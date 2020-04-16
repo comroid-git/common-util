@@ -111,9 +111,6 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
         public void execute(@NotNull Runnable task) {
             Objects.requireNonNull(task);
 
-            if (isBusy())
-                throw new IllegalThreadStateException("Worker is busy");
-
             synchronized (lock) {
                 queue.add(task);
                 lock.newCondition().signal();
