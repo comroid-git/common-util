@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -35,12 +36,15 @@ public class FixedSizeThreadPoolTest {
         assertEquals(0, threadPool.queueSize());
         threadPool.flush();
 
-        someTasks.stream()
+        ArrayDeque<Runnable> reverse1 = someTasks.stream()
                 .skip(10)
                 .limit(10)
                 .sequential()
-                .sorted((Comparator<? super SomeTask>) (Object) Comparator.reverseOrder())
-                .forEachOrdered(threadPool::queue);
+                .collect(Collector.of(ArrayDeque::new, ArrayDeque::addFirst, (d1, d2) -> {
+                    d2.addAll(d1);
+                    return d2;
+                }));
+        reverse1.forEach(threadPool::queue);
         assertEquals(10, threadPool.queueSize());
         threadPool.flush();
 
@@ -59,12 +63,15 @@ public class FixedSizeThreadPoolTest {
         assertEquals(5, threadPool.queueSize());
         threadPool.flush();
 
-        someTasks.stream()
+        ArrayDeque<Runnable> reverse2 = someTasks.stream()
                 .skip(30)
                 .limit(10)
                 .sequential()
-                .sorted((Comparator<? super SomeTask>) (Object) Comparator.reverseOrder())
-                .forEachOrdered(threadPool::execute);
+                .collect(Collector.of(ArrayDeque::new, ArrayDeque::addFirst, (d1, d2) -> {
+                    d2.addAll(d1);
+                    return d2;
+                }));
+        reverse2.forEach(threadPool::execute);
         assertEquals(0, threadPool.queueSize());
         threadPool.flush();
 
