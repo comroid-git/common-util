@@ -94,4 +94,9 @@ public class FixedSizeThreadPool extends ScheduledThreadPoolExecutor implements 
         }
         return result.isPresent();
     }
+
+    @Override
+    public int queueSize() {
+        return taskQueue.size();
+    }
 }

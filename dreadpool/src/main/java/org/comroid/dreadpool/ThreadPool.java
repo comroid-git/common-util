@@ -31,6 +31,8 @@ public interface ThreadPool extends ExecutorService, ScheduledExecutorService {
 
     boolean unqueue(long timestamp);
 
+    int queueSize();
+
     final class Task implements Comparable<Task> {
         public static final Comparator<Task> TASK_COMPARATOR = Comparator.comparingLong(Task::getIssuedAt);
 
