@@ -79,6 +79,10 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         this(new Object[DEFAULT_INITIAL_CAPACITY], DEFAULT_MODIFY_POLICY, DEFAULT_FIXED_SIZE);
     }
 
+    public Span(int capacity, boolean fixedSize) {
+        this(new Object[capacity], DEFAULT_MODIFY_POLICY, fixedSize);
+    }
+
     protected Span(Object[] data, ModifyPolicy modifyPolicy, boolean fixedSize) {
         this.modifyPolicy = modifyPolicy;
 
