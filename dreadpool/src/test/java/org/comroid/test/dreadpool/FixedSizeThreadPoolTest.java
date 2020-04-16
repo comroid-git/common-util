@@ -106,6 +106,7 @@ public class FixedSizeThreadPoolTest {
         UUID[] arr2 = reversed1.toArray(new UUID[0]); // reversed
         for (int i = 0; i < arr2.length; i++)
             assertEquals("index: " + i, someTasks.get(i + 10).uuid, arr2[i]);
+        // todo: fails probably due to a concurrency problem
 
         UUID[] arr3 = Arrays.copyOfRange(array, 20, 25); // orig ind[20-30;first half]
         for (int i = 0; i < arr3.length; i++)
