@@ -26,6 +26,11 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
         this.maxSize        = maxSize;
     }
 
+    public boolean allBusy() {
+        return workers.stream()
+                .allMatch(ThreadPool.Worker::isBusy);
+    }
+
     @Override
     public int counter() {
         return c++;
@@ -43,8 +48,7 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
             ThreadPool.Worker newWorker = workerProvider.now();
             newWorker.threadPool = this.threadPool;
             workers.add(newWorker);
-        } else if (workers.stream()
-                .allMatch(ThreadPool.Worker::isBusy))
+        } else if (allBusy())
             return null;
 
         return workers.peek();
