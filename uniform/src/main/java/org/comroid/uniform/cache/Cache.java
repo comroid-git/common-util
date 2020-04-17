@@ -1,16 +1,12 @@
-package org.comroid.cache;
+package org.comroid.uniform.cache;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 

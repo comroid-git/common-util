@@ -1,4 +1,4 @@
-package org.comroid.cache;
+package org.comroid.uniform.cache;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
