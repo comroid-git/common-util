@@ -7,15 +7,15 @@ import java.io.PrintStream;
 import java.util.Collection;
 
 public class MultipleExceptions extends RuntimeException {
-    public MultipleExceptions(String message, Collection<Throwable> causes) {
+    public MultipleExceptions(String message, Collection<? extends Throwable> causes) {
         super(composeMessage(message, causes));
     }
 
-    public MultipleExceptions(Collection<Throwable> causes) {
+    public MultipleExceptions(Collection<? extends Throwable> causes) {
         super(composeMessage(null, causes));
     }
 
-    private static String composeMessage(@Nullable String baseMessage, Collection<Throwable> throwables) {
+    private static String composeMessage(@Nullable String baseMessage, Collection<? extends Throwable> throwables) {
         class StringStream extends OutputStream {
             private final StringBuilder sb = new StringBuilder();
 
