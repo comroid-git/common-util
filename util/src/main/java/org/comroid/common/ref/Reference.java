@@ -1,11 +1,11 @@
 package org.comroid.common.ref;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @FunctionalInterface
 public interface Reference<T> extends Supplier<T> {
@@ -22,5 +22,9 @@ public interface Reference<T> extends Supplier<T> {
 
     default @NotNull T requireNonNull(String message) throws NullPointerException {
         return Objects.requireNonNull(get(), message);
+    }
+
+    interface Settable<T> extends Reference<T> {
+        @Nullable T set(T newValue);
     }
 }
