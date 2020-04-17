@@ -2,15 +2,10 @@ package org.comroid.common.func;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface Factory<T> extends Provider<T> {
+public interface Factory<T> extends Provider.Now<T> {
     int counter();
 
     T create();
-
-    @Override
-    default CompletableFuture<T> get() {
-        return CompletableFuture.completedFuture(create());
-    }
 
     @Override
     default T now() {

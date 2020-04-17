@@ -1,11 +1,10 @@
 package org.comroid.common.ref;
 
+import org.comroid.common.Polyfill;
 import org.jetbrains.annotations.Nullable;
 
 public final class OutdateableReference<T> implements Reference<T> {
-    private final Object  lock = new Object() {
-        private volatile Object selfaware_keepalive = OutdateableReference.this.lock;
-    };
+    private final Object  lock = Polyfill.selfawareLock();
     private       boolean outdated;
     private       T       it;
 
@@ -22,16 +21,27 @@ public final class OutdateableReference<T> implements Reference<T> {
         }
     }
 
-    public void update(T newValue) {
+    /**
+     * @param newValue
+     * @return The new Value
+     */
+    public T update(T newValue) {
         synchronized (lock) {
             this.it = newValue;
             outdated = false;
+            return newValue;
         }
     }
 
-    public void outdate() {
+    /**
+     * @return Whether the reference became outdated with this call.
+     */
+    public boolean outdate() {
+        if (isOutdated())
+            return false;
+
         synchronized (lock) {
-            outdated = true;
+            return (outdated = true);
         }
     }
 }
