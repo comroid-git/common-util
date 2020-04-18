@@ -3,7 +3,7 @@ package org.comroid.listnr;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public interface HandlerManager<T extends EventSender<T, ? extends E>, E extends Event<T>> {
+public interface HandlerManager<T extends EventSender<T, ? extends E>, E extends Event<?>> {
     T attachedTo();
 
     default boolean detachNow() {

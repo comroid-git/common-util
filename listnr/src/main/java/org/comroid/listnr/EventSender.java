@@ -3,13 +3,15 @@ package org.comroid.listnr;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.SelfDeclared;
 import org.comroid.dreadpool.ThreadPool;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
-public interface EventSender<Self extends EventSender<Self, ? extends E>, E extends Event<Self>> extends SelfDeclared<Self> {
+public interface EventSender<Self extends EventSender<Self, ? extends E>, E extends Event<?>>
+        extends SelfDeclared<Self> {
     ThreadPool getThreadPool();
 
     Span<HandlerManager<Self, ? extends E>> getAttachedManagers();
 
-    <T extends E> EventHandler.API<? extends Self, T> attachHandler(T event);
+    <T extends E, S extends EventSender<S, T>> EventHandler.API<S, T> attachHandler(T event);
 
     <T extends E> boolean detachManager(HandlerManager<Self, ? super E> manager);
 
@@ -18,4 +20,7 @@ public interface EventSender<Self extends EventSender<Self, ? extends E>, E exte
                 .filter(HandlerManager::detachNow)
                 .count();
     }
+
+    @Internal
+    <T extends E> int sendEvent(T event);
 }
