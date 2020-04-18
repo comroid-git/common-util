@@ -54,8 +54,7 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
 
     @Override
     public @NotNull Reference<K, V> getReference(K key, boolean createIfAbsent) {
-        return createIfAbsent ? cache.computeIfAbsent(key, Reference::new) : cache.getOrDefault(
-                key,
+        return createIfAbsent ? cache.computeIfAbsent(key, Reference::new) : cache.getOrDefault(key,
                 Cache.Reference.empty()
         );
     }
