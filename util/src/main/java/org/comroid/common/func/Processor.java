@@ -29,6 +29,10 @@ public interface Processor<T> extends Reference<T> {
     @Override
     @Nullable T get();
 
+    default boolean test(Predicate<? super T> predicate) {
+        return predicate.test(get());
+    }
+
     default Processor<T> filter(Predicate<? super T> predicate) {
         if (isPresent() && predicate.test(get()))
             return this;

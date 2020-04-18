@@ -136,4 +136,15 @@ public final class Polyfill {
         future.completeExceptionally(throwable);
         return future;
     }
+
+    public static <T> Supplier<T> constantSupplier(T it) {
+        return new Supplier<T>() {
+            private final T value = it;
+
+            @Override
+            public T get() {
+                return value;
+            }
+        };
+    }
 }
