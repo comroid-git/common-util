@@ -14,8 +14,8 @@ import java.util.stream.Stream;
 public class ProvidedCache<K, V> implements Cache<K, V> {
     public static final int DEFAULT_LARGE_THRESHOLD = 250;
 
-    private final ConcurrentHashMap<K, Cache.Reference<K, V>> cache = new ConcurrentHashMap<>();
-    private final int                                         largeThreshold;
+    private final Map<K, Cache.Reference<K, V>> cache = new ConcurrentHashMap<>();
+    private final int                           largeThreshold;
 
     public ProvidedCache(int largeThreshold) {this.largeThreshold = largeThreshold;}
 
@@ -82,7 +82,12 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
     @NotNull
     @Override
     public Iterator<Map.Entry<K, V>> iterator() {
-        return stream().map(ref -> new AbstractMap.SimpleImmutableEntry<>(ref.getKey(), ref.get()))
+        return stream().map(ref -> new AbstractMap.SimpleEntry<K, V>(ref.getKey(), ref.get()) {
+            @Override
+            public V setValue(V value) {
+                return getReference(getKey(), false).set(value);
+            }
+        })
                 .map(it -> (Map.Entry<K, V>) it)
                 .collect(Span.collector())
                 .iterator();

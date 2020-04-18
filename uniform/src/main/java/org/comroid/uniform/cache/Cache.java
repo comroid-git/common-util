@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -56,6 +58,10 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
 
     default @Nullable V set(K key, V newValue) {
         return getReference(key, false).set(newValue);
+    }
+
+    default void forEach(BiConsumer<K, V> action) {
+        forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
     }
 
     class Reference<K, V> implements Settable<V> {
