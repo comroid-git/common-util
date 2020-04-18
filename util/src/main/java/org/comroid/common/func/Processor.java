@@ -13,7 +13,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * Cloneable through {@link #process()}.
- * 
+ *
  * @param <T>
  */
 public interface Processor<T> extends Reference<T>, Cloneable {
