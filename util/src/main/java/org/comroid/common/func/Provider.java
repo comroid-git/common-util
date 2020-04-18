@@ -51,6 +51,11 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
 
         @Override
         T now();
+
+        @Override
+        default boolean isInstant() {
+            return true;
+        }
     }
 
     final class Support {
