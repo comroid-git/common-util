@@ -47,7 +47,7 @@ public interface Reference<T> extends Supplier<T> {
     }
 
     default Processor<T> process() {
-        return Processor.ofReference(this);
+        return this instanceof Processor ? (Processor<T>) this : Processor.ofReference(this);
     }
 
     interface Settable<T> extends Reference<T> {
