@@ -90,12 +90,12 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
 
     @Override
     public CompletableFuture<V> provide(K key) {
-        if (containsKey(key)) {
+        if (!containsKey(key)) {
             CompletableFuture<V> future = valueProvider.apply(key);
             future.thenAcceptAsync(it -> getReference(key, true).set(it), providerWriteExecutor);
         }
 
-        return getReference(key, true).provider().get();
+        return getReference(key, false).provider().get();
     }
 
     @Override

@@ -12,11 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 @FunctionalInterface
-public interface Reference<T> extends Supplier<T> {
+public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
     static <T> Reference<T> constant(T of) {
         return Objects.isNull(of) ? empty() : (Reference<T>) Support.Constant.cache.computeIfAbsent(of,
                 Support.Constant::new
         );
+    }
+
+    static <T> Reference<T> provided(Supplier<T> supplier) {
+        return supplier::get;
     }
 
     static <T> Reference<T> empty() {

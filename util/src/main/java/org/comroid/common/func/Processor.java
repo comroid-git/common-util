@@ -3,6 +3,7 @@ package org.comroid.common.func;
 import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -22,7 +23,7 @@ public interface Processor<T> extends Reference<T>, Cloneable {
     }
 
     static <T> Processor<T> ofConstant(T value) {
-        return ofReference(Reference.constant(value));
+        return ofReference(Objects.isNull(value) ? Reference.empty() : Reference.constant(value));
     }
 
     static <T> Processor<T> ofReference(Reference<T> reference) {
