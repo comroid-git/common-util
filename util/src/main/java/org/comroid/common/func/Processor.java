@@ -16,6 +16,10 @@ public interface Processor<T> extends Reference<T> {
         return (Processor<T>) Support.EMPTY;
     }
 
+    static <T> Processor<T> ofConstant(T value) {
+        return ofReference(Reference.constant(value));
+    }
+
     static <T> Processor<T> ofReference(Reference<T> reference) {
         return new Support.OfReference<>(reference);
     }
