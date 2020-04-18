@@ -12,6 +12,11 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public interface Processor<T> extends Reference<T> {
+    @Override
+    default Processor<T> process() {
+        return this;
+    }
+
     static <T> Processor<T> empty() {
         return (Processor<T>) Support.EMPTY;
     }
