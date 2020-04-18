@@ -4,5 +4,7 @@ package org.comroid.common.ref;
  * fuck naming
  */
 public interface SelfDeclared<S extends SelfDeclared<S>> {
-    S self();
+    default S self() {
+        return (S) this;
+    }
 }
