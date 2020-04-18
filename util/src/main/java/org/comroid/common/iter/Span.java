@@ -288,16 +288,16 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         //endformatting
         SKIP_NULLS(init -> true,
                 iterate -> nonNull(iterate),
-                (overwriting, with) -> isNull(overwriting),
+                (overwriting, with) -> Objects.isNull(overwriting),
                 remove -> true,
-                cleanup -> isNull(cleanup)
+                cleanup -> Objects.isNull(cleanup)
         ),
 
         NULL_ON_INIT(init -> true,
                 iterate -> nonNull(iterate),
-                (overwriting, with) -> nonNull(with) && isNull(overwriting),
+                (overwriting, with) -> nonNull(with) && Objects.isNull(overwriting),
                 remove -> true,
-                cleanup -> isNull(cleanup)
+                cleanup -> Objects.isNull(cleanup)
         ),
 
         PROHIBIT_NULLS(init -> {
@@ -305,9 +305,9 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
             return true;
         },
                 iterate -> nonNull(iterate),
-                (overwriting, with) -> nonNull(with) && isNull(overwriting),
+                (overwriting, with) -> nonNull(with) && Objects.isNull(overwriting),
                 remove -> true,
-                cleanup -> isNull(cleanup)
+                cleanup -> Objects.isNull(cleanup)
         ),
 
         IMMUTABLE(init -> true, iterate -> true, (overwriting, with) -> false, remove -> false, cleanup -> false);

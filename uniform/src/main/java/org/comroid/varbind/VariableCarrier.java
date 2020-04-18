@@ -9,11 +9,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
+import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.util.Collections.emptySet;
@@ -79,7 +81,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
                 .forEach(bind -> {
                     Span<Object> extract = bind.extract(data);
 
-                    ref(bind).set(extract);
+                    extrRef(bind).set(extract);
                     compRef(bind).outdate();
                     changed.add(bind);
                 });
@@ -87,7 +89,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         return unmodifiableSet(changed);
     }
 
-    private <T> AtomicReference<Span<T>> ref(
+    private <T> AtomicReference<Span<T>> extrRef(
             VarBind<T, ? super DEP, ?, Object> bind
     ) {
         return deadCast(vars.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
@@ -119,18 +121,18 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     }
 
     @Override
-    public final <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> pBind) {
+    public @NotNull <T> OutdateableReference<T> ref(VarBind<?, ? super DEP, ?, T> pBind) {
         VarBind<Object, ? super DEP, Object, T> bind = (VarBind<Object, ? super DEP, Object, T>) pBind;
         OutdateableReference<T>                 ref  = compRef(bind);
 
         if (ref.isOutdated()) {
             // recompute
 
-            AtomicReference<Span<Object>> reference = ref(Polyfill.deadCast(bind));
+            AtomicReference<Span<Object>> reference = extrRef(Polyfill.deadCast(bind));
             final T                       yield     = bind.process(dependencyObject, reference.get());
             ref.update(yield);
         }
 
-        return ref.get();
+        return ref;
     }
 }
