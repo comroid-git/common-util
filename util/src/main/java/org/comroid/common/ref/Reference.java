@@ -42,7 +42,7 @@ public interface Reference<T> extends Supplier<T> {
         return Objects.requireNonNull(get(), message);
     }
 
-    default Provider<T> provider() {
+    default Provider.Now<T> provider() {
         return Provider.of(this);
     }
 
