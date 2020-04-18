@@ -3,6 +3,7 @@ package org.comroid.test.uniform;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
+import org.comroid.restless.adapter.okhttp.v3.OkHttp3Adapter;
 import org.comroid.test.model.NGinXFSNode;
 import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
 import org.comroid.restless.REST;

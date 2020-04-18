@@ -126,7 +126,7 @@ public final class REST<D> {
         }
 
         public final Request<T> url(URL url) {
-            this.urlProvider = Provider.of(url);
+            this.urlProvider = Provider.constant(url);
 
             return this;
         }
