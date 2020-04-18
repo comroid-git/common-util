@@ -1,7 +1,9 @@
 package org.comroid.uniform.cache;
 
+import org.comroid.common.iter.Span;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -10,7 +12,12 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class ProvidedCache<K, V> implements Cache<K, V> {
-    private final ConcurrentHashMap<K, Cache.Reference<V>> cache = new ConcurrentHashMap<>();
+    public static final int DEFAULT_LARGE_THRESHOLD = 250;
+
+    private final ConcurrentHashMap<K, Cache.Reference<K, V>> cache = new ConcurrentHashMap<>();
+    private final int                                         largeThreshold;
+
+    public ProvidedCache(int largeThreshold) {this.largeThreshold = largeThreshold;}
 
     @Override
     public boolean containsKey(K key) {
@@ -19,42 +26,52 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean containsValue(V value) {
-        return stream() // todo All of this
+        return stream().anyMatch(ref -> ref.process()
+                .test(value::equals));
     }
 
     @Override
     public boolean large() {
-        return false;
+        return size() < largeThreshold;
     }
 
     @Override
     public int size() {
-        return 0;
+        return cache.size();
     }
 
     @Override
-    public final Stream<Reference<V>> stream(Predicate<K> filter) {
-        return (large()
-                ? cache.entrySet()
-                .parallelStream()
-                : cache.entrySet()
-                        .stream()
+    public final Stream<Reference<K, V>> stream(Predicate<K> filter) {
+        return (
+                large()
+                        ? cache.entrySet()
+                        .parallelStream()
+                        : cache.entrySet()
+                                .stream()
         ).filter(entry -> filter.test(entry.getKey()))
                 .map(Map.Entry::getValue);
     }
 
     @Override
-    public @NotNull Reference<V> getReference(K key) {
-        return null;
+    public @NotNull Reference<K, V> getReference(K key, boolean createIfAbsent) {
+        return createIfAbsent ? cache.computeIfAbsent(key, Reference::new) : cache.getOrDefault(
+                key,
+                Cache.Reference.empty()
+        );
     }
 
     @Override
     public boolean canProvide() {
-        return false;
+        return true;
     }
 
     @Override
     public CompletableFuture<V> provide(K key) {
+        if (containsKey(key))
+            return getReference(key, false).provider()
+                    .get();
+
+        // todo
         return null;
     }
 
@@ -66,6 +83,9 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
     @NotNull
     @Override
     public Iterator<Map.Entry<K, V>> iterator() {
-        return null;
+        return stream().map(ref -> new AbstractMap.SimpleImmutableEntry<>(ref.getKey(), ref.get()))
+                .map(it -> (Map.Entry<K, V>) it)
+                .collect(Span.collector())
+                .iterator();
     }
 }
