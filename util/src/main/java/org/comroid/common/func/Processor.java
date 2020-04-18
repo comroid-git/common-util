@@ -11,7 +11,12 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public interface Processor<T> extends Reference<T> {
+/**
+ * Cloneable through {@link #process()}.
+ * 
+ * @param <T>
+ */
+public interface Processor<T> extends Reference<T>, Cloneable {
     static <T> Processor<T> empty() {
         return (Processor<T>) Support.EMPTY;
     }
@@ -31,7 +36,7 @@ public interface Processor<T> extends Reference<T> {
 
     @Override
     default Processor<T> process() {
-        return this;
+        return Processor.ofReference(this);
     }
 
     default boolean test(Predicate<? super T> predicate) {
