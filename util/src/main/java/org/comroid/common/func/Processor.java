@@ -12,11 +12,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public interface Processor<T> extends Reference<T> {
-    @Override
-    default Processor<T> process() {
-        return this;
-    }
-
     static <T> Processor<T> empty() {
         return (Processor<T>) Support.EMPTY;
     }
@@ -33,6 +28,11 @@ public interface Processor<T> extends Reference<T> {
 
     @Override
     @Nullable T get();
+
+    @Override
+    default Processor<T> process() {
+        return this;
+    }
 
     default boolean test(Predicate<? super T> predicate) {
         return predicate.test(get());
@@ -54,8 +54,7 @@ public interface Processor<T> extends Reference<T> {
 
     default <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
         if (isPresent())
-            return StreamSupport.stream(
-                    Spliterators.spliterator(new Object[]{mapper.apply(get())}, Spliterator.SIZED),
+            return StreamSupport.stream(Spliterators.spliterator(new Object[]{mapper.apply(get())}, Spliterator.SIZED),
                     false
             );
 
