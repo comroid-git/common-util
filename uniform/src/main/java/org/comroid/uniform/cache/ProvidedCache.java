@@ -8,16 +8,40 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class ProvidedCache<K, V> implements Cache<K, V> {
-    public static final int DEFAULT_LARGE_THRESHOLD = 250;
+    public static final Executor DEFAULT_EXECUTOR        = ForkJoinPool.commonPool();
+    public static final int      DEFAULT_LARGE_THRESHOLD = 250;
 
-    private final Map<K, Cache.Reference<K, V>> cache = new ConcurrentHashMap<>();
-    private final int                           largeThreshold;
+    private final Map<K, Cache.Reference<K, V>>     cache = new ConcurrentHashMap<>();
+    private final Executor                          providerWriteExecutor;
+    private final Function<K, CompletableFuture<V>> valueProvider;
+    private final int                               largeThreshold;
 
-    public ProvidedCache(int largeThreshold) {this.largeThreshold = largeThreshold;}
+    public ProvidedCache(Function<K, CompletableFuture<V>> valueProvider) {
+        this(DEFAULT_EXECUTOR, valueProvider, DEFAULT_LARGE_THRESHOLD);
+    }
+
+    public ProvidedCache(Function<K, CompletableFuture<V>> valueProvider, int largeThreshold) {
+        this(DEFAULT_EXECUTOR, valueProvider, largeThreshold);
+    }
+
+    public ProvidedCache(Executor providerWriteExecutor, Function<K, CompletableFuture<V>> valueProvider) {
+        this(providerWriteExecutor, valueProvider, DEFAULT_LARGE_THRESHOLD);
+    }
+
+    public ProvidedCache(
+            Executor providerWriteExecutor, Function<K, CompletableFuture<V>> valueProvider, int largeThreshold
+    ) {
+        this.providerWriteExecutor = providerWriteExecutor;
+        this.valueProvider         = valueProvider;
+        this.largeThreshold        = largeThreshold;
+    }
 
     @Override
     public boolean containsKey(K key) {
@@ -70,8 +94,9 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
             return getReference(key, false).provider()
                     .get();
 
-        // todo
-        return null;
+        CompletableFuture<V> future = valueProvider.apply(key);
+        future.thenAcceptAsync(it -> getReference(key, true).set(it), providerWriteExecutor);
+        return future;
     }
 
     @Override
