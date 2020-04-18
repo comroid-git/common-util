@@ -27,7 +27,6 @@ public class FixedSizeThreadPoolTest {
         yields = new ArrayList<>();
     }
 
-    @Test
     public void test() throws InterruptedException {
         someTasks.stream()
                 .limit(10)
