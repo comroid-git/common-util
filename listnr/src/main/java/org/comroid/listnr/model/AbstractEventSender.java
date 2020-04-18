@@ -28,7 +28,7 @@ public class AbstractEventSender<Self extends EventSender<Self, ? extends E>, E 
 
     @Override
     public <T extends E> EventHandler.API<? extends Self, T> attachHandler(T event) {
-        return (EventHandler.API<? extends Self, T>) new EventHandler.API<>((Self) this, event);
+        return (EventHandler.API<? extends Self, T>) new EventHandler.API<>(self(), event);
     }
 
     @Override

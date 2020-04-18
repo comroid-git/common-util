@@ -1,9 +1,10 @@
 package org.comroid.listnr;
 
 import org.comroid.common.iter.Span;
+import org.comroid.common.ref.SelfDeclared;
 import org.comroid.dreadpool.ThreadPool;
 
-public interface EventSender<Self extends EventSender<Self, ? extends E>, E extends Event<Self>> {
+public interface EventSender<Self extends EventSender<Self, ? extends E>, E extends Event<Self>> extends SelfDeclared<Self> {
     ThreadPool getThreadPool();
 
     Span<HandlerManager<Self, ? extends E>> getAttachedManagers();
