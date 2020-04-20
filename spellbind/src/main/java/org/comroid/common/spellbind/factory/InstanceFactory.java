@@ -96,25 +96,20 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
         }
 
         private void populateStrategies(final Map<Class[], Invocable<T>> strategies) {
-            final Invocable<?>[] allInvocations = allInvocations();
-            final Class[] distinctTypes = Stream.of(allInvocations)
+            final Class[] distinctTypes = Stream.of(allInvocations())
                     .map(Invocable::typeOrder)
                     .flatMap(Stream::of)
                     .distinct()
                     .toArray(Class[]::new);
 
-            if (distinctTypes.length == 0) {
-                strategies.put(new Class[0],
-                        new CombiningInvocable<T>(mainInterface,
-                                distinctTypes,
-                                classLoader,
-                                coreObjectFactory,
-                                implementations
-                        )
-                );
-
-                return;
-            }
+            strategies.put(new Class[0],
+                    new CombiningInvocable<>(mainInterface,
+                            distinctTypes,
+                            classLoader,
+                            coreObjectFactory,
+                            implementations
+                    )
+            );
         }
 
         private Invocable<?>[] allInvocations() {
