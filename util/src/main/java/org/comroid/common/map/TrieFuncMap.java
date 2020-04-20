@@ -195,14 +195,24 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
             }
         }
 
-        private Optional<Stage<K, S, V>> findStage(K forKey, S desired) {
+        private Optional<Stage<K, S, V>> findStage(K totalKey, S desired) {
             // todo Rework this
             synchronized (lock) {
                 if (validator != null) {
                     // use validator
 
-                    return stream().filter(stage -> validator.apply((S) stage.getKey(), desired))
+                    Optional<Stage<K, S, V>> any = stream().filter(stage -> validator.apply(
+                            (S) stage.getKey(),
+                            desired
+                    ))
                             .findAny();
+
+                    if (!any.isPresent())
+                        return Optional.of(subStages.computeIfAbsent(desired,
+                                key -> new Stage(this, totalKey, desired, validator)
+                        ));
+
+                    return any;
                 } else if (comparator != null) {
                     // use comparator
 
@@ -215,12 +225,12 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
 
                     if (index == -1)
                         return Optional.of(subStages.computeIfAbsent(desired,
-                                key -> new Stage(this, forKey, desired, comparator)
+                                key -> new Stage(this, totalKey, desired, comparator)
                         ));
 
                     return Optional.of(entries[index].getValue());
                 } else
-                    return Optional.of(subStages.computeIfAbsent(desired, key -> new Stage(this, forKey, desired)));
+                    return Optional.of(subStages.computeIfAbsent(desired, key -> new Stage(this, totalKey, desired)));
             }
         }
     }
