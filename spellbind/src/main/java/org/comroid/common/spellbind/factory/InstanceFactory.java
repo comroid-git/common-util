@@ -16,7 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class InstanceFactory<T, C extends InstanceContext<C>> extends ParamFactory.Abstract<C, T> {
+public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceContext, T> {
     private final ClassLoader                classLoader;
     private final Map<Class[], Invocable<T>> strategies;
 
@@ -30,7 +30,7 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
     }
 
     @Override
-    public T create(@Nullable C context) {
+    public T create(@Nullable InstanceContext context) {
         final Class[] types = Arrays.stream(context.getArgs())
                 .map(Object::getClass)
                 .toArray(Class[]::new);
@@ -84,7 +84,7 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
         }
 
         @Override
-        public InstanceFactory<T, C> build() {
+        public InstanceFactory<T> build() {
             final Map<Class[], Invocable<T>> strategies
                     = new TrieFuncMap<>((BiFunction<Class, Class, Boolean>) Class::isAssignableFrom,
                     Function.identity()
@@ -102,7 +102,7 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
                     .distinct()
                     .toArray(Class[]::new);
 
-            strategies.put(new Class[0],
+            strategies.put(distinctTypes,
                     new CombiningInvocable<>(mainInterface,
                             distinctTypes,
                             classLoader,
