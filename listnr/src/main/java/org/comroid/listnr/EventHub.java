@@ -1,6 +1,7 @@
 package org.comroid.listnr;
 
 import org.comroid.common.iter.Span;
+import org.comroid.common.util.BitmaskUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.function.ToIntFunction;
@@ -32,7 +33,11 @@ public final class EventHub<TF> {
         return registeredAcceptors;
     }
 
-    public <E extends EventBase> void publish(E event) {
-
+    public <E extends EventPayload> void publish(E event) {
+        getRegisteredAcceptors()
+                .stream()
+                .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(), event.getEventMask()))
+                .map(acceptor -> (Runnable) () -> acceptor.acceptEvent(event))
+                .forEachOrdered(executorService::execute);
     }
 }

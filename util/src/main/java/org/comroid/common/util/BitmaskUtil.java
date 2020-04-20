@@ -1,11 +1,8 @@
 package org.comroid.common.util;
 
-import jdk.internal.reflect.CallerSensitive;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collector;
 
 public final class BitmaskUtil {
     public static final  int                          EMPTY     = 0x0;
@@ -26,14 +23,24 @@ public final class BitmaskUtil {
             return mask; // do nothing
     }
 
-    @CallerSensitive
+    //@CallerSensitive
     public static int nextFlag() {
         return LAST_FLAG.computeIfAbsent(StackTraceUtils.callerClass(1), key -> new AtomicInteger(0))
-                .updateAndGet(value -> {
-                    if (value <= 0)
-                        return 1;
+                .getAndUpdate(value -> {
+                    if (value == 3)
+                        throw new RuntimeException("Too many Flags requested! Integer Overflow");
 
-                    return value == 1 ? 2 : (int) Math.pow(value, 2);
+                    if (value < 0 && value * 2 != 0)
+                        return value == -1 ? -2 : value * 2;
+                    else if (value < 0)
+                        return 3;
+
+                    if (value == 0)
+                        return 1;
+                    if (value * 2 == Integer.MIN_VALUE)
+                        return -1;
+
+                    return value == 1 ? 2 : value * 2;
                 });
     }
 

@@ -10,14 +10,14 @@ import java.util.Set;
 
 import static org.comroid.common.util.BitmaskUtil.combine;
 
-public interface EventBase {
+public interface EventPayload {
     Set<EventType> getEventTypes();
 
     @Internal
     int getEventMask();
 
     final class Support {
-        protected static abstract class Abstract implements EventBase {
+        protected static abstract class Abstract implements EventPayload {
             private final Set<EventType> eventTypes;
             private final int            mask;
 
