@@ -1,7 +1,5 @@
 package org.comroid.listnr;
 
-import org.comroid.listnr.model.AbstractEventSender;
-
 import java.util.concurrent.CompletableFuture;
 
 public interface EventHandler<E extends Event<?>> {

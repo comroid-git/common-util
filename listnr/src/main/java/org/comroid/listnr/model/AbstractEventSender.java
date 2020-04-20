@@ -36,6 +36,11 @@ public abstract class AbstractEventSender<Self extends EventSender<Self, ? exten
         return false;
     }
 
+    @Override
+    public <T extends E> int sendEvent(T event) {
+        return 0;
+    }
+
     public class BasicAPI<S extends EventSender<S, E extends Event<S>>, T extends Event<?>> implements EventHandler.API<S, T> {
         private final S                  sender;
         private final EventType<?, S, T> event;

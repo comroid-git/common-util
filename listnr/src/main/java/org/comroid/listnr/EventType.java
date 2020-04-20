@@ -1,6 +1,5 @@
 package org.comroid.listnr;
 
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface EventType<TF, S extends EventSender<S, ? extends E>, E extends Event<?>> extends Predicate<TF> {
