@@ -7,6 +7,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.sql.Ref;
+import java.util.NoSuchElementException;
 
 public interface Invocable<T> {
     @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
@@ -27,6 +29,12 @@ public interface Invocable<T> {
 
     static <T> Invocable<T> ofMethodCall(Method method, @Nullable Object target) {
         return new Support.OfMethod<>(method, target);
+    }
+
+    static <T> Invocable<T> constructing(Class<T> type, Class<?>... args) {
+        return ReflectionHelper.findConstructor(type, args)
+                .map(Invocable::ofConstructor)
+                .orElseThrow(() -> new NoSuchElementException("No suitable constructor found"));
     }
 
     final class Support {
