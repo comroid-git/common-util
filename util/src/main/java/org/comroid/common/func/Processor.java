@@ -1,6 +1,7 @@
 package org.comroid.common.func;
 
 import org.comroid.common.ref.Reference;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -74,6 +75,7 @@ public interface Processor<T> extends Reference<T>, Cloneable {
         return this;
     }
 
+    @Internal
     final class Support {
         private static final Processor<?> EMPTY = new OfReference<>(Reference.empty());
 

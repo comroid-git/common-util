@@ -2,6 +2,7 @@ package org.comroid.common.func;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.annotation.Blocking;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Map;
@@ -28,6 +29,10 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
 
     static <T> Provider.Now<T> empty() {
         return (Now<T>) Support.EMPTY;
+    }
+
+    static <T> Provider<T> completingOnce(CompletableFuture<T> from) {
+        return new Support.Once<>(from);
     }
 
     CompletableFuture<T> get();
@@ -58,6 +63,7 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
         }
     }
 
+    @Internal
     final class Support {
         private static final Provider<?> EMPTY = constant(null);
 
@@ -73,6 +79,19 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
             @Override
             public T now() {
                 return value;
+            }
+        }
+
+        private static final class Once<T> implements Provider<T> {
+            private final CompletableFuture<T> future;
+
+            public Once(CompletableFuture<T> from) {
+                this.future = from;
+            }
+
+            @Override
+            public CompletableFuture<T> get() {
+                return future;
             }
         }
     }

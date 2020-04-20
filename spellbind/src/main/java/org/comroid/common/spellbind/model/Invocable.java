@@ -1,6 +1,8 @@
 package org.comroid.common.spellbind.model;
 
+import org.comroid.common.func.Provider;
 import org.comroid.common.util.ReflectionHelper;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
@@ -12,6 +14,10 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface Invocable<T> {
+    static <T> Invocable<T> ofProvider(Provider<T> provider) {
+        return new Support.OfProvider<>(provider);
+    }
+
     static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
         return new Support.OfConstructor<>(constructor);
     }
@@ -34,6 +40,10 @@ public interface Invocable<T> {
         return (Invocable<T>) Support.Constant.Cache.computeIfAbsent(value, Support.Constant::new);
     }
 
+    static <T> Invocable<T> empty() {
+        return (Invocable<T>) Support.Empty;
+    }
+
     @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
 
     Class[] typeOrder();
@@ -42,7 +52,30 @@ public interface Invocable<T> {
         return invoke(ReflectionHelper.arrange(args, typeOrder()));
     }
 
+    @Internal
     final class Support {
+        private static final Invocable<?> Empty = constant(null);
+        private static final Class[]      NoClasses = new Class[0];
+
+        private static final class OfProvider<T> implements Invocable<T> {
+            private final Provider<T> provider;
+
+            public OfProvider(Provider<T> provider) {
+                this.provider = provider;
+            }
+
+            @Nullable
+            @Override
+            public T invoke(Object... args) {
+                return provider.now();
+            }
+
+            @Override
+            public Class[] typeOrder() {
+                return NoClasses;
+            }
+        }
+
         private static final class OfConstructor<T> implements Invocable<T> {
             private final Constructor<T> constructor;
 
@@ -91,9 +124,8 @@ public interface Invocable<T> {
             }
         }
 
-        public static class Constant<T> implements Invocable<T> {
+        private static final class Constant<T> implements Invocable<T> {
             private static final Map<Object, Invocable<Object>> Cache = new ConcurrentHashMap<>();
-            private static final Class[]                        NoClasses = new Class[0];
             private final        T                              value;
 
             public Constant(T value) {

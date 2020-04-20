@@ -2,6 +2,8 @@ package org.comroid.common.ref;
 
 import org.comroid.common.func.Processor;
 import org.comroid.common.func.Provider;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +60,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         @Nullable T set(T newValue);
     }
 
+    @Internal
     final class Support {
         private static final Reference<?> EMPTY = Reference.constant(null);
 

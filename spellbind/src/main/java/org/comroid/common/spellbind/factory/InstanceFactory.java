@@ -1,10 +1,10 @@
 package org.comroid.common.spellbind.factory;
 
 import org.comroid.common.func.ParamFactory;
+import org.comroid.common.func.Provider;
 import org.comroid.common.map.TrieFuncMap;
 import org.comroid.common.ref.Pair;
 import org.comroid.common.spellbind.model.Invocable;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,12 +12,21 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class InstanceFactory<T, C extends InstanceContext<C>> extends ParamFactory.Abstract<C, T> {
+    private final ClassLoader classLoader;
     private final Map<Class[], Invocable<T>> strategies;
 
-    private InstanceFactory(Map<Class[], Invocable<T>> strategies) {
-        this.strategies = Collections.unmodifiableMap(strategies);
+    private InstanceFactory(ClassLoader classLoader, Map<Class[], Invocable<T>> strategies) {
+        this.classLoader = classLoader;
+        this.strategies  = Collections.unmodifiableMap(strategies);
+    }
+
+    public Set<Class[]> getParameterOrders() {
+        return strategies.keySet();
     }
 
     @Override
@@ -50,8 +59,17 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
             this.mainInterface = mainInterface;
         }
 
+        public <S extends T> Builder<T, C> coreObject(Provider<S> coreObjectFactory) {
+            return coreObject(Invocable.ofProvider(coreObjectFactory));
+        }
+
         public <S extends T> Builder<T, C> coreObject(Invocable<S> coreObjectFactory) {
             this.coreObjectFactory = coreObjectFactory;
+            return this;
+        }
+
+        public <S extends T> Builder<T, C> subImplement(Provider<S> subFactory, Class<? super S> asInterface) {
+            this.implementations.add(new ImplementationNotation(Invocable.ofProvider(subFactory), asInterface));
             return this;
         }
 
@@ -74,11 +92,29 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
 
             populateStrategies(strategies);
 
-            return new InstanceFactory<>(strategies);
+            this.get()
+
+            return new InstanceFactory<>(classLoader, strategies);
         }
 
         private void populateStrategies(final Map<Class[], Invocable<T>> strategies) {
+            final Invocable<?>[] allInvocations = allInvocations();
+            final Class[] distinctTypes = Stream.of(allInvocations)
+                    .map(Invocable::typeOrder)
+                    .flatMap(Stream::of)
+                    .distinct()
+                    .toArray(Class[]::new);
 
+
+        }
+
+        private Invocable<?>[] allInvocations() {
+            final List<Invocable<?>> collect = implementations.stream()
+                    .map(ImplementationNotation::getFactory)
+                    .collect(Collectors.toList());
+            collect.add(coreObjectFactory);
+
+            return collect.toArray(new Invocable[0]);
         }
     }
 
