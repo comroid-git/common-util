@@ -68,7 +68,7 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
                     Function.identity()
             );
 
-            return null;
+            return new InstanceFactory<>(strategies);
         }
     }
 
