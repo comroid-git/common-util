@@ -1,6 +1,9 @@
 package org.comroid.common.util;
 
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
 
 public final class ArrayUtil {
     @SafeVarargs
@@ -10,7 +13,8 @@ public final class ArrayUtil {
         for (int i, f, o = i = f = 0; i < yield.length; i++) {
             if (i >= atIndex && o < insert.length)
                 yield[i] = insert[o++];
-            else yield[i] = original[f++];
+            else
+                yield[i] = original[f++];
         }
 
         return yield;
