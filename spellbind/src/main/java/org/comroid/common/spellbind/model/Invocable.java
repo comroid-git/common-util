@@ -1,5 +1,6 @@
 package org.comroid.common.spellbind.model;
 
+import org.comroid.common.util.ReflectionHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
@@ -11,6 +12,10 @@ public interface Invocable<T> {
     @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
 
     Class[] typeOrder();
+
+    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
+        return invoke(ReflectionHelper.arrange(args, typeOrder()));
+    }
 
     static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
         return new Support.OfConstructor<>(constructor);
