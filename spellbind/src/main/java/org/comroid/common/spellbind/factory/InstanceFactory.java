@@ -7,18 +7,15 @@ import org.comroid.common.spellbind.model.Invocable;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public final class InstanceFactory<T, C extends InstanceContext<C>> extends ParamFactory.Abstract<C, T> {
-    private final Map<Class[], Invocable> strategies;
+    private final Map<Class[], Invocable<T>> strategies;
 
-    private InstanceFactory(Map<Class[], Invocable> strategies) {
-        this.strategies = strategies;
+    private InstanceFactory(Map<Class[], Invocable<T>> strategies) {
+        this.strategies = Collections.unmodifiableMap(strategies);
     }
 
     @Override
@@ -26,7 +23,7 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
         final Class[] types = Arrays.stream(parameter.getArgs())
                 .map(Object::getClass)
                 .toArray(Class[]::new);
-        final Invocable invocable = strategies.get(types);
+        final Invocable<T> invocable = strategies.get(types);
 
         if (invocable == null)
             throw new UnsupportedOperationException(String.format("Cannot construct from types %s",
@@ -66,33 +63,12 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
 
         @Override
         public InstanceFactory<T, C> build() {
-            final Map<Class[], Invocable> strategies
+            final Map<Class[], Invocable<T>> strategies
                     = new TrieFuncMap<>((BiFunction<Class, Class, Boolean>) Class::isAssignableFrom,
                     Function.identity()
             );
 
             return new InstanceFactory<>(strategies);
-        }
-    }
-
-    private static final class OrderedParamInstanceFactory<T> extends ParamFactory.Abstract<Object[], T> {
-        private final Invocable invocable;
-
-        private OrderedParamInstanceFactory(Invocable invocable) {
-            this.invocable = invocable;
-        }
-
-        public Class[] getTypeOrder() {
-            return invocable.typeOrder();
-        }
-
-        @Override
-        public T create(@Nullable Object[] parameter) {
-            try {
-                return (T) invocable.invoke(parameter);
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
