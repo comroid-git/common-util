@@ -1,7 +1,5 @@
 package org.comroid.common.func;
 
-import java.util.concurrent.CompletableFuture;
-
 public interface Factory<T> extends Provider.Now<T> {
     int counter();
 
@@ -10,5 +8,18 @@ public interface Factory<T> extends Provider.Now<T> {
     @Override
     default T now() {
         return create();
+    }
+
+    abstract class Abstract<T> implements Factory<T> {
+        protected int counter;
+
+        @Override
+        public final int counter() {
+            return counter++;
+        }
+
+        protected final int peekCounter() {
+            return counter;
+        }
     }
 }
