@@ -6,7 +6,7 @@ import org.comroid.listnr.*;
 
 import java.util.concurrent.CompletableFuture;
 
-public abstract class AbstractEventSender<Self extends EventSender<Self, ? extends E>, E extends Event<Self>>
+public abstract class AbstractEventSender<Self extends EventSender<Self, ? extends E>, E extends CombinedEvent<Self>>
         implements EventSender<Self, E> {
     private final ThreadPool                              threadPool;
     private final Span<HandlerManager<Self, ? extends E>> attached;
@@ -37,11 +37,16 @@ public abstract class AbstractEventSender<Self extends EventSender<Self, ? exten
     }
 
     @Override
+    public <TF, S extends EventSender<S, T>, T extends E> EventType<TF, S, T> createEventType() {
+        return null;
+    }
+
+    @Override
     public <T extends E> int sendEvent(T event) {
         return 0;
     }
 
-    public class BasicAPI<S extends EventSender<S, E extends Event<S>>, T extends Event<?>> implements EventHandler.API<S, T> {
+    public class BasicAPI<S extends EventSender<S, T >, T extends CombinedEvent<S>> implements EventHandler.API<S, T> {
         private final S                  sender;
         private final EventType<?, S, T> event;
 

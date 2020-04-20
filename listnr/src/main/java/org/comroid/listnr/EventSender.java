@@ -5,7 +5,7 @@ import org.comroid.common.ref.SelfDeclared;
 import org.comroid.dreadpool.ThreadPool;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
-public interface EventSender<Self extends EventSender<Self, ? extends E>, E extends Event<?>>
+public interface EventSender<Self extends EventSender<Self, ? extends E>, E extends CombinedEvent<?>>
         extends SelfDeclared<Self> {
     ThreadPool getThreadPool();
 
@@ -20,6 +20,9 @@ public interface EventSender<Self extends EventSender<Self, ? extends E>, E exte
                 .filter(HandlerManager::detachNow)
                 .count();
     }
+
+    @Internal
+    <TF, S extends EventSender<S, T>, T extends E> EventType<TF, S, T> createEventType();
 
     @Internal
     <T extends E> int sendEvent(T event);
