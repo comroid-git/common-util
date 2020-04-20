@@ -84,7 +84,7 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
         private final     S                     smallKey;
         private @Nullable V                     value;
 
-        public Stage(Stage<K, S, V> parent, K effectiveKey, S smallKey, EqualityComparator<S> comparator) {
+        private Stage(Stage<K, S, V> parent, K effectiveKey, S smallKey, EqualityComparator<S> comparator) {
             this.parent       = parent;
             this.comparator   = comparator;
             this.subStages    = new TreeMap<>(this.comparator);
