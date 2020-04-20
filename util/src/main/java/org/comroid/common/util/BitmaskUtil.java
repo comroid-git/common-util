@@ -37,21 +37,6 @@ public final class BitmaskUtil {
                 });
     }
 
-    public static Collector<AtomicInteger, AtomicInteger, Integer> collectMask() {
-        return Collector.of(
-                () -> new AtomicInteger(0),
-                (left, right) -> left.updateAndGet(value -> combine(value, right.get())),
-                (left, right) -> {
-                    left.updateAndGet(value -> combine(value, right.get()));
-
-                    return left;
-                },
-                AtomicInteger::get,
-                Collector.Characteristics.IDENTITY_FINISH,
-                Collector.Characteristics.CONCURRENT
-        );
-    }
-
     public static int combine(int... masks) {
         int yield = EMPTY;
 
