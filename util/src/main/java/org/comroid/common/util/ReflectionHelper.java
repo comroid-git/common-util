@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.comroid.common.annotation.Instance;
 import org.comroid.common.iter.Span;
 
@@ -173,5 +175,16 @@ public final class ReflectionHelper {
                 type.getAnnotation(annotationType));
 
         return Optional.empty();
+    }
+
+    public static <T> Class<? super T> canonicalClass(Class<T> of) {
+        if (Object.class.equals(of) || Void.class.equals(of))
+            return Object.class;
+        if (Modifier.isInterface(of.getModifiers()) || of.isPrimitive())
+            return of;
+        if (of.isAnonymousClass())
+            return canonicalClass(of.getSuperclass());
+
+        return of;
     }
 }
