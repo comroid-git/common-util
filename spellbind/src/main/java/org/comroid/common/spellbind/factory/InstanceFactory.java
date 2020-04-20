@@ -4,6 +4,7 @@ import org.comroid.common.func.ParamFactory;
 import org.comroid.common.func.Provider;
 import org.comroid.common.map.TrieFuncMap;
 import org.comroid.common.ref.Pair;
+import org.comroid.common.spellbind.Spellbind;
 import org.comroid.common.spellbind.model.Invocable;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
@@ -12,12 +13,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class InstanceFactory<T, C extends InstanceContext<C>> extends ParamFactory.Abstract<C, T> {
-    private final ClassLoader classLoader;
+    private final ClassLoader                classLoader;
     private final Map<Class[], Invocable<T>> strategies;
 
     private InstanceFactory(ClassLoader classLoader, Map<Class[], Invocable<T>> strategies) {
@@ -92,8 +92,6 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
 
             populateStrategies(strategies);
 
-            this.get()
-
             return new InstanceFactory<>(classLoader, strategies);
         }
 
@@ -105,7 +103,18 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
                     .distinct()
                     .toArray(Class[]::new);
 
+            if (distinctTypes.length == 0) {
+                strategies.put(new Class[0],
+                        new CombiningInvocable<T>(mainInterface,
+                                distinctTypes,
+                                classLoader,
+                                coreObjectFactory,
+                                implementations
+                        )
+                );
 
+                return;
+            }
         }
 
         private Invocable<?>[] allInvocations() {
@@ -115,6 +124,49 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
             collect.add(coreObjectFactory);
 
             return collect.toArray(new Invocable[0]);
+        }
+    }
+
+    @Internal
+    private static final class CombiningInvocable<T> implements Invocable<T> {
+        private final Class<T>                        mainInterface;
+        private final Class[]                         types;
+        private final ClassLoader                     classLoader;
+        private final Invocable<?>                    coreObjectFactory;
+        private final List<ImplementationNotation<?>> notations;
+
+        private CombiningInvocable(
+                Class<T> mainInterface,
+                Class[] types,
+                ClassLoader classLoader,
+                Invocable<?> coreObjectFactory,
+                List<ImplementationNotation<?>> notations
+        ) {
+            this.mainInterface     = mainInterface;
+            this.types             = types;
+            this.classLoader       = classLoader;
+            this.coreObjectFactory = coreObjectFactory;
+            this.notations         = notations;
+        }
+
+        @Nullable
+        @Override
+        public T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
+            final Spellbind.Builder<T> builder = Spellbind.builder(mainInterface)
+                    .classloader(classLoader)
+                    .coreObject(coreObjectFactory.invokeAutoOrder(args));
+
+            for (ImplementationNotation<?> notation : notations) {
+                builder.subImplement(notation.getFactory()
+                        .invokeAutoOrder(args), notation.getType());
+            }
+
+            return builder.build();
+        }
+
+        @Override
+        public Class[] typeOrder() {
+            return types;
         }
     }
 
