@@ -51,14 +51,17 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
 
         public Builder<T, C> coreObject(ParamFactory<Object[], Object> coreObjectFactory) {
             this.coreObjectFactory = coreObjectFactory;
+            return this;
         }
 
         public Builder<T, C> subImplement(ParamFactory<Object[], Object> subFactory, Class<?> asInterface) {
             this.implementations.add(new ImplementationNotation(subFactory, asInterface));
+            return this;
         }
 
         public Builder<T, C> classloader(ClassLoader classLoader) {
             this.classLoader = classLoader;
+            return this;
         }
 
         @Override
