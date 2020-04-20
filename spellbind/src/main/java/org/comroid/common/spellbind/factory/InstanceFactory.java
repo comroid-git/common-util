@@ -31,7 +31,7 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
             ));
 
         try {
-            return (T) invocable.invoke(parameter.getArgs());
+            return invocable.invoke(parameter.getArgs());
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -39,19 +39,19 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
 
     public static final class Builder<T, C extends InstanceContext<C>>
             implements org.comroid.common.func.Builder<InstanceFactory<T, C>> {
-        private ParamFactory<Object[], Object> coreObjectFactory;
-        private List<ImplementationNotation>   implementations = new ArrayList<>();
-        private ClassLoader                    classLoader;
+        private Invocable<?> coreObjectFactory;
+        private List<ImplementationNotation<?>> implementations = new ArrayList<>();
+        private ClassLoader classLoader;
 
         public Builder(Class<T> mainInterface) {
         }
 
-        public Builder<T, C> coreObject(ParamFactory<Object[], Object> coreObjectFactory) {
+        public <S extends T> Builder<T, C> coreObject(Invocable<S> coreObjectFactory) {
             this.coreObjectFactory = coreObjectFactory;
             return this;
         }
 
-        public Builder<T, C> subImplement(ParamFactory<Object[], Object> subFactory, Class<?> asInterface) {
+        public <S extends T> Builder<T, C> subImplement(Invocable<S> subFactory, Class<? super S> asInterface) {
             this.implementations.add(new ImplementationNotation(subFactory, asInterface));
             return this;
         }
@@ -68,20 +68,26 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
                     Function.identity()
             );
 
+            populateStrategies(strategies);
+
             return new InstanceFactory<>(strategies);
+        }
+
+        private void populateStrategies(final Map<Class[], Invocable<T>> strategies) {
+
         }
     }
 
-    private static final class ImplementationNotation extends Pair<ParamFactory<Object[], Object>, Class<?>> {
-        public ImplementationNotation(ParamFactory<Object[], Object> first, Class<?> second) {
-            super(first, second);
+    private static final class ImplementationNotation<T> extends Pair<Invocable<T>, Class<? super T>> {
+        public ImplementationNotation(Invocable<T> factory, Class<? super T> type) {
+            super(factory, type);
         }
 
-        public ParamFactory<Object[], Object> getFactory() {
+        public Invocable<T> getFactory() {
             return super.getFirst();
         }
 
-        public Class<?> getType() {
+        public Class<? super T> getType() {
             return super.getSecond();
         }
     }

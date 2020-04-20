@@ -7,18 +7,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.sql.Ref;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface Invocable<T> {
-    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
-
-    Class[] typeOrder();
-
-    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
-        return invoke(ReflectionHelper.arrange(args, typeOrder()));
-    }
-
     static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
         return new Support.OfConstructor<>(constructor);
     }
@@ -35,6 +28,18 @@ public interface Invocable<T> {
         return ReflectionHelper.findConstructor(type, args)
                 .map(Invocable::ofConstructor)
                 .orElseThrow(() -> new NoSuchElementException("No suitable constructor found"));
+    }
+
+    static <T> Invocable<T> constant(T value) {
+        return (Invocable<T>) Support.Constant.Cache.computeIfAbsent(value, Support.Constant::new);
+    }
+
+    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
+
+    Class[] typeOrder();
+
+    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
+        return invoke(ReflectionHelper.arrange(args, typeOrder()));
     }
 
     final class Support {
@@ -66,8 +71,7 @@ public interface Invocable<T> {
 
             private OfMethod(Method method, @Nullable Object target) {
                 if (target == null && !Modifier.isStatic(method.getModifiers()))
-                    throw new IllegalArgumentException(
-                            "Target cannot be null on non-static methods!",
+                    throw new IllegalArgumentException("Target cannot be null on non-static methods!",
                             new NullPointerException()
                     );
 
@@ -84,6 +88,27 @@ public interface Invocable<T> {
             @Override
             public Class[] typeOrder() {
                 return method.getParameterTypes();
+            }
+        }
+
+        public static class Constant<T> implements Invocable<T> {
+            private static final Map<Object, Invocable<Object>> Cache = new ConcurrentHashMap<>();
+            private static final Class[]                        NoClasses = new Class[0];
+            private final        T                              value;
+
+            public Constant(T value) {
+                this.value = value;
+            }
+
+            @Nullable
+            @Override
+            public T invoke(Object... args) {
+                return value;
+            }
+
+            @Override
+            public Class[] typeOrder() {
+                return NoClasses;
             }
         }
     }
