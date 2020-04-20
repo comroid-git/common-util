@@ -4,6 +4,8 @@ import org.comroid.common.func.ParamFactory;
 import org.comroid.common.map.TrieFuncMap;
 import org.comroid.common.ref.Pair;
 import org.comroid.common.spellbind.model.Invocable;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -19,8 +21,8 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
     }
 
     @Override
-    public T create(@Nullable C parameter) {
-        final Class[] types = Arrays.stream(parameter.getArgs())
+    public T create(@Nullable C context) {
+        final Class[] types = Arrays.stream(context.getArgs())
                 .map(Object::getClass)
                 .toArray(Class[]::new);
         final Invocable<T> invocable = strategies.get(types);
@@ -31,7 +33,7 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
             ));
 
         try {
-            return invocable.invoke(parameter.getArgs());
+            return invocable.invoke(context.getArgs());
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -39,11 +41,13 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
 
     public static final class Builder<T, C extends InstanceContext<C>>
             implements org.comroid.common.func.Builder<InstanceFactory<T, C>> {
-        private Invocable<?> coreObjectFactory;
-        private List<ImplementationNotation<?>> implementations = new ArrayList<>();
-        private ClassLoader classLoader;
+        private final Class<T>                        mainInterface;
+        private       Invocable<?>                    coreObjectFactory;
+        private       List<ImplementationNotation<?>> implementations = new ArrayList<>();
+        private       ClassLoader                     classLoader;
 
         public Builder(Class<T> mainInterface) {
+            this.mainInterface = mainInterface;
         }
 
         public <S extends T> Builder<T, C> coreObject(Invocable<S> coreObjectFactory) {
@@ -78,6 +82,7 @@ public final class InstanceFactory<T, C extends InstanceContext<C>> extends Para
         }
     }
 
+    @Internal
     private static final class ImplementationNotation<T> extends Pair<Invocable<T>, Class<? super T>> {
         public ImplementationNotation(Invocable<T> factory, Class<? super T> type) {
             super(factory, type);
