@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.comroid.common.spellbind.model.Invocable;
-import org.comroid.common.spellbind.model.MethodInvocation;
 
 import org.jetbrains.annotations.Nullable;
 

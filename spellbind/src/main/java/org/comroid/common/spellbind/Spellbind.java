@@ -11,7 +11,6 @@ import java.util.stream.Stream;
 
 import org.comroid.common.map.TrieMap;
 import org.comroid.common.spellbind.model.Invocable;
-import org.comroid.common.spellbind.model.MethodInvocation;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +25,7 @@ public final class Spellbind {
         throw new UnsupportedOperationException("Cannot instantiate " + Spellbind.class.getName());
     }
 
-    public static class Builder<T> {
+    public static class Builder<T> implements org.comroid.common.func.Builder<T> {
         static @Nullable Method findMatchingMethod(Method abstractMethod, Class<?> inClass) {
             for (Method method : inClass.getMethods())
                 if (matchFootprint(abstractMethod, method)) return method;
@@ -78,8 +77,7 @@ public final class Spellbind {
                             .filter(other -> matchFootprint(other, method))
                             .findAny()
                             .ifPresent(value -> methodBinds.put(methodString(value),
-                                    new MethodInvocation(
-                                            sub, method)
+                                    Invocable.ofMethodCall(method, sub)
                             )));
 
             interfaces.add(asInterface);
@@ -93,13 +91,13 @@ public final class Spellbind {
             return this;
         }
 
+        @Override
         public T build() {
             final ClassLoader classLoader = Optional.ofNullable(this.classLoader)
                     .orElseGet(Spellbind.class::getClassLoader);
 
             final SpellCore spellCore = new SpellCore(coreObject, methodBinds);
 
-            //noinspection unchecked
             return (T) Proxy.newProxyInstance(
                     classLoader, interfaces.stream()
                             .distinct()
@@ -118,7 +116,7 @@ public final class Spellbind {
                 if ((implMethod = findMatchingMethod(
                         method, implementationSource.getClass())) != null) map.put(
                         methodString(method),
-                        new MethodInvocation(implementationSource, implMethod)
+                        Invocable.ofMethodCall(implMethod, implementationSource)
                 );
             }
         }

@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
-    private final Function<K, S[]>           keySplitter;
-    private final TrieFuncMap.Stage<K, S, V> baseStage;
+    protected final TrieFuncMap.Stage<K, S, V> baseStage;
+    private final   Function<K, S[]>           keySplitter;
 
     public TrieFuncMap(Comparator<S> comparator, Function<K, S[]> keySplitter) {
         this.keySplitter = keySplitter;
@@ -86,7 +86,7 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
                 .collect(Collectors.toSet());
     }
 
-    private static class Stage<K, S, V> implements Map.Entry<K, V> {
+    protected static class Stage<K, S, V> implements Map.Entry<K, V> {
         private final     Object                    lock = Polyfill.selfawareLock();
         private final     Stage<K, S, V>            parent;
         private final     EqualityComparator<S>     comparator;
@@ -123,27 +123,27 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
             this.smallKey     = smallKey;
         }
 
-        Stream<Stage<K, S, V>> stream() {
+        public Stream<Stage<K, S, V>> stream() {
             return subStages.values()
                     .stream()
                     .flatMap(Stage<K, S, V>::stream);
         }
 
-        Stream<K> streamKeys() {
+        public Stream<K> streamKeys() {
             return stream().map(Stage::getKey);
         }
 
-        @Nullable V get(K totalKey, S[] path, int index) {
+        public @Nullable V get(K totalKey, S[] path, int index) {
             synchronized (lock) {
                 if (index >= path.length)
                     return getValue();
 
                 return findStage(totalKey, path[index]).map(stage -> stage.get(totalKey, path, index + 1))
-                        .orElseThrow(NoSuchElementException::new);
+                        .orElse(null);
             }
         }
 
-        @Nullable V set(K totalKey, S[] path, int index, @Nullable V value) {
+        public @Nullable V set(K totalKey, S[] path, int index, @Nullable V value) {
             synchronized (lock) {
                 if (value == null)
                     return remove(totalKey, path, index);
@@ -152,21 +152,21 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
                     return setValue(value);
 
                 return findStage(totalKey, path[index]).map(stage -> stage.set(totalKey, path, index + 1, value))
-                        .orElseThrow(NoSuchElementException::new);
+                        .orElse(null);
             }
         }
 
-        @Nullable V remove(K totalKey, S[] path, int index) {
+        public @Nullable V remove(K totalKey, S[] path, int index) {
             synchronized (lock) {
                 if (index >= path.length)
                     return setValue(null);
 
                 return findStage(totalKey, path[index]).map(stage -> stage.remove(totalKey, path, index + 1))
-                        .orElseThrow(NoSuchElementException::new);
+                        .orElse(null);
             }
         }
 
-        int size() {
+        public int size() {
             synchronized (lock) {
                 return (int) streamKeys().count();
             }
@@ -201,8 +201,7 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
                 if (validator != null) {
                     // use validator
 
-                    Optional<Stage<K, S, V>> any = stream().filter(stage -> validator.apply(
-                            (S) stage.getKey(),
+                    Optional<Stage<K, S, V>> any = stream().filter(stage -> validator.apply((S) stage.getKey(),
                             desired
                     ))
                             .findAny();
