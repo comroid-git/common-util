@@ -49,7 +49,7 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
     }
 
     public static final class Builder<T, C extends InstanceContext<C>>
-            implements org.comroid.common.func.Builder<InstanceFactory<T, C>> {
+            implements org.comroid.common.func.Builder<InstanceFactory<T>> {
         private final Class<T>                        mainInterface;
         private       Invocable<?>                    coreObjectFactory;
         private       List<ImplementationNotation<?>> implementations = new ArrayList<>();
