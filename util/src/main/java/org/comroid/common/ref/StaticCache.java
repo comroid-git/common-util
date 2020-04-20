@@ -4,6 +4,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+/**
+ * @deprecated It is there. That doesnt mean you should use it.
+ */
+@Deprecated
 public final class StaticCache {
     private static final Map<Object, StaticCache> staticCache = new ConcurrentHashMap<>();
     private final        Map<Class<?>, Object>    cache       = new ConcurrentHashMap<>();
@@ -19,6 +23,10 @@ public final class StaticCache {
 
     public static StaticCache myCache(Object accessor) {
         return staticCache.computeIfAbsent(accessor, StaticCache::new);
+    }
+
+    public static void deleteMe(Object accessor) {
+        staticCache.remove(accessor);
     }
 
     private <T> T computeIfAbsent(Class<T> type, Supplier<T> supplier) {
