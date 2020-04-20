@@ -1,17 +1,21 @@
 package org.comroid.common.func;
 
 import java.util.Comparator;
+import java.util.function.BiFunction;
 
 public interface EqualityComparator<T> extends Comparator<T> {
+    static <T> EqualityComparator<T> ofComparator(Comparator<T> underlying) {
+        if (underlying instanceof EqualityComparator)
+            return (EqualityComparator<T>) underlying;
+
+        return new Support.OfComparator<>(underlying);
+    }
+
     @Override
     int compare(T o1, T o2);
 
     default boolean areEqual(T it, T other) {
         return compare(it, other) == 0;
-    }
-
-    static <T> EqualityComparator<T> ofComparator(Comparator<T> underlying) {
-        return new Support.OfComparator<>(underlying);
     }
 
     final class Support {
