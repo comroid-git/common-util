@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.comroid.common.map.TrieMap;
-import org.comroid.common.spellbind.model.Invocable;
+import org.comroid.common.func.Invocable;
 
 import org.jetbrains.annotations.Nullable;
 

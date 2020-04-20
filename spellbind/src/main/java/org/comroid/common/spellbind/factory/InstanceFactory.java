@@ -5,7 +5,7 @@ import org.comroid.common.func.Provider;
 import org.comroid.common.map.TrieFuncMap;
 import org.comroid.common.ref.Pair;
 import org.comroid.common.spellbind.Spellbind;
-import org.comroid.common.spellbind.model.Invocable;
+import org.comroid.common.func.Invocable;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 

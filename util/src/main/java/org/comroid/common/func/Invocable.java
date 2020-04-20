@@ -1,6 +1,5 @@
-package org.comroid.common.spellbind.model;
+package org.comroid.common.func;
 
-import org.comroid.common.func.Provider;
 import org.comroid.common.util.ReflectionHelper;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
