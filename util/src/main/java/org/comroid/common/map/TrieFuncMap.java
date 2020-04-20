@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,6 +18,16 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
     public TrieFuncMap(Comparator<S> comparator, Function<K, S[]> keySplitter) {
         this.keySplitter = keySplitter;
         this.baseStage   = new Stage(null, null, null, EqualityComparator.ofComparator(comparator));
+    }
+
+    public TrieFuncMap(BiFunction<S, S, Boolean> validator, Function<K, S[]> keySplitter) {
+        this.keySplitter = keySplitter;
+        this.baseStage   = new Stage(null, null, null, validator);
+    }
+
+    public TrieFuncMap(Function<K, S[]> keySplitter) {
+        this.keySplitter = keySplitter;
+        this.baseStage   = new Stage(null, null, null);
     }
 
     @Override
@@ -64,7 +75,7 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
     @Override
     public Collection<V> values() {
         return baseStage.stream()
-                .map(Stage<K, S, V>::getValue)
+                .map(Stage::getValue)
                 .collect(Collectors.toList());
     }
 
@@ -76,30 +87,50 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
     }
 
     private static class Stage<K, S, V> implements Map.Entry<K, V> {
-        private final     Object                lock = Polyfill.selfawareLock();
-        private final     Stage<K, S, V>        parent;
-        private final     EqualityComparator<S> comparator;
-        private final     Map<S, Stage>         subStages;
-        private final     K                     effectiveKey;
-        private final     S                     smallKey;
-        private @Nullable V                     value;
+        private final     Object                    lock = Polyfill.selfawareLock();
+        private final     Stage<K, S, V>            parent;
+        private final     EqualityComparator<S>     comparator;
+        private final     BiFunction<S, S, Boolean> validator;
+        private final     Map<S, Stage>             subStages;
+        private final     K                         effectiveKey;
+        private final     S                         smallKey;
+        private @Nullable V                         value;
 
         private Stage(Stage<K, S, V> parent, K effectiveKey, S smallKey, EqualityComparator<S> comparator) {
             this.parent       = parent;
             this.comparator   = comparator;
+            this.validator    = null;
             this.subStages    = new TreeMap<>(this.comparator);
             this.effectiveKey = effectiveKey;
             this.smallKey     = smallKey;
         }
 
-        Stream<Stage> stream() {
+        private Stage(Stage<K, S, V> parent, K effectiveKey, S smallKey, BiFunction<S, S, Boolean> validator) {
+            this.parent       = parent;
+            this.comparator   = null;
+            this.validator    = validator;
+            this.subStages    = new TreeMap<>(this.comparator);
+            this.effectiveKey = effectiveKey;
+            this.smallKey     = smallKey;
+        }
+
+        private Stage(Stage<K, S, V> parent, K effectiveKey, S smallKey) {
+            this.parent       = parent;
+            this.comparator   = null;
+            this.validator    = null;
+            this.subStages    = new TreeMap<>(this.comparator);
+            this.effectiveKey = effectiveKey;
+            this.smallKey     = smallKey;
+        }
+
+        Stream<Stage<K, S, V>> stream() {
             return subStages.values()
                     .stream()
-                    .flatMap(Stage::stream);
+                    .flatMap(Stage<K, S, V>::stream);
         }
 
         Stream<K> streamKeys() {
-            return stream().map(Stage<K, S, V>::getKey);
+            return stream().map(Stage::getKey);
         }
 
         @Nullable V get(K totalKey, S[] path, int index) {
@@ -167,19 +198,29 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
         private Optional<Stage<K, S, V>> findStage(K forKey, S desired) {
             // todo Rework this
             synchronized (lock) {
-                final Entry<S, Stage>[] entries = subStages.entrySet()
-                        .toArray(new Entry[0]);
-                final S[] keys = (S[]) Arrays.stream(entries)
-                        .map(Entry::getKey)
-                        .toArray();
-                int index = Arrays.binarySearch(keys, desired, comparator);
+                if (validator != null) {
+                    // use validator
 
-                if (index == -1)
-                    return Optional.of(subStages.computeIfAbsent(desired,
-                            key -> new Stage(this, forKey, desired, comparator)
-                    ));
+                    return stream().filter(stage -> validator.apply((S) stage.getKey(), desired))
+                            .findAny();
+                } else if (comparator != null) {
+                    // use comparator
 
-                return Optional.of(entries[index].getValue());
+                    final Entry<S, Stage>[] entries = subStages.entrySet()
+                            .toArray(new Entry[0]);
+                    final S[] keys = (S[]) Arrays.stream(entries)
+                            .map(Entry::getKey)
+                            .toArray();
+                    int index = Arrays.binarySearch(keys, desired, comparator);
+
+                    if (index == -1)
+                        return Optional.of(subStages.computeIfAbsent(desired,
+                                key -> new Stage(this, forKey, desired, comparator)
+                        ));
+
+                    return Optional.of(entries[index].getValue());
+                } else
+                    return Optional.of(subStages.computeIfAbsent(desired, key -> new Stage(this, forKey, desired)));
             }
         }
     }
