@@ -1,9 +1,10 @@
 package org.comroid.listnr;
 
+import org.comroid.common.func.Invocable;
 import org.comroid.common.util.BitmaskUtil;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,7 +19,15 @@ public interface EventAcceptor {
     int getAcceptedTypesAsMask();
 
     @Internal
-    <E extends EventPayload> void acceptEvent(E event);
+    <P extends EventPayload> void acceptEvent(P eventPayload);
+
+    static EventAcceptor ofMethod(Method method) {
+        if (!method.isAnnotationPresent(EventHandler.class))
+            throw new IllegalArgumentException("EventHandler annotation not present");
+        final EventHandler handler = method.getAnnotation(EventHandler.class);
+
+        return new Support.OfInvocable(Invocable.ofMethodCall(method));
+    }
 
     final class Support {
         protected static abstract class Abstract implements EventAcceptor {
@@ -45,6 +54,19 @@ public interface EventAcceptor {
                 for (EventType type : eventTypes)
                     yield = combine(yield, type.getFlag());
                 return yield;
+            }
+        }
+
+        private static final class OfInvocable extends Abstract {
+            private final Invocable<? extends EventPayload> underlying;
+
+            private OfInvocable(Invocable<? extends EventPayload> underlying) {
+                this.underlying = underlying;
+            }
+
+            @Override
+            public <P extends EventPayload> void acceptEvent(P eventPayload) {
+
             }
         }
     }

@@ -17,7 +17,7 @@ public interface EventPayload {
     int getEventMask();
 
     final class Support {
-        protected static abstract class Abstract implements EventPayload {
+        public static abstract class Abstract implements EventPayload {
             private final Set<EventType> eventTypes;
             private final int            mask;
 

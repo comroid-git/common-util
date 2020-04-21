@@ -2,16 +2,30 @@ package org.comroid.common.func;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface ParamFactory<P, T> extends Factory<T> {
+public interface ParamFactory<P, T> extends Provider.Now<T> {
     int counter();
 
     T create(@Nullable P parameter);
 
-    @Override
     default T create() {
         return create(null);
     }
 
-    abstract class Abstract<P, T> extends Factory.Abstract<T> implements ParamFactory<P, T> {
+    @Override
+    default T now() {
+        return create();
+    }
+
+    abstract class Abstract<P, T> implements ParamFactory<P, T> {
+        protected int counter;
+
+        @Override
+        public final int counter() {
+            return counter++;
+        }
+
+        protected final int peekCounter() {
+            return counter;
+        }
     }
 }

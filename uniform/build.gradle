@@ -45,6 +45,7 @@ dependencies {
     java11Implementation project(':util')
 
     implementation project(':util')
+    implementation project(':listnr')
     implementation project(':spellbind')
     implementation 'com.google.flogger:flogger:0.5.1'
 
