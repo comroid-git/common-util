@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import org.comroid.common.func.Invocable;
@@ -27,9 +26,7 @@ public final class EventHub<TF> {
     private final Span<EventAcceptor<?, ?>> registeredAcceptors = new Span<>();
     private final ExecutorService           executorService;
 
-    public <EX extends ExecutorService & ScheduledExecutorService> EventHub(
-            ExecutorService executorService, ToIntFunction<TF> typeRewiringFunction
-    ) {
+    public <EX extends ExecutorService & ScheduledExecutorService> EventHub(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
