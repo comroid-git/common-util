@@ -7,15 +7,21 @@ import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import org.comroid.common.util.ReflectionHelper;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface Invocable<T> {
     static <T> Invocable<T> ofProvider(Provider<T> provider) {
         return new Support.OfProvider<>(provider);
+    }
+
+    static <T> Invocable<T> ofConsumer(Class<T> type, Consumer<T> consumer) {
+        return new Support.OfConsumer<>(type, consumer);
     }
 
     static <T> Invocable<T> ofMethodCall(@Nullable Method method) {
@@ -37,17 +43,19 @@ public interface Invocable<T> {
     }
 
     static <T> Invocable<T> constant(T value) {
+        //noinspection unchecked
         return (Invocable<T>) Support.Constant.Cache.computeIfAbsent(value, Support.Constant::new);
     }
 
     static <T> Invocable<T> empty() {
+        //noinspection unchecked
         return (Invocable<T>) Support.Empty;
     }
 
     @Internal
     final class Support {
         private static final Invocable<?> Empty     = constant(null);
-        private static final Class<?>[]      NoClasses = new Class[0];
+        private static final Class<?>[]   NoClasses = new Class[0];
 
         private static final class OfProvider<T> implements Invocable<T> {
             private final Provider<T> provider;
@@ -76,7 +84,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public @Nullable T invoke(Object... args)
+            public @NotNull T invoke(Object... args)
                     throws InvocationTargetException, IllegalAccessException {
                 try {
                     return constructor.newInstance(args);
@@ -138,6 +146,38 @@ public interface Invocable<T> {
             @Override
             public Class<?>[] typeOrder() {
                 return NoClasses;
+            }
+        }
+
+        private static final class OfConsumer<T> implements Invocable<T> {
+            private final Class<T>    argType;
+            private final Consumer<T> consumer;
+            private final Class<?>[]     argTypeArr;
+
+            public OfConsumer(Class<T> argType, Consumer<T> consumer) {
+                this.argType    = argType;
+                this.consumer   = consumer;
+                this.argTypeArr = new Class[]{ argType };
+            }
+
+            @Nullable
+            @Override
+            public T invoke(Object... args) {
+                if (argType.isInstance(args[0])) {
+                    consumer.accept(argType.cast(args[0]));
+                    return null;
+                } else {
+                    throw new IllegalArgumentException(String.format(
+                            "Invalid Type: %s",
+                            args[0].getClass()
+                                    .getName()
+                    ));
+                }
+            }
+
+            @Override
+            public Class<?>[] typeOrder() {
+                return argTypeArr;
             }
         }
     }

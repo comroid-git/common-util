@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.comroid.common.annotation.vanity.inheritance.ShouldExtend;
 import org.comroid.common.func.Invocable;
@@ -18,12 +19,16 @@ import static org.comroid.common.util.BitmaskUtil.combine;
 @ShouldExtend(EventAcceptor.Support.Abstract.class)
 public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
     static <E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> ofMethod(Method method) {
-        if (!method.isAnnotationPresent(EventHandler.class)) {
+        if (!method.isAnnotationPresent(Listnr.class)) {
             throw new IllegalArgumentException("EventHandler annotation not present");
         }
-        final EventHandler handler = method.getAnnotation(EventHandler.class);
+        final Listnr handler = method.getAnnotation(Listnr.class);
 
         return new Support.OfInvocable<>(Invocable.ofMethodCall(method));
+    }
+
+    static <E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> ofConsumer(Class<P> payloadType, Consumer<P> consumer) {
+        return new Support.OfInvocable<>(Invocable.ofConsumer(payloadType, consumer));
     }
 
     final class Support {

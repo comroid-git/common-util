@@ -89,7 +89,7 @@ public final class EventHub<TF> {
             Class<T> klass, T instance
     ) {
         final List<Method> useMethods = Arrays.stream(klass.getMethods())
-                .filter(method -> method.isAnnotationPresent(EventHandler.class))
+                .filter(method -> method.isAnnotationPresent(Listnr.class))
                 .filter(method -> !Modifier.isStatic(method.getModifiers()))
                 .filter(method -> method.getParameterCount() == 1)
                 .collect(Collectors.toList());

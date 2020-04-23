@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import static org.comroid.common.util.BitmaskUtil.combine;
 
 @Partial
-public interface EventType<P extends Event<P>, TF> extends ParamFactory<TF, P> {
+public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<TF, P> {
     final class Support {
         static final class Basic<P extends Event<P>, TF> implements EventType<P, TF> {
             protected final EventHub<TF>        hub;

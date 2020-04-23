@@ -6,7 +6,7 @@ import org.comroid.listnr.EventHub;
 import org.comroid.restless.socket.internal.WebSocketEvent;
 
 public interface WebSocket {
-    EventHub<? extends WebSocketEvent>
+    EventHub<? extends WebSocketEvent> getEventHub();
 
     SocketListener getSocketListener();
 

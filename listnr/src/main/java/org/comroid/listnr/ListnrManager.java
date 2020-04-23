@@ -8,7 +8,7 @@ public final class ListnrManager<TF, E extends EventType<P, ?>, P extends Event<
     private final EventHub<TF>        hub;
     private final EventAcceptor<E, P> underlying;
 
-    public ListnrManager(EventHub<TF> hub, EventAcceptor<E, P> underlying) {
+    ListnrManager(EventHub<TF> hub, EventAcceptor<E, P> underlying) {
         this.hub        = hub;
         this.underlying = underlying;
     }
