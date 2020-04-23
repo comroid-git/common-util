@@ -1,5 +1,7 @@
 package org.comroid.listnr;
 
+import java.util.function.Predicate;
+
 import org.comroid.common.func.ParamFactory;
 import org.comroid.spellbind.Spellbind;
 import org.comroid.spellbind.annotation.Partial;
@@ -17,13 +19,15 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
             protected final EventHub<TF>        hub;
             private final   Class<P>            payloadType;
             private final   int                 flag = BitmaskUtil.nextFlag();
-            private final   ParamFactory<TF, P> payloadFactory;
+            private final   Predicate<TF>       eventTester;
+            private final ParamFactory<TF, P> payloadFactory;
 
             Basic(
-                    EventHub<TF> hub, Class<P> payloadType, ParamFactory<TF, P> payloadFactory
+                    EventHub<TF> hub, Class<P> payloadType, Predicate<TF> eventTester, ParamFactory<TF, P> payloadFactory
             ) {
                 this.hub            = hub;
                 this.payloadType    = payloadType;
+                this.eventTester    = eventTester;
                 this.payloadFactory = payloadFactory;
 
                 hub.registerEventType(this);
@@ -32,6 +36,11 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
             @Override
             public final int getMask() {
                 return flag;
+            }
+
+            @Override
+            public final boolean isEvent(@Nullable TF data) {
+                return eventTester.test(data);
             }
 
             @Override
@@ -56,11 +65,13 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
         }
 
         private static final class Combination<P extends Event<P>, TF> implements Combined<P, TF> {
-            private final Class<P>                   payloadType;
+            private final Predicate<TF> eventTester;
+            private final Class<P> payloadType;
             private final EventType<? super P, TF>[] subtypes;
             private final int                        mask;
 
-            private Combination(EventType<? super P, TF>[] subtypes, Class<P> payloadType) {
+            private Combination(EventType<? super P, TF>[] subtypes, Predicate<TF> eventTester, Class<P> payloadType) {
+                this.eventTester = eventTester;
                 this.payloadType = payloadType;
                 this.subtypes    = subtypes;
                 this.mask        = computeMask();
@@ -77,6 +88,11 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
             @Override
             public int getMask() {
                 return mask;
+            }
+
+            @Override
+            public boolean isEvent(@Nullable TF data) {
+                return eventTester.test(data);
             }
 
             @Override
@@ -115,6 +131,8 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
         return this instanceof Combined;
     }
 
+    boolean isEvent(@Nullable TF data);
+
     @Override
     P create(@Nullable TF parameter);
 
@@ -123,9 +141,9 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
     interface Combined<P extends Event<P>, TF> extends EventType<P, TF> {
         @SafeVarargs
         static <P extends Event<P>, TF> Combined<P, TF> of(
-                Class<P> payloadInterface, EventType<? super P, TF>... subtypes
+                Class<P> payloadInterface, Predicate<TF> eventTester, EventType<? super P, TF>... subtypes
         ) {
-            return new EventType.Support.Combination<>(subtypes, payloadInterface);
+            return new EventType.Support.Combination<>(subtypes, eventTester, payloadInterface);
         }
     }
 }

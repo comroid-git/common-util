@@ -8,9 +8,13 @@ import java.util.concurrent.Executor;
 
 import org.comroid.common.func.Provider;
 import org.comroid.restless.socket.WebSocket;
+import org.comroid.uniform.SerializationAdapter;
 
 public interface HttpAdapter {
-    WebSocket createWebSocket(Executor executor, URI uri);
+    CompletableFuture<WebSocket> createWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib,
+            WebSocket.Header.List headers, Executor executor, URI uri
+    );
 
     CompletableFuture<REST.Response> call(
             REST rest,

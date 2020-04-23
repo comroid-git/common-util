@@ -17,11 +17,11 @@ public interface ListnrAttachable<TF, E extends EventType<P, TF>, P extends Even
     default <ET extends EventType<T, TF>, T extends Event<T>> ListnrManager<TF, ET, T> listenTo(
             EventType<T, TF> type, Consumer<T> listener
     ) {
-        if (!BitmaskUtil.isFlagSet(type.getMask(), getAcceptedType().getMask())) {
+        if (!BitmaskUtil.isFlagSet(type.getMask(), getBoundEventType().getMask())) {
             throw new IllegalArgumentException(String.format(
                     "Cannot listen to type %s, only subtypes of %s allowed",
                     type,
-                    getAcceptedType()
+                    getBoundEventType()
             ));
         }
 
@@ -30,5 +30,5 @@ public interface ListnrAttachable<TF, E extends EventType<P, TF>, P extends Even
         ));
     }
 
-    E getAcceptedType();
+    E getBoundEventType();
 }

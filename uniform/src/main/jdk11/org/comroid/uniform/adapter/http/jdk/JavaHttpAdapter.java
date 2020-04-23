@@ -5,6 +5,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.WebSocket.Builder;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -14,16 +15,31 @@ import org.comroid.common.util.BitmaskUtil;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
 import org.comroid.restless.socket.WebSocket;
+import org.comroid.uniform.SerializationAdapter;
 
 public final class JavaHttpAdapter implements HttpAdapter {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Override
-    public WebSocket createWebSocket(
-            Executor executor, URI uri
+    public CompletableFuture<WebSocket> createWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib,
+            WebSocket.Header.List headers,
+            Executor executor,
+            URI uri
     ) {
-        return new JavaWebSocket(new ThreadGroup(String.format("%s-0x%s", toString(),
-                Integer.toHexString(BitmaskUtil.nextFlag()))), seriLib);
+        final Builder webSocketBuilder = httpClient.newWebSocketBuilder();
+        headers.forEach(header -> webSocketBuilder.header(header.getName(), header.getValue()));
+        final JavaWebSocket javaWebSocket = new JavaWebSocket(new ThreadGroup(String.format("%s" +
+                        "-0x%s",
+                toString(),
+                Integer.toHexString(BitmaskUtil.nextFlag())
+        )), seriLib);
+
+        return webSocketBuilder.buildAsync(uri, javaWebSocket.javaListener)
+                .thenApply(socket -> {
+                    javaWebSocket.socket.complete(socket);
+                    return javaWebSocket;
+                });
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.comroid.common.func.Invocable;
@@ -31,36 +32,44 @@ public final class EventHub<TF> {
     }
 
     public <P extends Event<P>> EventType<P, TF> createEventType(
-            Class<P> payloadType, ParamFactory<TF, P> payloadFactory
+            Class<P> payloadType, ParamFactory<TF, P> payloadFactory, Predicate<TF> eventTester
     ) {
-        return new EventType.Support.Basic<>(this, payloadType, payloadFactory);
+        return new EventType.Support.Basic<>(this, payloadType, eventTester, payloadFactory);
     }
 
     public void registerEventType(EventType<?, TF> type) {
         registeredTypes.add(type);
     }
 
-    public <P extends Event<P>> void publish(EventType<P, TF> asSupertype, TF data) {
+    public <P extends Event<P>> void publish(TF data) {
         //noinspection unchecked
-        EventType<? super P, TF>[] subtypes
-                = (EventType<? super P, TF>[]) getRegisteredEventTypes().stream()
-                .filter(type -> BitmaskUtil.isFlagSet(asSupertype.getMask(), type.getMask()))
+        EventType<? super P, TF>[] subtypes = (EventType<? super P, TF>[]) getRegisteredEventTypes().stream()
+                .filter(type -> type.isEvent(data))
                 .toArray();
-        EventType.Combined<P, TF> combined = EventType.Combined.of(asSupertype.payloadType(),
-                subtypes
-        );
-        publish(combined.create(data));
+
+        //noinspection unchecked
+        publish((EventType<P, TF>) subtypes[0], subtypes, data);
     }
 
     public Span<EventType<?, TF>> getRegisteredEventTypes() {
         return registeredTypes;
     }
 
+    private <P extends Event<P>> void publish(
+            EventType<P, TF> supertype, EventType<? super P, TF>[] types, TF data
+    ) {
+        if (types.length == 1) {
+            //noinspection unchecked
+            publish((P) types[0].create(data));
+        } else {
+            EventType.Combined<P, TF> combined = EventType.Combined.of(supertype.payloadType(), supertype::isEvent, types);
+            publish(combined.create(data));
+        }
+    }
+
     public <P extends Event<P>> void publish(final P eventPayload) {
         getRegisteredAcceptors().stream()
-                .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(),
-                        eventPayload.getEventMask()
-                ))
+                .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(), eventPayload.getEventMask()))
                 .map(it -> {//noinspection unchecked
                     return (EventAcceptor<? extends EventType<P, ?>, P>) it;
                 })
@@ -70,6 +79,15 @@ public final class EventHub<TF> {
 
     public Collection<EventAcceptor<?, ?>> getRegisteredAcceptors() {
         return Collections.unmodifiableCollection(registeredAcceptors);
+    }
+
+    public <P extends Event<P>> void publish(EventType<P, TF> asSupertype, TF data) {
+        //noinspection unchecked
+        EventType<? super P, TF>[] subtypes = (EventType<? super P, TF>[]) getRegisteredEventTypes().stream()
+                .filter(type -> BitmaskUtil.isFlagSet(asSupertype.getMask(), type.getMask()))
+                .toArray();
+
+        publish(asSupertype, subtypes, data);
     }
 
     public <E extends EventType<P, ?>, P extends Event<P>> ListnrManager<TF, E, P> registerAcceptor(
