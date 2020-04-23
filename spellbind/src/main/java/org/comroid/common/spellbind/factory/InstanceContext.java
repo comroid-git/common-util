@@ -1,18 +1,17 @@
 package org.comroid.common.spellbind.factory;
 
-import org.comroid.common.ref.SelfDeclared;
-
 import java.util.Arrays;
 
+import org.comroid.common.ref.SelfDeclared;
+
 public abstract class InstanceContext<S extends InstanceContext<S>> implements SelfDeclared<S> {
+    public final Object[] getArgs() {
+        return args;
+    }
     private final Object[] args;
 
     protected InstanceContext(Object... args) {
         this.args = args;
-    }
-
-    public final Object[] getArgs() {
-        return args;
     }
 
     @Override

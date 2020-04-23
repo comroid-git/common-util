@@ -23,9 +23,10 @@ public final class StackTraceUtils {
     ) {
         if (throwable == null) return;
 
-        lines.add(String.format("%s: %s",
+        lines.add(String.format(
+                "%s: %s",
                 throwable.getClass()
-                        .getName(),
+                         .getName(),
                 throwable.getMessage()
         ));
 

@@ -1,9 +1,5 @@
 package org.comroid.common.func;
 
-import org.comroid.common.ref.Reference;
-import org.jetbrains.annotations.ApiStatus.Internal;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -13,66 +9,23 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.comroid.common.ref.Reference;
+
+import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Cloneable through {@link #process()}.
  *
  * @param <T>
  */
 public interface Processor<T> extends Reference<T>, Cloneable {
-    static <T> Processor<T> empty() {
-        return (Processor<T>) Support.EMPTY;
-    }
-
     static <T> Processor<T> ofConstant(T value) {
         return ofReference(Objects.isNull(value) ? Reference.empty() : Reference.constant(value));
     }
 
     static <T> Processor<T> ofReference(Reference<T> reference) {
         return new Support.OfReference<>(reference);
-    }
-
-    boolean isPresent();
-
-    @Override
-    @Nullable T get();
-
-    @Override
-    default Processor<T> process() {
-        return Processor.ofReference(this);
-    }
-
-    default boolean test(Predicate<? super T> predicate) {
-        return predicate.test(get());
-    }
-
-    default Processor<T> filter(Predicate<? super T> predicate) {
-        if (isPresent() && predicate.test(get()))
-            return this;
-
-        return empty();
-    }
-
-    default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
-        if (isPresent())
-            return new Support.Remapped<>(this, mapper);
-
-        return empty();
-    }
-
-    default <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
-        if (isPresent())
-            return StreamSupport.stream(Spliterators.spliterator(new Object[]{mapper.apply(get())}, Spliterator.SIZED),
-                    false
-            );
-
-        return Stream.empty();
-    }
-
-    default Processor<T> peek(Consumer<? super T> action) {
-        if (isPresent())
-            action.accept(get());
-
-        return this;
     }
 
     @Internal
@@ -118,5 +71,50 @@ public interface Processor<T> extends Reference<T>, Cloneable {
                 return remapper.apply(base.get());
             }
         }
+    }
+
+    default boolean test(Predicate<? super T> predicate) {
+        return predicate.test(get());
+    }
+
+    @Override
+    @Nullable T get();
+
+    @Override
+    default Processor<T> process() {
+        return Processor.ofReference(this);
+    }
+
+    default Processor<T> filter(Predicate<? super T> predicate) {
+        if (isPresent() && predicate.test(get())) return this;
+
+        return empty();
+    }
+
+    boolean isPresent();
+
+    static <T> Processor<T> empty() {
+        return (Processor<T>) Support.EMPTY;
+    }
+
+    default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
+        if (isPresent()) return new Support.Remapped<>(this, mapper);
+
+        return empty();
+    }
+
+    default <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
+        if (isPresent()) return StreamSupport.stream(
+                Spliterators.spliterator(new Object[]{ mapper.apply(get()) }, Spliterator.SIZED),
+                false
+        );
+
+        return Stream.empty();
+    }
+
+    default Processor<T> peek(Consumer<? super T> action) {
+        if (isPresent()) action.accept(get());
+
+        return this;
     }
 }

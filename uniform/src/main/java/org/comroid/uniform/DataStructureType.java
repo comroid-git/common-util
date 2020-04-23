@@ -1,12 +1,28 @@
 package org.comroid.uniform;
 
 public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS, TAR extends BAS> {
+    public static class Obj<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
+            extends DataStructureType<SERI, BAS, OBJ> {
+        public Obj(Class<OBJ> objClass) {
+            super(objClass, Primitive.OBJECT);
+        }
+    }
+
+    public static class Arr<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
+            extends DataStructureType<SERI, BAS, ARR> {
+
+        public Arr(
+                Class<ARR> arrClass
+        ) {
+            super(arrClass, Primitive.ARRAY);
+        }
+    }
     public final    Primitive  typ;
     protected final Class<TAR> tarClass;
 
     protected DataStructureType(Class<TAR> tarClass, Primitive typ) {
         this.tarClass = tarClass;
-        this.typ = typ;
+        this.typ      = typ;
     }
 
     @Override
@@ -37,27 +53,13 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
     public TAR cast(Object node) throws ClassCastException {
         if (tarClass.isInstance(node)) return tarClass.cast(node);
 
-        throw new ClassCastException(String.format("Cannot cast %s to targeted %s type %s",
+        throw new ClassCastException(String.format(
+                "Cannot cast %s to targeted %s type %s",
                 node.getClass()
-                        .getName(), typ.name(), tarClass.getName()
+                    .getName(),
+                typ.name(),
+                tarClass.getName()
         ));
-    }
-
-    public static class Obj<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
-            extends DataStructureType<SERI, BAS, OBJ> {
-        public Obj(Class<OBJ> objClass) {
-            super(objClass, Primitive.OBJECT);
-        }
-    }
-
-    public static class Arr<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
-            extends DataStructureType<SERI, BAS, ARR> {
-
-        public Arr(
-                Class<ARR> arrClass
-        ) {
-            super(arrClass, Primitive.ARRAY);
-        }
     }
 
     public enum Primitive {

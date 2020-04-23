@@ -3,10 +3,10 @@ package org.comroid.test.uniform;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import org.comroid.test.model.NGinXFSNode;
-import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
-import org.comroid.uniform.adapter.http.jdk.JavaHttpAdapter;
 import org.comroid.restless.REST;
+import org.comroid.test.model.NGinXFSNode;
+import org.comroid.uniform.adapter.http.jdk.JavaHttpAdapter;
+import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
 
 import org.junit.Before;
 
@@ -28,28 +28,29 @@ public class TestRestJava11 {
     @Before
     public void test() {
         final REST<Void>.Request<NGinXFSNode> request = rest.request(NGinXFSNode.class)
-                .method(REST.Method.GET);
+                                                            .method(REST.Method.GET);
 
         try {
             request.execute()
-                    .join();
+                   .join();
 
             assertTrue(request.execute()
-                    .isDone());
+                              .isDone());
 
             assertNotNull(request.execute$body()
-                    .get(0, TimeUnit.SECONDS));
+                                 .get(0, TimeUnit.SECONDS));
             assertTrue(request.execute$deserialize()
-                    .get(0, TimeUnit.SECONDS)
-                    .size() >= 3);
-            assertEquals(
-                    200, (int) request.execute$statusCode()
-                            .get(0, TimeUnit.SECONDS));
+                              .get(0, TimeUnit.SECONDS)
+                              .size() >= 3);
+            assertEquals(200,
+                         (int) request.execute$statusCode()
+                                      .get(0, TimeUnit.SECONDS)
+            );
 
             assertTrue(request.execute$map(NGinXFSNode::getType)
-                    .get(0, TimeUnit.SECONDS)
-                    .stream()
-                    .allMatch("directory"::equals));
+                              .get(0, TimeUnit.SECONDS)
+                              .stream()
+                              .allMatch("directory"::equals));
         } catch (Throwable t) {
             System.out.println("Could not finish Java 11 Test");
             t.printStackTrace(System.out);

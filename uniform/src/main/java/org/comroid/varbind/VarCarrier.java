@@ -17,11 +17,11 @@ public interface VarCarrier<DEP> {
 
     Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet();
 
-    <T> @NotNull Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind);
-
     default <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> bind) {
         return ref(bind).get();
     }
+
+    <T> @NotNull Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind);
 
     default <T> @NotNull Optional<T> wrap(VarBind<?, ? super DEP, ?, T> bind) {
         return ref(bind).wrap();

@@ -40,10 +40,10 @@ public class NGinXUpdateChannel implements UpdateChannel {
             Function<String, Version> filenameVersioning,
             Function<String, URL> fileDownloadLink
     ) {
-        this.versionContainer = versionContainer;
-        this.baseURL = baseURL;
+        this.versionContainer   = versionContainer;
+        this.baseURL            = baseURL;
         this.filenameVersioning = filenameVersioning;
-        this.fileDownloadLink = fileDownloadLink;
+        this.fileDownloadLink   = fileDownloadLink;
     }
 
     @Override
@@ -66,26 +66,28 @@ public class NGinXUpdateChannel implements UpdateChannel {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final Request request = new Request.Builder().get()
-                        .url(getBaseURL())
-                        .build();
+                                                             .url(getBaseURL())
+                                                             .build();
 
                 final Response response = httpClient.newCall(request)
-                        .execute();
+                                                    .execute();
 
                 if (response.body() != null) return JSONArray.parseArray(
                         response.body()
-                                .string(), JsonFileInfo.class);
+                                .string(),
+                        JsonFileInfo.class
+                );
                 else throw new NullPointerException("No response body received");
             } catch (IOException e) {
                 throw new RuntimeException("Error requesting files", e);
             }
         })
-                .thenApply(files -> files.stream()
-                        .map(JsonFileInfo::getFileName)
-                        .max(Comparator.comparing(
-                                filenameVersioning))
-                        .orElseThrow(AssertionError::new))
-                .thenApply(fileDownloadLink);
+                                .thenApply(files -> files.stream()
+                                                         .map(JsonFileInfo::getFileName)
+                                                         .max(Comparator.comparing(
+                                                                 filenameVersioning))
+                                                         .orElseThrow(AssertionError::new))
+                                .thenApply(fileDownloadLink);
     }
 
     @Override
@@ -97,28 +99,30 @@ public class NGinXUpdateChannel implements UpdateChannel {
                 throw new RuntimeException("Could not open URL Stream");
             }
         })
-                .thenApplyAsync(stream -> {
-                    try {
-                        final File tempFile = File.createTempFile(
-                                UUID.randomUUID()
-                                        .toString(), ".tmp");
-                        final FileOutputStream outputStream = new FileOutputStream(
-                                tempFile);
+                              .thenApplyAsync(stream -> {
+                                  try {
+                                      final File tempFile = File.createTempFile(
+                                              UUID.randomUUID()
+                                                  .toString(),
+                                              ".tmp"
+                                      );
+                                      final FileOutputStream outputStream = new FileOutputStream(
+                                              tempFile);
 
-                        //stream.transferTo(outputStream);
-                        Objects.requireNonNull(outputStream, "outputStream");
-                        long   transferred = 0;
-                        byte[] buffer      = new byte[128];
-                        int    read;
-                        while ((read = stream.read(buffer, 0, 128)) >= 0) {
-                            outputStream.write(buffer, 0, read);
-                            transferred += read;
-                        }
+                                      //stream.transferTo(outputStream);
+                                      Objects.requireNonNull(outputStream, "outputStream");
+                                      long   transferred = 0;
+                                      byte[] buffer      = new byte[128];
+                                      int    read;
+                                      while ((read = stream.read(buffer, 0, 128)) >= 0) {
+                                          outputStream.write(buffer, 0, read);
+                                          transferred += read;
+                                      }
 
-                        return tempFile;
-                    } catch (IOException e) {
-                        throw new RuntimeException("Could not download file", e);
-                    }
-                });
+                                      return tempFile;
+                                  } catch (IOException e) {
+                                      throw new RuntimeException("Could not download file", e);
+                                  }
+                              });
     }
 }

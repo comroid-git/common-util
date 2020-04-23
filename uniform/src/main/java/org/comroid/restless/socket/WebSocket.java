@@ -1,12 +1,12 @@
 package org.comroid.restless.socket;
 
-import org.comroid.listnr.EventHub;
-import org.comroid.restless.socket.internal.WebSocketEventPayload;
-
 import java.util.Collection;
 
+import org.comroid.listnr.EventHub;
+import org.comroid.restless.socket.internal.WebSocketEvent;
+
 public interface WebSocket {
-    EventHub<? extends WebSocketEventPayload>
+    EventHub<? extends WebSocketEvent>
 
     SocketListener getSocketListener();
 

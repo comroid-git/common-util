@@ -23,33 +23,7 @@ import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Nullable;
 
 public final class REST<D> {
-    private final           HttpAdapter                   httpAdapter;
-    private final @Nullable D                             dependencyObject;
-    private final           SerializationAdapter<?, ?, ?> serializationAdapter;
-
-    public REST(HttpAdapter httpAdapter, @Nullable D dependencyObject, SerializationAdapter<?, ?, ?> serializationAdapter) {
-        this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
-        this.dependencyObject = dependencyObject;
-        this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
-    }
-
-    public <T extends VarCarrier<D>> Request<T> request(Class<T> type) {
-        return new Request<>(this, VariableCarrier.findRootBind(type).autoConstructor(type, (Class<D>) (dependencyObject == null ? Object.class : dependencyObject.getClass())));
-    }
-
-    public Request<UniObjectNode> request() {
-        return new Request<>(this, (dep, node) -> node);
-    }
-
     public static final class Header {
-        private final String name;
-        private final String value;
-
-        public Header(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
         public String getName() {
             return name;
         }
@@ -57,17 +31,16 @@ public final class REST<D> {
         public String getValue() {
             return value;
         }
+        private final String name;
+        private final String value;
+
+        public Header(String name, String value) {
+            this.name  = name;
+            this.value = value;
+        }
     }
 
     public static final class Response {
-        private final int     statusCode;
-        private final UniNode body;
-
-        public Response(REST rest, int statusCode, String body) {
-            this.statusCode = statusCode;
-            this.body = rest.serializationAdapter.createUniNode(body);
-        }
-
         public int getStatusCode() {
             return statusCode;
         }
@@ -75,24 +48,66 @@ public final class REST<D> {
         public UniNode getBody() {
             return body;
         }
+        private final int     statusCode;
+        private final UniNode body;
+
+        public Response(REST rest, int statusCode, String body) {
+            this.statusCode = statusCode;
+            this.body       = rest.serializationAdapter.createUniNode(body);
+        }
+    }
+    private final           HttpAdapter                   httpAdapter;
+    private final @Nullable D                             dependencyObject;
+    private final           SerializationAdapter<?, ?, ?> serializationAdapter;
+
+    public REST(
+            HttpAdapter httpAdapter,
+            @Nullable D dependencyObject,
+            SerializationAdapter<?, ?, ?> serializationAdapter
+    ) {
+        this.httpAdapter          = Objects.requireNonNull(httpAdapter, "HttpAdapter");
+        this.dependencyObject     = dependencyObject;
+        this.serializationAdapter = Objects.requireNonNull(
+                serializationAdapter,
+                "SerializationAdapter"
+        );
+    }
+
+    public <T extends VarCarrier<D>> Request<T> request(Class<T> type) {
+        return new Request<>(
+                this,
+                VariableCarrier.findRootBind(type)
+                               .autoConstructor(
+                                       type,
+                                       (Class<D>) (dependencyObject == null
+                                               ? Object.class
+                                               : dependencyObject.getClass())
+                               )
+        );
+    }
+
+    public Request<UniObjectNode> request() {
+        return new Request<>(this, (dep, node) -> node);
+    }
+
+    public enum Method {
+        GET,
+
+        PUT,
+
+        POST,
+
+        PATCH,
+
+        DELETE;
+
+        @Override
+        public String toString() {
+            return name();
+        }
     }
 
     public final class Request<T> {
-        private final           REST                             rest;
-        private final           Collection<Header>               headers;
-        private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
-        private                 CompletableFuture<REST.Response> execution    = null;
-        private                 Provider<URL>                    urlProvider;
-        private                 Method                           method;
-        private                 String                           body;
-        private                 int                              expectedCode = HTTPStatusCodes.OK;
-
-        public Request(REST rest, @Nullable BiFunction<D, UniObjectNode, T> tProducer) {
-            this.rest = rest;
-            this.tProducer = tProducer;
-            this.headers = new ArrayList<>();
-        }
-
         public final Provider<URL> getUrlProvider() {
             return urlProvider;
         }
@@ -112,6 +127,20 @@ public final class REST<D> {
         public final Collection<Header> getHeaders() {
             return Collections.unmodifiableCollection(headers);
         }
+        private final           REST                             rest;
+        private final           Collection<Header>               headers;
+        private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
+        private                 CompletableFuture<REST.Response> execution    = null;
+        private                 Provider<URL>                    urlProvider;
+        private                 Method                           method;
+        private                 String                           body;
+        private                 int                              expectedCode = HTTPStatusCodes.OK;
+
+        public Request(REST rest, @Nullable BiFunction<D, UniObjectNode, T> tProducer) {
+            this.rest      = rest;
+            this.tProducer = tProducer;
+            this.headers   = new ArrayList<>();
+        }
 
         public final Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
             this.expectedCode = code;
@@ -125,14 +154,14 @@ public final class REST<D> {
             return this;
         }
 
+        public final Request<T> url(String spec) throws AssertionError {
+            return url(Polyfill.url(spec));
+        }
+
         public final Request<T> url(URL url) {
             this.urlProvider = Provider.constant(url);
 
             return this;
-        }
-
-        public final Request<T> url(String spec) throws AssertionError {
-            return url(Polyfill.url(spec));
         }
 
         public final Request<T> method(REST.Method method) {
@@ -157,31 +186,40 @@ public final class REST<D> {
             return headers.removeIf(filter);
         }
 
-        public final CompletableFuture<REST.Response> execute() {
-            return (execution == null ? (execution = httpAdapter.call(
-                    rest, method, urlProvider, headers, serializationAdapter.getMimeType(), body)) : execution);
-        }
-
         public final CompletableFuture<Integer> execute$statusCode() {
             return execute().thenApply(Response::getStatusCode);
         }
 
-        public final CompletableFuture<UniNode> execute$body() {
-            return execute().thenApply(Response::getBody);
+        public final CompletableFuture<REST.Response> execute() {
+            return (execution == null ? (execution = httpAdapter.call(
+                    rest,
+                    method,
+                    urlProvider,
+                    headers,
+                    serializationAdapter.getMimeType(),
+                    body
+            )) : execution);
+        }
+
+        public final CompletableFuture<T> execute$deserializeSingle() {
+            return execute$deserialize().thenApply(Span::requireNonNull);
         }
 
         public final CompletableFuture<Span<T>> execute$deserialize() {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
-                        return Span.singleton(tProducer.apply(dependencyObject, node.asObjectNode()));
+                        return Span.singleton(tProducer.apply(
+                                dependencyObject,
+                                node.asObjectNode()
+                        ));
                     case ARRAY:
                         return node.asArrayNode()
-                                .asNodeList()
-                                .stream()
-                                .map(UniNode::asObjectNode)
-                                .map(sub -> tProducer.apply(dependencyObject, sub))
-                                .collect(Span.collector());
+                                   .asNodeList()
+                                   .stream()
+                                   .map(UniNode::asObjectNode)
+                                   .map(sub -> tProducer.apply(dependencyObject, sub))
+                                   .collect(Span.collector());
                     case VALUE:
                         throw new AssertionError("Cannot deserialize from UniValueNode");
                 }
@@ -190,40 +228,22 @@ public final class REST<D> {
             });
         }
 
-        public final CompletableFuture<T> execute$deserializeSingle() {
-            return execute$deserialize().thenApply(Span::requireNonNull);
+        public final CompletableFuture<UniNode> execute$body() {
+            return execute().thenApply(Response::getBody);
         }
 
         public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> span.stream()
-                    .map(remapper)
-                    .collect(Span.collector()));
+                                                               .map(remapper)
+                                                               .collect(Span.collector()));
         }
 
         public final <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> {
-                if (!span.isSingle())
-                    throw new IllegalArgumentException("Span too large");
+                if (!span.isSingle()) throw new IllegalArgumentException("Span too large");
 
                 return remapper.apply(span.get());
             });
-        }
-    }
-
-    public enum Method {
-        GET,
-
-        PUT,
-
-        POST,
-
-        PATCH,
-
-        DELETE;
-
-        @Override
-        public String toString() {
-            return name();
         }
     }
 }

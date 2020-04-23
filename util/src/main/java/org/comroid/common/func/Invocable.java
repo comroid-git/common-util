@@ -1,9 +1,5 @@
 package org.comroid.common.func;
 
-import org.comroid.common.util.ReflectionHelper;
-import org.jetbrains.annotations.ApiStatus.Internal;
-import org.jetbrains.annotations.Nullable;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -12,13 +8,14 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.comroid.common.util.ReflectionHelper;
+
+import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.Nullable;
+
 public interface Invocable<T> {
     static <T> Invocable<T> ofProvider(Provider<T> provider) {
         return new Support.OfProvider<>(provider);
-    }
-
-    static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
-        return new Support.OfConstructor<>(constructor);
     }
 
     static <T> Invocable<T> ofMethodCall(@Nullable Method method) {
@@ -31,8 +28,13 @@ public interface Invocable<T> {
 
     static <T> Invocable<T> constructing(Class<T> type, Class<?>... args) {
         return ReflectionHelper.findConstructor(type, args)
-                .map(Invocable::ofConstructor)
-                .orElseThrow(() -> new NoSuchElementException("No suitable constructor found"));
+                               .map(Invocable::ofConstructor)
+                               .orElseThrow(() -> new NoSuchElementException(
+                                       "No suitable constructor found"));
+    }
+
+    static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
+        return new Support.OfConstructor<>(constructor);
     }
 
     static <T> Invocable<T> constant(T value) {
@@ -43,17 +45,9 @@ public interface Invocable<T> {
         return (Invocable<T>) Support.Empty;
     }
 
-    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
-
-    Class[] typeOrder();
-
-    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
-        return invoke(ReflectionHelper.arrange(args, typeOrder()));
-    }
-
     @Internal
     final class Support {
-        private static final Invocable<?> Empty = constant(null);
+        private static final Invocable<?> Empty     = constant(null);
         private static final Class[]      NoClasses = new Class[0];
 
         private static final class OfProvider<T> implements Invocable<T> {
@@ -83,7 +77,8 @@ public interface Invocable<T> {
             }
 
             @Override
-            public @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
+            public @Nullable T invoke(Object... args)
+                    throws InvocationTargetException, IllegalAccessException {
                 try {
                     return constructor.newInstance(args);
                 } catch (InstantiationException e) {
@@ -103,7 +98,8 @@ public interface Invocable<T> {
 
             private OfMethod(Method method, @Nullable Object target) {
                 if (target == null && !Modifier.isStatic(method.getModifiers()))
-                    throw new IllegalArgumentException("Target cannot be null on non-static methods!",
+                    throw new IllegalArgumentException(
+                            "Target cannot be null on non-static methods!",
                             new NullPointerException()
                     );
 
@@ -113,7 +109,8 @@ public interface Invocable<T> {
 
             @Nullable
             @Override
-            public T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
+            public T invoke(Object... args)
+                    throws InvocationTargetException, IllegalAccessException {
                 return (T) method.invoke(target, args);
             }
 
@@ -143,4 +140,13 @@ public interface Invocable<T> {
             }
         }
     }
+
+    default T invokeAutoOrder(Object... args)
+            throws InvocationTargetException, IllegalAccessException {
+        return invoke(ReflectionHelper.arrange(args, typeOrder()));
+    }
+
+    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
+
+    Class[] typeOrder();
 }

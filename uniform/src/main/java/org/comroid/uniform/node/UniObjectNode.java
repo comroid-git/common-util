@@ -10,6 +10,26 @@ import org.comroid.uniform.SerializationAdapter;
 import org.jetbrains.annotations.NotNull;
 
 public final class UniObjectNode extends UniNode {
+    public static abstract class Adapter<B> extends AbstractMap<String, Object>
+            implements UniNode.Adapter<B> {
+        protected final B baseNode;
+
+        protected Adapter(B baseNode) {
+            this.baseNode = baseNode;
+        }
+
+        @Override
+        public abstract Object put(String key, Object value);
+
+        @NotNull
+        @Override
+        public abstract Set<Entry<String, Object>> entrySet();
+
+        @Override
+        public B getBaseNode() {
+            return baseNode;
+        }
+    }
     private final Adapter adapter;
 
     public UniObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
@@ -19,17 +39,8 @@ public final class UniObjectNode extends UniNode {
     }
 
     @Override
-    public @NotNull UniNode get(String fieldName) {
-        final Object value = adapter.get(fieldName);
-
-        if (value == null)
-            return UniValueNode.nullNode();
-
-        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
-                .map(DataStructureType::typeClass)
-                .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(fieldName))));
-        } else return serializationAdapter.createUniNode(value);
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
     }
 
     @Override
@@ -48,27 +59,18 @@ public final class UniObjectNode extends UniNode {
     }
 
     @Override
-    public final Object getBaseNode() {
-        return adapter.getBaseNode();
-    }
+    public @NotNull UniNode get(String fieldName) {
+        final Object value = adapter.get(fieldName);
 
-    public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {
-        protected final B baseNode;
+        if (value == null) return UniValueNode.nullNode();
 
-        protected Adapter(B baseNode) {
-            this.baseNode = baseNode;
-        }
-
-        @Override
-        public abstract Object put(String key, Object value);
-
-        @NotNull
-        @Override
-        public abstract Set<Entry<String, Object>> entrySet();
-
-        @Override
-        public B getBaseNode() {
-            return baseNode;
-        }
+        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
+                  .map(DataStructureType::typeClass)
+                  .noneMatch(type -> type.isInstance(value))) {
+            return new UniValueNode<>(
+                    serializationAdapter,
+                    makeValueAdapter(() -> String.valueOf(adapter.get(fieldName)))
+            );
+        } else return serializationAdapter.createUniNode(value);
     }
 }

@@ -75,7 +75,8 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
             }
 
             @Override
-            public @NotNull Set<Entry<String, Object>> entrySet() {
+            public @NotNull
+            Set<Entry<String, Object>> entrySet() {
                 return baseNode.entrySet();
             }
         }

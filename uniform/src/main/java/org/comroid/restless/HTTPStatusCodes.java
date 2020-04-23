@@ -86,18 +86,16 @@ public final class HTTPStatusCodes {
     public static @Nullable String toString(int code) {
         try {
             for (Field field : fields)
-                if (((int) field.get(null)) == code)
-                    return field.getName() + "(" + code + ")";
+                if (((int) field.get(null)) == code) return field.getName() + "(" + code + ")";
         } catch (Throwable e) {
             throw new AssertionError("Unexpected Exception", e);
         }
 
         return null;
     }
+    private static final Field[] fields = HTTPStatusCodes.class.getFields();
 
     private HTTPStatusCodes() {
         // nope
     }
-
-    private static final Field[] fields = HTTPStatusCodes.class.getFields();
 }

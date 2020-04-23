@@ -2,21 +2,18 @@ package org.comroid.listnr;
 
 import org.comroid.common.func.ParamFactory;
 import org.comroid.common.util.BitmaskUtil;
+
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.Nullable;
 
-public interface EventType<P extends EventPayload, TF> {
-    @Internal
-    int getFlag();
-
-    ParamFactory<TF, P> payloadFactory();
-
+public interface EventType<P extends Event, TF> extends ParamFactory<TF, P> {
     final class Support {
-        protected static final class Basic<P extends EventPayload, TF> implements EventType<P, TF> {
-            private final int                 flag = BitmaskUtil.nextFlag();
-            private final EventHub            hub;
-            private final ParamFactory<TF, P> payloadFactory;
+        protected static final class Basic<P extends Event, TF> implements EventType<P, TF> {
+            protected final EventHub<TF>        hub;
+            private final   int                 flag = BitmaskUtil.nextFlag();
+            private final   ParamFactory<TF, P> payloadFactory;
 
-            protected Basic(EventHub hub, ParamFactory<TF, P> payloadFactory) {
+            protected Basic(EventHub<TF> hub, ParamFactory<TF, P> payloadFactory) {
                 this.hub            = hub;
                 this.payloadFactory = payloadFactory;
 
@@ -34,4 +31,10 @@ public interface EventType<P extends EventPayload, TF> {
             }
         }
     }
+
+    @Internal
+    int getFlag();
+
+    @Override
+    P create(@Nullable TF parameter);
 }

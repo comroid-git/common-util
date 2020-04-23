@@ -1,10 +1,5 @@
 package org.comroid.common;
 
-import org.comroid.common.annotation.OptionalVararg;
-import org.comroid.common.func.ThrowingRunnable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,13 +9,17 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 
+import org.comroid.common.annotation.OptionalVararg;
+import org.comroid.common.func.ThrowingRunnable;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import static java.util.Objects.isNull;
 
 public final class Polyfill {
     public static String regexGroupOrDefault(
-            Matcher matcher,
-            String groupName,
-            @Nullable String orDefault
+            Matcher matcher, String groupName, @Nullable String orDefault
     ) {
         String cont;
 
@@ -53,8 +52,7 @@ public final class Polyfill {
     }
 
     public static <T extends Throwable> URI uri(
-            String spec,
-            @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
+            String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
     ) throws T {
         if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
                 cause -> (T) new AssertionError(cause)
@@ -72,7 +70,9 @@ public final class Polyfill {
             @Nullable Function<T, ? extends RuntimeException> remapper
     ) {
         final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(
-                remapper, (Function<T, ? extends RuntimeException>) RuntimeException::new);
+                remapper,
+                (Function<T, ? extends RuntimeException>) RuntimeException::new
+        );
 
         return () -> {
             try {

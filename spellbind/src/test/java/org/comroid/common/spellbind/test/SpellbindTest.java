@@ -10,18 +10,35 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class SpellbindTest {
+    public static class ImplementingClass implements MainInterface {
+        @Override
+        public boolean invert(boolean val) {
+            return !val;
+        }
+
+        @Override
+        public String name() {
+            return "some class";
+        }
+
+        @Override
+        public int getValue() {
+            return 42;
+        }
+    }
+
     @Test
     public void testDirectBound() {
         final ImplementingClass implementingClass = new ImplementingClass();
 
         MainInterface proxy = Spellbind.builder(MainInterface.class)
-                .coreObject(implementingClass)
-                .build();
+                                       .coreObject(implementingClass)
+                                       .build();
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
-                .isPresent());
+                               .isPresent());
         Assert.assertFalse(proxy.string()
-                .isPresent());
+                                .isPresent());
 
         Assert.assertEquals(47, proxy.add(5));
         Assert.assertEquals(42, proxy.getValue());
@@ -35,15 +52,17 @@ public class SpellbindTest {
         final ImplementingClass implementingClass = new ImplementingClass();
 
         HyperInterface proxy = Spellbind.builder(HyperInterface.class)
-                .coreObject(implementingClass)
-                .subImplement(
-                        new HyperInterface.SubImpl(), HyperInterface.class)
-                .build();
+                                        .coreObject(implementingClass)
+                                        .subImplement(
+                                                new HyperInterface.SubImpl(),
+                                                HyperInterface.class
+                                        )
+                                        .build();
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
-                .isPresent());
+                               .isPresent());
         Assert.assertFalse(proxy.string()
-                .isPresent());
+                                .isPresent());
 
         Assert.assertEquals(47, proxy.add(5));
         Assert.assertEquals(42, proxy.getValue());
@@ -87,23 +106,5 @@ public class SpellbindTest {
         }
     }
 
-    public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {
-    }
-
-    public static class ImplementingClass implements MainInterface {
-        @Override
-        public boolean invert(boolean val) {
-            return !val;
-        }
-
-        @Override
-        public String name() {
-            return "some class";
-        }
-
-        @Override
-        public int getValue() {
-            return 42;
-        }
-    }
+    public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {}
 }

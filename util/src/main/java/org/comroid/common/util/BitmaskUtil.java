@@ -6,11 +6,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class BitmaskUtil {
     public static final  int                          EMPTY     = 0x0;
-    private static final Map<Class<?>, AtomicInteger> LAST_FLAG = new ConcurrentHashMap<>();
-
-    public static boolean isFlagSet(int mask, int flag) {
-        return (mask & flag) != 0;
-    }
 
     public static int modifyFlag(int mask, int flag, boolean newState) {
         if (isFlagSet(mask, flag) && !newState) {
@@ -19,29 +14,31 @@ public final class BitmaskUtil {
         } else if (!isFlagSet(mask, flag) && newState) {
             // remove flag
             return mask & ~flag;
-        } else
-            return mask; // do nothing
+        } else return mask; // do nothing
+    }
+
+    public static boolean isFlagSet(int mask, int flag) {
+        return (mask & flag) != 0;
     }
 
     //@CallerSensitive
     public static int nextFlag() {
-        return LAST_FLAG.computeIfAbsent(StackTraceUtils.callerClass(1), key -> new AtomicInteger(0))
-                .getAndUpdate(value -> {
-                    if (value == 3)
-                        throw new RuntimeException("Too many Flags requested! Integer Overflow");
+        return LAST_FLAG.computeIfAbsent(
+                StackTraceUtils.callerClass(1),
+                key -> new AtomicInteger(0)
+        )
+                        .getAndUpdate(value -> {
+                            if (value == 3) throw new RuntimeException(
+                                    "Too many Flags requested! Integer Overflow");
 
-                    if (value < 0 && value * 2 != 0)
-                        return value == -1 ? -2 : value * 2;
-                    else if (value < 0)
-                        return 3;
+                            if (value < 0 && value * 2 != 0) return value == -1 ? -2 : value * 2;
+                            else if (value < 0) return 3;
 
-                    if (value == 0)
-                        return 1;
-                    if (value * 2 == Integer.MIN_VALUE)
-                        return -1;
+                            if (value == 0) return 1;
+                            if (value * 2 == Integer.MIN_VALUE) return -1;
 
-                    return value == 1 ? 2 : value * 2;
-                });
+                            return value == 1 ? 2 : value * 2;
+                        });
     }
 
     public static int combine(int... masks) {
@@ -52,4 +49,5 @@ public final class BitmaskUtil {
 
         return yield;
     }
+    private static final Map<Class<?>, AtomicInteger> LAST_FLAG = new ConcurrentHashMap<>();
 }

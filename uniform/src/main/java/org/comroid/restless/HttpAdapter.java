@@ -13,7 +13,8 @@ public interface HttpAdapter {
     WebSocket createWebSocket(Executor executor, URI uri);
 
     CompletableFuture<REST.Response> call(
-            REST rest, REST.Method method,
+            REST rest,
+            REST.Method method,
             Provider<URL> urlProvider,
             Collection<REST.Header> headers,
             String mimeType,

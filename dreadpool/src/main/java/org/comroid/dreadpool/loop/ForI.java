@@ -37,6 +37,11 @@ public abstract class ForI<V> extends Loop<V> {
         }
 
         @Override
+        protected Integer init() {
+            return initOp.getAsInt();
+        }
+
+        @Override
         protected boolean canContinueWith(Integer value) {
             return continueTester.test(value);
         }
@@ -44,11 +49,6 @@ public abstract class ForI<V> extends Loop<V> {
         @Override
         protected Integer accumulate(Integer value) {
             return accumulator.applyAsInt(value);
-        }
-
-        @Override
-        protected Integer init() {
-            return initOp.getAsInt();
         }
 
         @Override
@@ -80,13 +80,17 @@ public abstract class ForI<V> extends Loop<V> {
 
                 @Override
                 public boolean test(T t) {
-                    if (cache.add(t))
-                        return pContinueTester.test(t);
+                    if (cache.add(t)) return pContinueTester.test(t);
                     return false;
                 }
             };
             this.accumulator    = accumulator;
             this.action         = action;
+        }
+
+        @Override
+        protected T init() {
+            return initOp.get();
         }
 
         @Override
@@ -97,11 +101,6 @@ public abstract class ForI<V> extends Loop<V> {
         @Override
         protected T accumulate(T value) {
             return accumulator.apply(value);
-        }
-
-        @Override
-        protected T init() {
-            return initOp.get();
         }
 
         @Override
@@ -127,8 +126,6 @@ public abstract class ForI<V> extends Loop<V> {
         } else return false;
     }
 
-    protected abstract V init();
-
     protected abstract boolean canContinueWith(V value);
 
     protected abstract V accumulate(V value);
@@ -142,4 +139,6 @@ public abstract class ForI<V> extends Loop<V> {
     protected V produce(int loop) {
         return v;
     }
+
+    protected abstract V init();
 }

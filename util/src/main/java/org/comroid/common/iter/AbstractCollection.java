@@ -13,8 +13,7 @@ public interface AbstractCollection<T> extends Collection<T> {
     @Override
     default boolean contains(Object o) {
         for (T it : this) {
-            if (o.equals(it))
-                return true;
+            if (o.equals(it)) return true;
         }
 
         return false;
@@ -23,7 +22,7 @@ public interface AbstractCollection<T> extends Collection<T> {
     @Override
     default boolean containsAll(@NotNull Collection<?> objects) {
         return objects.stream()
-                .allMatch(this::contains);
+                      .allMatch(this::contains);
     }
 
     @Override
@@ -42,8 +41,7 @@ public interface AbstractCollection<T> extends Collection<T> {
         boolean removed = false;
 
         for (Object object : objects) {
-            if (remove(object) && !removed)
-                removed = true;
+            if (remove(object) && !removed) removed = true;
         }
 
         return removed;

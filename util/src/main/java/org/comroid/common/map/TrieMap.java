@@ -1,10 +1,10 @@
 package org.comroid.common.map;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
 import java.util.function.Function;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 public interface TrieMap<K, V> extends Map<K, V> {
     static <V> TrieMap<String, V> ofString() {

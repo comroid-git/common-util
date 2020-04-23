@@ -20,17 +20,23 @@ import org.comroid.uniform.node.UniObjectNode;
  *              VariableCarrier#getVar(VarBind)}
  * @param <OBJ> Serialization Library Type of the serialization Node
  */
-abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> implements ArrayBind<EXTR, DPND, REMAP, FINAL> {
+abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
+        implements ArrayBind<EXTR, DPND, REMAP, FINAL> {
+    final         Supplier<FINAL>                   collectionSupplier;
     private final String                            fieldName;
     private final Function<? extends UniNode, EXTR> extractor;
     private final GroupBind                         group;
-    final         Supplier<FINAL>                   collectionSupplier;
 
-    protected AbstractArrayBind(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Supplier<FINAL> collectionSupplier) {
-        this.fieldName = fieldName;
-        this.extractor = extractor;
+    protected AbstractArrayBind(
+            GroupBind group,
+            String fieldName,
+            Function<? extends UniNode, EXTR> extractor,
+            Supplier<FINAL> collectionSupplier
+    ) {
+        this.fieldName          = fieldName;
+        this.extractor          = extractor;
         this.collectionSupplier = collectionSupplier;
-        this.group = group;
+        this.group              = group;
 
         group.children.add(Polyfill.deadCast(this));
     }
@@ -43,11 +49,11 @@ abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REM
     @Override
     public final Span<EXTR> extract(UniObjectNode node) {
         return node.get(fieldName)
-                .asArrayNode()
-                .asNodeList()
-                .stream()
-                .map(arrayMember -> extractor.apply(Polyfill.deadCast(arrayMember)))
-                .collect(Span.collector());
+                   .asArrayNode()
+                   .asNodeList()
+                   .stream()
+                   .map(arrayMember -> extractor.apply(Polyfill.deadCast(arrayMember)))
+                   .collect(Span.collector());
     }
 
     @Override

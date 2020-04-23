@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
-import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
@@ -23,6 +22,35 @@ import static java.util.Collections.unmodifiableSet;
 import static org.comroid.common.Polyfill.deadCast;
 
 public class VariableCarrier<DEP> implements VarCarrier<DEP> {
+    private final SerializationAdapter<?, ?, ?>                                               serializationAdapter;
+    private final GroupBind                                                                   rootBind;
+    private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     = new ConcurrentHashMap<>();
+    private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed = new ConcurrentHashMap<>();
+    private final DEP                                                                         dependencyObject;
+    private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
+    protected <BAS, OBJ extends BAS> VariableCarrier(
+            SerializationAdapter<BAS, OBJ, ?> serializationAdapter,
+            OBJ initialData,
+            @Nullable DEP dependencyObject
+    ) {
+        this(
+                serializationAdapter,
+                serializationAdapter.createUniObjectNode(initialData),
+                dependencyObject
+        );
+    }
+
+    protected VariableCarrier(
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            @Nullable UniObjectNode initialData,
+            @Nullable DEP dependencyObject
+    ) {
+        this.serializationAdapter = serializationAdapter;
+        this.rootBind             = findRootBind(getClass());
+        this.initiallySet         = unmodifiableSet(updateVars(initialData));
+        this.dependencyObject     = dependencyObject;
+    }
+
     @Internal
     public static GroupBind findRootBind(Class<? extends VarCarrier> inClass) {
         final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
@@ -34,37 +62,11 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         ));
 
         return ReflectionHelper.collectStaticFields(GroupBind.class,
-                location.value(),
-                true,
-                VarBind.Root.class
+                                                    location.value(),
+                                                    true,
+                                                    VarBind.Root.class
         )
-                .requireNonNull();
-    }
-
-    private final SerializationAdapter<?, ?, ?>                                               serializationAdapter;
-    private final GroupBind                                                                   rootBind;
-    private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     = new ConcurrentHashMap<>();
-    private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed = new ConcurrentHashMap<>();
-    private final DEP                                                                         dependencyObject;
-    private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
-
-    protected <BAS, OBJ extends BAS> VariableCarrier(
-            SerializationAdapter<BAS, OBJ, ?> serializationAdapter,
-            OBJ initialData,
-            @Nullable DEP dependencyObject
-    ) {
-        this(serializationAdapter, serializationAdapter.createUniObjectNode(initialData), dependencyObject);
-    }
-
-    protected VariableCarrier(
-            SerializationAdapter<?, ?, ?> serializationAdapter,
-            @Nullable UniObjectNode initialData,
-            @Nullable DEP dependencyObject
-    ) {
-        this.serializationAdapter = serializationAdapter;
-        this.rootBind = findRootBind(getClass());
-        this.initiallySet = unmodifiableSet(updateVars(initialData));
-        this.dependencyObject = dependencyObject;
+                               .requireNonNull();
     }
 
     private Set<VarBind<Object, ? super DEP, ?, Object>> updateVars(
@@ -75,25 +77,30 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
         getRootBind().getChildren()
-                .stream()
-                .filter(bind -> data.has(bind.getFieldName()))
-                .map(it -> (VarBind<Object, Object, Object, Object>) it)
-                .forEach(bind -> {
-                    Span<Object> extract = bind.extract(data);
+                     .stream()
+                     .filter(bind -> data.has(bind.getFieldName()))
+                     .map(it -> (VarBind<Object, Object, Object, Object>) it)
+                     .forEach(bind -> {
+                         Span<Object> extract = bind.extract(data);
 
-                    extrRef(bind).set(extract);
-                    compRef(bind).outdate();
-                    changed.add(bind);
-                });
+                         extrRef(bind).set(extract);
+                         compRef(bind).outdate();
+                         changed.add(bind);
+                     });
 
         return unmodifiableSet(changed);
+    }
+
+    @Override
+    public final GroupBind getRootBind() {
+        return rootBind;
     }
 
     private <T> AtomicReference<Span<T>> extrRef(
             VarBind<T, ? super DEP, ?, Object> bind
     ) {
         return deadCast(vars.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
-                key -> new AtomicReference<>(Span.zeroSize())
+                                             key -> new AtomicReference<>(Span.zeroSize())
         ));
     }
 
@@ -101,13 +108,8 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
             VarBind<Object, ? super DEP, ?, T> bind
     ) {
         return deadCast(computed.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
-                key -> new OutdateableReference<>()
+                                                 key -> new OutdateableReference<>()
         ));
-    }
-
-    @Override
-    public final GroupBind getRootBind() {
-        return rootBind;
     }
 
     @Override
@@ -129,7 +131,10 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
             // recompute
 
             AtomicReference<Span<Object>> reference = extrRef(Polyfill.deadCast(bind));
-            final T                       yield     = bind.process(dependencyObject, reference.get());
+            final T                       yield     = bind.process(
+                    dependencyObject,
+                    reference.get()
+            );
             ref.update(yield);
         }
 
