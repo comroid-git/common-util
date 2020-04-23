@@ -13,22 +13,23 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
 import static org.comroid.common.util.BitmaskUtil.combine;
 
-public interface EventAcceptor {
-    static EventAcceptor ofMethod(Method method) {
+public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
+    static <E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> ofMethod(Method method) {
         if (!method.isAnnotationPresent(EventHandler.class)) {
             throw new IllegalArgumentException("EventHandler annotation not present");
         }
         final EventHandler handler = method.getAnnotation(EventHandler.class);
 
-        return new Support.OfInvocable(Invocable.ofMethodCall(method));
+        return new Support.OfInvocable<>(Invocable.ofMethodCall(method));
     }
 
     final class Support {
-        protected static abstract class Abstract implements EventAcceptor {
-            private final Set<EventType> eventTypes;
+        protected static abstract class Abstract<E extends EventType<P, ?>, P extends Event<P>> implements EventAcceptor<E, P> {
+            private final Set<EventType<P, ?>> eventTypes;
             private final int            mask;
 
-            protected Abstract(EventType... accepted) {
+            @SafeVarargs
+            protected Abstract(EventType<P, ?>... accepted) {
                 this.eventTypes =
                         Collections.unmodifiableSet(new HashSet<>(Arrays.asList(accepted)));
                 this.mask       = computeMask();
@@ -36,14 +37,14 @@ public interface EventAcceptor {
 
             protected int computeMask() {
                 int yield = BitmaskUtil.EMPTY;
-                for (EventType type : eventTypes) {
-                    yield = combine(yield, type.getFlag());
+                for (EventType<P, ?> type : eventTypes) {
+                    yield = combine(yield, type.getMask());
                 }
                 return yield;
             }
 
             @Override
-            public Set<EventType> getAcceptedEventTypes() {
+            public Set<EventType<P, ?>> getAcceptedEventTypes() {
                 return eventTypes;
             }
 
@@ -53,25 +54,25 @@ public interface EventAcceptor {
             }
         }
 
-        private static final class OfInvocable extends Abstract {
-            private final Invocable<? extends Event> underlying;
+        private static final class OfInvocable<E extends EventType<P, ?>, P extends Event<P>> extends Abstract<E, P> {
+            private final Invocable<? extends P> underlying;
 
-            private OfInvocable(Invocable<? extends Event> underlying) {
+            private OfInvocable(Invocable<? extends P> underlying) {
                 this.underlying = underlying;
             }
 
             @Override
-            public <P extends Event> void acceptEvent(P eventPayload) {
+            public <T extends P> void acceptEvent(T eventPayload) {
 
             }
         }
     }
 
-    Set<EventType> getAcceptedEventTypes();
+    Set<EventType<P, ?>> getAcceptedEventTypes();
 
     @Internal
     int getAcceptedTypesAsMask();
 
     @Internal
-    <P extends Event> void acceptEvent(P eventPayload);
+    <T extends P> void acceptEvent(T eventPayload);
 }

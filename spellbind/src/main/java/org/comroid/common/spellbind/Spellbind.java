@@ -1,6 +1,7 @@
 package org.comroid.common.spellbind;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 
 import org.comroid.common.func.Invocable;
 import org.comroid.common.map.TrieMap;
+import org.comroid.common.spellbind.annotation.Partial;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -92,14 +94,29 @@ public final class Spellbind {
 
         private static boolean matchFootprint(Method abstractMethod, Method method) {
             return abstractMethod.getName()
-                    .equals(method.getName()) && Arrays.equals(
-                    abstractMethod.getParameterTypes(),
+                    .equals(method.getName()) && Arrays.equals(abstractMethod.getParameterTypes(),
                     method.getParameterTypes()
             ) && abstractMethod.getReturnType()
                     .equals(method.getReturnType());
         }
 
+        public Builder<T> subImplement(Object sub) {
+            return Partial.Support.findPartialClass(sub.getClass())
+                    .map(partialInterface -> subImplement(sub, partialInterface))
+                    .orElseThrow(() -> new IllegalArgumentException(String.format(
+                            "Class %s implements no @Partial annotated class",
+                            sub.getClass()
+                                    .getName()
+                    )));
+        }
+
         public Builder<T> subImplement(Object sub, Class<?> asInterface) {
+            if (!Modifier.isInterface(asInterface.getModifiers())) {
+                throw new IllegalArgumentException(String.format("Class %s is not an interface!",
+                        asInterface.getName()
+                ));
+            }
+
             final Class<?> subClass = sub.getClass();
             Stream.of(subClass.getMethods())
                     .filter(method -> method.getDeclaringClass()

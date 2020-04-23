@@ -26,7 +26,7 @@ public final class EventHub<TF> {
 
     public <P extends Event<P>> void publish(EventType<P, TF> asSupertype, TF data) {
         getRegisteredEventTypes().stream()
-                .filter(type -> BitmaskUtil.isFlagSet(type.getFlag(), asSupertype.getFlag()))
+                .filter(type -> BitmaskUtil.isFlagSet(type.getMask(), asSupertype.getMask()))
                 .map(it -> {//noinspection unchecked
                     return (EventType<P, TF>) it;
                 })
