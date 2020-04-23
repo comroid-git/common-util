@@ -1,8 +1,15 @@
 package org.comroid.listnr;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.ToIntFunction;
+import java.util.stream.Collectors;
 
+import org.comroid.common.func.Invocable;
 import org.comroid.common.func.ParamFactory;
 import org.comroid.common.iter.Span;
 import org.comroid.common.util.BitmaskUtil;
@@ -56,5 +63,27 @@ public final class EventHub<TF> {
 
     public Span<? extends EventAcceptor<?, ?>> getRegisteredAcceptors() {
         return registeredAcceptors;
+    }
+
+    public <T, E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> acceptorOfClass(
+            Class<T> klass, T instance
+    ) {
+        final List<Method> useMethods = Arrays.stream(klass.getMethods())
+                .filter(method -> method.isAnnotationPresent(EventHandler.class))
+                .filter(method -> !Modifier.isStatic(method.getModifiers()))
+                .filter(method -> method.getParameterCount() == 1)
+                .collect(Collectors.toList());
+        //noinspection unchecked
+        final EventType<P, ?>[] capabilities = (EventType<P, ?>[]) useMethods.stream()
+                .map(method -> method.getParameterTypes()[0])
+                .filter(type -> getRegisteredEventTypes().stream()
+                        .map(EventType::payloadType)
+                        .anyMatch(type::isAssignableFrom))
+                .toArray();
+        final Set<Invocable<Object>> invocables = useMethods.stream()
+                .map(method -> Invocable.ofMethodCall(method, instance))
+                .collect(Collectors.toSet());
+
+        return new EventAcceptor.Support.OfSortedInvocables<>(capabilities, invocables);
     }
 }

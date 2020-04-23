@@ -47,7 +47,7 @@ public interface Invocable<T> {
     @Internal
     final class Support {
         private static final Invocable<?> Empty     = constant(null);
-        private static final Class[]      NoClasses = new Class[0];
+        private static final Class<?>[]      NoClasses = new Class[0];
 
         private static final class OfProvider<T> implements Invocable<T> {
             private final Provider<T> provider;
@@ -63,7 +63,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class[] typeOrder() {
+            public Class<?>[] typeOrder() {
                 return NoClasses;
             }
         }
@@ -86,7 +86,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class[] typeOrder() {
+            public Class<?>[] typeOrder() {
                 return constructor.getParameterTypes();
             }
         }
@@ -111,11 +111,12 @@ public interface Invocable<T> {
             @Override
             public T invoke(Object... args)
                     throws InvocationTargetException, IllegalAccessException {
+                //noinspection unchecked
                 return (T) method.invoke(target, args);
             }
 
             @Override
-            public Class[] typeOrder() {
+            public Class<?>[] typeOrder() {
                 return method.getParameterTypes();
             }
         }
@@ -135,7 +136,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class[] typeOrder() {
+            public Class<?>[] typeOrder() {
                 return NoClasses;
             }
         }
@@ -148,5 +149,13 @@ public interface Invocable<T> {
 
     @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
 
-    Class[] typeOrder();
+    Class<?>[] typeOrder();
+
+    default void invokeRethrow(Object... args) {
+        try {
+            invoke(args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
