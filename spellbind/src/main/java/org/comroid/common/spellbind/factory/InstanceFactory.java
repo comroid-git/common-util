@@ -36,8 +36,9 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
 
         @Override
         public InstanceFactory<T> build() {
-            final Map<Class[], Invocable<T>> strategies = new TrieFuncMap<>((BiFunction<Class, Class, Boolean>) Class::isAssignableFrom,
-                                                                            Function.identity()
+            final Map<Class[], Invocable<T>> strategies = new TrieFuncMap<>((BiFunction<Class,
+                    Class, Boolean>) Class::isAssignableFrom,
+                    Function.identity()
             );
 
             populateStrategies(strategies);
@@ -47,23 +48,23 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
 
         private void populateStrategies(final Map<Class[], Invocable<T>> strategies) {
             final Class[] distinctTypes = Stream.of(allInvocations())
-                                                .map(Invocable::typeOrder)
-                                                .flatMap(Stream::of)
-                                                .distinct()
-                                                .toArray(Class[]::new);
+                    .map(Invocable::typeOrder)
+                    .flatMap(Stream::of)
+                    .distinct()
+                    .toArray(Class[]::new);
 
             strategies.put(distinctTypes, new CombiningInvocable<>(mainInterface,
-                                                                   distinctTypes,
-                                                                   classLoader,
-                                                                   coreObjectFactory,
-                                                                   implementations
+                    distinctTypes,
+                    classLoader,
+                    coreObjectFactory,
+                    implementations
             ));
         }
 
         private Invocable<?>[] allInvocations() {
             final List<Invocable<?>> collect = implementations.stream()
-                                                              .map(ImplementationNotation::getFactory)
-                                                              .collect(Collectors.toList());
+                    .map(ImplementationNotation::getFactory)
+                    .collect(Collectors.toList());
             collect.add(coreObjectFactory);
 
             return collect.toArray(new Invocable[0]);
@@ -79,19 +80,16 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
         }
 
         public <S extends T> Builder<T, C> subImplement(
-                Provider<S> subFactory,
-                Class<? super S> asInterface
+                Provider<S> subFactory, Class<? super S> asInterface
         ) {
-            this.implementations.add(new ImplementationNotation(
-                    Invocable.ofProvider(subFactory),
+            this.implementations.add(new ImplementationNotation(Invocable.ofProvider(subFactory),
                     asInterface
             ));
             return this;
         }
 
         public <S extends T> Builder<T, C> subImplement(
-                Invocable<S> subFactory,
-                Class<? super S> asInterface
+                Invocable<S> subFactory, Class<? super S> asInterface
         ) {
             this.implementations.add(new ImplementationNotation(subFactory, asInterface));
             return this;
@@ -129,13 +127,12 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
         @Override
         public T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
             final Spellbind.Builder<T> builder = Spellbind.builder(mainInterface)
-                                                          .classloader(classLoader)
-                                                          .coreObject(coreObjectFactory.invokeAutoOrder(
-                                                                  args));
+                    .classloader(classLoader)
+                    .coreObject(coreObjectFactory.invokeAutoOrder(args));
 
             for (ImplementationNotation<?> notation : notations) {
                 builder.subImplement(notation.getFactory()
-                                             .invokeAutoOrder(args), notation.getType());
+                        .invokeAutoOrder(args), notation.getType());
             }
 
             return builder.build();
@@ -166,6 +163,7 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
     public Set<Class[]> getParameterOrders() {
         return strategies.keySet();
     }
+
     private final ClassLoader                classLoader;
     private final Map<Class[], Invocable<T>> strategies;
 
@@ -177,14 +175,15 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
     @Override
     public T create(@Nullable InstanceContext context) {
         final Class[] types = Arrays.stream(context.getArgs())
-                                    .map(Object::getClass)
-                                    .toArray(Class[]::new);
+                .map(Object::getClass)
+                .toArray(Class[]::new);
         final Invocable<T> invocable = strategies.get(types);
 
-        if (invocable == null) throw new UnsupportedOperationException(String.format("Cannot construct from types %s",
-                                                                                     Arrays.toString(
-                                                                                             types)
-        ));
+        if (invocable == null) {
+            throw new UnsupportedOperationException(String.format("Cannot construct from types %s",
+                    Arrays.toString(types)
+            ));
+        }
 
         try {
             return invocable.invoke(context.getArgs());

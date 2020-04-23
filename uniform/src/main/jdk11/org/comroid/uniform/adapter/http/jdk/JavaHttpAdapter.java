@@ -26,19 +26,14 @@ public final class JavaHttpAdapter implements HttpAdapter {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final HttpRequest.Builder builder = HttpRequest.newBuilder(urlProvider.now()
-                                                                                      .toURI())
-                                                               .method(
-                                                                       method.toString(),
-                                                                       HttpRequest.BodyPublishers.ofString(
-                                                                               body)
-                                                               )
-                                                               .header("Content-Type", mimeType);
+                        .toURI())
+                        .method(method.toString(), HttpRequest.BodyPublishers.ofString(body))
+                        .header("Content-Type", mimeType);
 
                 headers.forEach(header -> builder.header(header.getName(), header.getValue()));
 
                 final HttpRequest request = builder.build();
-                final HttpResponse<String> response = httpClient.send(
-                        request,
+                final HttpResponse<String> response = httpClient.send(request,
                         HttpResponse.BodyHandlers.ofString()
                 );
 

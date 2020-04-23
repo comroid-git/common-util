@@ -49,11 +49,11 @@ abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REM
     @Override
     public final Span<EXTR> extract(UniObjectNode node) {
         return node.get(fieldName)
-                   .asArrayNode()
-                   .asNodeList()
-                   .stream()
-                   .map(arrayMember -> extractor.apply(Polyfill.deadCast(arrayMember)))
-                   .collect(Span.collector());
+                .asArrayNode()
+                .asNodeList()
+                .stream()
+                .map(arrayMember -> extractor.apply(Polyfill.deadCast(arrayMember)))
+                .collect(Span.collector());
     }
 
     @Override

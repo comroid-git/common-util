@@ -31,6 +31,7 @@ public final class REST<D> {
         public String getValue() {
             return value;
         }
+
         private final String name;
         private final String value;
 
@@ -48,6 +49,7 @@ public final class REST<D> {
         public UniNode getBody() {
             return body;
         }
+
         private final int     statusCode;
         private final UniNode body;
 
@@ -56,6 +58,7 @@ public final class REST<D> {
             this.body       = rest.serializationAdapter.createUniNode(body);
         }
     }
+
     private final           HttpAdapter                   httpAdapter;
     private final @Nullable D                             dependencyObject;
     private final           SerializationAdapter<?, ?, ?> serializationAdapter;
@@ -67,22 +70,19 @@ public final class REST<D> {
     ) {
         this.httpAdapter          = Objects.requireNonNull(httpAdapter, "HttpAdapter");
         this.dependencyObject     = dependencyObject;
-        this.serializationAdapter = Objects.requireNonNull(
-                serializationAdapter,
+        this.serializationAdapter = Objects.requireNonNull(serializationAdapter,
                 "SerializationAdapter"
         );
     }
 
     public <T extends VarCarrier<D>> Request<T> request(Class<T> type) {
-        return new Request<>(
-                this,
+        return new Request<>(this,
                 VariableCarrier.findRootBind(type)
-                               .autoConstructor(
-                                       type,
-                                       (Class<D>) (dependencyObject == null
-                                               ? Object.class
-                                               : dependencyObject.getClass())
-                               )
+                        .autoConstructor(type, (Class<D>) (
+                                dependencyObject == null
+                                        ? Object.class
+                                        : dependencyObject.getClass()
+                        ))
         );
     }
 
@@ -127,6 +127,7 @@ public final class REST<D> {
         public final Collection<Header> getHeaders() {
             return Collections.unmodifiableCollection(headers);
         }
+
         private final           REST                             rest;
         private final           Collection<Header>               headers;
         private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
@@ -191,14 +192,17 @@ public final class REST<D> {
         }
 
         public final CompletableFuture<REST.Response> execute() {
-            return (execution == null ? (execution = httpAdapter.call(
-                    rest,
-                    method,
-                    urlProvider,
-                    headers,
-                    serializationAdapter.getMimeType(),
-                    body
-            )) : execution);
+            return (
+                    execution == null ? (
+                            execution = httpAdapter.call(rest,
+                                    method,
+                                    urlProvider,
+                                    headers,
+                                    serializationAdapter.getMimeType(),
+                                    body
+                            )
+                    ) : execution
+            );
         }
 
         public final CompletableFuture<T> execute$deserializeSingle() {
@@ -209,17 +213,16 @@ public final class REST<D> {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
-                        return Span.singleton(tProducer.apply(
-                                dependencyObject,
+                        return Span.singleton(tProducer.apply(dependencyObject,
                                 node.asObjectNode()
                         ));
                     case ARRAY:
                         return node.asArrayNode()
-                                   .asNodeList()
-                                   .stream()
-                                   .map(UniNode::asObjectNode)
-                                   .map(sub -> tProducer.apply(dependencyObject, sub))
-                                   .collect(Span.collector());
+                                .asNodeList()
+                                .stream()
+                                .map(UniNode::asObjectNode)
+                                .map(sub -> tProducer.apply(dependencyObject, sub))
+                                .collect(Span.collector());
                     case VALUE:
                         throw new AssertionError("Cannot deserialize from UniValueNode");
                 }
@@ -234,13 +237,15 @@ public final class REST<D> {
 
         public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> span.stream()
-                                                               .map(remapper)
-                                                               .collect(Span.collector()));
+                    .map(remapper)
+                    .collect(Span.collector()));
         }
 
         public final <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> {
-                if (!span.isSingle()) throw new IllegalArgumentException("Span too large");
+                if (!span.isSingle()) {
+                    throw new IllegalArgumentException("Span too large");
+                }
 
                 return remapper.apply(span.get());
             });

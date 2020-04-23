@@ -23,9 +23,13 @@ public final class Polyfill {
     ) {
         String cont;
 
-        if (matcher.matches() && (cont = matcher.group(groupName)) != null) return cont;
-        else if (orDefault != null) return orDefault;
-        else throw new NullPointerException("Group cannot be matched!");
+        if (matcher.matches() && (cont = matcher.group(groupName)) != null) {
+            return cont;
+        } else if (orDefault != null) {
+            return orDefault;
+        } else {
+            throw new NullPointerException("Group cannot be matched!");
+        }
     }
 
     public static <R, T extends Throwable> Function<T, R> exceptionLogger() {
@@ -40,9 +44,11 @@ public final class Polyfill {
             String spec,
             @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator
     ) throws T {
-        if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
-                cause -> (T) new AssertionError(cause)
-        };
+        if (throwableReconfigurator.length == 0) {
+            throwableReconfigurator = new Function[]{
+                    cause -> (T) new AssertionError(cause)
+            };
+        }
 
         try {
             return new URL(spec);
@@ -54,9 +60,11 @@ public final class Polyfill {
     public static <T extends Throwable> URI uri(
             String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
     ) throws T {
-        if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
-                cause -> (T) new AssertionError(cause)
-        };
+        if (throwableReconfigurator.length == 0) {
+            throwableReconfigurator = new Function[]{
+                    cause -> (T) new AssertionError(cause)
+            };
+        }
 
         try {
             return new URI(spec);
@@ -69,8 +77,7 @@ public final class Polyfill {
             ThrowingRunnable<R, T> throwingRunnable,
             @Nullable Function<T, ? extends RuntimeException> remapper
     ) {
-        final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(
-                remapper,
+        final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(remapper,
                 (Function<T, ? extends RuntimeException>) RuntimeException::new
         );
 
@@ -84,7 +91,9 @@ public final class Polyfill {
     }
 
     public static <T> T notnullOr(@Nullable T value, @NotNull T def) {
-        if (isNull(value)) return def;
+        if (isNull(value)) {
+            return def;
+        }
 
         return value;
     }

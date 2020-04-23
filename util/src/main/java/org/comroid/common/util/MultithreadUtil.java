@@ -6,8 +6,7 @@ import java.util.concurrent.ExecutorService;
 
 public final class MultithreadUtil {
     public static <T> CompletableFuture<T> submitQuickTask(
-            ExecutorService executorService,
-            Callable<T> task
+            ExecutorService executorService, Callable<T> task
     ) {
         final CompletableFuture<T> future = new CompletableFuture<>();
 

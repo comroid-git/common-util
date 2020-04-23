@@ -15,6 +15,7 @@ public class JsonFileInfo {
     public int getSize() {
         return size;
     }
+
     private final String fileName;
     private final String myTime;
     private final int    size;

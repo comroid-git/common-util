@@ -36,6 +36,7 @@ public final class UniArrayNode extends UniNode {
             return baseNode;
         }
     }
+
     private final Adapter adapter;
 
     public UniArrayNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
@@ -53,18 +54,24 @@ public final class UniArrayNode extends UniNode {
     public @NotNull UniNode get(int index) {
         final Object value = adapter.get(index);
 
-        if (value == null) return UniValueNode.nullNode();
+        if (value == null) {
+            return UniValueNode.nullNode();
+        }
 
-        if (value instanceof UniNode) return (UniNode) value;
+        if (value instanceof UniNode) {
+            return (UniNode) value;
+        }
 
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
-                  .map(DataStructureType::typeClass)
-                  .noneMatch(type -> type.isInstance(value))) {
+                .map(DataStructureType::typeClass)
+                .noneMatch(type -> type.isInstance(value))) {
             return new UniValueNode<>(
                     serializationAdapter,
                     makeValueAdapter(() -> String.valueOf(adapter.get(index)))
             );
-        } else return serializationAdapter.createUniNode(value);
+        } else {
+            return serializationAdapter.createUniNode(value);
+        }
     }
 
     @Override

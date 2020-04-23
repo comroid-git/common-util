@@ -39,15 +39,15 @@ public interface Processor<T> extends Reference<T>, Cloneable {
                 this.underlying = underlying;
             }
 
-            @Override
-            public boolean isPresent() {
-                return !underlying.isNull();
-            }
-
             @Nullable
             @Override
             public T get() {
                 return underlying.get();
+            }
+
+            @Override
+            public boolean isPresent() {
+                return !underlying.isNull();
             }
         }
 
@@ -60,15 +60,15 @@ public interface Processor<T> extends Reference<T>, Cloneable {
                 this.remapper = remapper;
             }
 
-            @Override
-            public boolean isPresent() {
-                return base.isPresent();
-            }
-
             @Nullable
             @Override
             public R get() {
                 return remapper.apply(base.get());
+            }
+
+            @Override
+            public boolean isPresent() {
+                return base.isPresent();
             }
         }
     }
@@ -86,7 +86,9 @@ public interface Processor<T> extends Reference<T>, Cloneable {
     }
 
     default Processor<T> filter(Predicate<? super T> predicate) {
-        if (isPresent() && predicate.test(get())) return this;
+        if (isPresent() && predicate.test(get())) {
+            return this;
+        }
 
         return empty();
     }
@@ -98,22 +100,27 @@ public interface Processor<T> extends Reference<T>, Cloneable {
     }
 
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
-        if (isPresent()) return new Support.Remapped<>(this, mapper);
+        if (isPresent()) {
+            return new Support.Remapped<>(this, mapper);
+        }
 
         return empty();
     }
 
     default <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
-        if (isPresent()) return StreamSupport.stream(
-                Spliterators.spliterator(new Object[]{ mapper.apply(get()) }, Spliterator.SIZED),
-                false
-        );
+        if (isPresent()) {
+            return StreamSupport.stream(Spliterators.spliterator(new Object[]{ mapper.apply(get()) },
+                    Spliterator.SIZED
+            ), false);
+        }
 
         return Stream.empty();
     }
 
     default Processor<T> peek(Consumer<? super T> action) {
-        if (isPresent()) action.accept(get());
+        if (isPresent()) {
+            action.accept(get());
+        }
 
         return this;
     }

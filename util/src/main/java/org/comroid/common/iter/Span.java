@@ -26,14 +26,14 @@ import org.jetbrains.annotations.Nullable;
 import static java.util.Objects.nonNull;
 
 public class Span<T> implements AbstractCollection<T>, Reference<T> {
-    public static final  int          DEFAULT_INITIAL_CAPACITY = 0;
-    public static final  ModifyPolicy DEFAULT_MODIFY_POLICY    = ModifyPolicy.SKIP_NULLS;
-    public static final  boolean      DEFAULT_FIXED_SIZE       = false;
+    public static final int          DEFAULT_INITIAL_CAPACITY = 0;
+    public static final ModifyPolicy DEFAULT_MODIFY_POLICY    = ModifyPolicy.SKIP_NULLS;
+    public static final boolean      DEFAULT_FIXED_SIZE       = false;
 
     public static <T> Collector<T, ?, Span<T>> collector() {
         return Span.<T>make().fixedSize(true)
-                             .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                             .collector();
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .collector();
     }
 
     public static <T> Span.API<T> make() {
@@ -46,30 +46,27 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
     public static <T> Span<T> singleton(T it) {
         return Span.<T>make().initialValues(it)
-                             .fixedSize(true)
-                             .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                             .span();
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
     }
 
     public static <T> Span<T> immutable(Collection<T> of) {
         return Span.<T>make().initialValues(of)
-                             .fixedSize(true)
-                             .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                             .span();
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
     }
 
     @SafeVarargs
     public static <T> Span<T> immutable(T... of) {
         return Span.<T>make().initialValues(of)
-                             .fixedSize(true)
-                             .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                             .span();
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
     }
-    private static final Span<?>      ZeroSize                 = new Span<>(
-            new Object[0],
-            ModifyPolicy.IMMUTABLE,
-            true
-    );
+
+    private static final Span<?> ZeroSize = new Span<>(new Object[0], ModifyPolicy.IMMUTABLE, true);
 
     //region API Class
     public static final class API<T> {
@@ -108,14 +105,15 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 private final Collection<T>              initialValues;
                 private final ModifyPolicy               nullPolicy;
                 private final boolean                    fixedSize;
-                private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>, Span<T>>() {
+                private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>,
+                        Span<T>>() {
                     @Override
                     public Span<T> apply(Span<T> ts) {
                         return Span.<T>make().modifyPolicy(nullPolicy)
-                                             .fixedSize(fixedSize)
-                                             .initialValues(initialValues)
-                                             .initialValues(ts)
-                                             .span();
+                                .fixedSize(fixedSize)
+                                .initialValues(initialValues)
+                                .initialValues(ts)
+                                .span();
                     }
                 };
 
@@ -191,80 +189,6 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     public final boolean isSingle() {
         return size() == 1;
     }
-    private final        ModifyPolicy modifyPolicy;
-    private final        Object       dataLock                 = Polyfill.selfawareLock();
-    //endregion
-    private              Object[]     data;
-    private              boolean      fixedSize;
-
-    public Span() {
-        this(new Object[DEFAULT_INITIAL_CAPACITY], DEFAULT_MODIFY_POLICY, DEFAULT_FIXED_SIZE);
-    }
-
-    protected Span(Object[] data, ModifyPolicy modifyPolicy, boolean fixedSize) {
-        this.modifyPolicy = modifyPolicy;
-
-        this.data      = data;
-        this.fixedSize = fixedSize;
-    }
-
-    public Span(int capacity, boolean fixedSize) {
-        this(new Object[capacity], DEFAULT_MODIFY_POLICY, fixedSize);
-    }
-
-    @Override
-    public final String toString() {
-        @NotNull Object[] arr = toArray();
-        return String.format(
-                "Span{nullPolicy=%s, data={%d}%s}",
-                modifyPolicy,
-                arr.length,
-                Arrays.toString(arr)
-        );
-    }
-
-    @Nullable
-    @Override
-    public final T get() {
-        synchronized (dataLock) {
-            for (int i = 0; i < data.length; i++) {
-                final T valueAt = valueAt(i);
-
-                if (modifyPolicy.canIterate(valueAt)) return valueAt;
-            }
-
-            return null;
-        }
-    }
-
-    @Override
-    public @NotNull T requireNonNull() throws NullPointerException {
-        return requireNonNull("No iterable value present");
-    }
-
-    public Span<T> range(int startIncl, int endExcl) {
-        synchronized (dataLock) {
-            return new Span<>(
-                    Arrays.copyOfRange(toArray(), startIncl, endExcl),
-                    ModifyPolicy.IMMUTABLE,
-                    true
-            );
-        }
-    }
-
-    private <R> R[] toArray(R[] dummy, Function<Object, R> castOP) {
-        synchronized (dataLock) {
-            final R[] yields = Arrays.copyOf(dummy, size());
-
-            for (int i, c = i = 0; i < data.length; i++) {
-                final T valueAt = valueAt(i);
-
-                if (modifyPolicy.canIterate(valueAt)) yields[c++] = castOP.apply(valueAt);
-            }
-
-            return yields;
-        }
-    }
 
     @Override
     @Contract
@@ -273,19 +197,12 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
             int c = 0;
 
             for (Object it : data) {
-                if (modifyPolicy.canIterate(it)) c++;
+                if (modifyPolicy.canIterate(it)) {
+                    c++;
+                }
             }
 
             return c;
-        }
-    }
-
-    private @Nullable T valueAt(int index) {
-        synchronized (dataLock) {
-            if (index >= size()) return null;
-
-            T cast = (T) data[index];
-            return modifyPolicy.canIterate(cast) ? cast : null;
         }
     }
 
@@ -321,14 +238,20 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 }
             }
 
-            if (fixedSize) throw new IndexOutOfBoundsException("Span cannot be resized");
-            if (i != data.length) throw new AssertionError(String.format(
-                    "Suspicious Span.add() call: index too large {expected: %d, " + "actual: %d}%n",
-                    data.length,
-                    i
-            ));
+            if (fixedSize) {
+                throw new IndexOutOfBoundsException("Span cannot be resized");
+            }
+            if (i != data.length) {
+                throw new AssertionError(String.format("Suspicious Span.add() call: index too " + "large {expected: %d, " +
+                                "actual: %d}%n",
+                        data.length,
+                        i
+                ));
+            }
 
-            if (!modifyPolicy.canInitialize(it)) return false;
+            if (!modifyPolicy.canInitialize(it)) {
+                return false;
+            }
 
             // array too small
             data    = Arrays.copyOf(data, i + 1);
@@ -344,7 +267,9 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 for (int i = 0; i < data.length; i++) {
                     final T valueAt = valueAt(i);
 
-                    if (!modifyPolicy.canIterate(valueAt)) continue;
+                    if (!modifyPolicy.canIterate(valueAt)) {
+                        continue;
+                    }
 
                     if (other.equals(valueAt) && modifyPolicy.canRemove(valueAt)) {
                         data[i] = null;
@@ -358,13 +283,17 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 for (int i = 0; i < data.length; i++) {
                     final T valueAt = valueAt(i);
 
-                    if (!modifyPolicy.canIterate(valueAt)) continue;
+                    if (!modifyPolicy.canIterate(valueAt)) {
+                        continue;
+                    }
 
                     if (other.equals(valueAt)) {
                         if (!modifyPolicy.canRemove(valueAt)) {
                             modifyPolicy.fail(String.format("Cannot remove %s from Span", valueAt));
                         }
-                    } else newData.add(valueAt);
+                    } else {
+                        newData.add(valueAt);
+                    }
                 }
 
                 data = newData.toArray();
@@ -378,8 +307,98 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     @Override
     public final void clear() {
         synchronized (dataLock) {
-            if (fixedSize) Arrays.fill(data, ModifyPolicy.dummy);
-            else data = new Object[0];
+            if (fixedSize) {
+                Arrays.fill(data, ModifyPolicy.dummy);
+            } else {
+                data = new Object[0];
+            }
+        }
+    }
+
+    private <R> R[] toArray(R[] dummy, Function<Object, R> castOP) {
+        synchronized (dataLock) {
+            final R[] yields = Arrays.copyOf(dummy, size());
+
+            for (int i, c = i = 0; i < data.length; i++) {
+                final T valueAt = valueAt(i);
+
+                if (modifyPolicy.canIterate(valueAt)) {
+                    yields[c++] = castOP.apply(valueAt);
+                }
+            }
+
+            return yields;
+        }
+    }
+
+    private @Nullable T valueAt(int index) {
+        synchronized (dataLock) {
+            if (index >= size()) {
+                return null;
+            }
+
+            T cast = (T) data[index];
+            return modifyPolicy.canIterate(cast) ? cast : null;
+        }
+    }
+    private final ModifyPolicy modifyPolicy;
+    private final Object       dataLock = Polyfill.selfawareLock();
+    //endregion
+    private       Object[]     data;
+    private       boolean      fixedSize;
+
+    public Span() {
+        this(new Object[DEFAULT_INITIAL_CAPACITY], DEFAULT_MODIFY_POLICY, DEFAULT_FIXED_SIZE);
+    }
+
+    protected Span(Object[] data, ModifyPolicy modifyPolicy, boolean fixedSize) {
+        this.modifyPolicy = modifyPolicy;
+
+        this.data      = data;
+        this.fixedSize = fixedSize;
+    }
+
+    public Span(int capacity, boolean fixedSize) {
+        this(new Object[capacity], DEFAULT_MODIFY_POLICY, fixedSize);
+    }
+
+    @Override
+    public final String toString() {
+        @NotNull Object[] arr = toArray();
+        return String.format("Span{nullPolicy=%s, data={%d}%s}",
+                modifyPolicy,
+                arr.length,
+                Arrays.toString(arr)
+        );
+    }
+
+    @Nullable
+    @Override
+    public final T get() {
+        synchronized (dataLock) {
+            for (int i = 0; i < data.length; i++) {
+                final T valueAt = valueAt(i);
+
+                if (modifyPolicy.canIterate(valueAt)) {
+                    return valueAt;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    @Override
+    public @NotNull T requireNonNull() throws NullPointerException {
+        return requireNonNull("No iterable value present");
+    }
+
+    public Span<T> range(int startIncl, int endExcl) {
+        synchronized (dataLock) {
+            return new Span<>(Arrays.copyOfRange(toArray(), startIncl, endExcl),
+                    ModifyPolicy.IMMUTABLE,
+                    true
+            );
         }
     }
 
@@ -387,7 +406,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     public void sort(Comparator<T> comparator) {
         synchronized (dataLock) {
             data = stream().sorted(comparator)
-                           .toArray();
+                    .toArray();
         }
 
         cleanup();
@@ -397,8 +416,10 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     public final synchronized void cleanup() {
         if (fixedSize) {
             data = stream().filter(it -> !modifyPolicy.canCleanup(it))
-                           .toArray(Object[]::new);
-        } else data = toArray();
+                    .toArray(Object[]::new);
+        } else {
+            data = toArray();
+        }
     }
 
     @Contract("-> new")
@@ -486,8 +507,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         }
 
         public void fail(String message) throws NullPointerException {
-            throw new NullPointerException(String.format(
-                    "NullPolicy %s was violated: %s",
+            throw new NullPointerException(String.format("NullPolicy %s was violated: %s",
                     name(),
                     message
             ));
@@ -518,7 +538,9 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
         private boolean tryAcquireNext() {
             int nextIndex = previousIndex + 1;
-            if (next != null || nextIndex >= dataSnapshot.length) return false;
+            if (next != null || nextIndex >= dataSnapshot.length) {
+                return false;
+            }
 
             next = dataSnapshot[nextIndex];
 

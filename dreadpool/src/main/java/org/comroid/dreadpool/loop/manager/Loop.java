@@ -13,7 +13,8 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     public static final int MEDIUM_PRIO = 100;
     public static final int HIGH_PRIO   = 200;
 
-    public static final Comparator<Loop<?>> LOOP_COMPARATOR = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
+    public static final Comparator<Loop<?>> LOOP_COMPARATOR =
+            Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
 
     public final  CompletableFuture<L>          result      = new CompletableFuture<>();
     protected     int                           counter     = 0;
@@ -32,26 +33,36 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
     @Override
     public final void run() {
-        while (canContinue()) oneCycle();
+        while (canContinue()) {
+            oneCycle();
+        }
 
         close();
     }
 
     @Internal
     public final boolean canContinue() {
-        if (isClosed()) return false;
+        if (isClosed()) {
+            return false;
+        }
 
-        if (canContinue.isOutdated() && canContinue.update(continueLoop())) return true;
+        if (canContinue.isOutdated() && canContinue.update(continueLoop())) {
+            return true;
+        }
 
         if (!canContinue.get()) {
             close();
             return false;
-        } else return true;
+        } else {
+            return true;
+        }
     }
 
     @Internal
     protected boolean oneCycle() {
-        if (!canContinue()) throw new UnsupportedOperationException("Loop is closed");
+        if (!canContinue()) {
+            throw new UnsupportedOperationException("Loop is closed");
+        }
 
         final L it = produce(nextInt());
 
@@ -65,7 +76,9 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     public void close() {
         this.closed = true;
 
-        if (!result.isDone()) result.complete(null);
+        if (!result.isDone()) {
+            result.complete(null);
+        }
     }
 
     public final boolean isClosed() {
@@ -85,8 +98,11 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
     @Internal
     public final void execute(L each) {
-        if (canContinue() && !executeLoop(each)) close();
-        else canContinue.outdate();
+        if (canContinue() && !executeLoop(each)) {
+            close();
+        } else {
+            canContinue.outdate();
+        }
     }
 
     /**

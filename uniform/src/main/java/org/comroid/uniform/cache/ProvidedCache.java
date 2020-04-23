@@ -43,8 +43,7 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
     }
 
     public ProvidedCache(
-            Executor providerWriteExecutor,
-            Function<K, CompletableFuture<V>> valueProvider
+            Executor providerWriteExecutor, Function<K, CompletableFuture<V>> valueProvider
     ) {
         this(providerWriteExecutor, valueProvider, DEFAULT_LARGE_THRESHOLD);
     }
@@ -52,9 +51,6 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
     @Override
     public String toString() {
         return super.toString();
-    }    @Override
-    public boolean containsKey(K key) {
-        return cache.containsKey(key);
     }
 
     @NotNull
@@ -66,13 +62,20 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
                 return getReference(getKey(), false).set(value);
             }
         })
-                       .map(it -> (Map.Entry<K, V>) it)
-                       .collect(Span.collector())
-                       .iterator();
-    }    @Override
+                .map(it -> (Map.Entry<K, V>) it)
+                .collect(Span.collector())
+                .iterator();
+    }
+
+    @Override
+    public boolean containsKey(K key) {
+        return cache.containsKey(key);
+    }
+
+    @Override
     public boolean containsValue(V value) {
         return stream().anyMatch(ref -> ref.process()
-                                           .test(value::equals));
+                .test(value::equals));
     }
 
     @Override
@@ -87,18 +90,20 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
 
     @Override
     public final Stream<Reference<K, V>> stream(Predicate<K> filter) {
-        return (large()
-                ? cache.entrySet()
-                       .parallelStream()
-                : cache.entrySet()
-                       .stream()).filter(entry -> filter.test(entry.getKey()))
-                                 .map(Map.Entry::getValue);
+        return (
+                large()
+                        ? cache.entrySet()
+                        .parallelStream()
+                        : cache.entrySet()
+                                .stream()
+        ).filter(entry -> filter.test(entry.getKey()))
+                .map(Map.Entry::getValue);
     }
 
     @Override
     public @NotNull Reference<K, V> getReference(K key, boolean createIfAbsent) {
         return createIfAbsent ? cache.computeIfAbsent(key, Reference::new) : cache.getOrDefault(key,
-                                                                                                Cache.Reference.empty()
+                Cache.Reference.empty()
         );
     }
 
@@ -115,10 +120,7 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
         }
 
         return getReference(key, false).provider()
-                                       .get();
+                .get();
     }
-
-
-
 
 }

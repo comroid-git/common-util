@@ -1,6 +1,6 @@
 package org.comroid.listnr;
 
-import org.comroid.common.annotation.MustExtend;
+import org.comroid.common.annotation.vanity.inheritance.MustExtend;
 import org.comroid.common.func.ParamFactory;
 import org.comroid.common.util.BitmaskUtil;
 
@@ -10,12 +10,12 @@ import org.jetbrains.annotations.Nullable;
 @MustExtend(EventType.Support.Basic.class)
 public interface EventType<P extends Event<P>, TF> extends ParamFactory<TF, P> {
     final class Support {
-        public static final class Basic<P extends Event<P>, TF> implements EventType<P, TF> {
+        public static class Basic<P extends Event<P>, TF> implements EventType<P, TF> {
             protected final EventHub<TF>        hub;
             private final   int                 flag = BitmaskUtil.nextFlag();
             private final   ParamFactory<TF, P> payloadFactory;
 
-            protected Basic(EventHub<TF> hub, ParamFactory<TF, P> payloadFactory) {
+            public Basic(EventHub<TF> hub, ParamFactory<TF, P> payloadFactory) {
                 this.hub            = hub;
                 this.payloadFactory = payloadFactory;
 

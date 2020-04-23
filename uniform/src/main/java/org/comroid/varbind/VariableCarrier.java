@@ -28,13 +28,13 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed = new ConcurrentHashMap<>();
     private final DEP                                                                         dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
+
     protected <BAS, OBJ extends BAS> VariableCarrier(
             SerializationAdapter<BAS, OBJ, ?> serializationAdapter,
             OBJ initialData,
             @Nullable DEP dependencyObject
     ) {
-        this(
-                serializationAdapter,
+        this(serializationAdapter,
                 serializationAdapter.createUniObjectNode(initialData),
                 dependencyObject
         );
@@ -55,38 +55,42 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     public static GroupBind findRootBind(Class<? extends VarCarrier> inClass) {
         final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
 
-        if (location == null) throw new IllegalStateException(String.format(
-                "Class %s extends VariableCarrier, but does not have a %s annotation.",
-                inClass.getName(),
-                VarBind.Location.class.getName()
-        ));
+        if (location == null) {
+            throw new IllegalStateException(String.format(
+                    "Class %s extends VariableCarrier, but does not have a %s annotation.",
+                    inClass.getName(),
+                    VarBind.Location.class.getName()
+            ));
+        }
 
         return ReflectionHelper.collectStaticFields(GroupBind.class,
-                                                    location.value(),
-                                                    true,
-                                                    VarBind.Root.class
+                location.value(),
+                true,
+                VarBind.Root.class
         )
-                               .requireNonNull();
+                .requireNonNull();
     }
 
     private Set<VarBind<Object, ? super DEP, ?, Object>> updateVars(
             @Nullable UniObjectNode data
     ) {
-        if (data == null) return emptySet();
+        if (data == null) {
+            return emptySet();
+        }
 
         final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
         getRootBind().getChildren()
-                     .stream()
-                     .filter(bind -> data.has(bind.getFieldName()))
-                     .map(it -> (VarBind<Object, Object, Object, Object>) it)
-                     .forEach(bind -> {
-                         Span<Object> extract = bind.extract(data);
+                .stream()
+                .filter(bind -> data.has(bind.getFieldName()))
+                .map(it -> (VarBind<Object, Object, Object, Object>) it)
+                .forEach(bind -> {
+                    Span<Object> extract = bind.extract(data);
 
-                         extrRef(bind).set(extract);
-                         compRef(bind).outdate();
-                         changed.add(bind);
-                     });
+                    extrRef(bind).set(extract);
+                    compRef(bind).outdate();
+                    changed.add(bind);
+                });
 
         return unmodifiableSet(changed);
     }
@@ -100,7 +104,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
             VarBind<T, ? super DEP, ?, Object> bind
     ) {
         return deadCast(vars.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
-                                             key -> new AtomicReference<>(Span.zeroSize())
+                key -> new AtomicReference<>(Span.zeroSize())
         ));
     }
 
@@ -108,7 +112,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
             VarBind<Object, ? super DEP, ?, T> bind
     ) {
         return deadCast(computed.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
-                                                 key -> new OutdateableReference<>()
+                key -> new OutdateableReference<>()
         ));
     }
 
@@ -124,8 +128,9 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
 
     @Override
     public @NotNull <T> OutdateableReference<T> ref(VarBind<?, ? super DEP, ?, T> pBind) {
-        VarBind<Object, ? super DEP, Object, T> bind = (VarBind<Object, ? super DEP, Object, T>) pBind;
-        OutdateableReference<T>                 ref  = compRef(bind);
+        VarBind<Object, ? super DEP, Object, T> bind =
+                (VarBind<Object, ? super DEP, Object, T>) pBind;
+        OutdateableReference<T> ref = compRef(bind);
 
         if (ref.isOutdated()) {
             // recompute

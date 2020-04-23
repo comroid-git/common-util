@@ -15,14 +15,16 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     public final String getMimeType() {
         return mimeType;
     }
+
     private final String mimeType;
 
     protected SerializationAdapter(
             String mimeType, Class<OBJ> objClass, Class<ARR> arrClass
     ) {
-        this(mimeType,
-             new DataStructureType.Obj<>(objClass),
-             new DataStructureType.Arr<>(arrClass)
+        this(
+                mimeType,
+                new DataStructureType.Obj<>(objClass),
+                new DataStructureType.Arr<>(arrClass)
         );
     }
 
@@ -31,9 +33,9 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
             DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType
     ) {
-        this.mimeType = mimeType;
+        this.mimeType   = mimeType;
         this.objectType = objectType;
-        this.arrayType = arrayType;
+        this.arrayType  = arrayType;
     }
 
     @Override
@@ -50,28 +52,36 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             TAR node
     ) {
         if (objectType.typeClass()
-                      .isInstance(node))
+                .isInstance(node)) {
             return (DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR>) objectType;
+        }
         if (arrayType.typeClass()
-                     .isInstance(node))
+                .isInstance(node)) {
             return (DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR>) arrayType;
+        }
 
         throw new IllegalArgumentException("Unknown type: " + node.getClass()
-                                                                  .getName());
+                .getName());
     }
 
     public final UniNode createUniNode(Object node) {
-        if (node instanceof CharSequence) return parse(node.toString());
+        if (node instanceof CharSequence) {
+            return parse(node.toString());
+        }
 
         if (objectType.typeClass()
-                      .isInstance(node)) return createUniObjectNode((OBJ) node);
+                .isInstance(node)) {
+            return createUniObjectNode((OBJ) node);
+        }
         if (arrayType.typeClass()
-                     .isInstance(node)) return createUniArrayNode((ARR) node);
+                .isInstance(node)) {
+            return createUniArrayNode((ARR) node);
+        }
 
         throw new IllegalArgumentException(String.format(
                 "Unknown node type: %s",
                 node.getClass()
-                    .getName()
+                        .getName()
         ));
     }
 

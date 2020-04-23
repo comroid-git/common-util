@@ -23,8 +23,9 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
     }
 
     static <T> Provider.Now<T> constant(T value) {
-        return Objects.isNull(value) ? empty() : (Now<T>) Support.Constant.cache.computeIfAbsent(value,
-                                                                                                 Support.Constant::new
+        return Objects.isNull(value) ? empty() :
+                (Now<T>) Support.Constant.cache.computeIfAbsent(value,
+                Support.Constant::new
         );
     }
 
@@ -83,17 +84,17 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
     @FunctionalInterface
     interface Now<T> extends Provider<T> {
         @Override
-        @Contract("-> new")
-        default CompletableFuture<T> get() {
-            return CompletableFuture.completedFuture(now());
-        }
-
-        @Override
         default boolean isInstant() {
             return true;
         }
 
         @Override
         T now();
+
+        @Override
+        @Contract("-> new")
+        default CompletableFuture<T> get() {
+            return CompletableFuture.completedFuture(now());
+        }
     }
 }

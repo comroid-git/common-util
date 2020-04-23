@@ -18,15 +18,15 @@ import static java.lang.System.nanoTime;
 
 public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecutorService {
     static FixedSizeThreadPool fixedSize(ThreadGroup group, int corePoolSize) {
-        return new FixedSizeThreadPool(
-                corePoolSize,
+        return new FixedSizeThreadPool(corePoolSize,
                 new WorkerFactory(group, corePoolSize),
                 new ThreadErrorHandler()
         );
     }
 
     final class Task implements Comparable<Task> {
-        public static final Comparator<Task> TASK_COMPARATOR = Comparator.comparingLong(Task::getIssuedAt);
+        public static final Comparator<Task> TASK_COMPARATOR =
+                Comparator.comparingLong(Task::getIssuedAt);
 
         public long getIssuedAt() {
             return issuedAt;
@@ -35,6 +35,7 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
         public Runnable getRunnable() {
             return runnable;
         }
+
         private final long     issuedAt = nanoTime();
         private final Runnable runnable;
 
@@ -51,19 +52,21 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
     class Worker extends org.comroid.dreadpool.Worker
             implements Executor, Comparable<ThreadPool.Worker> {
         public static final int                ERR_STACKSIZE     = 5;
-        public static final Comparator<Worker> WORKER_COMPARATOR = Comparator.comparingLong(Worker::lastOp);
+        public static final Comparator<Worker> WORKER_COMPARATOR =
+                Comparator.comparingLong(Worker::lastOp);
 
         public boolean isBusy() {
             synchronized (lock) {
                 return busy;
             }
         }
+
         ThreadPool threadPool;
-        private final Object          lock  = Polyfill.selfawareLock();
-        private final Queue<Runnable> queue = new LinkedBlockingQueue<>();
-        private boolean busy     = true;
-        private long    lastOp   = 0;
-        private int     errStack = 0;
+        private final Object          lock     = Polyfill.selfawareLock();
+        private final Queue<Runnable> queue    = new LinkedBlockingQueue<>();
+        private       boolean         busy     = true;
+        private       long            lastOp   = 0;
+        private       int             errStack = 0;
 
         protected Worker(@Nullable ThreadGroup group, @NotNull String name) {
             super(group, name);
@@ -81,13 +84,15 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
                             lock.wait();
                         } catch (InterruptedException e) {
                             threadPool.getThreadErrorHandler()
-                                      .handleInterrupted(e);
+                                    .handleInterrupted(e);
                         }
                     }
 
                     busy = true;
-                    while (!queue.isEmpty()) queue.poll()
-                                                  .run();
+                    while (!queue.isEmpty()) {
+                        queue.poll()
+                                .run();
+                    }
                     lastOp = nanoTime();
                     busy   = false;
                 }
@@ -112,10 +117,10 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
         @Override
         public String toString() {
             return String.format("%s{threadPool=%s, busy=%s, lock=%s}",
-                                 getClass().getSimpleName(),
-                                 threadPool,
-                                 busy,
-                                 lock
+                    getClass().getSimpleName(),
+                    threadPool,
+                    busy,
+                    lock
             );
         }
 

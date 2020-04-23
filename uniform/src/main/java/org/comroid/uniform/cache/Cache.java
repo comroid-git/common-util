@@ -21,7 +21,8 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
         public static <K, V> Reference<K, V> empty() {
             return (Reference<K, V>) EMPTY;
         }
-        private static final Reference<?, ?> EMPTY = new Reference<Object, Object>(null) {
+
+        private static final Reference<?, ?>    EMPTY     = new Reference<Object, Object>(null) {
             @Nullable
             @Override
             public Object set(Object value) {
@@ -34,14 +35,16 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
                 return null;
             }
         };
-        public final  AtomicReference<V>                         reference        = new AtomicReference<>(
-                null);
+        public final         AtomicReference<V> reference = new AtomicReference<>(null);
 
         public @NotNull K getKey() {
             return key;
         }
-        private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
-        private final Object                                     lock             = Polyfill.selfawareLock();
+
+        private final OutdateableReference<CompletableFuture<V>> firstValueFuture =
+                new OutdateableReference<>();
+        private final Object                                     lock             =
+                Polyfill.selfawareLock();
         private final K                                          key;
 
         public Reference(K key) {
@@ -59,9 +62,10 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
         public V set(V value) {
             synchronized (lock) {
                 if (!firstValueFuture.isOutdated() && !firstValueFuture.get()
-                                                                       .isDone()) firstValueFuture.get()
-                                                                                                  .complete(
-                                                                                                          value);
+                        .isDone()) {
+                    firstValueFuture.get()
+                            .complete(value);
+                }
 
                 return reference.getAndSet(value);
             }

@@ -79,8 +79,8 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
 
     default Span<REMAP> remapAll(final DPND dependency, Span<EXTR> from) {
         return from.stream()
-                   .map(each -> remap(each, dependency))
-                   .collect(Span.collector());
+                .map(each -> remap(each, dependency))
+                .collect(Span.collector());
     }
 
     REMAP remap(EXTR from, DPND dependency);

@@ -4,7 +4,9 @@ import java.util.Comparator;
 
 public interface EqualityComparator<T> extends Comparator<T> {
     static <T> EqualityComparator<T> ofComparator(Comparator<T> underlying) {
-        if (underlying instanceof EqualityComparator) return (EqualityComparator<T>) underlying;
+        if (underlying instanceof EqualityComparator) {
+            return (EqualityComparator<T>) underlying;
+        }
 
         return new Support.OfComparator<>(underlying);
     }

@@ -33,7 +33,9 @@ public final class OutdateableReference<T> implements Reference<T> {
      * @return Whether the reference became outdated with this call.
      */
     public boolean outdate() {
-        if (isOutdated()) return false;
+        if (isOutdated()) {
+            return false;
+        }
 
         synchronized (lock) {
             return (outdated = true);

@@ -22,14 +22,16 @@ public interface Event<S extends Event<S>> extends SelfDeclared<S> {
 
             @SafeVarargs
             protected Abstract(EventType<S, ?>... subtypes) {
-                this.eventTypes = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(subtypes)));
+                this.eventTypes =
+                        Collections.unmodifiableSet(new HashSet<>(Arrays.asList(subtypes)));
                 this.mask       = computeMask();
             }
 
             protected int computeMask() {
                 int yield = BitmaskUtil.EMPTY;
-                for (EventType<S, ?> type : eventTypes)
+                for (EventType<S, ?> type : eventTypes) {
                     yield = combine(yield, type.getFlag());
+                }
                 return yield;
             }
 

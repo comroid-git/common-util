@@ -21,29 +21,33 @@ public class Disposable implements Closeable {
 
     public final List<? extends Throwable> dispose() {
         return children.stream()
-                       .map(closeable -> {
-                           try {
-                               closeable.close();
-                           } catch (IOException e) {
-                               return e;
-                           }
+                .map(closeable -> {
+                    try {
+                        closeable.close();
+                    } catch (IOException e) {
+                        return e;
+                    }
 
-                           return null;
-                       })
-                       .filter(Objects::nonNull)
-                       .collect(Collectors.toList());
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     public final void disposeThrow() throws MultipleExceptions {
         final List<? extends Throwable> throwables = dispose();
 
-        if (throwables.isEmpty()) return;
+        if (throwables.isEmpty()) {
+            return;
+        }
 
         throw new MultipleExceptions(throwables);
     }
 
     protected void disposeWith(Closeable child) {
-        if (child == this) throw new IllegalArgumentException("Disposable cannot contain itself!");
+        if (child == this) {
+            throw new IllegalArgumentException("Disposable cannot contain itself!");
+        }
 
         children.add(child);
     }

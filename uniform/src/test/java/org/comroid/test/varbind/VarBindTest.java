@@ -21,11 +21,12 @@ public class VarBindTest {
 
     @Before
     public void setup() {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(
+        final BufferedReader reader =
+                new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(
                 "dummy/message.json")));
 
         JSONObject data = JSON.parseObject(reader.lines()
-                                                 .collect(Collectors.joining()));
+                .collect(Collectors.joining()));
 
         message = new Message(new DiscordAPI(), data);
     }
@@ -33,35 +34,35 @@ public class VarBindTest {
     @Test
     public void testGetters() {
         assertEquals(1,
-                     message.get(Message.Binds.REACTIONS)
-                            .size()
+                message.get(Message.Binds.REACTIONS)
+                        .size()
         );
         assertFalse(message.get(Message.Binds.TTS));
         assertFalse(message.get(Message.Binds.TIMESTAMP)
-                           .isEmpty());
+                .isEmpty());
         assertFalse(message.get(Message.Binds.MENTIONS_EVERYONE));
         assertEquals(334385199974967042L, message.getID());
         assertFalse(message.get(Message.Binds.PINNED));
         assertEquals(0,
-                     message.get(Message.Binds.EMBEDS)
-                            .size()
+                message.get(Message.Binds.EMBEDS)
+                        .size()
         );
         assertEquals(0,
-                     message.get(Message.Binds.ATTACHMENTS)
-                            .size()
+                message.get(Message.Binds.ATTACHMENTS)
+                        .size()
         );
         assertFalse(message.getEditedTimestamp()
-                           .isPresent());
+                .isPresent());
         assertNotNull(message.get(Message.Binds.AUTHOR));
         assertEquals(0,
-                     message.get(Message.Binds.MENTIONED_ROLES)
-                            .size()
+                message.get(Message.Binds.MENTIONED_ROLES)
+                        .size()
         );
         assertEquals("Supa Hot", message.get(Message.Binds.CONTENT));
         assertEquals(290926798999357250L, message.get(Message.Binds.CHANNEL).id);
         assertEquals(0,
-                     message.get(Message.Binds.MENTIONED_USERS)
-                            .size()
+                message.get(Message.Binds.MENTIONED_USERS)
+                        .size()
         );
         assertEquals(0, message.get(Message.Binds.TYPE).value);
     }

@@ -11,7 +11,9 @@ public interface Specifiable<B> {
     }
 
     default <R extends B> Optional<R> as(Class<R> type) {
-        if (!isType(type)) return Optional.empty();
+        if (!isType(type)) {
+            return Optional.empty();
+        }
 
         return Optional.of(type.cast(this));
     }

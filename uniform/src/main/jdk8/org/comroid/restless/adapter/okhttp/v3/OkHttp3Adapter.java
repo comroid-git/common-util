@@ -33,20 +33,16 @@ public class OkHttp3Adapter implements HttpAdapter {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final Request.Builder builder = new Request.Builder().url(urlProvider.now())
-                                                                     // only support null body for GET method, else throw
-                                                                     .method(
-                                                                             method.toString(),
-                                                                             (body == null && method == REST.Method.GET
-                                                                                     ? null
-                                                                                     : RequestBody.create(
-                                                                                             MediaType.parse(
-                                                                                                     mimeType),
-                                                                                             Objects.requireNonNull(
-                                                                                                     body,
-                                                                                                     "Null body not supported with " + method
-                                                                                             )
-                                                                                     ))
-                                                                     );
+                        // only support null body for GET method, else throw
+                        .method(method.toString(), (
+                                body == null && method == REST.Method.GET
+                                        ? null
+                                        : RequestBody.create(MediaType.parse(mimeType),
+                                                Objects.requireNonNull(body,
+                                                        "Null body not supported with " + method
+                                                )
+                                        )
+                        ));
 
                 headers.forEach(header -> builder.addHeader(header.getName(), header.getValue()));
 
@@ -55,8 +51,7 @@ public class OkHttp3Adapter implements HttpAdapter {
                 final Response     response     = call.execute();
                 final ResponseBody responseBody = response.body();
 
-                return new REST.Response(
-                        rest,
+                return new REST.Response(rest,
                         response.code(),
                         responseBody == null ? null : responseBody.string()
                 );

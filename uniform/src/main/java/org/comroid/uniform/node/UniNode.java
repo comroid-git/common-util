@@ -26,6 +26,10 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return getType() == Type.OBJECT;
     }
 
+    public final Type getType() {
+        return type;
+    }
+
     public final boolean isArrayNode() {
         return getType() == Type.ARRAY;
     }
@@ -33,6 +37,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
     public final boolean isValueNode() {
         return getType() == Type.VALUE;
     }
+
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final   Type                          type;
 
@@ -55,7 +60,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
 
     public boolean isNull(String fieldName) {
         return wrap(fieldName).map(UniNode::isNull)
-                              .orElse(true);
+                .orElse(true);
     }
 
     public @NotNull Optional<UniNode> wrap(String fieldName) {
@@ -71,7 +76,9 @@ public abstract class UniNode implements Specifiable<UniNode> {
     public abstract @NotNull UniNode get(String fieldName);
 
     public Object asRaw(@Nullable Object fallback) {
-        if (isNull() && fallback != null) return fallback;
+        if (isNull() && fallback != null) {
+            return fallback;
+        }
 
         return unsupported("GET_RAW", Type.VALUE);
     }
@@ -79,15 +86,11 @@ public abstract class UniNode implements Specifiable<UniNode> {
     protected final <T> T unsupported(String actionName, Type expected)
             throws UnsupportedOperationException {
         throw new UnsupportedOperationException(String.format(
-                "Cannot invoke %s on node type %s; %s expected",
+                "Cannot invoke %s on node type %s; " + "%s expected",
                 actionName,
                 getType(),
                 expected
         ));
-    }
-
-    public final Type getType() {
-        return type;
     }
 
     public <R> R as(UniValueNode.ValueType<R> type) {
@@ -95,49 +98,65 @@ public abstract class UniNode implements Specifiable<UniNode> {
     }
 
     public String asString(@Nullable String fallback) {
-        if (isNull() && fallback != null) return fallback;
+        if (isNull() && fallback != null) {
+            return fallback;
+        }
 
         return unsupported("GET_AS_STRING", Type.VALUE);
     }
 
     public boolean asBoolean(boolean fallback) {
-        if (isNull()) return fallback;
+        if (isNull()) {
+            return fallback;
+        }
 
         return unsupported("GET_AS_BOOLEAN", Type.VALUE);
     }
 
     public int asInt(int fallback) {
-        if (isNull()) return fallback;
+        if (isNull()) {
+            return fallback;
+        }
 
         return unsupported("GET_AS_INT", Type.VALUE);
     }
 
     public long asLong(long fallback) {
-        if (isNull()) return fallback;
+        if (isNull()) {
+            return fallback;
+        }
 
         return unsupported("GET_AS_LONG", Type.VALUE);
     }
 
     public double asDouble(double fallback) {
-        if (isNull()) return fallback;
+        if (isNull()) {
+            return fallback;
+        }
 
         return unsupported("GET_AS_DOUBLE", Type.VALUE);
     }
 
     public float asFloat(float fallback) {
-        if (isNull()) return fallback;
+        if (isNull()) {
+            return fallback;
+        }
 
         return unsupported("GET_AS_FLOAT", Type.VALUE);
     }
 
     public short asShort(short fallback) {
-        if (isNull()) return fallback;
+        if (isNull()) {
+            return fallback;
+        }
 
         return unsupported("GET_AS_SHORT", Type.VALUE);
     }
 
     public char asChar(char fallback) {
-        if (isNull()) return fallback;
+        if (isNull()) {
+            return fallback;
+        }
 
         return unsupported("GET_AS_CHAR", Type.VALUE);
     }

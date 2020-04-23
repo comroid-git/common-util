@@ -30,21 +30,25 @@ public final class LoopWorker extends Worker {
             if (current != null) {
                 if (!current.canContinue()) {
                     current = null;
-                } else current.oneCycle();
-            } else synchronized (manager.lock) {
-                Optional<Loop<?>> mostImportant = manager.pollMostImportant();
-                try {
-                    if (!mostImportant.isPresent()) {
-                        while (!mostImportant.isPresent() || manager.size() == 0) {
-                            manager.lock.wait();
-                            mostImportant = manager.pollMostImportant();
+                } else {
+                    current.oneCycle();
+                }
+            } else {
+                synchronized (manager.lock) {
+                    Optional<Loop<?>> mostImportant = manager.pollMostImportant();
+                    try {
+                        if (!mostImportant.isPresent()) {
+                            while (!mostImportant.isPresent() || manager.size() == 0) {
+                                manager.lock.wait();
+                                mostImportant = manager.pollMostImportant();
+                            }
                         }
+                    } catch (InterruptedException e) {
+                        logger.at(Level.FINE)
+                                .log("{} stopping!", toString());
+                    } finally {
+                        mostImportant.ifPresent(this::swapCurrent);
                     }
-                } catch (InterruptedException e) {
-                    logger.at(Level.FINE)
-                          .log("{} stopping!", toString());
-                } finally {
-                    mostImportant.ifPresent(this::swapCurrent);
                 }
             }
         }

@@ -12,8 +12,7 @@ public class MultipleExceptions extends RuntimeException {
     }
 
     private static String composeMessage(
-            @Nullable String baseMessage,
-            Collection<? extends Throwable> throwables
+            @Nullable String baseMessage, Collection<? extends Throwable> throwables
     ) {
         class StringStream extends OutputStream {
             private final StringBuilder sb = new StringBuilder();
@@ -29,8 +28,10 @@ public class MultipleExceptions extends RuntimeException {
             }
         }
 
-        if (baseMessage == null) baseMessage = "Multiple Exceptions were thrown";
-        final StringStream out = new StringStream();
+        if (baseMessage == null) {
+            baseMessage = "Multiple Exceptions were thrown";
+        }
+        final StringStream out    = new StringStream();
         final PrintStream  string = new PrintStream(out);
 
         string.println(baseMessage);

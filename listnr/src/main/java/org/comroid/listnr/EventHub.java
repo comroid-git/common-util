@@ -18,7 +18,7 @@ public final class EventHub<TF> {
         this.typeRewiringFunction = typeRewiringFunction;
     }
 
-    public <P extends Event> EventType<P, TF> createEventType(ParamFactory<TF, P> payloadFactory) {
+    public <P extends Event<P>> EventType<P, TF> createEventType(ParamFactory<TF, P> payloadFactory) {
         return new EventType.Support.Basic<>(this, payloadFactory);
     }
 
@@ -26,31 +26,30 @@ public final class EventHub<TF> {
         registeredTypes.add(type);
     }
 
-    public <P extends Event> void publish(EventType<P, TF> asSupertype, TF data) {
+    public <P extends Event<P>> void publish(EventType<P, TF> asSupertype, TF data) {
         getRegisteredEventTypes().stream()
-                                 .filter(type -> BitmaskUtil.isFlagSet(
-                                         type.getFlag(),
-                                         asSupertype.getFlag()
-                                 ))
-                                 .forEachOrdered(subtype -> {
-                                     final P payload = (P) subtype.payloadFactory()
-                                                                  .create(data);
-
-                                     publish(payload);
-                                 });
+                .filter(type -> BitmaskUtil.isFlagSet(type.getFlag(), asSupertype.getFlag()))
+                .map(it -> {//noinspection unchecked
+                    return (EventType<P, TF>) it;
+                })
+                .forEachOrdered(subtype -> {
+                    publish(subtype.create(data));
+                });
     }
 
     public Span<EventType<?, TF>> getRegisteredEventTypes() {
         return registeredTypes;
     }
 
-    public <P extends Event> void publish(P eventPayload) {
+    public <P extends Event<P>> void publish(final P eventPayload) {
         getRegisteredAcceptors().stream()
-                                .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(),
-                                                                          eventPayload.getEventMask()
-                                ))
-                                .map(acceptor -> (Runnable) () -> acceptor.acceptEvent(eventPayload))
-                                .forEachOrdered(executorService::execute);
+                .filter(acceptor -> {
+                    return BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(),
+                            eventPayload.getEventMask()
+                    );
+                })
+                .map(acceptor -> (Runnable) () -> acceptor.acceptEvent(eventPayload))
+                .forEachOrdered(executorService::execute);
     }
 
     public Span<? extends EventAcceptor> getRegisteredAcceptors() {

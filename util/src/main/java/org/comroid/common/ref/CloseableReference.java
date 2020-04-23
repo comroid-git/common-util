@@ -15,6 +15,7 @@ public abstract class CloseableReference<T> implements Reference<T>, Closeable {
         public Class<?> getClosingClass() {
             return closing;
         }
+
         private final CloseableReference<T> ref;
         private final Class<?>              closing;
 
@@ -28,6 +29,7 @@ public abstract class CloseableReference<T> implements Reference<T>, Closeable {
             void onReferenceClosed(ClosedEvent<T> closedEvent);
         }
     }
+
     private final Collection<ClosedEvent.Listener<T>> listeners = new ArrayList<>();
 
     @Override

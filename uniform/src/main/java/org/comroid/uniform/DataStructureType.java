@@ -1,14 +1,16 @@
 package org.comroid.uniform;
 
 public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS, TAR extends BAS> {
-    public static class Obj<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
+    public static class Obj<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS,
+            OBJ extends BAS, ARR extends BAS>
             extends DataStructureType<SERI, BAS, OBJ> {
         public Obj(Class<OBJ> objClass) {
             super(objClass, Primitive.OBJECT);
         }
     }
 
-    public static class Arr<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
+    public static class Arr<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS,
+            OBJ extends BAS, ARR extends BAS>
             extends DataStructureType<SERI, BAS, ARR> {
 
         public Arr(
@@ -17,6 +19,7 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
             super(arrClass, Primitive.ARRAY);
         }
     }
+
     public final    Primitive  typ;
     protected final Class<TAR> tarClass;
 
@@ -32,12 +35,18 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DataStructureType<?, ?, ?> that = (DataStructureType<?, ?, ?>) o;
 
-        if (!tarClass.equals(that.tarClass)) return false;
+        if (!tarClass.equals(that.tarClass)) {
+            return false;
+        }
         return typ == that.typ;
     }
 
@@ -51,12 +60,14 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
     }
 
     public TAR cast(Object node) throws ClassCastException {
-        if (tarClass.isInstance(node)) return tarClass.cast(node);
+        if (tarClass.isInstance(node)) {
+            return tarClass.cast(node);
+        }
 
         throw new ClassCastException(String.format(
                 "Cannot cast %s to targeted %s type %s",
                 node.getClass()
-                    .getName(),
+                        .getName(),
                 typ.name(),
                 tarClass.getName()
         ));

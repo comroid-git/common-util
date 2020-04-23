@@ -27,6 +27,7 @@ public final class Spellbind {
         private final Collection<Class<?>> interfaces;
         private       Object coreObject;
         private       ClassLoader classLoader;
+
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
             this.methodBinds   = TrieMap.ofString();
@@ -38,15 +39,14 @@ public final class Spellbind {
         @Override
         public T build() {
             final ClassLoader classLoader = Optional.ofNullable(this.classLoader)
-                                                    .orElseGet(Spellbind.class::getClassLoader);
+                    .orElseGet(Spellbind.class::getClassLoader);
 
             final SpellCore spellCore = new SpellCore(coreObject, methodBinds);
 
-            return (T) Proxy.newProxyInstance(
-                    classLoader,
+            return (T) Proxy.newProxyInstance(classLoader,
                     interfaces.stream()
-                              .distinct()
-                              .toArray(Class[]::new),
+                            .distinct()
+                            .toArray(Class[]::new),
                     spellCore
             );
         }
@@ -68,18 +68,22 @@ public final class Spellbind {
                 final int mod = method.getModifiers();
 
                 Method implMethod;
-                if ((implMethod = findMatchingMethod(
-                        method,
-                        implementationSource.getClass()
-                )) != null) map.put(methodString(method),
-                                    Invocable.ofMethodCall(implMethod, implementationSource)
-                );
+                if ((
+                        implMethod = findMatchingMethod(method, implementationSource.getClass())
+                ) != null) {
+                    map.put(methodString(method),
+                            Invocable.ofMethodCall(implMethod, implementationSource)
+                    );
+                }
             }
         }
 
         static @Nullable Method findMatchingMethod(Method abstractMethod, Class<?> inClass) {
-            for (Method method : inClass.getMethods())
-                if (matchFootprint(abstractMethod, method)) return method;
+            for (Method method : inClass.getMethods()) {
+                if (matchFootprint(abstractMethod, method)) {
+                    return method;
+                }
+            }
 
             // TODO: 02.02.2020 doesnt work
 
@@ -88,26 +92,24 @@ public final class Spellbind {
 
         private static boolean matchFootprint(Method abstractMethod, Method method) {
             return abstractMethod.getName()
-                                 .equals(method.getName()) && Arrays.equals(abstractMethod.getParameterTypes(),
-                                                                            method.getParameterTypes()
+                    .equals(method.getName()) && Arrays.equals(
+                    abstractMethod.getParameterTypes(),
+                    method.getParameterTypes()
             ) && abstractMethod.getReturnType()
-                               .equals(method.getReturnType());
+                    .equals(method.getReturnType());
         }
 
         public Builder<T> subImplement(Object sub, Class<?> asInterface) {
             final Class<?> subClass = sub.getClass();
             Stream.of(subClass.getMethods())
-                  .filter(method -> method.getDeclaringClass()
-                                          .equals(subClass))
-                  .forEach(method -> Stream.of(asInterface.getMethods())
-                                           .filter(other -> matchFootprint(other, method))
-                                           .findAny()
-                                           .ifPresent(value -> methodBinds.put(methodString(value),
-                                                                               Invocable.ofMethodCall(
-                                                                                       method,
-                                                                                       sub
-                                                                               )
-                                           )));
+                    .filter(method -> method.getDeclaringClass()
+                            .equals(subClass))
+                    .forEach(method -> Stream.of(asInterface.getMethods())
+                            .filter(other -> matchFootprint(other, method))
+                            .findAny()
+                            .ifPresent(value -> methodBinds.put(methodString(value),
+                                    Invocable.ofMethodCall(method, sub)
+                            )));
 
             interfaces.add(asInterface);
 

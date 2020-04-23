@@ -30,13 +30,13 @@ public class UniNodeTest {
         JSONArray  array  = new JSONArray();
 
         randomInts = IntStream.range(0, 50)
-                              .mapToObj(x -> rng.nextInt(500))
-                              .distinct()
-                              .collect(Collectors.toList());
+                .mapToObj(x -> rng.nextInt(500))
+                .distinct()
+                .collect(Collectors.toList());
         randomMap  = randomInts.stream()
-                               .collect(Collectors.toMap(x -> {
-                                   return String.valueOf(x * x);
-                               }, x -> x));
+                .collect(Collectors.toMap(x -> {
+                    return String.valueOf(x * x);
+                }, x -> x));
 
         object.putAll(randomMap);
         array.addAll(randomInts);
@@ -47,9 +47,10 @@ public class UniNodeTest {
 
     @Test
     public void testObject() {
-        randomMap.forEach((key, value) -> Assert.assertEquals((int) value,
-                                                              object.get(key)
-                                                                    .asInt(0)
+        randomMap.forEach((key, value) -> Assert.assertEquals(
+                (int) value,
+                object.get(key)
+                        .asInt(0)
         ));
     }
 
@@ -57,7 +58,7 @@ public class UniNodeTest {
     public void testArray() {
         for (int i = 0; i < array.size(); i++) {
             Integer value = array.get(i)
-                                 .asInt(0);
+                    .asInt(0);
 
             Assert.assertEquals(randomInts.get(i), value);
         }

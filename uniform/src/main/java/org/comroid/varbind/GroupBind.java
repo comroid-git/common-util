@@ -20,9 +20,10 @@ import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
 
 public final class GroupBind {
-    private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(
+    private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor =
+            (node, sub) -> node.get(
             sub)
-                                                                                                                   .asObjectNode();
+            .asObjectNode();
 
     public final String getName() {
         return groupName;
@@ -31,9 +32,10 @@ public final class GroupBind {
     public final List<? extends VarBind<?, ?, ?, ?>> getChildren() {
         return Collections.unmodifiableList(children);
     }
-    final         List<? extends VarBind<?, ?, ?, ?>> children = new ArrayList<>();
+
+    final List<? extends VarBind<?, ?, ?, ?>>   children = new ArrayList<>();
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
-    private final String groupName;
+    private final String                        groupName;
 
     public GroupBind(SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
         this.serializationAdapter = serializationAdapter;
@@ -50,11 +52,12 @@ public final class GroupBind {
                 dependencyType
         };
         final Optional<Constructor<R>> optConstructor = ReflectionHelper.findConstructor(resultType,
-                                                                                         typesUnordered
+                typesUnordered
         );
 
-        if (!optConstructor.isPresent()) throw new NoSuchElementException(
-                "Could not find any fitting constructor");
+        if (!optConstructor.isPresent()) {
+            throw new NoSuchElementException("Could not find any fitting constructor");
+        }
 
         class AutoConstructor implements BiFunction<D, UniObjectNode, R> {
             private final Constructor<R> constr;
@@ -79,20 +82,18 @@ public final class GroupBind {
     }
 
     public final <T> VarBind.Uno<T> bind1stage(
-            String fieldName,
-            BiFunction<UniObjectNode, String, T> extractor
+            String fieldName, BiFunction<UniObjectNode, String, T> extractor
     ) {
         return new VarBind.Uno<>(this, fieldName, extractor);
     }
 
     private <T> BiFunction<UniObjectNode, String, T> extractor(final UniValueNode.ValueType<T> type) {
         return (root, fieldName) -> root.get(fieldName)
-                                        .as(type);
+                .as(type);
     }
 
     public final <R> VarBind.Duo<UniObjectNode, R> bind2stage(
-            String fieldName,
-            Function<UniObjectNode, R> remapper
+            String fieldName, Function<UniObjectNode, R> remapper
     ) {
         return bind2stage(fieldName, objectNodeExtractor, remapper);
     }
@@ -106,16 +107,13 @@ public final class GroupBind {
     }
 
     public final <T, R> VarBind.Duo<T, R> bind2stage(
-            String fieldName,
-            UniValueNode.ValueType<T> type,
-            Function<T, R> remapper
+            String fieldName, UniValueNode.ValueType<T> type, Function<T, R> remapper
     ) {
         return bind2stage(fieldName, extractor(type), remapper);
     }
 
     public final <D, R> VarBind.Dep<UniObjectNode, D, R> bindDependent(
-            String fieldName,
-            BiFunction<D, UniObjectNode, R> resolver
+            String fieldName, BiFunction<D, UniObjectNode, R> resolver
     ) {
         return bindDependent(fieldName, objectNodeExtractor, resolver);
     }
@@ -129,17 +127,13 @@ public final class GroupBind {
     }
 
     public final <T, D, R> VarBind.Dep<T, D, R> bindDependent(
-            String fieldName,
-            UniValueNode.ValueType<T> type,
-            BiFunction<D, T, R> resolver
+            String fieldName, UniValueNode.ValueType<T> type, BiFunction<D, T, R> resolver
     ) {
         return bindDependent(fieldName, extractor(type), resolver);
     }
 
     public final <T, C extends Collection<T>> ArrayBind.Uno<T, C> list1stage(
-            String fieldName,
-            UniValueNode.ValueType<T> type,
-            Supplier<C> collectionSupplier
+            String fieldName, UniValueNode.ValueType<T> type, Supplier<C> collectionSupplier
     ) {
         return list1stage(fieldName, eachExtractor(type), collectionSupplier);
     }
@@ -175,9 +169,7 @@ public final class GroupBind {
     }
 
     public final <R, C extends Collection<R>> ArrayBind.Duo<UniObjectNode, R, C> list2stage(
-            String fieldName,
-            Function<UniObjectNode, R> remapper,
-            Supplier<C> collectionSupplier
+            String fieldName, Function<UniObjectNode, R> remapper, Supplier<C> collectionSupplier
     ) {
         return list2stage(fieldName, UniNode::asObjectNode, remapper, collectionSupplier);
     }
@@ -210,17 +202,17 @@ public final class GroupBind {
 
     private <T> BiFunction<UniObjectNode, String, T> extractor(final Class<T> extractTarget) {
         return (node, fieldName) -> extractTarget.cast(node.get(fieldName)
-                                                           .asRaw(null));
+                .asRaw(null));
     }
 
     private <T> BiFunction<UniArrayNode, String, Collection<T>> splitExtractor(
             BiFunction<UniObjectNode, String, T> dataExtractor
     ) {
         return (arrayNode, fieldName) -> arrayNode.asNodeList()
-                                                  .stream()
-                                                  .map(UniNode::asObjectNode)
-                                                  .filter(node -> !node.isNull())
-                                                  .map(node -> dataExtractor.apply(node, fieldName))
-                                                  .collect(Collectors.toList());
+                .stream()
+                .map(UniNode::asObjectNode)
+                .filter(node -> !node.isNull())
+                .map(node -> dataExtractor.apply(node, fieldName))
+                .collect(Collectors.toList());
     }
 }

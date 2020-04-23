@@ -16,8 +16,9 @@ import org.jetbrains.annotations.Nullable;
 @FunctionalInterface
 public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
     static <T> Reference<T> constant(T of) {
-        return Objects.isNull(of) ? empty() : (Reference<T>) Support.Constant.cache.computeIfAbsent(of,
-                                                                                                    Support.Constant::new
+        return Objects.isNull(of) ? empty() :
+                (Reference<T>) Support.Constant.cache.computeIfAbsent(of,
+                Support.Constant::new
         );
     }
 

@@ -15,8 +15,9 @@ import static org.comroid.common.util.BitmaskUtil.combine;
 
 public interface EventAcceptor {
     static EventAcceptor ofMethod(Method method) {
-        if (!method.isAnnotationPresent(EventHandler.class)) throw new IllegalArgumentException(
-                "EventHandler annotation not present");
+        if (!method.isAnnotationPresent(EventHandler.class)) {
+            throw new IllegalArgumentException("EventHandler annotation not present");
+        }
         final EventHandler handler = method.getAnnotation(EventHandler.class);
 
         return new Support.OfInvocable(Invocable.ofMethodCall(method));
@@ -28,14 +29,16 @@ public interface EventAcceptor {
             private final int            mask;
 
             protected Abstract(EventType... accepted) {
-                this.eventTypes = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(accepted)));
+                this.eventTypes =
+                        Collections.unmodifiableSet(new HashSet<>(Arrays.asList(accepted)));
                 this.mask       = computeMask();
             }
 
             protected int computeMask() {
                 int yield = BitmaskUtil.EMPTY;
-                for (EventType type : eventTypes)
+                for (EventType type : eventTypes) {
                     yield = combine(yield, type.getFlag());
+                }
                 return yield;
             }
 

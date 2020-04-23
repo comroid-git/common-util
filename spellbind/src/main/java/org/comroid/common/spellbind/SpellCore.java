@@ -23,6 +23,7 @@ public class SpellCore implements InvocationHandler {
                 ? Optional.of((SpellCore) invocationHandler)
                 : Optional.empty();
     }
+
     private final Object                 coreObject;
     private final Map<String, Invocable> methodBinds;
 
@@ -39,7 +40,7 @@ public class SpellCore implements InvocationHandler {
         if (invoc instanceof MethodInvocation) {
             MethodInvocation methodInvocation = (MethodInvocation) invoc;
 
-            if (Modifier.isAbstract(methodInvocation.method.getModifiers()))
+            if (Modifier.isAbstract(methodInvocation.method.getModifiers())) {
                 if (!Modifier.isAbstract(method.getModifiers())) {
                     try {
                         invokeDefault(method, args);
@@ -49,7 +50,10 @@ public class SpellCore implements InvocationHandler {
                                 methodString
                         ));
                     }
-                } else throw$unimplemented(methodString, null);
+                } else {
+                    throw$unimplemented(methodString, null);
+                }
+            }
 
             return methodInvocation.invoke(args);
         }
@@ -67,31 +71,31 @@ public class SpellCore implements InvocationHandler {
     }
 
     public static String methodString(@Nullable Method method) {
-        if (method == null) return "null";
+        if (method == null) {
+            return "null";
+        }
 
         return String.format("%s#%s(%s)%s: %s",
-                             method.getDeclaringClass()
-                                   .getName(),
-                             method.getName(),
-                             paramString(method),
-                             throwsString(method),
-                             method.getReturnType()
-                                   .getSimpleName()
+                method.getDeclaringClass()
+                        .getName(),
+                method.getName(),
+                paramString(method),
+                throwsString(method),
+                method.getReturnType()
+                        .getSimpleName()
         );
     }
 
     private @Nullable Object invokeDefault(Method method, Object[] args)
             throws IllegalAccessException, InvocationTargetException {
         final Optional<Object> possibleTarget = methodBinds.values()
-                                                           .stream()
-                                                           .filter(MethodInvocation.class::isInstance)
-                                                           .map(MethodInvocation.class::cast)
-                                                           .filter(mic -> Spellbind.Builder.findMatchingMethod(
-                                                                   method,
-                                                                   mic.target.getClass()
-                                                           ) != null)
-                                                           .findAny()
-                                                           .map(mic -> mic.target);
+                .stream()
+                .filter(MethodInvocation.class::isInstance)
+                .map(MethodInvocation.class::cast)
+                .filter(mic ->
+                        Spellbind.Builder.findMatchingMethod(method, mic.target.getClass()) != null)
+                .findAny()
+                .map(mic -> mic.target);
 
         return method.invoke(possibleTarget.orElseThrow(() -> new NoSuchElementException(
                 "Could not find a matching target!")), args);
@@ -99,18 +103,21 @@ public class SpellCore implements InvocationHandler {
 
     private void throw$unimplemented(Object methodString, @Nullable Throwable e)
             throws UnsupportedOperationException {
-        throw e == null ? new UnsupportedOperationException(String.format(
+        throw e == null
+                ? new UnsupportedOperationException(String.format(
                 "Method %s has no implementation in this proxy",
                 methodString
-        )) : new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy",
-                                                             methodString
-        ), e);
+        ))
+                : new UnsupportedOperationException(String.format("Method %s has no " +
+                                "implementation in this proxy",
+                        methodString
+                ), e);
     }
 
     private static String paramString(Method method) {
         return Stream.of(method.getParameterTypes())
-                     .map(Class::getSimpleName)
-                     .collect(Collectors.joining(", "));
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(", "));
     }
 
     private static String throwsString(Method method) {

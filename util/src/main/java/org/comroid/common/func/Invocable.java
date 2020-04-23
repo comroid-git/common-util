@@ -28,9 +28,8 @@ public interface Invocable<T> {
 
     static <T> Invocable<T> constructing(Class<T> type, Class<?>... args) {
         return ReflectionHelper.findConstructor(type, args)
-                               .map(Invocable::ofConstructor)
-                               .orElseThrow(() -> new NoSuchElementException(
-                                       "No suitable constructor found"));
+                .map(Invocable::ofConstructor)
+                .orElseThrow(() -> new NoSuchElementException("No suitable constructor found"));
     }
 
     static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
@@ -97,11 +96,12 @@ public interface Invocable<T> {
             private final Object target;
 
             private OfMethod(Method method, @Nullable Object target) {
-                if (target == null && !Modifier.isStatic(method.getModifiers()))
+                if (target == null && !Modifier.isStatic(method.getModifiers())) {
                     throw new IllegalArgumentException(
                             "Target cannot be null on non-static methods!",
                             new NullPointerException()
                     );
+                }
 
                 this.method = method;
                 this.target = target;

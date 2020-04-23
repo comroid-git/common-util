@@ -8,6 +8,7 @@ public abstract class InstanceContext<S extends InstanceContext<S>> implements S
     public final Object[] getArgs() {
         return args;
     }
+
     private final Object[] args;
 
     protected InstanceContext(Object... args) {

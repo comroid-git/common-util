@@ -8,6 +8,7 @@ public class WebSocketEvent extends Event.Support.Abstract implements Event {
     public final WebSocket getWebSocket() {
         return webSocket;
     }
+
     private final WebSocket webSocket;
     private final UniNode   data;
 

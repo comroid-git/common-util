@@ -16,7 +16,9 @@ public final class StaticCache {
     private <T> T computeIfAbsent(Class<T> type, Supplier<T> supplier) {
         final Object value = cache.computeIfAbsent(type, (key) -> supplier.get());
 
-        if (!type.isInstance(value)) throw new AssertionError();
+        if (!type.isInstance(value)) {
+            throw new AssertionError();
+        }
 
         return type.cast(value);
     }
@@ -32,6 +34,7 @@ public final class StaticCache {
     public static void deleteMe(Object accessor) {
         staticCache.remove(accessor);
     }
+
     private static final Map<Object, StaticCache> staticCache = new ConcurrentHashMap<>();
     private final        Map<Class<?>, Object>    cache       = new ConcurrentHashMap<>();
     private final        Object                   owner;

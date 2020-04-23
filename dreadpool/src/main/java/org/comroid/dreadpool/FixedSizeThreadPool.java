@@ -14,9 +14,7 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
     private final Queue<ThreadPool.Task> taskQueue = new PriorityQueue<>();
 
     public FixedSizeThreadPool(
-            int corePoolSize,
-            WorkerFactory threadFactory,
-            ThreadErrorHandler handler
+            int corePoolSize, WorkerFactory threadFactory, ThreadErrorHandler handler
     ) {
         super(corePoolSize, threadFactory, handler);
 
@@ -48,13 +46,15 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
     public void flush() {
         try {
             // we need the lock here
-            if (!lock.tryLock()) lock.lockInterruptibly();
+            if (!lock.tryLock()) {
+                lock.lockInterruptibly();
+            }
         } catch (InterruptedException e) {
             getThreadErrorHandler().handleInterrupted(e);
         } finally {
             taskQueue.stream()
-                     .map(Task::getRunnable)
-                     .forEachOrdered(getThreadFactory()::execute);
+                    .map(Task::getRunnable)
+                    .forEachOrdered(getThreadFactory()::execute);
             taskQueue.clear();
 
             lock.unlock();
@@ -67,7 +67,9 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
 
         try {
             // we need the lock here
-            if (!lock.tryLock()) lock.lockInterruptibly();
+            if (!lock.tryLock()) {
+                lock.lockInterruptibly();
+            }
         } catch (InterruptedException e) {
             getThreadErrorHandler().handleInterrupted(e);
         } finally {
@@ -86,13 +88,15 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
 
         try {
             // we need the lock here
-            if (!lock.tryLock()) lock.lockInterruptibly();
+            if (!lock.tryLock()) {
+                lock.lockInterruptibly();
+            }
         } catch (InterruptedException e) {
             getThreadErrorHandler().handleInterrupted(e);
         } finally {
             result = taskQueue.stream()
-                              .filter(task -> task.getIssuedAt() == timestamp)
-                              .findAny();
+                    .filter(task -> task.getIssuedAt() == timestamp)
+                    .findAny();
 
             result.ifPresent(taskQueue::remove);
             lock.unlock();

@@ -8,6 +8,7 @@ public class Pair<A, B> {
     public B getSecond() {
         return second;
     }
+
     private final A first;
     private final B second;
 

@@ -32,13 +32,13 @@ public class SpellbindTest {
         final ImplementingClass implementingClass = new ImplementingClass();
 
         MainInterface proxy = Spellbind.builder(MainInterface.class)
-                                       .coreObject(implementingClass)
-                                       .build();
+                .coreObject(implementingClass)
+                .build();
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
-                               .isPresent());
+                .isPresent());
         Assert.assertFalse(proxy.string()
-                                .isPresent());
+                .isPresent());
 
         Assert.assertEquals(47, proxy.add(5));
         Assert.assertEquals(42, proxy.getValue());
@@ -52,17 +52,14 @@ public class SpellbindTest {
         final ImplementingClass implementingClass = new ImplementingClass();
 
         HyperInterface proxy = Spellbind.builder(HyperInterface.class)
-                                        .coreObject(implementingClass)
-                                        .subImplement(
-                                                new HyperInterface.SubImpl(),
-                                                HyperInterface.class
-                                        )
-                                        .build();
+                .coreObject(implementingClass)
+                .subImplement(new HyperInterface.SubImpl(), HyperInterface.class)
+                .build();
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
-                               .isPresent());
+                .isPresent());
         Assert.assertFalse(proxy.string()
-                                .isPresent());
+                .isPresent());
 
         Assert.assertEquals(47, proxy.add(5));
         Assert.assertEquals(42, proxy.getValue());

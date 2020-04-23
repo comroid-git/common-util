@@ -90,8 +90,7 @@ public final class Message extends VariableCarrier<DiscordAPI> {
                 UniValueNode.ValueType.STRING,
                 Function.identity()
         ); // todo Instant parsing
-        VarBind.Dep<UniObjectNode, DiscordAPI, User>                             AUTHOR            = GROUP.bindDependent(
-                "author",
+        VarBind.Dep<UniObjectNode, DiscordAPI, User>                             AUTHOR            = GROUP.bindDependent("author",
                 User.Binds.GROUP.autoConstructor(User.class, DiscordAPI.class)
         );
         ArrayBind.Dep<UniObjectNode, DiscordAPI, Role, Collection<Role>>         MENTIONED_ROLES   = GROUP.listDependent(
@@ -103,8 +102,7 @@ public final class Message extends VariableCarrier<DiscordAPI> {
                 "content",
                 UniValueNode.ValueType.STRING
         );
-        VarBind.Dep<Long, DiscordAPI, Channel>                                   CHANNEL           = GROUP.bindDependent(
-                "channel_id",
+        VarBind.Dep<Long, DiscordAPI, Channel>                                   CHANNEL           = GROUP.bindDependent("channel_id",
                 UniValueNode.ValueType.LONG,
                 DiscordAPI::getChannelById
         );

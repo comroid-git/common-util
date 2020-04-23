@@ -29,29 +29,29 @@ public class TestRestJava8 {
     @Test
     public void test() {
         final REST<Void>.Request<NGinXFSNode> request = rest.request(NGinXFSNode.class)
-                                                            .method(REST.Method.GET);
+                .method(REST.Method.GET);
 
         try {
             request.execute()
-                   .join();
+                    .join();
 
             assertTrue(request.execute()
-                              .isDone());
+                    .isDone());
 
             assertNotNull(request.execute$body()
-                                 .get(0, TimeUnit.SECONDS));
+                    .get(0, TimeUnit.SECONDS));
             assertTrue(request.execute$deserialize()
-                              .get(0, TimeUnit.SECONDS)
-                              .size() >= 1);
+                    .get(0, TimeUnit.SECONDS)
+                    .size() >= 1);
             assertEquals(200,
-                         (int) request.execute$statusCode()
-                                      .get(0, TimeUnit.SECONDS)
+                    (int) request.execute$statusCode()
+                            .get(0, TimeUnit.SECONDS)
             );
 
             assertTrue(request.execute$map(NGinXFSNode::getType)
-                              .get(0, TimeUnit.SECONDS)
-                              .stream()
-                              .allMatch("directory"::equals));
+                    .get(0, TimeUnit.SECONDS)
+                    .stream()
+                    .allMatch("directory"::equals));
         } catch (Throwable t) {
             System.out.println("Could not finish Java 8 Test");
             t.printStackTrace(System.out);
