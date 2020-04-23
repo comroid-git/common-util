@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import org.comroid.common.util.BitmaskUtil;
 
-public interface EventAttachable<TF, E extends EventType<P, TF>, P extends Event<P>> {
+public interface ListnrAttachable<TF, E extends EventType<P, TF>, P extends Event<P>> {
     default ListnrManager<TF, E, P> registerListener(Object listener) {
         //noinspection unchecked
         EventAcceptor<E, P> acceptorOfClass
