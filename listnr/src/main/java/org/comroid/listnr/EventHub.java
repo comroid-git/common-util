@@ -11,11 +11,9 @@ public final class EventHub<TF> {
     private final Span<EventType<?, TF>>        registeredTypes     = new Span<>();
     private final Span<? extends EventAcceptor> registeredAcceptors = new Span<>();
     private final ExecutorService               executorService;
-    private final ToIntFunction<TF>             typeRewiringFunction;
 
     public EventHub(ExecutorService executorService, ToIntFunction<TF> typeRewiringFunction) {
         this.executorService      = executorService;
-        this.typeRewiringFunction = typeRewiringFunction;
     }
 
     public <P extends Event<P>> EventType<P, TF> createEventType(ParamFactory<TF, P> payloadFactory) {
@@ -43,11 +41,10 @@ public final class EventHub<TF> {
 
     public <P extends Event<P>> void publish(final P eventPayload) {
         getRegisteredAcceptors().stream()
-                .filter(acceptor -> {
-                    return BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(),
-                            eventPayload.getEventMask()
-                    );
-                })
+                .filter(acceptor -> BitmaskUtil.isFlagSet(
+                        acceptor.getAcceptedTypesAsMask(),
+                        eventPayload.getEventMask()
+                ))
                 .map(acceptor -> (Runnable) () -> acceptor.acceptEvent(eventPayload))
                 .forEachOrdered(executorService::execute);
     }
