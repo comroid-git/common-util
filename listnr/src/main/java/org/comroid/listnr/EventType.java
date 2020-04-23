@@ -1,26 +1,25 @@
 package org.comroid.listnr;
 
-import org.comroid.common.annotation.vanity.inheritance.MustExtend;
 import org.comroid.common.func.ParamFactory;
 import org.comroid.common.func.Provider;
 import org.comroid.common.spellbind.Spellbind;
+import org.comroid.common.spellbind.annotation.Partial;
 import org.comroid.common.util.BitmaskUtil;
-import org.comroid.common.util.ReflectionHelper;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import static org.comroid.common.util.BitmaskUtil.combine;
 
-@MustExtend(EventType.Support.Basic.class)
+@Partial
 public interface EventType<P extends Event<P>, TF> extends ParamFactory<TF, P> {
     final class Support {
-        public static class Basic<P extends Event<P>, TF> implements EventType<P, TF> {
+        static class Basic<P extends Event<P>, TF> implements EventType<P, TF> {
             protected final EventHub<TF>        hub;
             private final   int                 flag = BitmaskUtil.nextFlag();
             private final   ParamFactory<TF, P> payloadFactory;
 
-            public Basic(EventHub<TF> hub, ParamFactory<TF, P> payloadFactory) {
+            Basic(EventHub<TF> hub, ParamFactory<TF, P> payloadFactory) {
                 this.hub            = hub;
                 this.payloadFactory = payloadFactory;
 
@@ -114,9 +113,9 @@ public interface EventType<P extends Event<P>, TF> extends ParamFactory<TF, P> {
         static <P extends Event<P>, TF> Combined<P, TF> of(
                 Class<P> payloadInterface, EventType<? super P, TF>... subtypes
         ) {
-            return new EventType.Support.Combination<>(subtypes,
-                    () -> Spellbind.builder(payloadInterface),
-                    coreObjectProvider
+            return new EventType.Support.Combination<>(
+                    subtypes,
+                    () -> Spellbind.builder(payloadInterface)
             );
         }
     }

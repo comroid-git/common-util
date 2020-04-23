@@ -8,12 +8,12 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.util.BitmaskUtil;
 
 public final class EventHub<TF> {
-    private final Span<EventType<?, TF>>        registeredTypes     = new Span<>();
-    private final Span<? extends EventAcceptor> registeredAcceptors = new Span<>();
-    private final ExecutorService               executorService;
+    private final Span<EventType<?, TF>>              registeredTypes     = new Span<>();
+    private final Span<? extends EventAcceptor<?, ?>> registeredAcceptors = new Span<>();
+    private final ExecutorService                     executorService;
 
     public EventHub(ExecutorService executorService, ToIntFunction<TF> typeRewiringFunction) {
-        this.executorService      = executorService;
+        this.executorService = executorService;
     }
 
     public <P extends Event<P>> EventType<P, TF> createEventType(ParamFactory<TF, P> payloadFactory) {
@@ -41,15 +41,17 @@ public final class EventHub<TF> {
 
     public <P extends Event<P>> void publish(final P eventPayload) {
         getRegisteredAcceptors().stream()
-                .filter(acceptor -> BitmaskUtil.isFlagSet(
-                        acceptor.getAcceptedTypesAsMask(),
+                .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(),
                         eventPayload.getEventMask()
                 ))
+                .map(it -> {//noinspection unchecked
+                    return (EventAcceptor<? extends EventType<P, ?>, P>) it;
+                })
                 .map(acceptor -> (Runnable) () -> acceptor.acceptEvent(eventPayload))
                 .forEachOrdered(executorService::execute);
     }
 
-    public Span<? extends EventAcceptor> getRegisteredAcceptors() {
+    public Span<? extends EventAcceptor<?, ?>> getRegisteredAcceptors() {
         return registeredAcceptors;
     }
 }
