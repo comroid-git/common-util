@@ -1,4 +1,4 @@
-package org.comroid.common.spellbind.factory;
+package org.comroid.spellbind.factory;
 
 import java.util.Arrays;
 

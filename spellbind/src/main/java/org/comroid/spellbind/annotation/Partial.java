@@ -1,4 +1,4 @@
-package org.comroid.common.spellbind.annotation;
+package org.comroid.spellbind.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,4 +1,4 @@
-package org.comroid.common.spellbind;
+package org.comroid.spellbind;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;

@@ -1,4 +1,4 @@
-package org.comroid.common.spellbind;
+package org.comroid.spellbind;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -12,11 +12,11 @@ import java.util.stream.Stream;
 
 import org.comroid.common.func.Invocable;
 import org.comroid.common.map.TrieMap;
-import org.comroid.common.spellbind.annotation.Partial;
+import org.comroid.spellbind.annotation.Partial;
 
 import org.jetbrains.annotations.Nullable;
 
-import static org.comroid.common.spellbind.SpellCore.methodString;
+import static org.comroid.spellbind.SpellCore.methodString;
 
 public final class Spellbind {
     public static <T> Builder<T> builder(Class<T> mainInterface) {

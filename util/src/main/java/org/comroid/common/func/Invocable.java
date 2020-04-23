@@ -21,7 +21,7 @@ public interface Invocable<T> {
     }
 
     static <T> Invocable<T> ofConsumer(Class<T> type, Consumer<T> consumer) {
-        return new Support.OfConsumer<>(type, consumer);
+        return new Support.OfConsumer<T>(type, consumer);
     }
 
     static <T> Invocable<T> ofMethodCall(@Nullable Method method) {

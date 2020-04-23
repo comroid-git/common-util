@@ -1,18 +1,30 @@
 package org.comroid.uniform.adapter.http.jdk;
 
+import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import org.comroid.common.func.Provider;
+import org.comroid.common.util.BitmaskUtil;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
+import org.comroid.restless.socket.WebSocket;
 
 public final class JavaHttpAdapter implements HttpAdapter {
     private final HttpClient httpClient = HttpClient.newHttpClient();
+
+    @Override
+    public WebSocket createWebSocket(
+            Executor executor, URI uri
+    ) {
+        return new JavaWebSocket(new ThreadGroup(String.format("%s-0x%s", toString(),
+                Integer.toHexString(BitmaskUtil.nextFlag()))), seriLib);
+    }
 
     @Override
     public CompletableFuture<REST.Response> call(

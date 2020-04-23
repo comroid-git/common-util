@@ -45,9 +45,16 @@ dependencies {
     java11Implementation project(':util')
 
     implementation project(':util')
-    implementation project(':listnr')
     implementation project(':spellbind')
     implementation 'com.google.flogger:flogger:0.5.1'
+
+    // websocket dependencies
+    api project(':listnr')
+    java8CompileOnly project(':listnr')
+    java11CompileOnly project(':listnr')
+    api project(':dreadpool')
+    java8CompileOnly project(':dreadpool')
+    java11CompileOnly project(':dreadpool')
 
     java8CompileOnly project(':spellbind')
     java8CompileOnly sourceSets.main.output.classesDirs

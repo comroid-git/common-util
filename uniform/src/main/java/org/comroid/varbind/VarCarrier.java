@@ -38,4 +38,29 @@ public interface VarCarrier<DEP> {
     default @NotNull <T> Processor<T> process(VarBind<?, ? super DEP, ?, T> bind) {
         return ref(bind).process();
     }
+
+    interface Underlying<DEP> extends VarCarrier<DEP> {
+        VarCarrier<DEP> getUnderlyingVarCarrier();
+
+        @Override
+        default GroupBind getRootBind() {
+            return getUnderlyingVarCarrier().getRootBind();
+        }
+
+        @Override
+        default Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node) {
+            return getUnderlyingVarCarrier().updateFrom(node);
+        }
+
+        @Override
+        default Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet() {
+            return getUnderlyingVarCarrier().initiallySet();
+        }
+
+        @Override
+        @NotNull
+        default <T> Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind) {
+            return getUnderlyingVarCarrier().ref(bind);
+        }
+    }
 }

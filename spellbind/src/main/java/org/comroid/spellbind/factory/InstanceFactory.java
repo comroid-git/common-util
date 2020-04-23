@@ -1,4 +1,4 @@
-package org.comroid.common.spellbind.factory;
+package org.comroid.spellbind.factory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import org.comroid.common.func.ParamFactory;
 import org.comroid.common.func.Provider;
 import org.comroid.common.map.TrieFuncMap;
 import org.comroid.common.ref.Pair;
-import org.comroid.common.spellbind.Spellbind;
+import org.comroid.spellbind.Spellbind;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;

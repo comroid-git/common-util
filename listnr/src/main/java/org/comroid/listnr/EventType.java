@@ -1,8 +1,8 @@
 package org.comroid.listnr;
 
 import org.comroid.common.func.ParamFactory;
-import org.comroid.common.spellbind.Spellbind;
-import org.comroid.common.spellbind.annotation.Partial;
+import org.comroid.spellbind.Spellbind;
+import org.comroid.spellbind.annotation.Partial;
 import org.comroid.common.util.BitmaskUtil;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
