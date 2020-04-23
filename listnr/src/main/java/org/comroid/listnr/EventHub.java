@@ -3,9 +3,12 @@ package org.comroid.listnr;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
@@ -15,11 +18,18 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.util.BitmaskUtil;
 
 public final class EventHub<TF> {
-    private final Span<EventType<?, TF>>              registeredTypes     = new Span<>();
-    private final Span<? extends EventAcceptor<?, ?>> registeredAcceptors = new Span<>();
-    private final ExecutorService                     executorService;
+    public <EX extends ExecutorService & ScheduledExecutorService> EX getExecutorService() {
+        //noinspection unchecked
+        return (EX) executorService;
+    }
 
-    public EventHub(ExecutorService executorService, ToIntFunction<TF> typeRewiringFunction) {
+    private final Span<EventType<?, TF>>    registeredTypes     = new Span<>();
+    private final Span<EventAcceptor<?, ?>> registeredAcceptors = new Span<>();
+    private final ExecutorService           executorService;
+
+    public <EX extends ExecutorService & ScheduledExecutorService> EventHub(
+            ExecutorService executorService, ToIntFunction<TF> typeRewiringFunction
+    ) {
         this.executorService = executorService;
     }
 
@@ -61,8 +71,21 @@ public final class EventHub<TF> {
                 .forEachOrdered(executorService::execute);
     }
 
-    public Span<? extends EventAcceptor<?, ?>> getRegisteredAcceptors() {
-        return registeredAcceptors;
+    public Collection<EventAcceptor<?, ?>> getRegisteredAcceptors() {
+        return Collections.unmodifiableCollection(registeredAcceptors);
+    }
+
+    public <E extends EventType<P, ?>, P extends Event<P>> ListnrManager<TF, E, P> registerAcceptor(
+            EventAcceptor<E, P> acceptor
+    ) {
+        registeredAcceptors.add(acceptor);
+        return new ListnrManager<>(this, acceptor);
+    }
+
+    public <E extends EventType<P, ?>, P extends Event<P>> boolean unregisterAcceptor(
+            EventAcceptor<E, P> acceptor
+    ) {
+        return registeredAcceptors.remove(acceptor);
     }
 
     public <T, E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> acceptorOfClass(
