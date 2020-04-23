@@ -7,7 +7,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 import org.comroid.common.func.Provider;
-import org.comroid.restless.socket.WebSocket;
 import org.comroid.uniform.SerializationAdapter;
 
 public interface HttpAdapter {

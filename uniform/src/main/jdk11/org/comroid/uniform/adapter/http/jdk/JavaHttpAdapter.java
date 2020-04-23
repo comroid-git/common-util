@@ -14,7 +14,6 @@ import org.comroid.common.func.Provider;
 import org.comroid.common.util.BitmaskUtil;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
-import org.comroid.restless.socket.WebSocket;
 import org.comroid.uniform.SerializationAdapter;
 
 public final class JavaHttpAdapter implements HttpAdapter {
