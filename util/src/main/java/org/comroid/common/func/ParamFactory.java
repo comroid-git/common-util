@@ -11,7 +11,8 @@ public interface ParamFactory<P, T> extends Provider.Now<T> {
             return counter++;
         }
 
-        protected final int peekCounter() {
+        @Override
+        public final int peekCounter() {
             return counter;
         }
     }
@@ -28,4 +29,6 @@ public interface ParamFactory<P, T> extends Provider.Now<T> {
     T create(@Nullable P parameter);
 
     int counter();
+
+    int peekCounter();
 }

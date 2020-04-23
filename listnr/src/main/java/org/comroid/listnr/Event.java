@@ -5,16 +5,15 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.comroid.common.annotation.MustExtend;
+import org.comroid.common.annotation.vanity.inheritance.ShouldExtend;
 import org.comroid.common.ref.SelfDeclared;
 import org.comroid.common.util.BitmaskUtil;
-import org.comroid.listnr.Event.Support.Abstract;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import static org.comroid.common.util.BitmaskUtil.combine;
 
-@MustExtend(Abstract.class)
+@ShouldExtend(Event.Support.Abstract.class)
 public interface Event<S extends Event<S>> extends SelfDeclared<S> {
     final class Support {
         public static abstract class Abstract<S extends Event<S>> implements Event<S> {
