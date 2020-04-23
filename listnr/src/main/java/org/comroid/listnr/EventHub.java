@@ -16,8 +16,10 @@ public final class EventHub<TF> {
         this.executorService = executorService;
     }
 
-    public <P extends Event<P>> EventType<P, TF> createEventType(ParamFactory<TF, P> payloadFactory) {
-        return new EventType.Support.Basic<>(this, payloadFactory);
+    public <P extends Event<P>> EventType<P, TF> createEventType(
+            Class<P> payloadType, ParamFactory<TF, P> payloadFactory
+    ) {
+        return new EventType.Support.Basic<>(this, payloadType, payloadFactory);
     }
 
     public void registerEventType(EventType<?, TF> type) {
@@ -25,14 +27,15 @@ public final class EventHub<TF> {
     }
 
     public <P extends Event<P>> void publish(EventType<P, TF> asSupertype, TF data) {
-        getRegisteredEventTypes().stream()
-                .filter(type -> BitmaskUtil.isFlagSet(type.getMask(), asSupertype.getMask()))
-                .map(it -> {//noinspection unchecked
-                    return (EventType<P, TF>) it;
-                })
-                .forEachOrdered(subtype -> {
-                    publish(subtype.create(data));
-                });
+        //noinspection unchecked
+        EventType<? super P, TF>[] subtypes
+                = (EventType<? super P, TF>[]) getRegisteredEventTypes().stream()
+                .filter(type -> BitmaskUtil.isFlagSet(asSupertype.getMask(), type.getMask()))
+                .toArray();
+        EventType.Combined<P, TF> combined = EventType.Combined.of(asSupertype.payloadType(),
+                subtypes
+        );
+        publish(combined.create(data));
     }
 
     public Span<EventType<?, TF>> getRegisteredEventTypes() {
