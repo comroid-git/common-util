@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.comroid.common.func.Processor;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
+import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;

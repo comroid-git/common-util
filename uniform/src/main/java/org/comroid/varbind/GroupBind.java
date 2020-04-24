@@ -34,6 +34,10 @@ public final class GroupBind {
         return Optional.ofNullable(parent);
     }
 
+    public final Collection<GroupBind> getSubgroups() {
+        return subgroups;
+    }
+    
     final                   List<? extends VarBind<?, ?, ?, ?>> children  = new ArrayList<>();
     private final           SerializationAdapter<?, ?, ?>       serializationAdapter;
     private final           String                              groupName;
