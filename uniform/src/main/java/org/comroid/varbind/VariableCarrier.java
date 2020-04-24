@@ -90,6 +90,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
 
         getRootBind().getChildren()
                 .stream()
+                .filter(bind -> !(bind instanceof ReBind))
                 .filter(bind -> data.has(bind.getFieldName()))
                 .map(it -> (VarBind<Object, Object, Object, Object>) it)
                 .forEach(bind -> {

@@ -40,21 +40,21 @@ public interface ReBind<EXTR, DPND, REMAP> extends VarBind<EXTR, DPND, REMAP, RE
         }
     }
 
+    @Override
+    default String getFieldName() {
+        return getUnderlying().getFieldName();
+    }
+
     VarBind<?, DPND, ?, EXTR> getUnderlying();
 
     @Override
-    default String getFieldName() throws UnsupportedOperationException {
-        throw new UnsupportedOperationException();
+    default Span<EXTR> extract(UniObjectNode node) {
+        return Span.zeroSize();
     }
 
     @Override
-    default Span<EXTR> extract(UniObjectNode node) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default REMAP finish(Span<REMAP> parts) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException();
+    default REMAP finish(Span<REMAP> parts) {
+        return parts.requireNonNull();
     }
 
     @Override
