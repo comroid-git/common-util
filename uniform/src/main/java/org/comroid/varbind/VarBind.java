@@ -92,11 +92,11 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         return new ReBind.Duo<>(Polyfill.deadCast(this), group, remapper);
     }
 
-    default <R> ReBind.Dep<FINAL, DPND, R> rebindDependent(BiFunction<FINAL, DPND, R> resolver) {
+    default <R, D extends DPND> ReBind.Dep<FINAL, D, R> rebindDependent(BiFunction<FINAL, D, R> resolver) {
         return rebindDependent(getGroup(), resolver);
     }
 
-    default <R> ReBind.Dep<FINAL, DPND, R> rebindDependent(GroupBind group, BiFunction<FINAL, DPND, R> resolver) {
+    default <R, D extends DPND> ReBind.Dep<FINAL, D, R> rebindDependent(GroupBind group, BiFunction<FINAL, D, R> resolver) {
         return new ReBind.Dep<>(Polyfill.deadCast(this), group, resolver);
     }
 
