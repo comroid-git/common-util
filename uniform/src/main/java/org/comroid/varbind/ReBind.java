@@ -4,10 +4,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import org.comroid.common.iter.Span;
-import org.comroid.uniform.node.UniObjectNode;
-
-public interface ReBind<EXTR, DPND, REMAP> extends VarBind.NotAutoprocessed, VarBind<EXTR, DPND, REMAP, REMAP> {
+public interface ReBind<EXTR, DPND, REMAP> extends VarBind.NotAutoprocessed<EXTR, DPND, REMAP, REMAP> {
     final class Duo<EXTR, FINAL> extends AbstractReBind<EXTR, Object, FINAL> {
         private final Function<EXTR, FINAL> remapper;
 
@@ -46,16 +43,6 @@ public interface ReBind<EXTR, DPND, REMAP> extends VarBind.NotAutoprocessed, Var
     }
 
     VarBind<?, DPND, ?, EXTR> getUnderlying();
-
-    @Override
-    default Span<EXTR> extract(UniObjectNode node) {
-        return Span.zeroSize();
-    }
-
-    @Override
-    default REMAP finish(Span<REMAP> parts) {
-        return parts.requireNonNull();
-    }
 
     @Override
     REMAP remap(EXTR from, DPND dependency);

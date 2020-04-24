@@ -112,6 +112,15 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     @Retention(RetentionPolicy.RUNTIME)
     @interface Root {}
 
-    interface NotAutoprocessed {
+    interface NotAutoprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPND, REMAP, REMAP> {
+        @Override
+        default Span<EXTR> extract(UniObjectNode node) {
+            return Span.zeroSize();
+        }
+
+        @Override
+        default REMAP finish(Span<REMAP> parts) {
+            return parts.requireNonNull();
+        }
     }
 }

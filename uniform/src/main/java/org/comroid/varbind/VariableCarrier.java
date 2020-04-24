@@ -42,10 +42,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     protected <BAS, OBJ extends BAS> VariableCarrier(
             SerializationAdapter<BAS, OBJ, ?> serializationAdapter, OBJ initialData, @Nullable DEP dependencyObject
     ) {
-        this(serializationAdapter,
-                serializationAdapter.createUniObjectNode(initialData),
-                dependencyObject
-        );
+        this(serializationAdapter, serializationAdapter.createUniObjectNode(initialData), dependencyObject);
     }
 
     public VariableCarrier(
@@ -64,18 +61,13 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
 
         if (location == null) {
-            throw new IllegalStateException(String.format(
-                    "Class %s extends VariableCarrier, but does not have a %s annotation.",
+            throw new IllegalStateException(String.format("Class %s extends VariableCarrier, but does not have a %s annotation.",
                     inClass.getName(),
                     VarBind.Location.class.getName()
             ));
         }
 
-        return ReflectionHelper.collectStaticFields(GroupBind.class,
-                location.value(),
-                true,
-                VarBind.Root.class
-        )
+        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class)
                 .requireNonNull();
     }
 
