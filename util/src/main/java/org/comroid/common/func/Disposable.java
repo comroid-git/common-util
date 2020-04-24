@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 import org.comroid.common.exception.MultipleExceptions;
 import org.comroid.common.iter.Span;
@@ -14,7 +13,6 @@ public class Disposable implements Closeable {
     private final Span<Closeable> children = new Span<>();
 
     @Override
-    @OverridingMethodsMustInvokeSuper
     public void close() {
         dispose();
     }
