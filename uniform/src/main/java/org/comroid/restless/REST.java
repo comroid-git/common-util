@@ -144,7 +144,7 @@ public final class REST<D> {
         }
 
         public final Request<T> url(String spec) throws AssertionError {
-            return url(Polyfill.url(spec));
+            return url(Polyfill.url(spec, null));
         }
 
         public final Request<T> url(URL url) {
