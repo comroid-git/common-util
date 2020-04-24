@@ -111,4 +111,7 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     @interface Root {}
+
+    interface NotAutoprocessed {
+    }
 }
