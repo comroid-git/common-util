@@ -17,6 +17,10 @@ public class BasicCache<K, V> implements Cache<K, V> {
     private final Map<K, Reference<K, V>> cache = new ConcurrentHashMap<>();
     private final int                     largeThreshold;
 
+    public BasicCache() {
+        this(DEFAULT_LARGE_THRESHOLD);
+    }
+
     public BasicCache(int largeThreshold) {
         this.largeThreshold = largeThreshold;
     }
