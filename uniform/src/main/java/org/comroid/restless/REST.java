@@ -23,6 +23,10 @@ import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Nullable;
 
 public final class REST<D> {
+    private final           HttpAdapter                   httpAdapter;
+    private final @Nullable D                             dependencyObject;
+    private final           SerializationAdapter<?, ?, ?> serializationAdapter;
+
     public REST(
             HttpAdapter httpAdapter, @Nullable D dependencyObject, SerializationAdapter<?, ?, ?> serializationAdapter
     ) {
@@ -45,6 +49,9 @@ public final class REST<D> {
     }
 
     public static final class Header {
+        private final String name;
+        private final String value;
+
         public Header(String name, String value) {
             this.name  = name;
             this.value = value;
@@ -57,11 +64,12 @@ public final class REST<D> {
         public String getValue() {
             return value;
         }
-        private final String name;
-        private final String value;
     }
 
     public static final class Response {
+        private final int     statusCode;
+        private final UniNode body;
+
         public Response(REST rest, int statusCode, String body) {
             this.statusCode = statusCode;
             this.body       = rest.serializationAdapter.createUniNode(body);
@@ -74,10 +82,7 @@ public final class REST<D> {
         public UniNode getBody() {
             return body;
         }
-        private final int     statusCode;
-        private final UniNode body;
     }
-
     public enum Method {
         GET,
 
@@ -96,6 +101,10 @@ public final class REST<D> {
     }
 
     public final class Request<T> {
+        private final           REST                             rest;
+        private final           Collection<Header>               headers;
+        private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
+
         public Request(REST rest, @Nullable BiFunction<D, UniObjectNode, T> tProducer) {
             this.rest      = rest;
             this.tProducer = tProducer;
@@ -227,16 +236,10 @@ public final class REST<D> {
                 return remapper.apply(span.get());
             });
         }
-        private final           REST                             rest;
-        private final           Collection<Header>               headers;
-        private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
         private                 CompletableFuture<REST.Response> execution    = null;
         private                 Provider<URL>                    urlProvider;
         private                 Method                           method;
         private                 String                           body;
         private                 int                              expectedCode = HTTPStatusCodes.OK;
     }
-    private final           HttpAdapter                   httpAdapter;
-    private final @Nullable D                             dependencyObject;
-    private final           SerializationAdapter<?, ?, ?> serializationAdapter;
 }

@@ -22,6 +22,9 @@ public interface Event<S extends Event<S>> extends SelfDeclared<S> {
 
     final class Support {
         public static abstract class Abstract<S extends Event<S>> implements Event<S> {
+            private final Set<EventType<?, ?, ?>> eventTypes;
+            private final int                     mask;
+
             protected Abstract(EventType<?, ?, ?>... subtypes) {
                 this.eventTypes = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(subtypes)));
                 this.mask       = computeMask();
@@ -44,8 +47,6 @@ public interface Event<S extends Event<S>> extends SelfDeclared<S> {
             public int getEventMask() {
                 return mask;
             }
-            private final Set<EventType<?, ?, ?>> eventTypes;
-            private final int                     mask;
         }
     }
 }

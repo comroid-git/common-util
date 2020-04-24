@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
+    protected final TrieFuncMap.Stage<K, S, V> baseStage;
+    private final   Function<K, S[]>           keySplitter;
+
     public TrieFuncMap(Comparator<S> comparator, Function<K, S[]> keySplitter) {
         this.keySplitter = keySplitter;
         this.baseStage   = new Stage(null, null, null, EqualityComparator.ofComparator(comparator));
@@ -28,6 +31,7 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
         this.keySplitter = keySplitter;
         this.baseStage   = new Stage(null, null, null, validator);
     }
+
     public TrieFuncMap(Function<K, S[]> keySplitter) {
         this.keySplitter = keySplitter;
         this.baseStage   = new Stage(null, null, null);
@@ -90,6 +94,14 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
     }
 
     protected static class Stage<K, S, V> implements Map.Entry<K, V> {
+        private final     Object                    lock = Polyfill.selfawareLock();
+        private final     Stage<K, S, V>            parent;
+        private final     EqualityComparator<S>     comparator;
+        private final     BiFunction<S, S, Boolean> validator;
+        private final     Map<S, Stage>             subStages;
+        private final     K                         effectiveKey;
+        private final     S                         smallKey;
+
         private Stage(
                 Stage<K, S, V> parent, K effectiveKey, S smallKey, EqualityComparator<S> comparator
         ) {
@@ -100,6 +112,7 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
             this.effectiveKey = effectiveKey;
             this.smallKey     = smallKey;
         }
+
         private Stage(
                 Stage<K, S, V> parent, K effectiveKey, S smallKey, BiFunction<S, S, Boolean> validator
         ) {
@@ -110,6 +123,7 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
             this.effectiveKey = effectiveKey;
             this.smallKey     = smallKey;
         }
+
         private Stage(Stage<K, S, V> parent, K effectiveKey, S smallKey) {
             this.parent       = parent;
             this.comparator   = null;
@@ -234,15 +248,6 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
                 }
             }
         }
-        private final     Object                    lock = Polyfill.selfawareLock();
-        private final     Stage<K, S, V>            parent;
-        private final     EqualityComparator<S>     comparator;
-        private final     BiFunction<S, S, Boolean> validator;
-        private final     Map<S, Stage>             subStages;
-        private final     K                         effectiveKey;
-        private final     S                         smallKey;
         private @Nullable V                         value;
     }
-    protected final TrieFuncMap.Stage<K, S, V> baseStage;
-    private final   Function<K, S[]>           keySplitter;
 }

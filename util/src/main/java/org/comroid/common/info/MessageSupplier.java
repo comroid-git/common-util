@@ -9,6 +9,8 @@ public interface MessageSupplier extends Supplier<String> {
     }
 
     final class OfFunc implements MessageSupplier {
+        private final Supplier<String> supplier;
+
         public OfFunc(Supplier<String> supplier) {
             this.supplier = supplier;
         }
@@ -22,6 +24,5 @@ public interface MessageSupplier extends Supplier<String> {
         public String get() {
             return supplier.get();
         }
-        private final Supplier<String> supplier;
     }
 }

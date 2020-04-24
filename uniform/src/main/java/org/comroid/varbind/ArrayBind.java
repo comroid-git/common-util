@@ -40,6 +40,8 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
     }
 
     final class Duo<EXTR, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
+        private final Function<EXTR, REMAP> remapper;
+
         public Duo(
                 GroupBind group,
                 String fieldName,
@@ -56,10 +58,11 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
         public REMAP remap(EXTR from, Object dependency) {
             return remapper.apply(from);
         }
-        private final Function<EXTR, REMAP> remapper;
     }
 
     final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
+        private final BiFunction<DPND, EXTR, REMAP> resolver;
+
         public Dep(
                 GroupBind group,
                 String fieldName,
@@ -76,6 +79,5 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
         public REMAP remap(EXTR from, DPND dependency) {
             return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object"), from);
         }
-        private final BiFunction<DPND, EXTR, REMAP> resolver;
     }
 }

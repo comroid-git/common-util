@@ -43,6 +43,9 @@ public interface EventAcceptor<E extends EventType<P, ?, ?>, P extends Event<P>>
 
     final class Support {
         public static abstract class Abstract<E extends EventType<P, ?, ?>, P extends Event<P>> implements EventAcceptor<E, P> {
+            private final Set<EventType<P, ?, ?>> eventTypes;
+            private final int                     mask;
+
             @SafeVarargs
             protected Abstract(EventType<P, ?, ?>... accepted) {
                 this.eventTypes = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(accepted)));
@@ -66,11 +69,11 @@ public interface EventAcceptor<E extends EventType<P, ?, ?>, P extends Event<P>>
             public int getAcceptedTypesAsMask() {
                 return mask;
             }
-            private final Set<EventType<P, ?, ?>> eventTypes;
-            private final int                     mask;
         }
 
         static final class OfSortedInvocables<E extends EventType<P, ?, ?>, P extends Event<P>> extends Abstract<E, P> {
+            private final Set<Invocable<Object>> invocables;
+
             OfSortedInvocables(
                     EventType<P, ?, ?>[] capabilities, Set<Invocable<Object>> invocables
             ) {
@@ -85,10 +88,11 @@ public interface EventAcceptor<E extends EventType<P, ?, ?>, P extends Event<P>>
                         .filter(invocable -> invocable.typeOrder()[0].isAssignableFrom(payloadClass))
                         .forEachOrdered(invocable -> invocable.invokeRethrow(eventPayload));
             }
-            private final Set<Invocable<Object>> invocables;
         }
 
         private static final class OfInvocable<E extends EventType<P, ?, ?>, P extends Event<P>> extends Abstract<E, P> {
+            private final Invocable<? extends P> underlying;
+
             private OfInvocable(Invocable<? extends P> underlying) {
                 this.underlying = underlying;
             }
@@ -97,7 +101,6 @@ public interface EventAcceptor<E extends EventType<P, ?, ?>, P extends Event<P>>
             public <T extends P> void acceptEvent(T eventPayload) {
                 underlying.invokeRethrow(eventPayload);
             }
-            private final Invocable<? extends P> underlying;
         }
     }
 }

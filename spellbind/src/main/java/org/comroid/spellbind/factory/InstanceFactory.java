@@ -23,6 +23,9 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceContext, T> {
+    private final ClassLoader                classLoader;
+    private final Map<Class[], Invocable<T>> strategies;
+
     private InstanceFactory(ClassLoader classLoader, Map<Class[], Invocable<T>> strategies) {
         this.classLoader = classLoader;
         this.strategies  = Collections.unmodifiableMap(strategies);
@@ -52,6 +55,9 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
 
     public static final class Builder<T, C extends InstanceContext<C>>
             implements org.comroid.common.func.Builder<InstanceFactory<T>> {
+        private final Class<T>                        mainInterface;
+        private final List<ImplementationNotation<?>> implementations = new ArrayList<>();
+
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
         }
@@ -115,14 +121,17 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
             this.classLoader = classLoader;
             return this;
         }
-        private final Class<T>                        mainInterface;
         private       Invocable<?>                    coreObjectFactory;
-        private final List<ImplementationNotation<?>> implementations = new ArrayList<>();
         private       ClassLoader                     classLoader;
     }
 
     @Internal
     private static final class CombiningInvocable<T> implements Invocable<T> {
+        private final Class<T>                        mainInterface;
+        private final Class[]                         types;
+        private final ClassLoader                     classLoader;
+        private final Invocable<?>                    coreObjectFactory;
+        private final List<ImplementationNotation<?>> notations;
         private CombiningInvocable(
                 Class<T> mainInterface,
                 Class[] types,
@@ -156,11 +165,6 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
         public Class[] typeOrder() {
             return types;
         }
-        private final Class<T>                        mainInterface;
-        private final Class[]                         types;
-        private final ClassLoader                     classLoader;
-        private final Invocable<?>                    coreObjectFactory;
-        private final List<ImplementationNotation<?>> notations;
     }
 
     @Internal
@@ -177,6 +181,4 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
             return super.getSecond();
         }
     }
-    private final ClassLoader                classLoader;
-    private final Map<Class[], Invocable<T>> strategies;
 }

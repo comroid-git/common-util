@@ -30,8 +30,9 @@ public final class ReflectionHelper {
         }
 
         final Class<?>[] types = types(args);
-        Constructor<T> constructor = findConstructor(type, types).orElseThrow(() -> new AssertionError(String.format("Could " +
-                        "not" + " find constructor for class %s with types %s",
+        Constructor<T> constructor =
+                findConstructor(type, types).orElseThrow(() -> new AssertionError(String.format("Could " + "not" + " find " +
+                                "constructor for class %s with types %s",
                 type.getName(),
                 Arrays.toString(types)
         )));

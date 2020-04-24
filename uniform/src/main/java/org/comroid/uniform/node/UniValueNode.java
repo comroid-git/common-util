@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UniValueNode<T> extends UniNode {
+    private final Adapter<T> adapter;
+
     public UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
         super(serializationAdapter, Type.VALUE);
 
@@ -165,17 +167,19 @@ public class UniValueNode<T> extends UniNode {
         public static final UniValueNode.ValueType<Long>      LONG      = new ValueType<>(Long::parseLong);
         public static final UniValueNode.ValueType<Short>     SHORT     = new ValueType<>(Short::parseShort);
         public static final UniValueNode.ValueType<String>    STRING    = new ValueType<>(Function.identity());
+        private final Function<String, R> mapper;
 
         public ValueType(Function<String, R> mapper) {
             this.mapper = mapper;
         }
-        private final Function<String, R> mapper;
     }
 
     public interface Adapter<T> extends UniNode.Adapter {
         @Nullable <R> R get(UniValueNode.ValueType<R> as);
 
         final class ViaString<T> implements Adapter<T> {
+            private final Reference<String> sub;
+
             public ViaString(Reference<String> sub) {
                 this.sub = sub;
             }
@@ -189,7 +193,6 @@ public class UniValueNode<T> extends UniNode {
             public Object getBaseNode() {
                 return null;
             }
-            private final Reference<String> sub;
         }
     }
 
@@ -207,7 +210,7 @@ public class UniValueNode<T> extends UniNode {
                 }
             });
         }
+
         private static final UniValueNode<?> instance = new Null();
     }
-    private final Adapter<T> adapter;
 }

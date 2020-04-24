@@ -14,6 +14,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
+    private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
+    //endregion
+    private final Function<String, K>          keyMapper;
+
     TrieStringMap(Function<String, K> keyMapper) {
         this.keyMapper = keyMapper;
     }
@@ -94,12 +98,12 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
     @NotNull
     public Set<K> keySet() {
         class Pair {
+            final String                     key;
+            final TrieStringMap.TrieStage<V> stage;
             Pair(String key, TrieStringMap.TrieStage<V> stage) {
                 this.key   = key;
                 this.stage = stage;
             }
-            final String                     key;
-            final TrieStringMap.TrieStage<V> stage;
         }
 
         return baseStages.entrySet()
@@ -127,6 +131,9 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
     @NotNull
     public Set<Entry<K, V>> entrySet() {
         class Local implements Entry<K, V> {
+            private final K                          key;
+            private final TrieStringMap.TrieStage<V> stage;
+
             public Local(K key, TrieStringMap.TrieStage<V> stage) {
                 this.key   = key;
                 this.stage = stage;
@@ -152,8 +159,6 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
 
                 return old;
             }
-            private final K                          key;
-            private final TrieStringMap.TrieStage<V> stage;
         }
         //noinspection ConstantConditions
         return baseStages.values()
@@ -165,6 +170,8 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
 
     //region Stage Class
     private static class TrieStage<V> {
+        private final     Map<Character, TrieStage<V>> subStages = new ConcurrentHashMap<>();
+
         @Nullable V get(char[] chars, int index) {
             if (chars.length == 0 || index >= chars.length) {
                 return value;
@@ -222,10 +229,6 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
                             .flatMap(TrieStage::stream)
             );
         }
-        private final     Map<Character, TrieStage<V>> subStages = new ConcurrentHashMap<>();
         private @Nullable V                            value;
     }
-    private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
-    //endregion
-    private final Function<String, K>          keyMapper;
 }

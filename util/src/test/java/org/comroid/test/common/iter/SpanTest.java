@@ -99,6 +99,7 @@ public class SpanTest {
         return generated.remove(Math.abs((rng.nextInt() + 1) % generated.size()))
                 .getFirst();
     }
+
     private static final Random                      rng = new Random();
     private static       int                         bound = rng.nextInt(100) + 50;
     private              Span<String>                span;

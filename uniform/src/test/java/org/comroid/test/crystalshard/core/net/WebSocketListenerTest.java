@@ -12,5 +12,6 @@ public class WebSocketListenerTest {
     @Test
     public void test() {
     }
+
     private WebSocket socket;
 }

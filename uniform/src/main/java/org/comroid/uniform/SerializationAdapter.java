@@ -7,6 +7,8 @@ import org.comroid.uniform.node.UniObjectNode;
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
     public final DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
     public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
+    private final String mimeType;
+
     protected SerializationAdapter(
             String mimeType, Class<OBJ> objClass, Class<ARR> arrClass
     ) {
@@ -83,6 +85,5 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     public static SerializationAdapter<?, ?, ?> autodetect() {
         throw new UnsupportedOperationException();
     }
-    private final String mimeType;
 
 }

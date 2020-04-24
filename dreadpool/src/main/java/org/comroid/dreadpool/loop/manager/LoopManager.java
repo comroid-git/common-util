@@ -18,6 +18,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class LoopManager implements Closeable {
     public static final ThreadGroup THREAD_GROUP = new ThreadGroup("LoopManager");
+    final         Object          lock  = Polyfill.selfawareLock();
+    private final Queue<Loop<?>>  queue = new PriorityQueue<>();
 
     private LoopManager() {
     }
@@ -92,7 +94,5 @@ public final class LoopManager implements Closeable {
     public String toString() {
         return String.format("LoopManager{lock=%s}", queue);
     }
-    final         Object          lock  = Polyfill.selfawareLock();
-    private final Queue<Loop<?>>  queue = new PriorityQueue<>();
     private       Set<LoopWorker> workers;
 }

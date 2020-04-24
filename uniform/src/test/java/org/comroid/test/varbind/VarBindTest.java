@@ -68,5 +68,6 @@ public class VarBindTest {
         );
         assertEquals(0, message.get(Message.Binds.TYPE).value);
     }
+
     Message message;
 }

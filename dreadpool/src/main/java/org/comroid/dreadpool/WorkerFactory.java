@@ -12,9 +12,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, ThreadFactory {
+    private final Queue<ThreadPool.Worker>    workers    = new PriorityQueue<>();
+    private final Provider<ThreadPool.Worker> workerProvider;
+    private final int                         maxSize;
+
     public WorkerFactory(ThreadGroup group, int maxSize) {
         this(() -> new ThreadPool.Worker(group, "worker"), maxSize);
     }
+
     public WorkerFactory(Provider.Now<ThreadPool.Worker> workerProvider, int maxSize) {
         this.workerProvider = workerProvider;
         this.maxSize        = maxSize;
@@ -88,8 +93,5 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
         return String.format("%s{threadPool=%s, maxSize=%d}", getClass().getSimpleName(), threadPool, maxSize);
     }
     public        ThreadPool                  threadPool = null;
-    private final Queue<ThreadPool.Worker>    workers    = new PriorityQueue<>();
-    private final Provider<ThreadPool.Worker> workerProvider;
-    private final int                         maxSize;
     private       int                         c          = 0;
 }

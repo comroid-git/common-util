@@ -11,6 +11,8 @@ import org.comroid.uniform.SerializationAdapter;
 import org.jetbrains.annotations.NotNull;
 
 public final class UniArrayNode extends UniNode {
+    private final Adapter adapter;
+
     public UniArrayNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
         super(serializationAdapter, Type.ARRAY);
 
@@ -116,6 +118,8 @@ public final class UniArrayNode extends UniNode {
     }
 
     public static abstract class Adapter<B> extends AbstractList<Object> implements UniNode.Adapter<B> {
+        protected final B baseNode;
+
         protected Adapter(B baseNode) {
             this.baseNode = baseNode;
         }
@@ -136,7 +140,5 @@ public final class UniArrayNode extends UniNode {
         public B getBaseNode() {
             return baseNode;
         }
-        protected final B baseNode;
     }
-    private final Adapter adapter;
 }

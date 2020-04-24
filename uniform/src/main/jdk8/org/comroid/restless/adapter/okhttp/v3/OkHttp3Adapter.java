@@ -23,6 +23,8 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class OkHttp3Adapter implements HttpAdapter {
+    private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
+
     @Override
     public CompletableFuture<WebSocket> createWebSocket(
             SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
@@ -63,5 +65,4 @@ public class OkHttp3Adapter implements HttpAdapter {
             }
         });
     }
-    private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 }

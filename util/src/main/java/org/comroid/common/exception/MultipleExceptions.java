@@ -15,6 +15,8 @@ public class MultipleExceptions extends RuntimeException {
             @Nullable String baseMessage, Collection<? extends Throwable> throwables
     ) {
         class StringStream extends OutputStream {
+            private final StringBuilder sb = new StringBuilder();
+
             @Override
             public void write(int b) {
                 sb.append((char) b);
@@ -24,7 +26,6 @@ public class MultipleExceptions extends RuntimeException {
             public String toString() {
                 return sb.toString();
             }
-            private final StringBuilder sb = new StringBuilder();
         }
 
         if (baseMessage == null) {

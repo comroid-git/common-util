@@ -15,47 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LoopManagerTest {
-    @Before
-    public void setup() {
-        loopManager = LoopManager.start(1);
-    }
-
-    @Test
-    public void test() {
-        loopManager.queue(lowPrioLoop1);
-        loopManager.queue(medPrioLoop1);
-        loopManager.queue(higPrioLoop1);
-        loopManager.queue(higPrioLoop2);
-        loopManager.queue(medPrioLoop2);
-        loopManager.queue(lowPrioLoop2);
-
-        CompletableFuture.allOf(
-                lowPrioLoop1.result,
-                lowPrioLoop2.result,
-                medPrioLoop1.result,
-                medPrioLoop2.result,
-                higPrioLoop1.result,
-                higPrioLoop2.result
-        )
-                .join();
-
-        System.out.println("Results:");
-        results.forEach(System.out::println);
-
-        assertEquals(12, results.size());
-
-        assertTrue(results.stream()
-                .limit(4)
-                .allMatch(str -> str.startsWith("hig")));
-        assertTrue(results.stream()
-                .skip(4)
-                .limit(4)
-                .allMatch(str -> str.startsWith("med")));
-        assertTrue(results.stream()
-                .skip(8)
-                .limit(4)
-                .allMatch(str -> str.startsWith("low")));
-    }
     private final List<String>  results      = new ArrayList<>();
     private final Loop<Integer> lowPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
@@ -68,7 +27,6 @@ public class LoopManagerTest {
             return results.add("low-while1-#" + each);
         }
     };
-    private       LoopManager   loopManager;
     private final Loop<Integer> lowPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
@@ -124,4 +82,47 @@ public class LoopManagerTest {
             return results.add("hig-while2-#" + each);
         }
     };
+
+    @Before
+    public void setup() {
+        loopManager = LoopManager.start(1);
+    }
+
+    @Test
+    public void test() {
+        loopManager.queue(lowPrioLoop1);
+        loopManager.queue(medPrioLoop1);
+        loopManager.queue(higPrioLoop1);
+        loopManager.queue(higPrioLoop2);
+        loopManager.queue(medPrioLoop2);
+        loopManager.queue(lowPrioLoop2);
+
+        CompletableFuture.allOf(
+                lowPrioLoop1.result,
+                lowPrioLoop2.result,
+                medPrioLoop1.result,
+                medPrioLoop2.result,
+                higPrioLoop1.result,
+                higPrioLoop2.result
+        )
+                .join();
+
+        System.out.println("Results:");
+        results.forEach(System.out::println);
+
+        assertEquals(12, results.size());
+
+        assertTrue(results.stream()
+                .limit(4)
+                .allMatch(str -> str.startsWith("hig")));
+        assertTrue(results.stream()
+                .skip(4)
+                .limit(4)
+                .allMatch(str -> str.startsWith("med")));
+        assertTrue(results.stream()
+                .skip(8)
+                .limit(4)
+                .allMatch(str -> str.startsWith("low")));
+    }
+    private       LoopManager   loopManager;
 }

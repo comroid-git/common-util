@@ -67,12 +67,16 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
     }
 
     class Reference<K, V> implements Settable<V> {
-        public final         AtomicReference<V> reference = new AtomicReference<>(null);
+        public final AtomicReference<V> reference = new AtomicReference<>(null);
+        private final        OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
+        private final        Object                                     lock             = Polyfill.selfawareLock();
+        private final        K                                          key;
 
         public Reference(K key) {
             this.key = key;
             this.firstValueFuture.update(new CompletableFuture<>());
         }
+
         public Reference(K key, V initValue) {
             this.key = key;
             this.firstValueFuture.outdate();
@@ -117,7 +121,7 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
         public static <K, V> Reference<K, V> empty() {
             return (Reference<K, V>) EMPTY;
         }
-        private static final Reference<?, ?>    EMPTY     = new Reference<Object, Object>(null) {
+        private static final Reference<?, ?>                            EMPTY            = new Reference<Object, Object>(null) {
             @Nullable
             @Override
             public Object set(Object value) {
@@ -130,8 +134,5 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
                 return null;
             }
         };
-        private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
-        private final Object                                     lock             = Polyfill.selfawareLock();
-        private final K                                          key;
     }
 }

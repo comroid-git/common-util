@@ -7,6 +7,8 @@ import java.util.function.Function;
 
 public class ProvidedCache<K, V> extends BasicCache<K, V> {
     public static final Executor DEFAULT_EXECUTOR = ForkJoinPool.commonPool();
+    private final Executor                          providerWriteExecutor;
+    private final Function<K, CompletableFuture<V>> valueProvider;
 
     public ProvidedCache(
             int largeThreshold, Executor providerWriteExecutor, Function<K, CompletableFuture<V>> valueProvider
@@ -32,6 +34,4 @@ public class ProvidedCache<K, V> extends BasicCache<K, V> {
         return getReference(key, false).provider()
                 .get();
     }
-    private final Executor                          providerWriteExecutor;
-    private final Function<K, CompletableFuture<V>> valueProvider;
 }

@@ -45,6 +45,11 @@ public abstract class ForI<V> extends Loop<V> {
     protected abstract V init();
 
     public static final class IntFunc extends ForI<Integer> {
+        private final IntSupplier      initOp;
+        private final IntPredicate     continueTester;
+        private final IntUnaryOperator accumulator;
+        private final IntConsumer      action;
+
         public IntFunc(
                 int priority, IntSupplier initOp, IntPredicate continueTester, IntUnaryOperator accumulator, IntConsumer action
         ) {
@@ -79,13 +84,14 @@ public abstract class ForI<V> extends Loop<V> {
 
             return continueTester.test(this.peekNextInt());
         }
-        private final IntSupplier      initOp;
-        private final IntPredicate     continueTester;
-        private final IntUnaryOperator accumulator;
-        private final IntConsumer      action;
     }
 
     public static final class Func<T> extends ForI<T> {
+        private final Supplier<T>      initOp;
+        private final Predicate<T>     continueTester;
+        private final UnaryOperator<T> accumulator;
+        private final Consumer<T>      action;
+
         public Func(
                 int priority,
                 Supplier<T> initOp,
@@ -97,6 +103,8 @@ public abstract class ForI<V> extends Loop<V> {
 
             this.initOp         = initOp;
             this.continueTester = new Predicate<T>() {
+                private final HashSet<T> cache = new HashSet<>();
+
                 @Override
                 public boolean test(T t) {
                     if (cache.add(t)) {
@@ -104,7 +112,6 @@ public abstract class ForI<V> extends Loop<V> {
                     }
                     return false;
                 }
-                private final HashSet<T> cache = new HashSet<>();
             };
             this.accumulator    = accumulator;
             this.action         = action;
@@ -131,10 +138,7 @@ public abstract class ForI<V> extends Loop<V> {
 
             return continueTester.test(produce(this.peekNextInt()));
         }
-        private final Supplier<T>      initOp;
-        private final Predicate<T>     continueTester;
-        private final UnaryOperator<T> accumulator;
-        private final Consumer<T>      action;
     }
+
     private V v;
 }

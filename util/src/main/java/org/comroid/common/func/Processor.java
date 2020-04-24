@@ -31,6 +31,10 @@ public interface Processor<T> extends Reference<T>, Cloneable {
         return Processor.ofReference(this);
     }
 
+    static <T> Processor<T> ofReference(Reference<T> reference) {
+        return new Support.OfReference<>(reference);
+    }
+
     default Processor<T> filter(Predicate<? super T> predicate) {
         if (isPresent() && predicate.test(get())) {
             return this;
@@ -40,6 +44,11 @@ public interface Processor<T> extends Reference<T>, Cloneable {
     }
 
     boolean isPresent();
+
+    static <T> Processor<T> empty() {
+        //noinspection unchecked
+        return (Processor<T>) Support.EMPTY;
+    }
 
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
         if (isPresent()) {
@@ -75,18 +84,11 @@ public interface Processor<T> extends Reference<T>, Cloneable {
         return ofReference(Objects.isNull(value) ? Reference.empty() : Reference.constant(value));
     }
 
-    static <T> Processor<T> empty() {
-        //noinspection unchecked
-        return (Processor<T>) Support.EMPTY;
-    }
-
-    static <T> Processor<T> ofReference(Reference<T> reference) {
-        return new Support.OfReference<>(reference);
-    }
-
     @Internal
     final class Support {
         private static final class OfReference<T> implements Processor<T> {
+            private final Reference<T> underlying;
+
             private OfReference(Reference<T> underlying) {
                 this.underlying = underlying;
             }
@@ -101,10 +103,12 @@ public interface Processor<T> extends Reference<T>, Cloneable {
             public boolean isPresent() {
                 return !underlying.isNull();
             }
-            private final Reference<T> underlying;
         }
 
         private static final class Remapped<T, R> implements Processor<R> {
+            private final Processor<T>                     base;
+            private final Function<? super T, ? extends R> remapper;
+
             private Remapped(Processor<T> base, Function<? super T, ? extends R> remapper) {
                 this.base     = base;
                 this.remapper = remapper;
@@ -120,9 +124,8 @@ public interface Processor<T> extends Reference<T>, Cloneable {
             public boolean isPresent() {
                 return base.isPresent();
             }
-            private final Processor<T>                     base;
-            private final Function<? super T, ? extends R> remapper;
         }
+
         private static final Processor<?> EMPTY = new OfReference<>(Reference.empty());
     }
 }

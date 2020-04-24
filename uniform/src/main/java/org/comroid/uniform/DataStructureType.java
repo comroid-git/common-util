@@ -1,7 +1,8 @@
 package org.comroid.uniform;
 
 public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS, TAR extends BAS> {
-    public final    Primitive  typ;
+    public final Primitive typ;
+    protected final Class<TAR> tarClass;
 
     protected DataStructureType(Class<TAR> tarClass, Primitive typ) {
         this.tarClass = tarClass;
@@ -74,5 +75,4 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
         OBJECT,
         ARRAY
     }
-    protected final Class<TAR> tarClass;
 }

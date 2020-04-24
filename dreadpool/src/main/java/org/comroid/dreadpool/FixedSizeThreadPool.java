@@ -10,6 +10,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jetbrains.annotations.NotNull;
 
 public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor implements ThreadPool {
+    private final Lock                   lock      = new ReentrantLock();
+    private final Queue<ThreadPool.Task> taskQueue = new PriorityQueue<>();
+
     public FixedSizeThreadPool(
             int corePoolSize, WorkerFactory threadFactory, ThreadErrorHandler handler
     ) {
@@ -106,6 +109,4 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
     public int queueSize() {
         return taskQueue.size();
     }
-    private final Lock                   lock      = new ReentrantLock();
-    private final Queue<ThreadPool.Task> taskQueue = new PriorityQueue<>();
 }

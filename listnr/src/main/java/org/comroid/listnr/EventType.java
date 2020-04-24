@@ -30,6 +30,12 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
 
     final class Support {
         static final class Basic<P extends Event<P>, I, O> implements EventType<P, I, O> {
+            protected final EventHub<I, O>     hub;
+            private final   Class<P>           payloadType;
+            private final   int                flag = BitmaskUtil.nextFlag();
+            private final   Predicate<O>       eventTester;
+            private final   ParamFactory<O, P> payloadFactory;
+
             Basic(
                     EventHub<I, O> hub, Class<P> payloadType, Predicate<O> eventTester, ParamFactory<O, P> payloadFactory
             ) {
@@ -70,14 +76,14 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
             public final int peekCounter() {
                 return payloadFactory.peekCounter();
             }
-            protected final EventHub<I, O>     hub;
-            private final   Class<P>           payloadType;
-            private final   int                flag = BitmaskUtil.nextFlag();
-            private final   Predicate<O>       eventTester;
-            private final   ParamFactory<O, P> payloadFactory;
         }
 
         private static final class Combination<P extends Event<P>, I, O> implements Combined<P, I, O> {
+            private final Predicate<O>                 eventTester;
+            private final Class<P>                     payloadType;
+            private final EventType<? super P, I, O>[] subtypes;
+            private final int                          mask;
+
             private Combination(EventType<? super P, I, O>[] subtypes, Predicate<O> eventTester, Class<P> payloadType) {
                 this.eventTester = eventTester;
                 this.payloadType = payloadType;
@@ -129,10 +135,6 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
             public int peekCounter() {
                 return 0;
             }
-            private final Predicate<O>                 eventTester;
-            private final Class<P>                     payloadType;
-            private final EventType<? super P, I, O>[] subtypes;
-            private final int                          mask;
         }
     }
 

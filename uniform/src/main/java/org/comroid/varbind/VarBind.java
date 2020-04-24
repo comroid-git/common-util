@@ -61,6 +61,8 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     }
 
     final class Duo<EXTR, TARGET> extends AbstractObjectBind<EXTR, Object, TARGET> {
+        private final Function<EXTR, TARGET> remapper;
+
         public Duo(
                 GroupBind group,
                 String fieldName,
@@ -76,10 +78,11 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         public TARGET remap(EXTR from, Object dependency) {
             return remapper.apply(from);
         }
-        private final Function<EXTR, TARGET> remapper;
     }
 
     final class Dep<EXTR, DPND, TARGET> extends AbstractObjectBind<EXTR, DPND, TARGET> {
+        private final BiFunction<DPND, EXTR, TARGET> resolver;
+
         public Dep(
                 GroupBind group,
                 String fieldName,
@@ -95,7 +98,6 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         public TARGET remap(EXTR from, DPND dependency) {
             return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object"), from);
         }
-        private final BiFunction<DPND, EXTR, TARGET> resolver;
     }
 
     @Target(ElementType.TYPE)

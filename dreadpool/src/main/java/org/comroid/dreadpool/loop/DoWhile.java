@@ -29,6 +29,9 @@ public abstract class DoWhile extends Loop<Integer> {
     protected abstract boolean executeLoop(Integer each);
 
     public static final class Func extends DoWhile {
+        private final BooleanSupplier continueTester;
+        private final Runnable        action;
+
         public Func(int priority, BooleanSupplier continueTester, Runnable action) {
             super(priority, action);
 
@@ -47,7 +50,5 @@ public abstract class DoWhile extends Loop<Integer> {
 
             return true;
         }
-        private final BooleanSupplier continueTester;
-        private final Runnable        action;
     }
 }

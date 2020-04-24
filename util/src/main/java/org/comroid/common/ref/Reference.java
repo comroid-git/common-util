@@ -57,6 +57,8 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
     @Internal
     final class Support {
         private static final class Constant<T> implements Reference<T> {
+            private final        T                             value;
+
             private Constant(T value) {
                 this.value = value;
             }
@@ -67,8 +69,8 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
                 return value;
             }
             private static final Map<Object, Constant<Object>> cache = new ConcurrentHashMap<>();
-            private final T value;
         }
+
         private static final Reference<?> EMPTY = Reference.constant(null);
     }
 

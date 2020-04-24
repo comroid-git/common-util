@@ -8,6 +8,10 @@ import org.comroid.uniform.node.UniObjectNode;
 
 public final class SocketEvent {
     public static final class Container<EX> {
+        protected final EventType<Generic, EX, UniObjectNode> genericType;
+        private final   WebSocket<EX>                         webSocket;
+        private final   EventHub<EX, UniObjectNode>           eventHub;
+
         Container(WebSocket<EX> webSocket, EventHub<EX, UniObjectNode> eventHub) {
             this.webSocket = webSocket;
             this.eventHub  = eventHub;
@@ -25,6 +29,8 @@ public final class SocketEvent {
         }
 
         private abstract class Abstract<S extends Abstract<S>> extends Event.Support.Abstract<S> implements Event<S> {
+            private final WebSocket<EX> socket;
+
             protected Abstract(EventType<? extends S, ?, ?> subtypes, WebSocket<EX> socket) {
                 super(subtypes);
 
@@ -38,10 +44,6 @@ public final class SocketEvent {
             public WebSocket<EX> getSocket() {
                 return socket;
             }
-            private final WebSocket<EX> socket;
         }
-        private final WebSocket<EX> webSocket;
-        private final EventHub<EX, UniObjectNode> eventHub;
-        protected final EventType<Generic, EX, UniObjectNode> genericType;
     }
 }

@@ -12,6 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class UniNode implements Specifiable<UniNode> {
+    protected final SerializationAdapter<?, ?, ?> serializationAdapter;
+    private final   Type                          type;
+
     protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
         this.serializationAdapter = serializationAdapter;
         this.type                 = type;
@@ -183,12 +186,9 @@ public abstract class UniNode implements Specifiable<UniNode> {
     public interface Adapter<B> {
         B getBaseNode();
     }
-
     public enum Type {
         OBJECT,
         ARRAY,
         VALUE
     }
-    protected final SerializationAdapter<?, ?, ?> serializationAdapter;
-    private final   Type                          type;
 }

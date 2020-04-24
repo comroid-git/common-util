@@ -11,6 +11,8 @@ import org.comroid.uniform.SerializationAdapter;
 import org.jetbrains.annotations.NotNull;
 
 public final class UniObjectNode extends UniNode {
+    private final Adapter adapter;
+
     public UniObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
         super(serializationAdapter, Type.OBJECT);
 
@@ -75,6 +77,8 @@ public final class UniObjectNode extends UniNode {
     }
 
     public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {
+        protected final B baseNode;
+
         protected Adapter(B baseNode) {
             this.baseNode = baseNode;
         }
@@ -90,7 +94,5 @@ public final class UniObjectNode extends UniNode {
         public B getBaseNode() {
             return baseNode;
         }
-        protected final B baseNode;
     }
-    private final Adapter adapter;
 }

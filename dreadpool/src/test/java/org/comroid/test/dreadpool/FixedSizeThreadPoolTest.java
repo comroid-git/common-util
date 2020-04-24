@@ -127,6 +127,8 @@ public class FixedSizeThreadPoolTest {
     }
 
     public class SomeTask implements Runnable {
+        final UUID uuid = UUID.randomUUID();
+
         public UUID getUuid() {
             return uuid;
         }
@@ -135,8 +137,8 @@ public class FixedSizeThreadPoolTest {
         public void run() {
             yields.add(uuid);
         }
-        final UUID uuid = UUID.randomUUID();
     }
+
     private ThreadPool     threadPool;
     private List<SomeTask> someTasks;
     private List<UUID>     yields;

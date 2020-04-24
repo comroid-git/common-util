@@ -48,6 +48,8 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
     @Internal
     final class Support {
         private static final class Constant<T> implements Provider.Now<T> {
+            private final        T                             value;
+
             private Constant(T value) {
                 this.value = value;
             }
@@ -57,10 +59,11 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
                 return value;
             }
             private static final Map<Object, Constant<Object>> cache = new ConcurrentHashMap<>();
-            private final T value;
         }
 
         private static final class Once<T> implements Provider<T> {
+            private final CompletableFuture<T> future;
+
             public Once(CompletableFuture<T> from) {
                 this.future = from;
             }
@@ -69,8 +72,8 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
             public CompletableFuture<T> get() {
                 return future;
             }
-            private final CompletableFuture<T> future;
         }
+
         private static final Provider<?> EMPTY = constant(null);
     }
 

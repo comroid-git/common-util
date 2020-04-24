@@ -102,21 +102,23 @@ public final class Polyfill {
 
     public static <T, R> Function<T, R> failingFunction(Supplier<? extends RuntimeException> exceptionSupplier) {
         return new Function<T, R>() {
+            private final Supplier<? extends RuntimeException> supplier = exceptionSupplier;
+
             @Override
             public R apply(T t) {
                 throw supplier.get();
             }
-            private final Supplier<? extends RuntimeException> supplier = exceptionSupplier;
         };
     }
 
     public static <T, R> Function<T, R> erroringFunction(@Nullable String message) {
         return new Function<T, R>() {
+            private final String msg = notnullOr(message, "Unexpected Call");
+
             @Override
             public R apply(T t) {
                 throw new AssertionError(msg);
             }
-            private final String msg = notnullOr(message, "Unexpected Call");
         };
     }
 
@@ -126,6 +128,7 @@ public final class Polyfill {
             public String toString() {
                 return String.format("SelfAwareLock@%s", Integer.toHexString(hashCode()));
             }
+
             private volatile Object selfaware_keepalive;
         }
 
@@ -143,11 +146,12 @@ public final class Polyfill {
 
     public static <T> Supplier<T> constantSupplier(T it) {
         return new Supplier<T>() {
+            private final T value = it;
+
             @Override
             public T get() {
                 return value;
             }
-            private final T value = it;
         };
     }
 }

@@ -15,6 +15,11 @@ public final class Version implements Comparable<Version> {
     public static final Pattern PATTERN = Pattern.compile(
             "(?<major>\\d+)\\.(?<minor>\\d+)\\.?(?<patch>\\d+)?[.\\-_]?(?<candidate>(a(lpha)?|b" +
                     "(eta)?|(r(elease)?|c?))+)?[.\\-_]?(?<hotfix>\\d+)?");
+    private final int         major;
+    private final int         minor;
+    private final int         patch;
+    private final ReleaseType releaseType;
+    private final int         hotfix;
 
     public Version(int major, int minor, int patch, ReleaseType releaseType, int hotfix) {
         this.major       = major;
@@ -103,7 +108,6 @@ public final class Version implements Comparable<Version> {
     public interface Container {
         Version getVersion();
     }
-
     public enum ReleaseType {
         SNAPSHOT("s", "snap", "snapshot"),
 
@@ -112,6 +116,8 @@ public final class Version implements Comparable<Version> {
         BETA("b", "beta"),
 
         RELEASE("r", "rc", "release");
+
+        private final String[] idents;
 
         ReleaseType(String... idents) {
             this.idents = idents;
@@ -128,11 +134,5 @@ public final class Version implements Comparable<Version> {
                     .findAny()
                     .orElse(RELEASE);
         }
-        private final String[] idents;
     }
-    private final int         major;
-    private final int         minor;
-    private final int         patch;
-    private final ReleaseType releaseType;
-    private final int         hotfix;
 }

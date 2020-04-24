@@ -8,6 +8,10 @@ import org.comroid.common.func.Invocable;
 import org.jetbrains.annotations.Nullable;
 
 public final class MethodInvocation<T> implements Invocable<T> {
+    private final Method   method;
+    private final Object   target;
+    private final Object[] args;
+
     public MethodInvocation(Method method, Object target) {
         this(method, target, null);
     }
@@ -41,7 +45,4 @@ public final class MethodInvocation<T> implements Invocable<T> {
     public Class<?>[] typeOrder() {
         return method.getParameterTypes();
     }
-    private final Method   method;
-    private final Object   target;
-    private final Object[] args;
 }

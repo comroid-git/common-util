@@ -23,6 +23,12 @@ import org.comroid.uniform.node.UniValueNode;
 import org.jetbrains.annotations.Nullable;
 
 public final class GroupBind {
+    final                   List<? extends VarBind<?, ?, ?, ?>>              children            = new ArrayList<>();
+    private final           SerializationAdapter<?, ?, ?>                    serializationAdapter;
+    private final           String                                           groupName;
+    private final @Nullable GroupBind                                        parent;
+    private final           List<GroupBind>                                  subgroups           = new ArrayList<>();
+
     public GroupBind(SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
         this(null, serializationAdapter, groupName);
     }
@@ -67,6 +73,8 @@ public final class GroupBind {
         }
 
         class AutoConstructor implements BiFunction<D, UniObjectNode, R> {
+            private final Constructor<R> constr;
+
             public AutoConstructor(Constructor<R> constr) {
                 this.constr = constr;
             }
@@ -77,7 +85,6 @@ public final class GroupBind {
                         serializationAdapter, obj, obj.getBaseNode(), dependencyObject
                 }, constr.getParameterTypes()));
             }
-            private final Constructor<R> constr;
         }
 
         return new AutoConstructor(optConstructor.get());
@@ -210,11 +217,6 @@ public final class GroupBind {
                 .map(node -> dataExtractor.apply(node, fieldName))
                 .collect(Collectors.toList());
     }
-    private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
+    private static final    BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
             .asObjectNode();
-    final                   List<? extends VarBind<?, ?, ?, ?>> children  = new ArrayList<>();
-    private final           SerializationAdapter<?, ?, ?>       serializationAdapter;
-    private final           String                              groupName;
-    private final @Nullable GroupBind                           parent;
-    private final           List<GroupBind>                     subgroups = new ArrayList<>();
 }

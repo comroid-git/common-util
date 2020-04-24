@@ -39,6 +39,8 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
 
     final class Task implements Comparable<Task> {
         public static final Comparator<Task> TASK_COMPARATOR = Comparator.comparingLong(Task::getIssuedAt);
+        private final long     issuedAt = nanoTime();
+        private final Runnable runnable;
 
         public Task(Runnable runnable) {
             this.runnable = runnable;
@@ -56,13 +58,14 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
         public int compareTo(@NotNull ThreadPool.Task other) {
             return TASK_COMPARATOR.compare(this, other);
         }
-        private final long     issuedAt = nanoTime();
-        private final Runnable runnable;
     }
 
     class Worker extends org.comroid.dreadpool.Worker implements Executor, Comparable<ThreadPool.Worker> {
         public static final int                ERR_STACKSIZE     = 5;
         public static final Comparator<Worker> WORKER_COMPARATOR = Comparator.comparingLong(Worker::lastOp);
+        private final Object          lock     = Polyfill.selfawareLock();
+        private final Queue<Runnable> queue    = new LinkedBlockingQueue<>();
+        private final int             errStack = 0;
 
         protected Worker(@Nullable ThreadGroup group, @NotNull String name) {
             super(group, name);
@@ -125,10 +128,7 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
             return lastOp;
         }
         ThreadPool threadPool;
-        private final Object          lock     = Polyfill.selfawareLock();
-        private final Queue<Runnable> queue    = new LinkedBlockingQueue<>();
         private       boolean         busy     = true;
         private       long            lastOp   = 0;
-        private final int             errStack = 0;
     }
 }

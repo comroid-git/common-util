@@ -5,6 +5,8 @@ import java.util.Arrays;
 import org.comroid.common.ref.SelfDeclared;
 
 public abstract class InstanceContext<S extends InstanceContext<S>> implements SelfDeclared<S> {
+    private final Object[] args;
+
     protected InstanceContext(Object... args) {
         this.args = args;
     }
@@ -17,5 +19,4 @@ public abstract class InstanceContext<S extends InstanceContext<S>> implements S
     public final String toString() {
         return String.format("InstanceContext{args=%s}", Arrays.toString(args));
     }
-    private final Object[] args;
 }

@@ -9,11 +9,14 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoCloseable {
-    public static final int HIGH_PRIO   = 200;
-    public static final Comparator<Loop<?>> LOOP_COMPARATOR = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
-    public static final int LOW_PRIO    = 0;
-    public static final int MEDIUM_PRIO = 100;
-    public final  CompletableFuture<L>          result      = new CompletableFuture<>();
+    public static final int                  HIGH_PRIO       = 200;
+    public static final Comparator<Loop<?>>  LOOP_COMPARATOR = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
+    public static final int                  LOW_PRIO        = 0;
+    public static final int                  MEDIUM_PRIO     = 100;
+    public final        CompletableFuture<L> result          = new CompletableFuture<>();
+    private final OutdateableReference<Boolean> canContinue = new OutdateableReference<>();
+    private final int                           priority;
+
     protected Loop(int priority) {
         this.priority = priority;
     }
@@ -118,7 +121,5 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
         return counter + 1;
     }
     protected     int                           counter     = 0;
-    private final OutdateableReference<Boolean> canContinue = new OutdateableReference<>();
-    private final int                           priority;
     private       boolean                       closed;
 }

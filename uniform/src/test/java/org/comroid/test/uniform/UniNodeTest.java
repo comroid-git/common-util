@@ -18,6 +18,8 @@ import org.junit.Test;
 import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
 
 public class UniNodeTest {
+    private final Random               rng = new Random();
+
     @Before
     public void setup() {
         JSONObject object = new JSONObject();
@@ -57,7 +59,6 @@ public class UniNodeTest {
             Assert.assertEquals(randomInts.get(i), value);
         }
     }
-    private final Random               rng = new Random();
     private       UniObjectNode        object;
     private       UniArrayNode         array;
     private       Map<String, Integer> randomMap;

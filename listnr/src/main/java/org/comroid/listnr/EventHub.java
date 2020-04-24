@@ -19,6 +19,11 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.util.BitmaskUtil;
 
 public final class EventHub<I, O> {
+    private final Span<EventType<?, I, O>>  registeredTypes     = new Span<>();
+    private final Span<EventAcceptor<?, ?>> registeredAcceptors = new Span<>();
+    private final ExecutorService           executorService;
+    private final Function<I, O>            preprocessor;
+
     public <EX extends ExecutorService & ScheduledExecutorService> EventHub(
             ExecutorService executorService, Function<I, O> preprocessor
     ) {
@@ -126,8 +131,4 @@ public final class EventHub<I, O> {
 
         return new EventAcceptor.Support.OfSortedInvocables<>(capabilities, invocables);
     }
-    private final Span<EventType<?, I, O>>  registeredTypes     = new Span<>();
-    private final Span<EventAcceptor<?, ?>> registeredAcceptors = new Span<>();
-    private final ExecutorService           executorService;
-    private final Function<I, O>            preprocessor;
 }

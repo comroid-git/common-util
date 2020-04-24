@@ -19,6 +19,8 @@ public interface ReBind<EXTR, DPND, REMAP> extends VarBind.NotAutoprocessed<EXTR
     GroupBind getGroup();
 
     final class Duo<EXTR, FINAL> extends AbstractReBind<EXTR, Object, FINAL> {
+        private final Function<EXTR, FINAL> remapper;
+
         public Duo(VarBind<?, Object, ?, EXTR> underlying, GroupBind group, Function<EXTR, FINAL> remapper) {
             super(underlying, group);
 
@@ -29,10 +31,11 @@ public interface ReBind<EXTR, DPND, REMAP> extends VarBind.NotAutoprocessed<EXTR
         public FINAL remap(EXTR from, Object dependency) {
             return remapper.apply(from);
         }
-        private final Function<EXTR, FINAL> remapper;
     }
 
     final class Dep<EXTR, DPND, FINAL> extends AbstractReBind<EXTR, DPND, FINAL> {
+        private final BiFunction<EXTR, DPND, FINAL> remapper;
+
         public Dep(
                 VarBind<?, DPND, ?, EXTR> underlying, GroupBind group, BiFunction<EXTR, DPND, FINAL> remapper
         ) {
@@ -45,6 +48,5 @@ public interface ReBind<EXTR, DPND, REMAP> extends VarBind.NotAutoprocessed<EXTR
         public FINAL remap(EXTR from, DPND dependency) {
             return remapper.apply(from, Objects.requireNonNull(dependency, "Dependency object is null"));
         }
-        private final BiFunction<EXTR, DPND, FINAL> remapper;
     }
 }

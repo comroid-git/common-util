@@ -24,5 +24,6 @@ public class ThreadErrorHandler implements RejectedExecutionHandler {
                 .withCause(IEx)
                 .log();
     }
+
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 }

@@ -56,5 +56,6 @@ public class TestRestJava8 {
             t.printStackTrace(System.out);
         }
     }
+
     private REST rest;
 }

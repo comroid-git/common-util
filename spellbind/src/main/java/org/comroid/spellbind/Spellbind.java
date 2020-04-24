@@ -28,6 +28,10 @@ public final class Spellbind {
     }
 
     public static class Builder<T> implements org.comroid.common.func.Builder<T> {
+        private final Class<T>                       mainInterface;
+        private final Map<String, Invocable<Object>> methodBinds;
+        private final Collection<Class<?>>           interfaces;
+
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
             this.methodBinds   = TrieMap.ofString();
@@ -131,9 +135,6 @@ public final class Spellbind {
 
             return this;
         }
-        private final Class<T>                       mainInterface;
-        private final Map<String, Invocable<Object>> methodBinds;
-        private final Collection<Class<?>>           interfaces;
         private       Object                         coreObject;
         private       ClassLoader                    classLoader;
     }
