@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.comroid</groupId>
   <artifactId>dreadpool</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1-SNAPSHOT</version>
   <name>common-util</name>
   <description>ThreadPools with interruptible tasks</description>
   <url>https://github.com/comroid-git/common-util</url>
@@ -36,19 +36,19 @@
     <dependency>
       <groupId>org.comroid</groupId>
       <artifactId>common-util</artifactId>
-      <version>1.4.0</version>
+      <version>1.4.1-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger</artifactId>
-      <version>0.4</version>
+      <version>0.5.1</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger-system-backend</artifactId>
-      <version>0.4</version>
+      <version>0.5.1</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>
