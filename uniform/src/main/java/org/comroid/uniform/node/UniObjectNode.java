@@ -1,6 +1,7 @@
 package org.comroid.uniform.node;
 
 import java.util.AbstractMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -10,8 +11,27 @@ import org.comroid.uniform.SerializationAdapter;
 import org.jetbrains.annotations.NotNull;
 
 public final class UniObjectNode extends UniNode {
-    public static abstract class Adapter<B> extends AbstractMap<String, Object>
-            implements UniNode.Adapter<B> {
+    public static UniObjectNode ofMap(SerializationAdapter<?, ?, ?> adapter, Map<String, Object> map) {
+        class MergedAdapter extends UniObjectNode.Adapter<Map<String, Object>> {
+            protected MergedAdapter(Map<String, Object> underlying) {
+                super(underlying);
+            }
+
+            @Override
+            public Object put(String key, Object value) {
+                return getBaseNode().put(key, value);
+            }
+
+            @Override
+            public @NotNull Set<Entry<String, Object>> entrySet() {
+                return getBaseNode().entrySet();
+            }
+        }
+
+        return new UniObjectNode(adapter, new MergedAdapter(map));
+    }
+
+    public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {
         protected final B baseNode;
 
         protected Adapter(B baseNode) {
@@ -30,7 +50,7 @@ public final class UniObjectNode extends UniNode {
             return baseNode;
         }
     }
-
+  
     private final Adapter adapter;
 
     public UniObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {

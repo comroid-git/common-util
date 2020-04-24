@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
@@ -19,10 +20,10 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
 
+import org.jetbrains.annotations.Nullable;
+
 public final class GroupBind {
-    private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor =
-            (node, sub) -> node.get(
-            sub)
+    private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
             .asObjectNode();
 
     public final String getName() {
@@ -37,23 +38,36 @@ public final class GroupBind {
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final String                        groupName;
 
+    public final Optional<GroupBind> getParent() {
+        return Optional.ofNullable(parent);
+    }
+    final                   List<? extends VarBind<?, ?, ?, ?>> children  = new ArrayList<>();
+    private final @Nullable GroupBind                           parent;
+    private final           SerializationAdapter<?, ?, ?>       serializationAdapter;
+    private final           String                              groupName;
+    private final           List<GroupBind>                     subgroups = new ArrayList<>();
     public GroupBind(SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
+        this(null, serializationAdapter, groupName);
+    }
+
+    private GroupBind(@Nullable GroupBind parent, SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
+        this.parent               = parent;
         this.serializationAdapter = serializationAdapter;
         this.groupName            = groupName;
+
+        if (parent != null) {
+            parent.getChildren()
+                    .forEach(it -> children.add(Polyfill.deadCast(it)));
+        }
     }
 
     public <R extends VarCarrier<D>, D> BiFunction<D, UniObjectNode, R> autoConstructor(
             Class<R> resultType, Class<D> dependencyType
     ) {
         final Class<?>[] typesUnordered = {
-                UniObjectNode.class,
-                SerializationAdapter.class,
-                serializationAdapter.objectType.typeClass(),
-                dependencyType
+                UniObjectNode.class, SerializationAdapter.class, serializationAdapter.objectType.typeClass(), dependencyType
         };
-        final Optional<Constructor<R>> optConstructor = ReflectionHelper.findConstructor(resultType,
-                typesUnordered
-        );
+        final Optional<Constructor<R>> optConstructor = ReflectionHelper.findConstructor(resultType, typesUnordered);
 
         if (!optConstructor.isPresent()) {
             throw new NoSuchElementException("Could not find any fitting constructor");
@@ -75,6 +89,12 @@ public final class GroupBind {
         }
 
         return new AutoConstructor(optConstructor.get());
+    }
+
+    public final GroupBind subGroup(String subGroupName) {
+        final GroupBind groupBind = new GroupBind(this, serializationAdapter, subGroupName);
+        subgroups.add(groupBind);
+        return groupBind;
     }
 
     public final <T> VarBind.Uno<T> bind1stage(String fieldname, UniValueNode.ValueType<T> type) {

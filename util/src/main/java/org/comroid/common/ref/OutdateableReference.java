@@ -17,8 +17,6 @@ public final class OutdateableReference<T> implements Reference<T> {
     }
 
     /**
-     * @param newValue
-     *
      * @return The new Value
      */
     public T update(T newValue) {

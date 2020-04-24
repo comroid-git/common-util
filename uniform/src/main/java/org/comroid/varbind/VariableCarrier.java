@@ -2,11 +2,12 @@ package org.comroid.varbind;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.comroid.common.Polyfill;
+import org.comroid.common.func.Processor;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.util.ReflectionHelper;
@@ -21,26 +22,24 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
 import static org.comroid.common.Polyfill.deadCast;
 
+@SuppressWarnings("unchecked")
 public class VariableCarrier<DEP> implements VarCarrier<DEP> {
-    private final SerializationAdapter<?, ?, ?> serializationAdapter;
-    private final GroupBind rootBind;
-    private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars
-                     = new ConcurrentHashMap<>();
-    private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>
-            computed = new ConcurrentHashMap<>();
-    private final DEP dependencyObject;
-    private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
-
-    public VariableCarrier(
-            SerializationAdapter<?, ?, ?> serializationAdapter, @Nullable UniObjectNode initialData
-    ) {
-        this(serializationAdapter, initialData, null);
+    public final DEP getDependencyObject() {
+        return dependencyObject;
     }
 
-    public <BAS, OBJ extends BAS> VariableCarrier(
-            SerializationAdapter<BAS, OBJ, ?> serializationAdapter,
-            OBJ initialData,
-            @Nullable DEP dependencyObject
+    private final SerializationAdapter<?, ?, ?>                                               serializationAdapter;
+    private final GroupBind                                                                   rootBind;
+    private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     =
+            new ConcurrentHashMap<>();
+    private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed
+                                                                                                       =
+            new ConcurrentHashMap<>();
+    private final DEP                                                                         dependencyObject;
+    private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
+
+    protected <BAS, OBJ extends BAS> VariableCarrier(
+            SerializationAdapter<BAS, OBJ, ?> serializationAdapter, OBJ initialData, @Nullable DEP dependencyObject
     ) {
         this(serializationAdapter,
                 serializationAdapter.createUniObjectNode(initialData),
@@ -125,26 +124,64 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     }
 
     @Override
-    public Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node) {
+    public final Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node) {
         return unmodifiableSet(updateVars(node));
     }
 
     @Override
-    public Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet() {
+    public final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet() {
         return initiallySet;
     }
 
     @Override
-    public @NotNull <T> OutdateableReference<T> ref(VarBind<?, ? super DEP, ?, T> pBind) {
-        VarBind<Object, ? super DEP, Object, T> bind
-                = (VarBind<Object, ? super DEP, Object, T>) pBind;
-        OutdateableReference<T> ref = compRef(bind);
+    public final <T> Optional<Reference<T>> getByName(String name) {
+        final String[] split = name.split("\\.");
+
+        if (split.length == 1) {
+            return getRootBind().getChildren()
+                    .stream()
+                    .filter(bind -> bind.getFieldName()
+                            .equals(name))
+                    .findAny()
+                    .map(it -> ref(deadCast(it)));
+        }
+
+        // any stage in the groupbind tree
+        Processor<GroupBind> parentGroup = Processor.ofConstant(getRootBind());
+
+        // find the topmost parent
+        while (parentGroup.requireNonNull()
+                .getParent()
+                .isPresent()) {
+            parentGroup = parentGroup.map(group -> group.getParent()
+                    .orElse(group));
+        }
+
+        // find the subgroup named the first split part,
+        return parentGroup.flatMap(parent -> parent.getSubgroups()
+                .stream())
+                .filter(group -> group.getName()
+                        .equals(split[0]))
+                // then find the subgroup named second split part
+                .flatMap(group -> group.getChildren()
+                        .stream())
+                .filter(bind -> bind.getFieldName()
+                        .equals(split[1]))
+                .findAny()
+                // get reference of bind
+                .map(it -> ref(deadCast(it)));
+    }
+
+    @Override
+    public final @NotNull <T> OutdateableReference<T> ref(VarBind<?, ? super DEP, ?, T> pBind) {
+        VarBind<Object, ? super DEP, Object, T> bind = (VarBind<Object, ? super DEP, Object, T>) pBind;
+        OutdateableReference<T>                 ref  = compRef(bind);
 
         if (ref.isOutdated()) {
             // recompute
 
-            AtomicReference<Span<Object>> reference = extrRef(Polyfill.deadCast(bind));
-            final T yield = bind.process(dependencyObject, reference.get());
+            AtomicReference<Span<Object>> reference = extrRef(deadCast(bind));
+            final T                       yield     = bind.process(dependencyObject, reference.get());
             ref.update(yield);
         }
 
