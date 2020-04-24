@@ -17,6 +17,8 @@ public interface VarCarrier<DEP> {
 
     Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet();
 
+    <T> Optional<Reference<T>> getByName(String name);
+
     <T> @NotNull Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind);
 
     default <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> bind) {

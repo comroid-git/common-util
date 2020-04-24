@@ -19,6 +19,8 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
 
+import org.jetbrains.annotations.Nullable;
+
 public final class GroupBind {
     private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
             .asObjectNode();
@@ -35,12 +37,22 @@ public final class GroupBind {
         return Collections.unmodifiableList(subgroups);
     }
 
-    final         List<? extends VarBind<?, ?, ?, ?>> children  = new ArrayList<>();
-    private final SerializationAdapter<?, ?, ?>       serializationAdapter;
-    private final String                              groupName;
-    private final List<GroupBind>                     subgroups = new ArrayList<>();
+    public final Optional<GroupBind> getParent() {
+        return Optional.ofNullable(parent);
+    }
+
+    final                   List<? extends VarBind<?, ?, ?, ?>> children  = new ArrayList<>();
+    private final @Nullable GroupBind                           parent;
+    private final           SerializationAdapter<?, ?, ?>       serializationAdapter;
+    private final           String                              groupName;
+    private final           List<GroupBind>                     subgroups = new ArrayList<>();
 
     public GroupBind(SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
+        this(null, serializationAdapter, groupName);
+    }
+
+    private GroupBind(@Nullable GroupBind parent, SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
+        this.parent               = parent;
         this.serializationAdapter = serializationAdapter;
         this.groupName            = groupName;
     }
@@ -76,7 +88,7 @@ public final class GroupBind {
     }
 
     public final GroupBind subGroup(String subGroupName) {
-        final GroupBind groupBind = new GroupBind(serializationAdapter, subGroupName);
+        final GroupBind groupBind = new GroupBind(this, serializationAdapter, subGroupName);
         subgroups.add(groupBind);
         return groupBind;
     }

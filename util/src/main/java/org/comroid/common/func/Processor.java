@@ -1,6 +1,7 @@
 package org.comroid.common.func;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -17,8 +18,19 @@ import org.jetbrains.annotations.Nullable;
  * Cloneable through {@link #process()}.
  */
 public interface Processor<T> extends Reference<T>, Cloneable {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    static <T> Processor<T> ofOptional(Optional<T> optional) {
+        return optional.map(Processor::ofConstant)
+                .orElseGet(Processor::empty);
+    }
+
     static <T> Processor<T> ofConstant(T value) {
         return ofReference(Objects.isNull(value) ? Reference.empty() : Reference.constant(value));
+    }
+
+    static <T> Processor<T> empty() {
+        //noinspection unchecked
+        return (Processor<T>) Support.EMPTY;
     }
 
     static <T> Processor<T> ofReference(Reference<T> reference) {
@@ -35,15 +47,15 @@ public interface Processor<T> extends Reference<T>, Cloneable {
                 this.underlying = underlying;
             }
 
-            @Override
-            public boolean isPresent() {
-                return !underlying.isNull();
-            }
-
             @Nullable
             @Override
             public T get() {
                 return underlying.get();
+            }
+
+            @Override
+            public boolean isPresent() {
+                return !underlying.isNull();
             }
         }
 
@@ -56,15 +68,15 @@ public interface Processor<T> extends Reference<T>, Cloneable {
                 this.remapper = remapper;
             }
 
-            @Override
-            public boolean isPresent() {
-                return base.isPresent();
-            }
-
             @Nullable
             @Override
             public R get() {
                 return remapper.apply(base.get());
+            }
+
+            @Override
+            public boolean isPresent() {
+                return base.isPresent();
             }
         }
     }
@@ -90,11 +102,6 @@ public interface Processor<T> extends Reference<T>, Cloneable {
     }
 
     boolean isPresent();
-
-    static <T> Processor<T> empty() {
-        //noinspection unchecked
-        return (Processor<T>) Support.EMPTY;
-    }
 
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
         if (isPresent()) {
