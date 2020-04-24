@@ -63,6 +63,11 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
         return c > maxSize ? maxSize : c++;
     }
 
+    @Override
+    public int peekCounter() {
+        return Math.min(c, maxSize);
+    }
+
     public boolean allBusy() {
         return workers.stream()
                 .allMatch(ThreadPool.Worker::isBusy);
