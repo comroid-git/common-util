@@ -11,68 +11,6 @@ import org.comroid.uniform.SerializationAdapter;
 import org.jetbrains.annotations.NotNull;
 
 public final class UniArrayNode extends UniNode {
-    public static UniArrayNode ofList(SerializationAdapter<?, ?, ?> adapter, List<Object> list) {
-        class MergedAdapter extends Adapter<List<Object>> {
-            protected MergedAdapter(List<Object> underlying) {
-                super(underlying);
-            }
-
-            @Override
-            public int size() {
-                return getBaseNode().size();
-            }
-
-            @Override
-            public Object get(int index) {
-                return getBaseNode().get(index);
-            }
-
-            @Override
-            public Object set(int index, Object element) {
-                return getBaseNode().set(index, element);
-            }
-
-            @Override
-            public void add(int index, Object element) {
-                getBaseNode().add(index, element);
-            }
-
-            @Override
-            public Object remove(int index) {
-                return getBaseNode().remove(index);
-            }
-        }
-
-        return new UniArrayNode(adapter, new MergedAdapter(list));
-    }
-
-    public static abstract class Adapter<B> extends AbstractList<Object> implements UniNode.Adapter<B> {
-        protected final B baseNode;
-
-        protected Adapter(B baseNode) {
-            this.baseNode = baseNode;
-        }
-
-        @Override
-        public abstract Object get(int index);
-
-        @Override
-        public abstract Object set(int index, Object element);
-
-        @Override
-        public abstract void add(int index, Object element);
-
-        @Override
-        public abstract Object remove(int index);
-
-        @Override
-        public B getBaseNode() {
-            return baseNode;
-        }
-    }
-
-    private final Adapter adapter;
-
     public UniArrayNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
         super(serializationAdapter, Type.ARRAY);
 
@@ -141,4 +79,64 @@ public final class UniArrayNode extends UniNode {
 
         return yields;
     }
+
+    public static UniArrayNode ofList(SerializationAdapter<?, ?, ?> adapter, List<Object> list) {
+        class MergedAdapter extends Adapter<List<Object>> {
+            protected MergedAdapter(List<Object> underlying) {
+                super(underlying);
+            }
+
+            @Override
+            public int size() {
+                return getBaseNode().size();
+            }
+
+            @Override
+            public Object get(int index) {
+                return getBaseNode().get(index);
+            }
+
+            @Override
+            public Object set(int index, Object element) {
+                return getBaseNode().set(index, element);
+            }
+
+            @Override
+            public void add(int index, Object element) {
+                getBaseNode().add(index, element);
+            }
+
+            @Override
+            public Object remove(int index) {
+                return getBaseNode().remove(index);
+            }
+        }
+
+        return new UniArrayNode(adapter, new MergedAdapter(list));
+    }
+
+    public static abstract class Adapter<B> extends AbstractList<Object> implements UniNode.Adapter<B> {
+        protected Adapter(B baseNode) {
+            this.baseNode = baseNode;
+        }
+
+        @Override
+        public abstract Object get(int index);
+
+        @Override
+        public abstract Object set(int index, Object element);
+
+        @Override
+        public abstract void add(int index, Object element);
+
+        @Override
+        public abstract Object remove(int index);
+
+        @Override
+        public B getBaseNode() {
+            return baseNode;
+        }
+        protected final B baseNode;
+    }
+    private final Adapter adapter;
 }

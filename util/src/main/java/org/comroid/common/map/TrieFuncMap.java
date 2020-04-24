@@ -19,16 +19,77 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
-    protected static class Stage<K, S, V> implements Map.Entry<K, V> {
-        private final     Object                    lock = Polyfill.selfawareLock();
-        private final     Stage<K, S, V>            parent;
-        private final     EqualityComparator<S>     comparator;
-        private final     BiFunction<S, S, Boolean> validator;
-        private final     Map<S, Stage>             subStages;
-        private final     K                         effectiveKey;
-        private final     S                         smallKey;
-        private @Nullable V                         value;
+    public TrieFuncMap(Comparator<S> comparator, Function<K, S[]> keySplitter) {
+        this.keySplitter = keySplitter;
+        this.baseStage   = new Stage(null, null, null, EqualityComparator.ofComparator(comparator));
+    }
 
+    public TrieFuncMap(BiFunction<S, S, Boolean> validator, Function<K, S[]> keySplitter) {
+        this.keySplitter = keySplitter;
+        this.baseStage   = new Stage(null, null, null, validator);
+    }
+    public TrieFuncMap(Function<K, S[]> keySplitter) {
+        this.keySplitter = keySplitter;
+        this.baseStage   = new Stage(null, null, null);
+    }
+
+    @Override
+    public int size() {
+        return (int) baseStage.stream()
+                .count();
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return baseStage.stream()
+                .anyMatch(stage -> stage.getValue()
+                        .equals(value));
+    }
+
+    @Override
+    public V get(Object key) {
+        return baseStage.get((K) key, keySplitter.apply((K) key), 0);
+    }
+
+    @Nullable
+    @Override
+    public V put(K key, V value) {
+        return baseStage.set(key, keySplitter.apply(key), 0, value);
+    }
+
+    @Override
+    public V remove(Object key) {
+        return baseStage.remove((K) key, keySplitter.apply((K) key), 0);
+    }
+
+    @Override
+    public void clear() {
+        baseStage.subStages.clear();
+    }
+
+    @NotNull
+    @Override
+    public Set<K> keySet() {
+        return baseStage.streamKeys()
+                .collect(Collectors.toSet());
+    }
+
+    @NotNull
+    @Override
+    public Collection<V> values() {
+        return baseStage.stream()
+                .map(Stage::getValue)
+                .collect(Collectors.toList());
+    }
+
+    @NotNull
+    @Override
+    public Set<Entry<K, V>> entrySet() {
+        return baseStage.stream()
+                .collect(Collectors.toSet());
+    }
+
+    protected static class Stage<K, S, V> implements Map.Entry<K, V> {
         private Stage(
                 Stage<K, S, V> parent, K effectiveKey, S smallKey, EqualityComparator<S> comparator
         ) {
@@ -39,7 +100,6 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
             this.effectiveKey = effectiveKey;
             this.smallKey     = smallKey;
         }
-
         private Stage(
                 Stage<K, S, V> parent, K effectiveKey, S smallKey, BiFunction<S, S, Boolean> validator
         ) {
@@ -50,7 +110,6 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
             this.effectiveKey = effectiveKey;
             this.smallKey     = smallKey;
         }
-
         private Stage(Stage<K, S, V> parent, K effectiveKey, S smallKey) {
             this.parent       = parent;
             this.comparator   = null;
@@ -175,79 +234,15 @@ public class TrieFuncMap<K, S, V> implements TrieMap<K, V> {
                 }
             }
         }
+        private final     Object                    lock = Polyfill.selfawareLock();
+        private final     Stage<K, S, V>            parent;
+        private final     EqualityComparator<S>     comparator;
+        private final     BiFunction<S, S, Boolean> validator;
+        private final     Map<S, Stage>             subStages;
+        private final     K                         effectiveKey;
+        private final     S                         smallKey;
+        private @Nullable V                         value;
     }
-
     protected final TrieFuncMap.Stage<K, S, V> baseStage;
     private final   Function<K, S[]>           keySplitter;
-
-    public TrieFuncMap(Comparator<S> comparator, Function<K, S[]> keySplitter) {
-        this.keySplitter = keySplitter;
-        this.baseStage   = new Stage(null, null, null, EqualityComparator.ofComparator(comparator));
-    }
-
-    public TrieFuncMap(BiFunction<S, S, Boolean> validator, Function<K, S[]> keySplitter) {
-        this.keySplitter = keySplitter;
-        this.baseStage   = new Stage(null, null, null, validator);
-    }
-
-    public TrieFuncMap(Function<K, S[]> keySplitter) {
-        this.keySplitter = keySplitter;
-        this.baseStage   = new Stage(null, null, null);
-    }
-
-    @Override
-    public int size() {
-        return (int) baseStage.stream()
-                .count();
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return baseStage.stream()
-                .anyMatch(stage -> stage.getValue()
-                        .equals(value));
-    }
-
-    @Override
-    public V get(Object key) {
-        return baseStage.get((K) key, keySplitter.apply((K) key), 0);
-    }
-
-    @Nullable
-    @Override
-    public V put(K key, V value) {
-        return baseStage.set(key, keySplitter.apply(key), 0, value);
-    }
-
-    @Override
-    public V remove(Object key) {
-        return baseStage.remove((K) key, keySplitter.apply((K) key), 0);
-    }
-
-    @Override
-    public void clear() {
-        baseStage.subStages.clear();
-    }
-
-    @NotNull
-    @Override
-    public Set<K> keySet() {
-        return baseStage.streamKeys()
-                .collect(Collectors.toSet());
-    }
-
-    @NotNull
-    @Override
-    public Collection<V> values() {
-        return baseStage.stream()
-                .map(Stage::getValue)
-                .collect(Collectors.toList());
-    }
-
-    @NotNull
-    @Override
-    public Set<Entry<K, V>> entrySet() {
-        return baseStage.stream()
-                .collect(Collectors.toSet());
-    }
 }

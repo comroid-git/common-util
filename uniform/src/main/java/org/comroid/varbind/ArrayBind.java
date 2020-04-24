@@ -11,6 +11,18 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
 public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends VarBind<EXTR, DPND, REMAP, FINAL> {
+    @Override
+    String getFieldName();
+
+    @Override
+    Span<EXTR> extract(UniObjectNode node);
+
+    @Override
+    FINAL finish(Span<REMAP> parts);
+
+    @Override
+    REMAP remap(EXTR from, DPND dependency);
+
     final class Uno<TARGET, FINAL extends Collection<TARGET>> extends AbstractArrayBind<TARGET, Object, TARGET, FINAL> {
         public Uno(
                 GroupBind group,
@@ -28,8 +40,6 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
     }
 
     final class Duo<EXTR, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
-        private final Function<EXTR, REMAP> remapper;
-
         public Duo(
                 GroupBind group,
                 String fieldName,
@@ -46,11 +56,10 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
         public REMAP remap(EXTR from, Object dependency) {
             return remapper.apply(from);
         }
+        private final Function<EXTR, REMAP> remapper;
     }
 
     final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
-        private final BiFunction<DPND, EXTR, REMAP> resolver;
-
         public Dep(
                 GroupBind group,
                 String fieldName,
@@ -67,17 +76,6 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
         public REMAP remap(EXTR from, DPND dependency) {
             return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object"), from);
         }
+        private final BiFunction<DPND, EXTR, REMAP> resolver;
     }
-
-    @Override
-    String getFieldName();
-
-    @Override
-    Span<EXTR> extract(UniObjectNode node);
-
-    @Override
-    FINAL finish(Span<REMAP> parts);
-
-    @Override
-    REMAP remap(EXTR from, DPND dependency);
 }

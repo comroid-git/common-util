@@ -10,8 +10,6 @@ import org.comroid.common.exception.MultipleExceptions;
 import org.comroid.common.iter.Span;
 
 public class Disposable implements Closeable {
-    private final Span<Closeable> children = new Span<>();
-
     @Override
     public void close() {
         dispose();
@@ -49,4 +47,5 @@ public class Disposable implements Closeable {
 
         children.add(child);
     }
+    private final Span<Closeable> children = new Span<>();
 }

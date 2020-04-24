@@ -17,11 +17,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SpanTest {
-    private static final Random                      rng = new Random();
-    private static       int                         bound = rng.nextInt(100) + 50;
-    private              Span<String>                span;
-    private              List<Pair<String, Integer>> generated;
-
     @Test
     public void baseTest() {
         this.span = Span.<String>make().span();
@@ -104,4 +99,8 @@ public class SpanTest {
         return generated.remove(Math.abs((rng.nextInt() + 1) % generated.size()))
                 .getFirst();
     }
+    private static final Random                      rng = new Random();
+    private static       int                         bound = rng.nextInt(100) + 50;
+    private              Span<String>                span;
+    private              List<Pair<String, Integer>> generated;
 }

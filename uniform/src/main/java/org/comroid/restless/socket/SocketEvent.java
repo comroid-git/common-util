@@ -6,16 +6,9 @@ import org.comroid.listnr.EventHub;
 import org.comroid.listnr.EventType;
 import org.comroid.uniform.node.UniObjectNode;
 
-import com.sun.net.httpserver.HttpHandler;
-
 public final class SocketEvent {
-    public static final class Container {
-        private final WebSocket                            webSocket;
-        private final EventHub<HttpHandler, UniObjectNode> eventHub;
-
-        private final EventType<Generic, UniObjectNode> genericType;
-
-        Container(WebSocket webSocket, EventHub<HttpHandler, UniObjectNode> eventHub) {
+    public static final class Container<EX> {
+        Container(WebSocket<EX> webSocket, EventHub<EX, UniObjectNode> eventHub) {
             this.webSocket = webSocket;
             this.eventHub  = eventHub;
 
@@ -24,29 +17,31 @@ public final class SocketEvent {
                     data -> true
             );
         }
-    }
 
-    private static abstract class Abstract<S extends Abstract<S>> extends Event.Support.Abstract<S> implements Event<S> {
-        public WebSocket getSocket() {
-            return socket;
+        public final class Generic extends Abstract<Generic> {
+            private Generic(WebSocket<EX> socket) {
+                super(socket);
+            }
         }
 
-        private final WebSocket socket;
+        private abstract class Abstract<S extends Abstract<S>> extends Event.Support.Abstract<S> implements Event<S> {
+            protected Abstract(EventType<? extends S, ?, ?> subtypes, WebSocket<EX> socket) {
+                super(subtypes);
 
-        protected Abstract(EventType<?, ?> subtypes, WebSocket socket) {
-            super(subtypes);
+                this.socket = socket;
+            }
 
-            this.socket = socket;
+            private Abstract(WebSocket<EX> socket) {
+                this.socket = socket;
+            }
+
+            public WebSocket<EX> getSocket() {
+                return socket;
+            }
+            private final WebSocket<EX> socket;
         }
-
-        private Abstract(WebSocket socket) {
-            this.socket = socket;
-        }
-    }
-
-    public static final class Generic extends Abstract<Generic> {
-        private Generic(WebSocket socket) {
-            super(socket);
-        }
+        private final WebSocket<EX> webSocket;
+        private final EventHub<EX, UniObjectNode> eventHub;
+        protected final EventType<Generic, EX, UniObjectNode> genericType;
     }
 }

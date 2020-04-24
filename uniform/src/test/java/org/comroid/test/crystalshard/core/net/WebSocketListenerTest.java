@@ -4,8 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class WebSocketListenerTest {
-    private WebSocket socket;
-
     @Before
     public void setup() {
         socket = WebSocket.
@@ -14,4 +12,5 @@ public class WebSocketListenerTest {
     @Test
     public void test() {
     }
+    private WebSocket socket;
 }

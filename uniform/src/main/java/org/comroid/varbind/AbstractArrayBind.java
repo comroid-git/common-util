@@ -20,11 +20,6 @@ import org.comroid.uniform.node.UniObjectNode;
  */
 abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         implements ArrayBind<EXTR, DPND, REMAP, FINAL> {
-    final         Supplier<FINAL>                   collectionSupplier;
-    private final String                            fieldName;
-    private final Function<? extends UniNode, EXTR> extractor;
-    private final GroupBind                         group;
-
     protected AbstractArrayBind(
             GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Supplier<FINAL> collectionSupplier
     ) {
@@ -63,4 +58,8 @@ abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REM
     public final GroupBind getGroup() {
         return group;
     }
+    final         Supplier<FINAL>                   collectionSupplier;
+    private final String                            fieldName;
+    private final Function<? extends UniNode, EXTR> extractor;
+    private final GroupBind                         group;
 }

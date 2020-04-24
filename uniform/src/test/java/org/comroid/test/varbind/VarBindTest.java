@@ -17,8 +17,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 public class VarBindTest {
-    Message message;
-
     @Before
     public void setup() {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(
@@ -70,4 +68,5 @@ public class VarBindTest {
         );
         assertEquals(0, message.get(Message.Binds.TYPE).value);
     }
+    Message message;
 }

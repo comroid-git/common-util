@@ -14,13 +14,9 @@ import org.jetbrains.annotations.NotNull;
 public class BasicCache<K, V> implements Cache<K, V> {
     public static final int DEFAULT_LARGE_THRESHOLD = 250;
 
-    private final Map<K, Reference<K, V>> cache = new ConcurrentHashMap<>();
-    private final int                     largeThreshold;
-
     public BasicCache() {
         this(DEFAULT_LARGE_THRESHOLD);
     }
-
     public BasicCache(int largeThreshold) {
         this.largeThreshold = largeThreshold;
     }
@@ -43,6 +39,8 @@ public class BasicCache<K, V> implements Cache<K, V> {
                 .collect(Span.collector())
                 .iterator();
     }
+    private final Map<K, Reference<K, V>> cache = new ConcurrentHashMap<>();
+    private final int                     largeThreshold;
 
     @Override
     public boolean containsKey(K key) {

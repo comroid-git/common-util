@@ -14,6 +14,17 @@ import org.jetbrains.annotations.Contract;
 
 @FunctionalInterface
 public interface Provider<T> extends Supplier<CompletableFuture<T>> {
+    default boolean isInstant() {
+        return this instanceof Now;
+    }
+
+    @Blocking
+    default T now() {
+        return get().join();
+    }
+
+    CompletableFuture<T> get();
+
     static <T> Provider<T> of(CompletableFuture<T> future) {
         return Polyfill.constantSupplier(future)::get;
     }
@@ -36,13 +47,7 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
 
     @Internal
     final class Support {
-        private static final Provider<?> EMPTY = constant(null);
-
         private static final class Constant<T> implements Provider.Now<T> {
-            private static final Map<Object, Constant<Object>> cache = new ConcurrentHashMap<>();
-
-            private final T value;
-
             private Constant(T value) {
                 this.value = value;
             }
@@ -51,11 +56,11 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
             public T now() {
                 return value;
             }
+            private static final Map<Object, Constant<Object>> cache = new ConcurrentHashMap<>();
+            private final T value;
         }
 
         private static final class Once<T> implements Provider<T> {
-            private final CompletableFuture<T> future;
-
             public Once(CompletableFuture<T> from) {
                 this.future = from;
             }
@@ -64,19 +69,10 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
             public CompletableFuture<T> get() {
                 return future;
             }
+            private final CompletableFuture<T> future;
         }
+        private static final Provider<?> EMPTY = constant(null);
     }
-
-    default boolean isInstant() {
-        return this instanceof Now;
-    }
-
-    @Blocking
-    default T now() {
-        return get().join();
-    }
-
-    CompletableFuture<T> get();
 
     @FunctionalInterface
     interface Now<T> extends Provider<T> {

@@ -9,47 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UniValueNode<T> extends UniNode {
-    public static <T> UniValueNode<T> nullNode() {
-        return (UniValueNode<T>) Null.instance;
-    }
-
-    static final class Null extends UniValueNode<Void> {
-        private static final UniValueNode<?> instance = new Null();
-
-        private Null() {
-            super(null, new UniValueNode.Adapter<Void>() {
-                @Override
-                public <R> @Nullable R get(ValueType<R> as) {
-                    return null;
-                }
-
-                @Override
-                public Object getBaseNode() {
-                    return instance;
-                }
-            });
-        }
-    }
-
-    public static final class ValueType<R> {
-        public static final UniValueNode.ValueType<String>    STRING    = new ValueType<>(Function.identity());
-        public static final UniValueNode.ValueType<Boolean>   BOOLEAN   = new ValueType<>(Boolean::parseBoolean);
-        public static final UniValueNode.ValueType<Integer>   INTEGER   = new ValueType<>(Integer::parseInt);
-        public static final UniValueNode.ValueType<Long>      LONG      = new ValueType<>(Long::parseLong);
-        public static final UniValueNode.ValueType<Double>    DOUBLE    = new ValueType<>(Double::parseDouble);
-        public static final UniValueNode.ValueType<Float>     FLOAT     = new ValueType<>(Float::parseFloat);
-        public static final UniValueNode.ValueType<Short>     SHORT     = new ValueType<>(Short::parseShort);
-        public static final UniValueNode.ValueType<Character> CHARACTER = new ValueType<>(str -> str.toCharArray()[0]);
-
-        private final Function<String, R> mapper;
-
-        public ValueType(Function<String, R> mapper) {
-            this.mapper = mapper;
-        }
-    }
-
-    private final Adapter<T> adapter;
-
     public UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
         super(serializationAdapter, Type.VALUE);
 
@@ -193,10 +152,30 @@ public class UniValueNode<T> extends UniNode {
         return adapter.get(ValueType.CHARACTER);
     }
 
-    public interface Adapter<T> extends UniNode.Adapter {
-        final class ViaString<T> implements Adapter<T> {
-            private final Reference<String> sub;
+    public static <T> UniValueNode<T> nullNode() {
+        return (UniValueNode<T>) Null.instance;
+    }
 
+    public static final class ValueType<R> {
+        public static final UniValueNode.ValueType<Boolean>   BOOLEAN   = new ValueType<>(Boolean::parseBoolean);
+        public static final UniValueNode.ValueType<Character> CHARACTER = new ValueType<>(str -> str.toCharArray()[0]);
+        public static final UniValueNode.ValueType<Double>    DOUBLE    = new ValueType<>(Double::parseDouble);
+        public static final UniValueNode.ValueType<Float>     FLOAT     = new ValueType<>(Float::parseFloat);
+        public static final UniValueNode.ValueType<Integer>   INTEGER   = new ValueType<>(Integer::parseInt);
+        public static final UniValueNode.ValueType<Long>      LONG      = new ValueType<>(Long::parseLong);
+        public static final UniValueNode.ValueType<Short>     SHORT     = new ValueType<>(Short::parseShort);
+        public static final UniValueNode.ValueType<String>    STRING    = new ValueType<>(Function.identity());
+
+        public ValueType(Function<String, R> mapper) {
+            this.mapper = mapper;
+        }
+        private final Function<String, R> mapper;
+    }
+
+    public interface Adapter<T> extends UniNode.Adapter {
+        @Nullable <R> R get(UniValueNode.ValueType<R> as);
+
+        final class ViaString<T> implements Adapter<T> {
             public ViaString(Reference<String> sub) {
                 this.sub = sub;
             }
@@ -210,8 +189,25 @@ public class UniValueNode<T> extends UniNode {
             public Object getBaseNode() {
                 return null;
             }
+            private final Reference<String> sub;
         }
-
-        @Nullable <R> R get(UniValueNode.ValueType<R> as);
     }
+
+    static final class Null extends UniValueNode<Void> {
+        private Null() {
+            super(null, new UniValueNode.Adapter<Void>() {
+                @Override
+                public <R> @Nullable R get(ValueType<R> as) {
+                    return null;
+                }
+
+                @Override
+                public Object getBaseNode() {
+                    return instance;
+                }
+            });
+        }
+        private static final UniValueNode<?> instance = new Null();
+    }
+    private final Adapter<T> adapter;
 }

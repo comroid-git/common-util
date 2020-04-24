@@ -25,20 +25,6 @@ import static org.comroid.common.Polyfill.deadCast;
 
 @SuppressWarnings("unchecked")
 public class VariableCarrier<DEP> implements VarCarrier<DEP> {
-    public final DEP getDependencyObject() {
-        return dependencyObject;
-    }
-
-    private final SerializationAdapter<?, ?, ?>                                               serializationAdapter;
-    private final GroupBind                                                                   rootBind;
-    private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     =
-            new ConcurrentHashMap<>();
-    private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed
-                                                                                                       =
-            new ConcurrentHashMap<>();
-    private final DEP                                                                         dependencyObject;
-    private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
-
     protected <BAS, OBJ extends BAS> VariableCarrier(
             SerializationAdapter<BAS, OBJ, ?> serializationAdapter, OBJ initialData, @Nullable DEP dependencyObject
     ) {
@@ -181,4 +167,17 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
 
         return ref;
     }
+
+    public final DEP getDependencyObject() {
+        return dependencyObject;
+    }
+    private final SerializationAdapter<?, ?, ?>                                               serializationAdapter;
+    private final GroupBind                                                                   rootBind;
+    private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     =
+            new ConcurrentHashMap<>();
+    private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed
+                                                                                                       =
+            new ConcurrentHashMap<>();
+    private final DEP                                                                         dependencyObject;
+    private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
 }

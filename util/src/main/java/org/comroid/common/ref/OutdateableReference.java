@@ -5,10 +5,6 @@ import org.comroid.common.Polyfill;
 import org.jetbrains.annotations.Nullable;
 
 public final class OutdateableReference<T> implements Reference<T> {
-    private final Object  lock = Polyfill.selfawareLock();
-    private       boolean outdated;
-    private       T       it;
-
     @Override
     public @Nullable T get() {
         synchronized (lock) {
@@ -45,4 +41,7 @@ public final class OutdateableReference<T> implements Reference<T> {
             return outdated || it == null;
         }
     }
+    private final Object  lock = Polyfill.selfawareLock();
+    private       boolean outdated;
+    private       T       it;
 }

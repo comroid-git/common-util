@@ -19,33 +19,6 @@ import org.jetbrains.annotations.Nullable;
 public final class LoopManager implements Closeable {
     public static final ThreadGroup THREAD_GROUP = new ThreadGroup("LoopManager");
 
-    public static LoopManager start(int parallelism) {
-        return start(parallelism, THREAD_GROUP);
-    }
-
-    public static LoopManager start(int parallelism, @Nullable ThreadGroup group) {
-        final LoopManager manager = new LoopManager();
-
-        manager.workers = Collections.unmodifiableSet(IntStream.range(1, parallelism + 1)
-                .mapToObj(iter -> new LoopWorker(manager,
-                        group,
-                        String.format("LoopWorker @" + " " + "%s#%4d", manager.toString(), iter)
-                ))
-                .collect(Collectors.toSet()));
-        manager.workers.forEach(Thread::start);
-
-        return manager;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("LoopManager{lock=%s}", queue);
-    }
-
-    final         Object          lock  = Polyfill.selfawareLock();
-    private final Queue<Loop<?>>  queue = new PriorityQueue<>();
-    private       Set<LoopWorker> workers;
-
     private LoopManager() {
     }
 
@@ -96,4 +69,30 @@ public final class LoopManager implements Closeable {
             }
         }
     }
+
+    public static LoopManager start(int parallelism) {
+        return start(parallelism, THREAD_GROUP);
+    }
+
+    public static LoopManager start(int parallelism, @Nullable ThreadGroup group) {
+        final LoopManager manager = new LoopManager();
+
+        manager.workers = Collections.unmodifiableSet(IntStream.range(1, parallelism + 1)
+                .mapToObj(iter -> new LoopWorker(manager,
+                        group,
+                        String.format("LoopWorker @" + " " + "%s#%4d", manager.toString(), iter)
+                ))
+                .collect(Collectors.toSet()));
+        manager.workers.forEach(Thread::start);
+
+        return manager;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("LoopManager{lock=%s}", queue);
+    }
+    final         Object          lock  = Polyfill.selfawareLock();
+    private final Queue<Loop<?>>  queue = new PriorityQueue<>();
+    private       Set<LoopWorker> workers;
 }

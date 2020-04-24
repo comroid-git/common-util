@@ -17,10 +17,6 @@ import org.junit.Before;
 import static org.junit.Assert.assertEquals;
 
 public class FixedSizeThreadPoolTest {
-    private ThreadPool     threadPool;
-    private List<SomeTask> someTasks;
-    private List<UUID>     yields;
-
     @Before
     public void setup() {
         threadPool = ThreadPool.fixedSize(null, 1);
@@ -135,11 +131,13 @@ public class FixedSizeThreadPoolTest {
             return uuid;
         }
 
-        final UUID uuid = UUID.randomUUID();
-
         @Override
         public void run() {
             yields.add(uuid);
         }
+        final UUID uuid = UUID.randomUUID();
     }
+    private ThreadPool     threadPool;
+    private List<SomeTask> someTasks;
+    private List<UUID>     yields;
 }

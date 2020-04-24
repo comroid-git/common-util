@@ -19,70 +19,6 @@ import org.jetbrains.annotations.Nullable;
  * Cloneable through {@link #process()}.
  */
 public interface Processor<T> extends Reference<T>, Cloneable {
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    static <T> Processor<T> ofOptional(Optional<T> optional) {
-        return optional.map(Processor::ofConstant)
-                .orElseGet(Processor::empty);
-    }
-
-    static <T> Processor<T> ofConstant(T value) {
-        return ofReference(Objects.isNull(value) ? Reference.empty() : Reference.constant(value));
-    }
-
-    static <T> Processor<T> empty() {
-        //noinspection unchecked
-        return (Processor<T>) Support.EMPTY;
-    }
-
-    static <T> Processor<T> ofReference(Reference<T> reference) {
-        return new Support.OfReference<>(reference);
-    }
-
-    @Internal
-    final class Support {
-        private static final Processor<?> EMPTY = new OfReference<>(Reference.empty());
-
-        private static final class OfReference<T> implements Processor<T> {
-            private final Reference<T> underlying;
-
-            private OfReference(Reference<T> underlying) {
-                this.underlying = underlying;
-            }
-
-            @Nullable
-            @Override
-            public T get() {
-                return underlying.get();
-            }
-
-            @Override
-            public boolean isPresent() {
-                return !underlying.isNull();
-            }
-        }
-
-        private static final class Remapped<T, R> implements Processor<R> {
-            private final Processor<T>                     base;
-            private final Function<? super T, ? extends R> remapper;
-
-            private Remapped(Processor<T> base, Function<? super T, ? extends R> remapper) {
-                this.base     = base;
-                this.remapper = remapper;
-            }
-
-            @Nullable
-            @Override
-            public R get() {
-                return remapper.apply(base.get());
-            }
-
-            @Override
-            public boolean isPresent() {
-                return base.isPresent();
-            }
-        }
-    }
-
     default boolean test(Predicate<? super T> predicate) {
         return predicate.test(get());
     }
@@ -127,5 +63,66 @@ public interface Processor<T> extends Reference<T>, Cloneable {
         }
 
         return this;
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    static <T> Processor<T> ofOptional(Optional<T> optional) {
+        return optional.map(Processor::ofConstant)
+                .orElseGet(Processor::empty);
+    }
+
+    static <T> Processor<T> ofConstant(T value) {
+        return ofReference(Objects.isNull(value) ? Reference.empty() : Reference.constant(value));
+    }
+
+    static <T> Processor<T> empty() {
+        //noinspection unchecked
+        return (Processor<T>) Support.EMPTY;
+    }
+
+    static <T> Processor<T> ofReference(Reference<T> reference) {
+        return new Support.OfReference<>(reference);
+    }
+
+    @Internal
+    final class Support {
+        private static final class OfReference<T> implements Processor<T> {
+            private OfReference(Reference<T> underlying) {
+                this.underlying = underlying;
+            }
+
+            @Nullable
+            @Override
+            public T get() {
+                return underlying.get();
+            }
+
+            @Override
+            public boolean isPresent() {
+                return !underlying.isNull();
+            }
+            private final Reference<T> underlying;
+        }
+
+        private static final class Remapped<T, R> implements Processor<R> {
+            private Remapped(Processor<T> base, Function<? super T, ? extends R> remapper) {
+                this.base     = base;
+                this.remapper = remapper;
+            }
+
+            @Nullable
+            @Override
+            public R get() {
+                return remapper.apply(base.get());
+            }
+
+            @Override
+            public boolean isPresent() {
+                return base.isPresent();
+            }
+            private final Processor<T>                     base;
+            private final Function<? super T, ? extends R> remapper;
+        }
+        private static final Processor<?> EMPTY = new OfReference<>(Reference.empty());
     }
 }

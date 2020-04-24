@@ -19,17 +19,15 @@ import org.jetbrains.annotations.Nullable;
 import static org.comroid.spellbind.SpellCore.methodString;
 
 public final class Spellbind {
+    private Spellbind() {
+        throw new UnsupportedOperationException("Cannot instantiate " + Spellbind.class.getName());
+    }
+
     public static <T> Builder<T> builder(Class<T> mainInterface) {
         return new Builder<>(mainInterface);
     }
 
     public static class Builder<T> implements org.comroid.common.func.Builder<T> {
-        private final Class<T> mainInterface;
-        private final Map<String, Invocable<Object>> methodBinds;
-        private final Collection<Class<?>> interfaces;
-        private       Object coreObject;
-        private       ClassLoader classLoader;
-
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
             this.methodBinds   = TrieMap.ofString();
@@ -46,7 +44,8 @@ public final class Spellbind {
             final SpellCore spellCore = new SpellCore(coreObject, methodBinds);
 
             //noinspection unchecked
-            return (T) Proxy.newProxyInstance(classLoader,
+            return (T) Proxy.newProxyInstance(
+                    classLoader,
                     interfaces.stream()
                             .distinct()
                             .toArray(Class[]::new),
@@ -132,9 +131,10 @@ public final class Spellbind {
 
             return this;
         }
-    }
-
-    private Spellbind() {
-        throw new UnsupportedOperationException("Cannot instantiate " + Spellbind.class.getName());
+        private final Class<T>                       mainInterface;
+        private final Map<String, Invocable<Object>> methodBinds;
+        private final Collection<Class<?>>           interfaces;
+        private       Object                         coreObject;
+        private       ClassLoader                    classLoader;
     }
 }

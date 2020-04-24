@@ -19,8 +19,6 @@ import static org.junit.Assert.assertTrue;
 public class TestRestJava8 {
     public final static URL testUrl = url("https://api.cdn.comroid.org/app/SymBLink/");
 
-    private REST rest;
-
     @Before
     public void setup() {
         rest = new REST<>(new OkHttp3Adapter(), null, FastJSONLib.fastJsonLib);
@@ -58,4 +56,5 @@ public class TestRestJava8 {
             t.printStackTrace(System.out);
         }
     }
+    private REST rest;
 }

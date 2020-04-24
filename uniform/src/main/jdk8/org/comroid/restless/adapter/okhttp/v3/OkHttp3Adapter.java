@@ -23,8 +23,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class OkHttp3Adapter implements HttpAdapter {
-    private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
-
     @Override
     public CompletableFuture<WebSocket> createWebSocket(
             SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
@@ -46,11 +44,10 @@ public class OkHttp3Adapter implements HttpAdapter {
                 final Request.Builder builder = new Request.Builder().url(urlProvider.now())
                         // only support null body for GET method, else throw
                         .method(method.toString(), (
-                                body == null && method == REST.Method.GET
-                                        ? null
-                                        : RequestBody.create(MediaType.parse(mimeType),
-                                                Objects.requireNonNull(body, "Null body not supported with " + method)
-                                        )
+                                body == null && method == REST.Method.GET ? null : RequestBody.create(
+                                        MediaType.parse(mimeType),
+                                        Objects.requireNonNull(body, "Null body not supported with " + method)
+                                )
                         ));
 
                 headers.forEach(header -> builder.addHeader(header.getName(), header.getValue()));
@@ -66,4 +63,5 @@ public class OkHttp3Adapter implements HttpAdapter {
             }
         });
     }
+    private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 }

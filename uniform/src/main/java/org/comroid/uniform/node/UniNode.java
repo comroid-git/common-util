@@ -12,6 +12,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class UniNode implements Specifiable<UniNode> {
+    protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
+        this.serializationAdapter = serializationAdapter;
+        this.type                 = type;
+    }
+
     public String getSerializedString() {
         return toString();
     }
@@ -36,14 +41,6 @@ public abstract class UniNode implements Specifiable<UniNode> {
 
     public final boolean isValueNode() {
         return getType() == Type.VALUE;
-    }
-
-    protected final SerializationAdapter<?, ?, ?> serializationAdapter;
-    private final   Type                          type;
-
-    protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
-        this.serializationAdapter = serializationAdapter;
-        this.type                 = type;
     }
 
     public @NotNull Optional<UniNode> wrap(int index) {
@@ -192,4 +189,6 @@ public abstract class UniNode implements Specifiable<UniNode> {
         ARRAY,
         VALUE
     }
+    protected final SerializationAdapter<?, ?, ?> serializationAdapter;
+    private final   Type                          type;
 }

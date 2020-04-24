@@ -17,15 +17,6 @@ import org.comroid.spellbind.model.MethodInvocation;
 import org.jetbrains.annotations.Nullable;
 
 public class SpellCore implements InvocationHandler {
-    private static Optional<SpellCore> getInstance(Object ofProxy) {
-        final InvocationHandler invocationHandler = Proxy.getInvocationHandler(ofProxy);
-
-        return invocationHandler instanceof SpellCore ? Optional.of((SpellCore) invocationHandler) : Optional.empty();
-    }
-
-    private final Object                         coreObject;
-    private final Map<String, Invocable<Object>> methodBinds;
-
     SpellCore(Object coreObject, Map<String, Invocable<Object>> methodBinds) {
         this.coreObject  = coreObject;
         this.methodBinds = methodBinds;
@@ -125,4 +116,12 @@ public class SpellCore implements InvocationHandler {
                         .map(Class::getSimpleName)
                         .collect(Collectors.joining(", ", " throws ", ""));
     }
+
+    private static Optional<SpellCore> getInstance(Object ofProxy) {
+        final InvocationHandler invocationHandler = Proxy.getInvocationHandler(ofProxy);
+
+        return invocationHandler instanceof SpellCore ? Optional.of((SpellCore) invocationHandler) : Optional.empty();
+    }
+    private final Object                         coreObject;
+    private final Map<String, Invocable<Object>> methodBinds;
 }

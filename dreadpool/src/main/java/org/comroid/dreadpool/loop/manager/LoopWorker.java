@@ -11,10 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class LoopWorker extends Worker {
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private final        LoopManager  manager;
-    private              Loop<?>      current;
-
     public LoopWorker(
             @NotNull LoopManager manager, @Nullable ThreadGroup group, @NotNull String name
     ) {
@@ -62,4 +58,7 @@ public final class LoopWorker extends Worker {
 
         current = loop;
     }
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private final        LoopManager  manager;
+    private              Loop<?>      current;
 }

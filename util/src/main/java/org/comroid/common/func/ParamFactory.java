@@ -5,14 +5,25 @@ import java.util.function.Function;
 import org.jetbrains.annotations.Nullable;
 
 public interface ParamFactory<P, T> extends Provider.Now<T> {
-    class Abstract<P, T> implements ParamFactory<P, T> {
-        protected     int            counter = 0;
-        private final Function<P, T> factory;
+    @Override
+    default T now() {
+        return create();
+    }
 
+    default T create() {
+        return create(null);
+    }
+
+    T create(@Nullable P parameter);
+
+    int counter();
+
+    int peekCounter();
+
+    class Abstract<P, T> implements ParamFactory<P, T> {
         public Abstract(Function<P, T> factory) {
             this.factory = factory;
         }
-
         protected Abstract() {
             this.factory = null;
         }
@@ -35,20 +46,7 @@ public interface ParamFactory<P, T> extends Provider.Now<T> {
         public final int peekCounter() {
             return counter;
         }
+        protected     int            counter = 0;
+        private final Function<P, T> factory;
     }
-
-    @Override
-    default T now() {
-        return create();
-    }
-
-    default T create() {
-        return create(null);
-    }
-
-    T create(@Nullable P parameter);
-
-    int counter();
-
-    int peekCounter();
 }

@@ -4,9 +4,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public final class ListnrManager<I, O, E extends EventType<P, I, O>, P extends Event<P>> implements AutoCloseable {
-    private final EventHub<I, O>      hub;
-    private final EventAcceptor<E, P> underlying;
-
     ListnrManager(EventHub<I, O> hub, EventAcceptor<E, P> underlying) {
         this.hub        = hub;
         this.underlying = underlying;
@@ -25,4 +22,6 @@ public final class ListnrManager<I, O, E extends EventType<P, I, O>, P extends E
     public boolean detachNow() {
         return hub.unregisterAcceptor(underlying);
     }
+    private final EventHub<I, O>      hub;
+    private final EventAcceptor<E, P> underlying;
 }

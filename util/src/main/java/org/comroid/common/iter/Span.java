@@ -26,163 +26,23 @@ import org.jetbrains.annotations.Nullable;
 import static java.util.Objects.nonNull;
 
 public class Span<T> implements AbstractCollection<T>, Reference<T> {
+    public static final boolean      DEFAULT_FIXED_SIZE       = false;
     public static final int          DEFAULT_INITIAL_CAPACITY = 0;
     public static final ModifyPolicy DEFAULT_MODIFY_POLICY    = ModifyPolicy.SKIP_NULLS;
-    public static final boolean      DEFAULT_FIXED_SIZE       = false;
 
-    public static <T> Collector<T, ?, Span<T>> collector() {
-        return Span.<T>make().fixedSize(true)
-                .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                .collector();
+    public Span() {
+        this(new Object[DEFAULT_INITIAL_CAPACITY], DEFAULT_MODIFY_POLICY, DEFAULT_FIXED_SIZE);
     }
 
-    public static <T> Span.API<T> make() {
-        return new Span.API<>();
+    protected Span(Object[] data, ModifyPolicy modifyPolicy, boolean fixedSize) {
+        this.modifyPolicy = modifyPolicy;
+
+        this.data      = data;
+        this.fixedSize = fixedSize;
     }
 
-    public static <T> Span<T> zeroSize() {
-        return (Span<T>) ZeroSize;
-    }
-
-    public static <T> Span<T> singleton(T it) {
-        return Span.<T>make().initialValues(it)
-                .fixedSize(true)
-                .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                .span();
-    }
-
-    public static <T> Span<T> immutable(Collection<T> of) {
-        return Span.<T>make().initialValues(of)
-                .fixedSize(true)
-                .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                .span();
-    }
-
-    @SafeVarargs
-    public static <T> Span<T> immutable(T... of) {
-        return Span.<T>make().initialValues(of)
-                .fixedSize(true)
-                .modifyPolicy(ModifyPolicy.IMMUTABLE)
-                .span();
-    }
-
-    private static final Span<?> ZeroSize = new Span<>(new Object[0], ModifyPolicy.IMMUTABLE, true);
-
-    //region API Class
-    public static final class API<T> {
-        private Collection<T> initialValues;
-        private ModifyPolicy  modifyPolicy;
-        private boolean       fixedSize;
-
-        public API() {
-            this.initialValues = new ArrayList<>();
-            this.modifyPolicy  = DEFAULT_MODIFY_POLICY;
-            this.fixedSize     = DEFAULT_FIXED_SIZE;
-        }
-
-        private API(Span<T> base) {
-            initialValues = new ArrayList<>(base);
-            modifyPolicy  = base.modifyPolicy;
-            fixedSize     = base.fixedSize;
-        }
-
-        @Contract(value = "_ -> this", mutates = "this")
-        public API<T> initialSize(int initialSize) {
-            this.initialValues = new ArrayList<>(initialSize);
-
-            return this;
-        }
-
-        public Collector<T, ?, Span<T>> collector() {
-            class SpanCollector implements Collector<T, Span<T>, Span<T>> {
-                private final Supplier<Span<T>>          supplier    = Span::new;
-                private final BiConsumer<Span<T>, T>     accumulator = Span::add;
-                private final BinaryOperator<Span<T>>    combiner    = (ts, ts2) -> {
-                    ts.addAll(ts2);
-
-                    return ts;
-                };
-                private final Collection<T>              initialValues;
-                private final ModifyPolicy               nullPolicy;
-                private final boolean                    fixedSize;
-                private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>, Span<T>>() {
-                    @Override
-                    public Span<T> apply(Span<T> ts) {
-                        return Span.<T>make().modifyPolicy(nullPolicy)
-                                .fixedSize(fixedSize)
-                                .initialValues(initialValues)
-                                .initialValues(ts)
-                                .span();
-                    }
-                };
-
-                public SpanCollector(
-                        Collection<T> initialValues, ModifyPolicy nullPolicy, boolean fixedSize
-                ) {
-                    this.initialValues = initialValues;
-                    this.nullPolicy    = nullPolicy;
-                    this.fixedSize     = fixedSize;
-                }
-
-                @Override
-                public Supplier<Span<T>> supplier() {
-                    return supplier;
-                }
-
-                @Override
-                public BiConsumer<Span<T>, T> accumulator() {
-                    return accumulator;
-                }
-
-                @Override
-                public BinaryOperator<Span<T>> combiner() {
-                    return combiner;
-                }
-
-                @Override
-                public Function<Span<T>, Span<T>> finisher() {
-                    return finisher;
-                }
-
-                @Override
-                public Set<Characteristics> characteristics() {
-                    return Collections.singleton(Characteristics.IDENTITY_FINISH);
-                }
-            }
-
-            return new SpanCollector(initialValues, modifyPolicy, fixedSize);
-        }
-
-        public Span<T> span() {
-            return new Span<>(initialValues.toArray(), modifyPolicy, fixedSize);
-        }
-
-        @Contract(value = "_ -> this", mutates = "this")
-        public API<T> initialValues(Collection<T> values) {
-            initialValues.addAll(values);
-
-            return this;
-        }
-
-        @Contract(value = "_ -> this", mutates = "this")
-        public API<T> fixedSize(boolean fixedSize) {
-            this.fixedSize = fixedSize;
-
-            return this;
-        }
-
-        @Contract(value = "_ -> this", mutates = "this")
-        public API<T> modifyPolicy(ModifyPolicy modifyPolicy) {
-            this.modifyPolicy = modifyPolicy;
-
-            return this;
-        }
-
-        @SafeVarargs
-        @Contract(value = "_ -> this", mutates = "this")
-        public final API<T> initialValues(T... values) {
-            return initialValues(Arrays.asList(values));
-        }
+    public Span(int capacity, boolean fixedSize) {
+        this(new Object[capacity], DEFAULT_MODIFY_POLICY, fixedSize);
     }
 
     public final boolean isSingle() {
@@ -341,27 +201,6 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         }
     }
 
-    private final ModifyPolicy modifyPolicy;
-    private final Object       dataLock = Polyfill.selfawareLock();
-    //endregion
-    private       Object[]     data;
-    private final boolean      fixedSize;
-
-    public Span() {
-        this(new Object[DEFAULT_INITIAL_CAPACITY], DEFAULT_MODIFY_POLICY, DEFAULT_FIXED_SIZE);
-    }
-
-    protected Span(Object[] data, ModifyPolicy modifyPolicy, boolean fixedSize) {
-        this.modifyPolicy = modifyPolicy;
-
-        this.data      = data;
-        this.fixedSize = fixedSize;
-    }
-
-    public Span(int capacity, boolean fixedSize) {
-        this(new Object[capacity], DEFAULT_MODIFY_POLICY, fixedSize);
-    }
-
     @Override
     public final String toString() {
         @NotNull Object[] arr = toArray();
@@ -427,6 +266,156 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         return coll;
     }
 
+    public static <T> Collector<T, ?, Span<T>> collector() {
+        return Span.<T>make().fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .collector();
+    }
+
+    public static <T> Span.API<T> make() {
+        return new Span.API<>();
+    }
+
+    public static <T> Span<T> zeroSize() {
+        return (Span<T>) ZeroSize;
+    }
+
+    public static <T> Span<T> singleton(T it) {
+        return Span.<T>make().initialValues(it)
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
+    }
+
+    public static <T> Span<T> immutable(Collection<T> of) {
+        return Span.<T>make().initialValues(of)
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
+    }
+
+    @SafeVarargs
+    public static <T> Span<T> immutable(T... of) {
+        return Span.<T>make().initialValues(of)
+                .fixedSize(true)
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
+                .span();
+    }
+
+    //region API Class
+    public static final class API<T> {
+        public API() {
+            this.initialValues = new ArrayList<>();
+            this.modifyPolicy  = DEFAULT_MODIFY_POLICY;
+            this.fixedSize     = DEFAULT_FIXED_SIZE;
+        }
+        private API(Span<T> base) {
+            initialValues = new ArrayList<>(base);
+            modifyPolicy  = base.modifyPolicy;
+            fixedSize     = base.fixedSize;
+        }
+
+        @Contract(value = "_ -> this", mutates = "this")
+        public API<T> initialSize(int initialSize) {
+            this.initialValues = new ArrayList<>(initialSize);
+
+            return this;
+        }
+
+        public Collector<T, ?, Span<T>> collector() {
+            class SpanCollector implements Collector<T, Span<T>, Span<T>> {
+                public SpanCollector(
+                        Collection<T> initialValues, ModifyPolicy nullPolicy, boolean fixedSize
+                ) {
+                    this.initialValues = initialValues;
+                    this.nullPolicy    = nullPolicy;
+                    this.fixedSize     = fixedSize;
+                }
+
+                @Override
+                public Supplier<Span<T>> supplier() {
+                    return supplier;
+                }
+
+                @Override
+                public BiConsumer<Span<T>, T> accumulator() {
+                    return accumulator;
+                }
+
+                @Override
+                public BinaryOperator<Span<T>> combiner() {
+                    return combiner;
+                }
+
+                @Override
+                public Function<Span<T>, Span<T>> finisher() {
+                    return finisher;
+                }
+
+                @Override
+                public Set<Characteristics> characteristics() {
+                    return Collections.singleton(Characteristics.IDENTITY_FINISH);
+                }
+                private final Supplier<Span<T>>          supplier    = Span::new;
+                private final BiConsumer<Span<T>, T>     accumulator = Span::add;
+                private final BinaryOperator<Span<T>>    combiner    = (ts, ts2) -> {
+                    ts.addAll(ts2);
+
+                    return ts;
+                };
+                private final Collection<T>              initialValues;
+                private final ModifyPolicy               nullPolicy;
+                private final boolean                    fixedSize;
+                private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>, Span<T>>() {
+                    @Override
+                    public Span<T> apply(Span<T> ts) {
+                        return Span.<T>make().modifyPolicy(nullPolicy)
+                                .fixedSize(fixedSize)
+                                .initialValues(initialValues)
+                                .initialValues(ts)
+                                .span();
+                    }
+                };
+            }
+
+            return new SpanCollector(initialValues, modifyPolicy, fixedSize);
+        }
+
+        public Span<T> span() {
+            return new Span<>(initialValues.toArray(), modifyPolicy, fixedSize);
+        }
+
+        @Contract(value = "_ -> this", mutates = "this")
+        public API<T> initialValues(Collection<T> values) {
+            initialValues.addAll(values);
+
+            return this;
+        }
+
+        @Contract(value = "_ -> this", mutates = "this")
+        public API<T> fixedSize(boolean fixedSize) {
+            this.fixedSize = fixedSize;
+
+            return this;
+        }
+
+        @Contract(value = "_ -> this", mutates = "this")
+        public API<T> modifyPolicy(ModifyPolicy modifyPolicy) {
+            this.modifyPolicy = modifyPolicy;
+
+            return this;
+        }
+
+        @SafeVarargs
+        @Contract(value = "_ -> this", mutates = "this")
+        public final API<T> initialValues(T... values) {
+            return initialValues(Arrays.asList(values));
+        }
+        private Collection<T> initialValues;
+        private ModifyPolicy  modifyPolicy;
+        private boolean       fixedSize;
+    }
+
     @SuppressWarnings("Convert2MethodRef")
     public enum ModifyPolicy {
         //endformatting
@@ -456,13 +445,6 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
         IMMUTABLE(init -> true, iterate -> true, (overwriting, with) -> false, remove -> false, cleanup -> false);
         //startformatting
-
-        private final static Object                      dummy = new Object();
-        private final        Predicate<Object>           initVarTester;
-        private final        Predicate<Object>           iterateVarTester;
-        private final        BiPredicate<Object, Object> overwriteTester;
-        private final        Predicate<Object>           removeTester;
-        private final        Predicate<Object>           cleanupTester;
 
         ModifyPolicy(
                 Predicate<Object> initVarTester,
@@ -502,13 +484,15 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         public void fail(String message) throws NullPointerException {
             throw new NullPointerException(String.format("NullPolicy %s was violated: %s", name(), message));
         }
+        private final static Object                      dummy = new Object();
+        private final        Predicate<Object>           initVarTester;
+        private final        Predicate<Object>           iterateVarTester;
+        private final        BiPredicate<Object, Object> overwriteTester;
+        private final        Predicate<Object>           removeTester;
+        private final        Predicate<Object>           cleanupTester;
     }
 
     public final class Iterator implements java.util.Iterator<T> {
-        private final     Object[] dataSnapshot  = toArray();
-        private           int      previousIndex = -1;
-        private @Nullable Object   next;
-
         @Override
         public boolean hasNext() {
             return next != null || tryAcquireNext();
@@ -541,5 +525,14 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
             previousIndex = nextIndex;
             return next != null;
         }
+        private final     Object[] dataSnapshot  = toArray();
+        private           int      previousIndex = -1;
+        private @Nullable Object   next;
     }
+    private static final Span<?> ZeroSize = new Span<>(new Object[0], ModifyPolicy.IMMUTABLE, true);
+    private final ModifyPolicy modifyPolicy;
+    private final Object       dataLock = Polyfill.selfawareLock();
+    //endregion
+    private       Object[]     data;
+    private final boolean      fixedSize;
 }

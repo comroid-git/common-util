@@ -5,19 +5,8 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
-    public static SerializationAdapter<?, ?, ?> autodetect() {
-        throw new UnsupportedOperationException();
-    }
-
-    public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
     public final DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
-
-    public final String getMimeType() {
-        return mimeType;
-    }
-
-    private final String mimeType;
-
+    public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
     protected SerializationAdapter(
             String mimeType, Class<OBJ> objClass, Class<ARR> arrClass
     ) {
@@ -29,14 +18,19 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
             DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType
     ) {
-        this.mimeType = mimeType;
+        this.mimeType   = mimeType;
         this.objectType = objectType;
-        this.arrayType = arrayType;
+        this.arrayType  = arrayType;
+    }
+
+    public final String getMimeType() {
+        return mimeType;
     }
 
     @Override
     public String toString() {
-        return String.format("%s{object=%s;array=%s}",
+        return String.format(
+                "%s{object=%s;array=%s}",
                 getClass().getSimpleName(),
                 objectType.tarClass.getName(),
                 arrayType.tarClass.getName()
@@ -73,7 +67,8 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             return createUniArrayNode((ARR) node);
         }
 
-        throw new IllegalArgumentException(String.format("Unknown node type: %s",
+        throw new IllegalArgumentException(String.format(
+                "Unknown node type: %s",
                 node.getClass()
                         .getName()
         ));
@@ -84,5 +79,10 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     public abstract UniObjectNode createUniObjectNode(OBJ node);
 
     public abstract UniArrayNode createUniArrayNode(ARR node);
+
+    public static SerializationAdapter<?, ?, ?> autodetect() {
+        throw new UnsupportedOperationException();
+    }
+    private final String mimeType;
 
 }

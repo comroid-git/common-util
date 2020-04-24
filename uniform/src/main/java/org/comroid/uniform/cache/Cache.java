@@ -17,77 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
-    class Reference<K, V> implements Settable<V> {
-        public static <K, V> Reference<K, V> empty() {
-            return (Reference<K, V>) EMPTY;
-        }
-
-        private static final Reference<?, ?>    EMPTY     = new Reference<Object, Object>(null) {
-            @Nullable
-            @Override
-            public Object set(Object value) {
-                throw new UnsupportedOperationException("Cannot overwrite Empty Reference!");
-            }
-
-            @Nullable
-            @Override
-            public Object get() {
-                return null;
-            }
-        };
-        public final         AtomicReference<V> reference = new AtomicReference<>(null);
-
-        public @NotNull K getKey() {
-            return key;
-        }
-
-        private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
-        private final Object                                     lock             = Polyfill.selfawareLock();
-        private final K                                          key;
-
-        public Reference(K key) {
-            this.key = key;
-            this.firstValueFuture.update(new CompletableFuture<>());
-        }
-
-        public Reference(K key, V initValue) {
-            this.key = key;
-            this.firstValueFuture.outdate();
-        }
-
-        @Nullable
-        @Override
-        public V set(V value) {
-            synchronized (lock) {
-                if (!firstValueFuture.isOutdated() && !firstValueFuture.get()
-                        .isDone()) {
-                    firstValueFuture.get()
-                            .complete(value);
-                }
-
-                return reference.getAndSet(value);
-            }
-        }
-
-        @Nullable
-        @Override
-        public V get() {
-            synchronized (lock) {
-                return reference.get();
-            }
-        }
-
-        @Override
-        public Provider<V> provider() {
-            if (firstValueFuture.isOutdated()) {
-                firstValueFuture.outdate();
-                return Provider.of(firstValueFuture.get());
-            }
-
-            return Provider.of(this);
-        }
-    }
-
     boolean large();
 
     int size();
@@ -135,5 +64,74 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
 
     default void forEach(BiConsumer<K, V> action) {
         forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
+    }
+
+    class Reference<K, V> implements Settable<V> {
+        public final         AtomicReference<V> reference = new AtomicReference<>(null);
+
+        public Reference(K key) {
+            this.key = key;
+            this.firstValueFuture.update(new CompletableFuture<>());
+        }
+        public Reference(K key, V initValue) {
+            this.key = key;
+            this.firstValueFuture.outdate();
+        }
+
+        public @NotNull K getKey() {
+            return key;
+        }
+
+        @Nullable
+        @Override
+        public V set(V value) {
+            synchronized (lock) {
+                if (!firstValueFuture.isOutdated() && !firstValueFuture.get()
+                        .isDone()) {
+                    firstValueFuture.get()
+                            .complete(value);
+                }
+
+                return reference.getAndSet(value);
+            }
+        }
+
+        @Nullable
+        @Override
+        public V get() {
+            synchronized (lock) {
+                return reference.get();
+            }
+        }
+
+        @Override
+        public Provider<V> provider() {
+            if (firstValueFuture.isOutdated()) {
+                firstValueFuture.outdate();
+                return Provider.of(firstValueFuture.get());
+            }
+
+            return Provider.of(this);
+        }
+
+        public static <K, V> Reference<K, V> empty() {
+            return (Reference<K, V>) EMPTY;
+        }
+        private static final Reference<?, ?>    EMPTY     = new Reference<Object, Object>(null) {
+            @Nullable
+            @Override
+            public Object set(Object value) {
+                throw new UnsupportedOperationException("Cannot overwrite Empty Reference!");
+            }
+
+            @Nullable
+            @Override
+            public Object get() {
+                return null;
+            }
+        };
+        private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
+        private final Object                                     lock             = Polyfill.selfawareLock();
+        private final K                                          key;
     }
 }

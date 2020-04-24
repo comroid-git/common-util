@@ -11,48 +11,6 @@ import org.comroid.uniform.SerializationAdapter;
 import org.jetbrains.annotations.NotNull;
 
 public final class UniObjectNode extends UniNode {
-    public static UniObjectNode ofMap(SerializationAdapter<?, ?, ?> adapter, Map<String, Object> map) {
-        class MergedAdapter extends UniObjectNode.Adapter<Map<String, Object>> {
-            protected MergedAdapter(Map<String, Object> underlying) {
-                super(underlying);
-            }
-
-            @Override
-            public Object put(String key, Object value) {
-                return getBaseNode().put(key, value);
-            }
-
-            @Override
-            public @NotNull Set<Entry<String, Object>> entrySet() {
-                return getBaseNode().entrySet();
-            }
-        }
-
-        return new UniObjectNode(adapter, new MergedAdapter(map));
-    }
-
-    public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {
-        protected final B baseNode;
-
-        protected Adapter(B baseNode) {
-            this.baseNode = baseNode;
-        }
-
-        @Override
-        public abstract Object put(String key, Object value);
-
-        @NotNull
-        @Override
-        public abstract Set<Entry<String, Object>> entrySet();
-
-        @Override
-        public B getBaseNode() {
-            return baseNode;
-        }
-    }
-
-    private final Adapter adapter;
-
     public UniObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
         super(serializationAdapter, Type.OBJECT);
 
@@ -95,4 +53,44 @@ public final class UniObjectNode extends UniNode {
             return serializationAdapter.createUniNode(value);
         }
     }
+
+    public static UniObjectNode ofMap(SerializationAdapter<?, ?, ?> adapter, Map<String, Object> map) {
+        class MergedAdapter extends UniObjectNode.Adapter<Map<String, Object>> {
+            protected MergedAdapter(Map<String, Object> underlying) {
+                super(underlying);
+            }
+
+            @Override
+            public Object put(String key, Object value) {
+                return getBaseNode().put(key, value);
+            }
+
+            @Override
+            public @NotNull Set<Entry<String, Object>> entrySet() {
+                return getBaseNode().entrySet();
+            }
+        }
+
+        return new UniObjectNode(adapter, new MergedAdapter(map));
+    }
+
+    public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {
+        protected Adapter(B baseNode) {
+            this.baseNode = baseNode;
+        }
+
+        @Override
+        public abstract Object put(String key, Object value);
+
+        @NotNull
+        @Override
+        public abstract Set<Entry<String, Object>> entrySet();
+
+        @Override
+        public B getBaseNode() {
+            return baseNode;
+        }
+        protected final B baseNode;
+    }
+    private final Adapter adapter;
 }

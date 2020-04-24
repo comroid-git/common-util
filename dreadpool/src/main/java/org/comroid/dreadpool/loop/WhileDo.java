@@ -6,32 +6,6 @@ import java.util.function.IntFunction;
 import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class WhileDo<T> extends Loop<T> {
-    public static final class Func extends WhileDo<Integer> {
-        private final BooleanSupplier predicate;
-        private final Runnable        action;
-
-        public Func(int priority, BooleanSupplier predicate, Runnable action) {
-            super(priority, val -> val + 1);
-
-            this.predicate = predicate;
-            this.action    = action;
-        }
-
-        @Override
-        protected boolean continueLoop() {
-            return predicate.getAsBoolean();
-        }
-
-        @Override
-        protected boolean executeLoop(Integer each) {
-            action.run();
-
-            return continueLoop();
-        }
-    }
-
-    private final IntFunction<T> producer;
-
     public WhileDo(int priority, IntFunction<T> producer) {
         super(priority);
 
@@ -48,4 +22,28 @@ public abstract class WhileDo<T> extends Loop<T> {
 
     @Override
     protected abstract boolean executeLoop(T each);
+
+    public static final class Func extends WhileDo<Integer> {
+        public Func(int priority, BooleanSupplier predicate, Runnable action) {
+            super(priority, val -> val + 1);
+
+            this.predicate = predicate;
+            this.action    = action;
+        }
+        private final BooleanSupplier predicate;
+        private final Runnable        action;
+
+        @Override
+        protected boolean continueLoop() {
+            return predicate.getAsBoolean();
+        }
+
+        @Override
+        protected boolean executeLoop(Integer each) {
+            action.run();
+
+            return continueLoop();
+        }
+    }
+    private final IntFunction<T> producer;
 }

@@ -18,8 +18,6 @@ import org.comroid.restless.socket.WebSocket;
 import org.comroid.uniform.SerializationAdapter;
 
 public final class JavaHttpAdapter implements HttpAdapter {
-    private final HttpClient httpClient = HttpClient.newHttpClient();
-
     @Override
     public CompletableFuture<WebSocket> createWebSocket(
             SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
@@ -65,4 +63,5 @@ public final class JavaHttpAdapter implements HttpAdapter {
             }
         });
     }
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 }

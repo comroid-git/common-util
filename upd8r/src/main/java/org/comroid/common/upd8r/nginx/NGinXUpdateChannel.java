@@ -20,13 +20,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class NGinXUpdateChannel implements UpdateChannel {
-    private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
-
-    private final Function<String, Version> filenameVersioning;
-    private final Function<String, URL>     fileDownloadLink;
-    private final Version.Container         versionContainer;
-    private final String                    baseURL;
-
     /**
      * @param versionContainer   The container whose version to use for comparison
      * @param baseURL            NGinX API Base URL
@@ -44,6 +37,11 @@ public class NGinXUpdateChannel implements UpdateChannel {
         this.filenameVersioning = filenameVersioning;
         this.fileDownloadLink   = fileDownloadLink;
     }
+    private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
+    private final Function<String, Version> filenameVersioning;
+    private final Function<String, URL>     fileDownloadLink;
+    private final Version.Container         versionContainer;
+    private final String                    baseURL;
 
     @Override
     public String getBaseURL() {

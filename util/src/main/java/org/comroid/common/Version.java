@@ -16,32 +16,6 @@ public final class Version implements Comparable<Version> {
             "(?<major>\\d+)\\.(?<minor>\\d+)\\.?(?<patch>\\d+)?[.\\-_]?(?<candidate>(a(lpha)?|b" +
                     "(eta)?|(r(elease)?|c?))+)?[.\\-_]?(?<hotfix>\\d+)?");
 
-    public int getMajor() {
-        return major;
-    }
-
-    public int getMinor() {
-        return minor;
-    }
-
-    public int getPatch() {
-        return patch;
-    }
-
-    public ReleaseType getReleaseType() {
-        return releaseType;
-    }
-
-    public int getHotfix() {
-        return hotfix;
-    }
-
-    private final int         major;
-    private final int         minor;
-    private final int         patch;
-    private final ReleaseType releaseType;
-    private final int         hotfix;
-
     public Version(int major, int minor, int patch, ReleaseType releaseType, int hotfix) {
         this.major       = major;
         this.minor       = minor;
@@ -63,6 +37,26 @@ public final class Version implements Comparable<Version> {
         this.patch       = parseInt(regexGroupOrDefault(matcher, "patch", "0"));
         this.releaseType = ReleaseType.parse(regexGroupOrDefault(matcher, "candidate", "rc"));
         this.hotfix      = parseInt(regexGroupOrDefault(matcher, "hotfix", "0"));
+    }
+
+    public int getMajor() {
+        return major;
+    }
+
+    public int getMinor() {
+        return minor;
+    }
+
+    public int getPatch() {
+        return patch;
+    }
+
+    public ReleaseType getReleaseType() {
+        return releaseType;
+    }
+
+    public int getHotfix() {
+        return hotfix;
     }
 
     @Override
@@ -106,7 +100,6 @@ public final class Version implements Comparable<Version> {
 
         return String.format("%d.%d.%d-%s_%d", major, minor, patch, releaseType, hotfix);
     }
-
     public interface Container {
         Version getVersion();
     }
@@ -120,6 +113,10 @@ public final class Version implements Comparable<Version> {
 
         RELEASE("r", "rc", "release");
 
+        ReleaseType(String... idents) {
+            this.idents = idents;
+        }
+
         private static ReleaseType parse(String candidate) {
             if (candidate.isEmpty()) {
                 return RELEASE;
@@ -131,11 +128,11 @@ public final class Version implements Comparable<Version> {
                     .findAny()
                     .orElse(RELEASE);
         }
-
         private final String[] idents;
-
-        ReleaseType(String... idents) {
-            this.idents = idents;
-        }
     }
+    private final int         major;
+    private final int         minor;
+    private final int         patch;
+    private final ReleaseType releaseType;
+    private final int         hotfix;
 }

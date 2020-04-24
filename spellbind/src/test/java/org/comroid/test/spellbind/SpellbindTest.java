@@ -10,23 +10,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class SpellbindTest {
-    public static class ImplementingClass implements MainInterface {
-        @Override
-        public boolean invert(boolean val) {
-            return !val;
-        }
-
-        @Override
-        public String name() {
-            return "some class";
-        }
-
-        @Override
-        public int getValue() {
-            return 42;
-        }
-    }
-
     @Test
     public void testDirectBound() {
         final ImplementingClass implementingClass = new ImplementingClass();
@@ -76,6 +59,23 @@ public class SpellbindTest {
         Assert.assertTrue(proxy instanceof AnotherPartialAbstract);
         Assert.assertEquals(6.2d, proxy.getAnother(), 0.0d);
         Assert.assertEquals(-6d, proxy.sub(0.2d), 0.0d);
+    }
+
+    public static class ImplementingClass implements MainInterface {
+        @Override
+        public boolean invert(boolean val) {
+            return !val;
+        }
+
+        @Override
+        public String name() {
+            return "some class";
+        }
+
+        @Override
+        public int getValue() {
+            return 42;
+        }
     }
 
     public interface HyperInterface extends MainInterface, CharSequence, AnotherPartialAbstract {

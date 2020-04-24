@@ -23,13 +23,35 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceContext, T> {
+    private InstanceFactory(ClassLoader classLoader, Map<Class[], Invocable<T>> strategies) {
+        this.classLoader = classLoader;
+        this.strategies  = Collections.unmodifiableMap(strategies);
+    }
+
+    public Set<Class[]> getParameterOrders() {
+        return strategies.keySet();
+    }
+
+    @Override
+    public T create(@Nullable InstanceContext context) {
+        final Class[] types = Arrays.stream(context.getArgs())
+                .map(Object::getClass)
+                .toArray(Class[]::new);
+        final Invocable<T> invocable = strategies.get(types);
+
+        if (invocable == null) {
+            throw new UnsupportedOperationException(String.format("Cannot construct from types %s", Arrays.toString(types)));
+        }
+
+        try {
+            return invocable.invoke(context.getArgs());
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static final class Builder<T, C extends InstanceContext<C>>
             implements org.comroid.common.func.Builder<InstanceFactory<T>> {
-        private final Class<T>                        mainInterface;
-        private       Invocable<?>                    coreObjectFactory;
-        private final List<ImplementationNotation<?>> implementations = new ArrayList<>();
-        private       ClassLoader                     classLoader;
-
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
         }
@@ -93,16 +115,14 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
             this.classLoader = classLoader;
             return this;
         }
+        private final Class<T>                        mainInterface;
+        private       Invocable<?>                    coreObjectFactory;
+        private final List<ImplementationNotation<?>> implementations = new ArrayList<>();
+        private       ClassLoader                     classLoader;
     }
 
     @Internal
     private static final class CombiningInvocable<T> implements Invocable<T> {
-        private final Class<T>                        mainInterface;
-        private final Class[]                         types;
-        private final ClassLoader                     classLoader;
-        private final Invocable<?>                    coreObjectFactory;
-        private final List<ImplementationNotation<?>> notations;
-
         private CombiningInvocable(
                 Class<T> mainInterface,
                 Class[] types,
@@ -136,10 +156,19 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
         public Class[] typeOrder() {
             return types;
         }
+        private final Class<T>                        mainInterface;
+        private final Class[]                         types;
+        private final ClassLoader                     classLoader;
+        private final Invocable<?>                    coreObjectFactory;
+        private final List<ImplementationNotation<?>> notations;
     }
 
     @Internal
     private static final class ImplementationNotation<T> extends Pair<Invocable<T>, Class<? super T>> {
+        public ImplementationNotation(Invocable<T> factory, Class<? super T> type) {
+            super(factory, type);
+        }
+
         public Invocable<T> getFactory() {
             return super.getFirst();
         }
@@ -147,39 +176,7 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
         public Class<? super T> getType() {
             return super.getSecond();
         }
-
-        public ImplementationNotation(Invocable<T> factory, Class<? super T> type) {
-            super(factory, type);
-        }
     }
-
-    public Set<Class[]> getParameterOrders() {
-        return strategies.keySet();
-    }
-
     private final ClassLoader                classLoader;
     private final Map<Class[], Invocable<T>> strategies;
-
-    private InstanceFactory(ClassLoader classLoader, Map<Class[], Invocable<T>> strategies) {
-        this.classLoader = classLoader;
-        this.strategies  = Collections.unmodifiableMap(strategies);
-    }
-
-    @Override
-    public T create(@Nullable InstanceContext context) {
-        final Class[] types = Arrays.stream(context.getArgs())
-                .map(Object::getClass)
-                .toArray(Class[]::new);
-        final Invocable<T> invocable = strategies.get(types);
-
-        if (invocable == null) {
-            throw new UnsupportedOperationException(String.format("Cannot construct from types %s", Arrays.toString(types)));
-        }
-
-        try {
-            return invocable.invoke(context.getArgs());
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
