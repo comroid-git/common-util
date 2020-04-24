@@ -1,5 +1,6 @@
 package org.comroid.restless.socket;
 
+import org.comroid.common.func.ParamFactory;
 import org.comroid.listnr.Event;
 import org.comroid.listnr.EventHub;
 import org.comroid.listnr.EventType;
@@ -14,9 +15,12 @@ public final class SocketEvent {
 
         Container(WebSocket webSocket, EventHub<UniObjectNode> eventHub) {
             this.webSocket = webSocket;
-            this.eventHub = eventHub;
+            this.eventHub  = eventHub;
 
-            this.genericType = eventHub.createEventType(Generic.class, )
+            this.genericType = eventHub.createEventType(Generic.class,
+                    new ParamFactory.Abstract<>(data -> new Generic(this.webSocket)),
+                    data -> true
+            );
         }
     }
 
