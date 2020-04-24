@@ -14,6 +14,14 @@ public abstract class WebSocket {
             }
         }
 
+        public String getName() {
+            return name;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
         private final String name;
         private final String value;
 

@@ -14,6 +14,7 @@ import org.comroid.common.func.Provider;
 import org.comroid.common.util.BitmaskUtil;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
+import org.comroid.restless.socket.WebSocket;
 import org.comroid.uniform.SerializationAdapter;
 
 public final class JavaHttpAdapter implements HttpAdapter {
@@ -21,15 +22,11 @@ public final class JavaHttpAdapter implements HttpAdapter {
 
     @Override
     public CompletableFuture<WebSocket> createWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib,
-            WebSocket.Header.List headers,
-            Executor executor,
-            URI uri
+            SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
     ) {
         final Builder webSocketBuilder = httpClient.newWebSocketBuilder();
         headers.forEach(header -> webSocketBuilder.header(header.getName(), header.getValue()));
-        final JavaWebSocket javaWebSocket = new JavaWebSocket(new ThreadGroup(String.format("%s" +
-                        "-0x%s",
+        final JavaWebSocket javaWebSocket = new JavaWebSocket(new ThreadGroup(String.format("%s" + "-0x%s",
                 toString(),
                 Integer.toHexString(BitmaskUtil.nextFlag())
         )), seriLib);
@@ -60,9 +57,7 @@ public final class JavaHttpAdapter implements HttpAdapter {
                 headers.forEach(header -> builder.header(header.getName(), header.getValue()));
 
                 final HttpRequest request = builder.build();
-                final HttpResponse<String> response = httpClient.send(request,
-                        HttpResponse.BodyHandlers.ofString()
-                );
+                final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 return new REST.Response(rest, response.statusCode(), response.body());
             } catch (Throwable e) {

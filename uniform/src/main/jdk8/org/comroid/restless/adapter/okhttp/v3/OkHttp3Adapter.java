@@ -1,14 +1,18 @@
 package org.comroid.restless.adapter.okhttp.v3;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import org.comroid.common.func.Provider;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
+import org.comroid.restless.socket.WebSocket;
+import org.comroid.uniform.SerializationAdapter;
 
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -20,6 +24,13 @@ import okhttp3.ResponseBody;
 
 public class OkHttp3Adapter implements HttpAdapter {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
+
+    @Override
+    public CompletableFuture<WebSocket> createWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
+    ) {
+        throw new UnsupportedOperationException(); // todo
+    }
 
     @Override
     public CompletableFuture<REST.Response> call(
