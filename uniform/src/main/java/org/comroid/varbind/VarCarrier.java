@@ -60,6 +60,11 @@ public interface VarCarrier<DEP> {
         }
 
         @Override
+        default <T> Optional<Reference<T>> getByName(String name) {
+            return getUnderlyingVarCarrier().getByName(name);
+        }
+
+        @Override
         @NotNull
         default <T> Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind) {
             return getUnderlyingVarCarrier().ref(bind);
