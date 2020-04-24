@@ -25,7 +25,7 @@ public final class Spellbind {
 
     public static class Builder<T> implements org.comroid.common.func.Builder<T> {
         private final Class<T> mainInterface;
-        private final Map<String, Invocable> methodBinds;
+        private final Map<String, Invocable<Object>> methodBinds;
         private final Collection<Class<?>> interfaces;
         private       Object coreObject;
         private       ClassLoader classLoader;
@@ -45,6 +45,7 @@ public final class Spellbind {
 
             final SpellCore spellCore = new SpellCore(coreObject, methodBinds);
 
+            //noinspection unchecked
             return (T) Proxy.newProxyInstance(classLoader,
                     interfaces.stream()
                             .distinct()
@@ -64,7 +65,7 @@ public final class Spellbind {
         }
 
         private void populateBinds(
-                Method[] methods, Object implementationSource, Map<String, Invocable> map
+                Method[] methods, Object implementationSource, Map<String, Invocable<Object>> map
         ) {
             for (Method method : methods) {
                 final int mod = method.getModifiers();
