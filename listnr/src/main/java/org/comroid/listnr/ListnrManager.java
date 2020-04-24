@@ -3,13 +3,11 @@ package org.comroid.listnr;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.sun.net.httpserver.HttpHandler;
+public final class ListnrManager<I, O, E extends EventType<P, ?>, P extends Event<P>> implements AutoCloseable {
+    private final EventHub<I, O>      hub;
+    private final EventAcceptor<E, P> underlying;
 
-public final class ListnrManager<TF, E extends EventType<P, ?>, P extends Event<P>> implements AutoCloseable {
-    private final EventHub<HttpHandler, TF> hub;
-    private final EventAcceptor<E, P>       underlying;
-
-    ListnrManager(EventHub<HttpHandler, TF> hub, EventAcceptor<E, P> underlying) {
+    ListnrManager(EventHub<I, O> hub, EventAcceptor<E, P> underlying) {
         this.hub        = hub;
         this.underlying = underlying;
     }

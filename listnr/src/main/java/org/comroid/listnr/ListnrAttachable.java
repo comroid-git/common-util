@@ -4,19 +4,17 @@ import java.util.function.Consumer;
 
 import org.comroid.common.util.BitmaskUtil;
 
-import com.sun.net.httpserver.HttpHandler;
-
-public interface ListnrAttachable<TF, E extends EventType<P, TF>, P extends Event<P>> {
-    default ListnrManager<TF, E, P> registerListener(Object listener) {
+public interface ListnrAttachable<I, O, E extends EventType<P, I, O>, P extends Event<P>> {
+    default ListnrManager<I, O, E, P> registerListener(Object listener) {
         //noinspection unchecked
         EventAcceptor<E, P> acceptorOfClass = getEventHub().acceptorOfClass((Class<Object>) listener.getClass(), listener);
         return getEventHub().registerAcceptor(acceptorOfClass);
     }
 
-    EventHub<HttpHandler, TF> getEventHub();
+    EventHub<I, O> getEventHub();
 
-    default <ET extends EventType<T, TF>, T extends Event<T>> ListnrManager<TF, ET, T> listenTo(
-            EventType<T, TF> type, Consumer<T> listener
+    default <ET extends EventType<T, I, O>, T extends Event<T>> ListnrManager<I, O, ET, T> listenTo(
+            EventType<T, I, O> type, Consumer<T> listener
     ) {
         if (!BitmaskUtil.isFlagSet(type.getMask(), getBaseEventType().getMask())) {
             throw new IllegalArgumentException(String.format("Cannot listen to type %s, only subtypes of %s allowed",

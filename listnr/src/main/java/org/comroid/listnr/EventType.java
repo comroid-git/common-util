@@ -7,24 +7,23 @@ import org.comroid.common.util.BitmaskUtil;
 import org.comroid.spellbind.Spellbind;
 import org.comroid.spellbind.annotation.Partial;
 
-import com.sun.net.httpserver.HttpHandler;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import static org.comroid.common.util.BitmaskUtil.combine;
 
 @Partial
-public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<TF, P> {
+public interface EventType<P extends Event<? super P>, I, O> extends ParamFactory<O, P> {
     final class Support {
-        static final class Basic<P extends Event<P>, TF> implements EventType<P, TF> {
-            protected final EventHub<HttpHandler, TF> hub;
-            private final   Class<P>                  payloadType;
-            private final   int                 flag = BitmaskUtil.nextFlag();
-            private final   Predicate<TF>       eventTester;
-            private final   ParamFactory<TF, P> payloadFactory;
+        static final class Basic<P extends Event<P>, I, O> implements EventType<P, I, O> {
+            protected final EventHub<I, O>     hub;
+            private final   Class<P>           payloadType;
+            private final   int                flag = BitmaskUtil.nextFlag();
+            private final   Predicate<O>       eventTester;
+            private final   ParamFactory<O, P> payloadFactory;
 
             Basic(
-                    EventHub<HttpHandler, TF> hub, Class<P> payloadType, Predicate<TF> eventTester, ParamFactory<TF, P> payloadFactory
+                    EventHub<I, O> hub, Class<P> payloadType, Predicate<O> eventTester, ParamFactory<O, P> payloadFactory
             ) {
                 this.hub            = hub;
                 this.payloadType    = payloadType;
@@ -40,13 +39,13 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
             }
 
             @Override
-            public final boolean isEvent(@Nullable TF data) {
-                return eventTester.test(data);
+            public final P create(@Nullable O parameter) {
+                return payloadFactory.create(parameter);
             }
 
             @Override
-            public final P create(@Nullable TF parameter) {
-                return payloadFactory.create(parameter);
+            public final boolean isEvent(@Nullable O data) {
+                return eventTester.test(data);
             }
 
             @Override
@@ -65,13 +64,13 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
             }
         }
 
-        private static final class Combination<P extends Event<P>, TF> implements Combined<P, TF> {
-            private final Predicate<TF>              eventTester;
-            private final Class<P>                   payloadType;
-            private final EventType<? super P, TF>[] subtypes;
-            private final int                        mask;
+        private static final class Combination<P extends Event<P>, I, O> implements Combined<P, I, O> {
+            private final Predicate<O>                 eventTester;
+            private final Class<P>                     payloadType;
+            private final EventType<? super P, I, O>[] subtypes;
+            private final int                          mask;
 
-            private Combination(EventType<? super P, TF>[] subtypes, Predicate<TF> eventTester, Class<P> payloadType) {
+            private Combination(EventType<? super P, I, O>[] subtypes, Predicate<O> eventTester, Class<P> payloadType) {
                 this.eventTester = eventTester;
                 this.payloadType = payloadType;
                 this.subtypes    = subtypes;
@@ -80,7 +79,7 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
 
             private int computeMask() {
                 int yield = BitmaskUtil.EMPTY;
-                for (EventType<? super P, TF> type : subtypes) {
+                for (EventType<? super P, I, O> type : subtypes) {
                     yield = combine(yield, type.getMask());
                 }
                 return yield;
@@ -92,20 +91,20 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
             }
 
             @Override
-            public boolean isEvent(@Nullable TF data) {
-                return eventTester.test(data);
-            }
-
-            @Override
-            public P create(@Nullable TF parameter) {
+            public P create(@Nullable O parameter) {
                 Spellbind.Builder<P> payloadCombinator = Spellbind.builder(payloadType);
 
                 payloadCombinator.coreObject(new Event.Support.Abstract<P>() {});
-                for (EventType<? super P, TF> subtype : subtypes) {
+                for (EventType<? super P, I, O> subtype : subtypes) {
                     payloadCombinator.subImplement(subtype);
                 }
 
                 return payloadCombinator.build();
+            }
+
+            @Override
+            public boolean isEvent(@Nullable O data) {
+                return eventTester.test(data);
             }
 
             @Override
@@ -133,16 +132,16 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
     }
 
     @Override
-    P create(@Nullable TF parameter);
+    P create(@Nullable O parameter);
 
-    boolean isEvent(@Nullable TF data);
+    boolean isEvent(@Nullable O data);
 
     Class<P> payloadType();
 
-    interface Combined<P extends Event<P>, TF> extends EventType<P, TF> {
+    interface Combined<P extends Event<P>, I, O> extends EventType<P, I, O> {
         @SafeVarargs
-        static <P extends Event<P>, TF> Combined<P, TF> of(
-                Class<P> payloadInterface, Predicate<TF> eventTester, EventType<? super P, TF>... subtypes
+        static <P extends Event<P>, I, O> Combined<P, I, O> of(
+                Class<P> payloadInterface, Predicate<O> eventTester, EventType<? super P, I, O>... subtypes
         ) {
             return new EventType.Support.Combination<>(subtypes, eventTester, payloadInterface);
         }

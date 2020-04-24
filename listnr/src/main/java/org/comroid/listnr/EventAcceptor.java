@@ -17,8 +17,8 @@ import static org.comroid.common.Polyfill.deadCast;
 import static org.comroid.common.util.BitmaskUtil.combine;
 
 @ShouldExtend(EventAcceptor.Support.Abstract.class)
-public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
-    static <E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> ofMethod(Method method) {
+public interface EventAcceptor<E extends EventType<P, ?, ?>, P extends Event<P>> {
+    static <E extends EventType<P, ?, ?>, P extends Event<P>> EventAcceptor<E, P> ofMethod(Method method) {
         if (!method.isAnnotationPresent(Listnr.class)) {
             throw new IllegalArgumentException("EventHandler annotation not present");
         }
@@ -27,34 +27,33 @@ public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
         return new Support.OfInvocable<>(Invocable.ofMethodCall(method));
     }
 
-    static <E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> ofConsumer(
-            Class<P> payloadType,
-            Consumer<P> consumer
+    static <E extends EventType<P, ?, ?>, P extends Event<P>> EventAcceptor<E, P> ofConsumer(
+            Class<P> payloadType, Consumer<P> consumer
     ) {
         return new Support.OfInvocable<>(Invocable.ofConsumer(payloadType, consumer));
     }
 
     final class Support {
-        public static abstract class Abstract<E extends EventType<P, ?>, P extends Event<P>> implements EventAcceptor<E, P> {
-            private final Set<EventType<P, ?>> eventTypes;
-            private final int                  mask;
+        public static abstract class Abstract<E extends EventType<P, ?, ?>, P extends Event<P>> implements EventAcceptor<E, P> {
+            private final Set<EventType<P, ?, ?>> eventTypes;
+            private final int                     mask;
 
             @SafeVarargs
-            protected Abstract(EventType<P, ?>... accepted) {
+            protected Abstract(EventType<P, ?, ?>... accepted) {
                 this.eventTypes = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(accepted)));
                 this.mask       = computeMask();
             }
 
             protected int computeMask() {
                 int yield = BitmaskUtil.EMPTY;
-                for (EventType<P, ?> type : eventTypes) {
+                for (EventType<P, ?, ?> type : eventTypes) {
                     yield = combine(yield, type.getMask());
                 }
                 return yield;
             }
 
             @Override
-            public Set<EventType<P, ?>> getAcceptedEventTypes() {
+            public Set<EventType<P, ?, ?>> getAcceptedEventTypes() {
                 return eventTypes;
             }
 
@@ -64,7 +63,7 @@ public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
             }
         }
 
-        private static final class OfInvocable<E extends EventType<P, ?>, P extends Event<P>> extends Abstract<E, P> {
+        private static final class OfInvocable<E extends EventType<P, ?, ?>, P extends Event<P>> extends Abstract<E, P> {
             private final Invocable<? extends P> underlying;
 
             private OfInvocable(Invocable<? extends P> underlying) {
@@ -73,15 +72,15 @@ public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
 
             @Override
             public <T extends P> void acceptEvent(T eventPayload) {
-
+                underlying.invokeRethrow(eventPayload);
             }
         }
 
-        static final class OfSortedInvocables<E extends EventType<P, ?>, P extends Event<P>> extends Abstract<E, P> {
+        static final class OfSortedInvocables<E extends EventType<P, ?, ?>, P extends Event<P>> extends Abstract<E, P> {
             private final Set<Invocable<Object>> invocables;
 
             OfSortedInvocables(
-                    EventType<P, ?>[] capabilities, Set<Invocable<Object>> invocables
+                    EventType<P, ?, ?>[] capabilities, Set<Invocable<Object>> invocables
             ) {
                 super(capabilities);
                 this.invocables = invocables;
@@ -97,7 +96,7 @@ public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
         }
     }
 
-    Set<EventType<P, ?>> getAcceptedEventTypes();
+    Set<EventType<P, ?, ?>> getAcceptedEventTypes();
 
     @Internal
     int getAcceptedTypesAsMask();
