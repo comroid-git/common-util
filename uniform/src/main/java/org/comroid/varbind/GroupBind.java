@@ -37,7 +37,7 @@ public final class GroupBind {
     public final Collection<GroupBind> getSubgroups() {
         return subgroups;
     }
-    
+
     final                   List<? extends VarBind<?, ?, ?, ?>> children  = new ArrayList<>();
     private final           SerializationAdapter<?, ?, ?>       serializationAdapter;
     private final           String                              groupName;

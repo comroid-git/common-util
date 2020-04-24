@@ -8,15 +8,14 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniObjectNode;
 
 public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     final class Uno<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
         public Uno(
-                GroupBind group,
-                String fieldName,
-                BiFunction<UniObjectNode, String, TARGET> extractor
+                GroupBind group, String fieldName, BiFunction<UniObjectNode, String, TARGET> extractor
         ) {
             super(group, fieldName, extractor.andThen(Span::singleton));
         }
@@ -84,6 +83,22 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     }
 
     REMAP remap(EXTR from, DPND dependency);
+
+    default <R> ReBind.Duo<FINAL, R> rebindSimple(Function<FINAL, R> remapper) {
+        return rebindSimple(getGroup(), remapper);
+    }
+
+    default <R> ReBind.Duo<FINAL, R> rebindSimple(GroupBind group, Function<FINAL, R> remapper) {
+        return new ReBind.Duo<>(Polyfill.deadCast(this), group, remapper);
+    }
+
+    default <R> ReBind.Dep<FINAL, DPND, R> rebindDependent(BiFunction<FINAL, DPND, R> resolver) {
+        return rebindDependent(getGroup(), resolver);
+    }
+
+    default <R> ReBind.Dep<FINAL, DPND, R> rebindDependent(GroupBind group, BiFunction<FINAL, DPND, R> resolver) {
+        return new ReBind.Dep<>(Polyfill.deadCast(this), group, resolver);
+    }
 
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)
