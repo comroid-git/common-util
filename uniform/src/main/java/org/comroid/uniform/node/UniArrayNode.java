@@ -70,7 +70,7 @@ public final class UniArrayNode extends UniNode {
             return baseNode;
         }
     }
-    
+
     private final Adapter adapter;
 
     public UniArrayNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
@@ -99,10 +99,7 @@ public final class UniArrayNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(
-                    serializationAdapter,
-                    makeValueAdapter(() -> String.valueOf(adapter.get(index)))
-            );
+            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(index))));
         } else {
             return serializationAdapter.createUniNode(value);
         }
@@ -143,10 +140,5 @@ public final class UniArrayNode extends UniNode {
         }
 
         return yields;
-    }
-
-    @Override
-    public final Object getBaseNode() {
-        return adapter.getBaseNode();
     }
 }
