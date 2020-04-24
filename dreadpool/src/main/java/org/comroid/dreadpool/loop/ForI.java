@@ -80,8 +80,9 @@ public abstract class ForI<V> extends Loop<V> {
 
                 @Override
                 public boolean test(T t) {
-                    if (cache.add(t))
+                    if (cache.add(t)) {
                         return pContinueTester.test(t);
+                    }
                     return false;
                 }
             };
@@ -124,10 +125,10 @@ public abstract class ForI<V> extends Loop<V> {
             final boolean cont = super.oneCycle();
             v = accumulate(v);
             return cont;
-        } else return false;
+        } else {
+            return false;
+        }
     }
-
-    protected abstract V init();
 
     protected abstract boolean canContinueWith(V value);
 
@@ -142,4 +143,6 @@ public abstract class ForI<V> extends Loop<V> {
     protected V produce(int loop) {
         return v;
     }
+
+    protected abstract V init();
 }

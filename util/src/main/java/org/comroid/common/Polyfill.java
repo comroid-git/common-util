@@ -1,10 +1,5 @@
 package org.comroid.common;
 
-import org.comroid.common.annotation.OptionalVararg;
-import org.comroid.common.func.ThrowingRunnable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,19 +9,27 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 
+import org.comroid.common.annotation.OptionalVararg;
+import org.comroid.common.func.ThrowingRunnable;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import static java.util.Objects.isNull;
 
 public final class Polyfill {
     public static String regexGroupOrDefault(
-            Matcher matcher,
-            String groupName,
-            @Nullable String orDefault
+            Matcher matcher, String groupName, @Nullable String orDefault
     ) {
         String cont;
 
-        if (matcher.matches() && (cont = matcher.group(groupName)) != null) return cont;
-        else if (orDefault != null) return orDefault;
-        else throw new NullPointerException("Group cannot be matched!");
+        if (matcher.matches() && (cont = matcher.group(groupName)) != null) {
+            return cont;
+        } else if (orDefault != null) {
+            return orDefault;
+        } else {
+            throw new NullPointerException("Group cannot be matched!");
+        }
     }
 
     public static <R, T extends Throwable> Function<T, R> exceptionLogger() {
@@ -41,9 +44,11 @@ public final class Polyfill {
             String spec,
             @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator
     ) throws T {
-        if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
-                cause -> (T) new AssertionError(cause)
-        };
+        if (throwableReconfigurator.length == 0) {
+            throwableReconfigurator = new Function[]{
+                    cause -> (T) new AssertionError(cause)
+            };
+        }
 
         try {
             return new URL(spec);
@@ -53,12 +58,13 @@ public final class Polyfill {
     }
 
     public static <T extends Throwable> URI uri(
-            String spec,
-            @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
+            String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
     ) throws T {
-        if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
-                cause -> (T) new AssertionError(cause)
-        };
+        if (throwableReconfigurator.length == 0) {
+            throwableReconfigurator = new Function[]{
+                    cause -> (T) new AssertionError(cause)
+            };
+        }
 
         try {
             return new URI(spec);
@@ -71,8 +77,9 @@ public final class Polyfill {
             ThrowingRunnable<R, T> throwingRunnable,
             @Nullable Function<T, ? extends RuntimeException> remapper
     ) {
-        final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(
-                remapper, (Function<T, ? extends RuntimeException>) RuntimeException::new);
+        final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(remapper,
+                (Function<T, ? extends RuntimeException>) RuntimeException::new
+        );
 
         return () -> {
             try {
@@ -84,7 +91,9 @@ public final class Polyfill {
     }
 
     public static <T> T notnullOr(@Nullable T value, @NotNull T def) {
-        if (isNull(value)) return def;
+        if (isNull(value)) {
+            return def;
+        }
 
         return value;
     }

@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.comroid.common.func.Processor;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
-import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
@@ -42,10 +41,13 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     protected <BAS, OBJ extends BAS> VariableCarrier(
             SerializationAdapter<BAS, OBJ, ?> serializationAdapter, OBJ initialData, @Nullable DEP dependencyObject
     ) {
-        this(serializationAdapter, serializationAdapter.createUniObjectNode(initialData), dependencyObject);
+        this(serializationAdapter,
+                serializationAdapter.createUniObjectNode(initialData),
+                dependencyObject
+        );
     }
 
-    protected VariableCarrier(
+    public VariableCarrier(
             SerializationAdapter<?, ?, ?> serializationAdapter,
             @Nullable UniObjectNode initialData,
             @Nullable DEP dependencyObject
@@ -61,13 +63,18 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
 
         if (location == null) {
-            throw new IllegalStateException(String.format("Class %s extends VariableCarrier, but does not have a %s annotation.",
+            throw new IllegalStateException(String.format(
+                    "Class %s extends VariableCarrier, but does not have a %s annotation.",
                     inClass.getName(),
                     VarBind.Location.class.getName()
             ));
         }
 
-        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class)
+        return ReflectionHelper.collectStaticFields(GroupBind.class,
+                location.value(),
+                true,
+                VarBind.Root.class
+        )
                 .requireNonNull();
     }
 

@@ -11,10 +11,14 @@ abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<EXTR, DP
     private final BiFunction<UniObjectNode, String, Span<EXTR>> extractor;
     private final GroupBind                                     group;
 
-    protected AbstractObjectBind(GroupBind group, String fieldName, BiFunction<UniObjectNode, String, Span<EXTR>> extractor) {
+    protected AbstractObjectBind(
+            GroupBind group,
+            String fieldName,
+            BiFunction<UniObjectNode, String, Span<EXTR>> extractor
+    ) {
         this.fieldName = fieldName;
         this.extractor = extractor;
-        this.group = group;
+        this.group     = group;
 
         group.children.add(Polyfill.deadCast(this));
     }

@@ -1,18 +1,19 @@
 package org.comroid.dreadpool.loop.manager;
 
-import com.google.common.flogger.FluentLogger;
-import org.comroid.dreadpool.Worker;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
+import org.comroid.dreadpool.Worker;
+
+import com.google.common.flogger.FluentLogger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public final class LoopWorker extends Worker {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private final LoopManager manager;
-    private       Loop<?>     current;
+    private final        LoopManager  manager;
+    private              Loop<?>      current;
 
     public LoopWorker(
             @NotNull LoopManager manager, @Nullable ThreadGroup group, @NotNull String name
@@ -29,8 +30,11 @@ public final class LoopWorker extends Worker {
             if (current != null) {
                 if (!current.canContinue()) {
                     current = null;
-                } else current.oneCycle();
-            } else synchronized (manager.lock) {
+                } else {
+                    current.oneCycle();
+                }
+            } else {
+                synchronized (manager.lock) {
                     Optional<Loop<?>> mostImportant = manager.pollMostImportant();
                     try {
                         if (!mostImportant.isPresent()) {
@@ -40,11 +44,13 @@ public final class LoopWorker extends Worker {
                             }
                         }
                     } catch (InterruptedException e) {
-                        logger.at(Level.FINE).log("{} stopping!", toString());
+                        logger.at(Level.FINE)
+                                .log("{} stopping!", toString());
                     } finally {
                         mostImportant.ifPresent(this::swapCurrent);
                     }
                 }
+            }
         }
     }
 

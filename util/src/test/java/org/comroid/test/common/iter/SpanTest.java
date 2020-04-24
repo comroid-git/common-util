@@ -17,8 +17,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SpanTest {
-    private Span<String>                span;
-    private List<Pair<String, Integer>> generated;
+    private static final Random                      rng = new Random();
+    private static       int                         bound = rng.nextInt(100) + 50;
+    private              Span<String>                span;
+    private              List<Pair<String, Integer>> generated;
 
     @Test
     public void baseTest() {
@@ -57,13 +59,13 @@ public class SpanTest {
         assertTrue(span.contains(randomGenerated()));
 
         final String removeThis = randomGenerated();
-        final int count = (int) span.stream()
+        final int    count      = (int) span.stream()
                 .filter(it -> it.equals(removeThis))
                 .count();
-        System.out.println("removing value   = " + removeThis + "; found " + count + " occurrence" + (
-                count == 1
-                        ? ""
-                        : "s"));
+        System.out.println(
+                "removing value   = " + removeThis + "; found " + count + " occurrence" + (
+                        count == 1 ? "" : "s"
+                ));
         assertTrue(span.remove(removeThis));
         System.out.println("span after rem   = " + span);
         bound -= 1;
@@ -81,15 +83,15 @@ public class SpanTest {
                 .filter(Boolean::booleanValue)
                 .count();
 
-        System.out.printf("};\n" + "                   ... %d were successful.\n" + "remove           = %d%n",
+        System.out.printf(
+                "};\n" + "                   ... %d were successful.\n" + "remove           = %d%n",
                 successful,
                 remove
         );
 
         final Object[] iterable = span.toArray();
         System.out.println("span after       = " + span);
-        System.out.printf(
-                "span iterable    = {%d}%s%n",
+        System.out.printf("span iterable    = {%d}%s%n",
                 iterable.length,
                 Arrays.toString(iterable)
         );
@@ -107,7 +109,4 @@ public class SpanTest {
         return generated.remove(Math.abs((rng.nextInt() + 1) % generated.size()))
                 .getFirst();
     }
-
-    private static final Random rng   = new Random();
-    private static       int    bound = rng.nextInt(100) + 50;
 }

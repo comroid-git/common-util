@@ -1,21 +1,19 @@
 package org.comroid.common.exception;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
+
+import org.jetbrains.annotations.Nullable;
 
 public class MultipleExceptions extends RuntimeException {
     public MultipleExceptions(String message, Collection<? extends Throwable> causes) {
         super(composeMessage(message, causes));
     }
 
-    public MultipleExceptions(Collection<? extends Throwable> causes) {
-        super(composeMessage(null, causes));
-    }
-
-    private static String composeMessage(@Nullable String baseMessage, Collection<? extends Throwable> throwables) {
+    private static String composeMessage(
+            @Nullable String baseMessage, Collection<? extends Throwable> throwables
+    ) {
         class StringStream extends OutputStream {
             private final StringBuilder sb = new StringBuilder();
 
@@ -30,8 +28,9 @@ public class MultipleExceptions extends RuntimeException {
             }
         }
 
-        if (baseMessage == null)
+        if (baseMessage == null) {
             baseMessage = "Multiple Exceptions were thrown";
+        }
         final StringStream out    = new StringStream();
         final PrintStream  string = new PrintStream(out);
 
@@ -40,5 +39,9 @@ public class MultipleExceptions extends RuntimeException {
         throwables.forEach(t -> t.printStackTrace(string));
 
         return out.toString();
+    }
+
+    public MultipleExceptions(Collection<? extends Throwable> causes) {
+        super(composeMessage(null, causes));
     }
 }

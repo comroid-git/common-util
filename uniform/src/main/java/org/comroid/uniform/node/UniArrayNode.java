@@ -70,6 +70,7 @@ public final class UniArrayNode extends UniNode {
             return baseNode;
         }
     }
+    
     private final Adapter adapter;
 
     public UniArrayNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
@@ -79,8 +80,8 @@ public final class UniArrayNode extends UniNode {
     }
 
     @Override
-    public @NotNull UniNode get(String fieldName) {
-        return unsupported("GET_FIELD", Type.OBJECT);
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
     }
 
     @Override
@@ -98,7 +99,10 @@ public final class UniArrayNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(index))));
+            return new UniValueNode<>(
+                    serializationAdapter,
+                    makeValueAdapter(() -> String.valueOf(adapter.get(index)))
+            );
         } else {
             return serializationAdapter.createUniNode(value);
         }
@@ -112,6 +116,11 @@ public final class UniArrayNode extends UniNode {
     @Override
     public boolean has(String fieldName) {
         return unsupported("HAS_FIELD", Type.OBJECT);
+    }
+
+    @Override
+    public @NotNull UniNode get(String fieldName) {
+        return unsupported("GET_FIELD", Type.OBJECT);
     }
 
     @Override

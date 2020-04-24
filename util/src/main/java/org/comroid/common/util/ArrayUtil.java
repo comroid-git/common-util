@@ -8,9 +8,11 @@ public final class ArrayUtil {
         final T[] yield = Arrays.copyOf(original, original.length + insert.length);
 
         for (int i, f, o = i = f = 0; i < yield.length; i++) {
-            if (i >= atIndex && o < insert.length)
+            if (i >= atIndex && o < insert.length) {
                 yield[i] = insert[o++];
-            else yield[i] = original[f++];
+            } else {
+                yield[i] = original[f++];
+            }
         }
 
         return yield;

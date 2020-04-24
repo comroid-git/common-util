@@ -21,7 +21,9 @@ public final class StackTraceUtils {
             final int omitAt,
             final boolean recursive
     ) {
-        if (throwable == null) return;
+        if (throwable == null) {
+            return;
+        }
 
         lines.add(String.format("%s: %s",
                 throwable.getClass()
@@ -31,12 +33,15 @@ public final class StackTraceUtils {
 
         final StackTraceElement[] stackTrace = throwable.getStackTrace();
 
-        for (int c = 0; c < stackTrace.length && (omitAt == -1 || c < omitAt); c++)
+        for (int c = 0; c < stackTrace.length && (omitAt == -1 || c < omitAt); c++) {
             lines.add(stackTrace[c].toString());
+        }
 
         if (recursive) {
             Throwable cause = throwable.getCause();
-            if (cause != null) putStackTrace(lines, cause, omitAt, recursive);
+            if (cause != null) {
+                putStackTrace(lines, cause, omitAt, recursive);
+            }
         }
     }
 }

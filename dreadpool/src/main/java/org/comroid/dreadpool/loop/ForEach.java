@@ -32,7 +32,9 @@ public abstract class ForEach<T> extends Loop<T> {
     }
 
     @Override
-    protected abstract boolean executeLoop(T each);
+    protected final boolean continueLoop() {
+        return iterator.hasNext();
+    }
 
     @Override
     protected final T produce(int loop) {
@@ -40,7 +42,5 @@ public abstract class ForEach<T> extends Loop<T> {
     }
 
     @Override
-    protected final boolean continueLoop() {
-        return iterator.hasNext();
-    }
+    protected abstract boolean executeLoop(T each);
 }

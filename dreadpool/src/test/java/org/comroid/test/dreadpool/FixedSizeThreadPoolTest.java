@@ -1,14 +1,18 @@
 package org.comroid.test.dreadpool;
 
-import org.comroid.common.iter.Span;
-import org.comroid.dreadpool.ThreadPool;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.comroid.dreadpool.ThreadPool;
+
+import org.junit.Before;
 
 import static org.junit.Assert.assertEquals;
 
@@ -92,42 +96,46 @@ public class FixedSizeThreadPoolTest {
         Thread.sleep(200);
         assertEquals(45, yields.size());
 
-
         final UUID[] array = yields.toArray(new UUID[0]);
         assertEquals(45, array.length);
 
         UUID[] arr1 = Arrays.copyOfRange(array, 0, 10);
-        for (int i = 0; i < arr1.length; i++)
+        for (int i = 0; i < arr1.length; i++) {
             assertEquals("index: " + i, someTasks.get(i).uuid, arr1[i]);
+        }
 
         List<UUID> reversed1 = Arrays.asList(Arrays.copyOfRange(array, 10, 20));
         reversed1.sort(Comparator.reverseOrder());
         UUID[] arr2 = reversed1.toArray(new UUID[0]); // reversed
-        for (int i = 0; i < arr2.length; i++)
+        for (int i = 0; i < arr2.length; i++) {
             assertEquals("index: " + i, someTasks.get(i + 10).uuid, arr2[i]);
+        }
         // todo: fails probably due to a concurrency problem
 
         UUID[] arr3 = Arrays.copyOfRange(array, 20, 25); // orig ind[20-30;first half]
-        for (int i = 0; i < arr3.length; i++)
+        for (int i = 0; i < arr3.length; i++) {
             assertEquals("index: " + i, someTasks.get(i + 20).uuid, arr3[i]);
+        }
 
         List<UUID> reversed2 = Arrays.asList(Arrays.copyOfRange(array, 25, 35));
         reversed2.sort(Comparator.reverseOrder());
         UUID[] arr4 = reversed2.toArray(new UUID[0]); // reversed
-        for (int i = 0; i < arr4.length; i++)
+        for (int i = 0; i < arr4.length; i++) {
             assertEquals("index: " + i, someTasks.get(i + 25).uuid, arr4[i]);
+        }
 
         UUID[] arr5 = Arrays.copyOfRange(array, 35, 45);
-        for (int i = 0; i < arr5.length; i++)
+        for (int i = 0; i < arr5.length; i++) {
             assertEquals("index: " + i, someTasks.get(i + 35).uuid, arr5[i]);
+        }
     }
 
     public class SomeTask implements Runnable {
-        final UUID uuid = UUID.randomUUID();
-
         public UUID getUuid() {
             return uuid;
         }
+
+        final UUID uuid = UUID.randomUUID();
 
         @Override
         public void run() {

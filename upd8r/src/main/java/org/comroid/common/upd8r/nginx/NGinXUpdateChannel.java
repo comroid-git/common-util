@@ -40,10 +40,10 @@ public class NGinXUpdateChannel implements UpdateChannel {
             Function<String, Version> filenameVersioning,
             Function<String, URL> fileDownloadLink
     ) {
-        this.versionContainer = versionContainer;
-        this.baseURL = baseURL;
+        this.versionContainer   = versionContainer;
+        this.baseURL            = baseURL;
         this.filenameVersioning = filenameVersioning;
-        this.fileDownloadLink = fileDownloadLink;
+        this.fileDownloadLink   = fileDownloadLink;
     }
 
     @Override
@@ -72,18 +72,19 @@ public class NGinXUpdateChannel implements UpdateChannel {
                 final Response response = httpClient.newCall(request)
                         .execute();
 
-                if (response.body() != null) return JSONArray.parseArray(
-                        response.body()
-                                .string(), JsonFileInfo.class);
-                else throw new NullPointerException("No response body received");
+                if (response.body() != null) {
+                    return JSONArray.parseArray(response.body()
+                            .string(), JsonFileInfo.class);
+                } else {
+                    throw new NullPointerException("No response body received");
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Error requesting files", e);
             }
         })
                 .thenApply(files -> files.stream()
                         .map(JsonFileInfo::getFileName)
-                        .max(Comparator.comparing(
-                                filenameVersioning))
+                        .max(Comparator.comparing(filenameVersioning))
                         .orElseThrow(AssertionError::new))
                 .thenApply(fileDownloadLink);
     }
@@ -99,11 +100,9 @@ public class NGinXUpdateChannel implements UpdateChannel {
         })
                 .thenApplyAsync(stream -> {
                     try {
-                        final File tempFile = File.createTempFile(
-                                UUID.randomUUID()
-                                        .toString(), ".tmp");
-                        final FileOutputStream outputStream = new FileOutputStream(
-                                tempFile);
+                        final File             tempFile     = File.createTempFile(UUID.randomUUID()
+                                .toString(), ".tmp");
+                        final FileOutputStream outputStream = new FileOutputStream(tempFile);
 
                         //stream.transferTo(outputStream);
                         Objects.requireNonNull(outputStream, "outputStream");

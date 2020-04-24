@@ -3,10 +3,10 @@ package org.comroid.test.uniform;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
+import org.comroid.restless.REST;
 import org.comroid.restless.adapter.okhttp.v3.OkHttp3Adapter;
 import org.comroid.test.model.NGinXFSNode;
 import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
-import org.comroid.restless.REST;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,9 +43,10 @@ public class TestRestJava8 {
             assertTrue(request.execute$deserialize()
                     .get(0, TimeUnit.SECONDS)
                     .size() >= 1);
-            assertEquals(
-                    200, (int) request.execute$statusCode()
-                            .get(0, TimeUnit.SECONDS));
+            assertEquals(200,
+                    (int) request.execute$statusCode()
+                            .get(0, TimeUnit.SECONDS)
+            );
 
             assertTrue(request.execute$map(NGinXFSNode::getType)
                     .get(0, TimeUnit.SECONDS)

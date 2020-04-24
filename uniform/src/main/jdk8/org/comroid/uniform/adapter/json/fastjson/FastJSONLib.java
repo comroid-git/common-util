@@ -48,7 +48,9 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
                 case Value:
                     throw new IllegalArgumentException("Cannot parse JSON Value");
             }
-        } else throw new IllegalArgumentException("String is not valid JSON");
+        } else {
+            throw new IllegalArgumentException("String is not valid JSON");
+        }
 
         return Objects.requireNonNull(node, "Node is null");
     }
@@ -75,7 +77,8 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
             }
 
             @Override
-            public @NotNull Set<Entry<String, Object>> entrySet() {
+            public @NotNull
+            Set<Entry<String, Object>> entrySet() {
                 return baseNode.entrySet();
             }
         }

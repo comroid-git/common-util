@@ -1,14 +1,16 @@
 package org.comroid.common.func;
 
-import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.Nullable;
 
-public interface Factory<T> extends Provider.Now<T> {
+public interface Factory<T> extends ParamFactory<Object, T> {
+    abstract class Abstract<T> extends ParamFactory.Abstract<Object, T> implements Factory<T> {}
+
     int counter();
 
-    T create();
-
     @Override
-    default T now() {
+    default T create(@Nullable Object possiblyIgnored) {
         return create();
     }
+
+    T create();
 }

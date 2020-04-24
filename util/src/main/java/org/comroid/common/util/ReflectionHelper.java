@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -25,16 +26,60 @@ public final class ReflectionHelper {
             throws RuntimeException, AssertionError {
         final Optional<T> optInstByField = instanceField(type);
 
-        if (optInstByField.isPresent()) return optInstByField.get();
+        if (optInstByField.isPresent()) {
+            return optInstByField.get();
+        }
 
         final Class<?>[] types = types(args);
-        Constructor<T> constructor = findConstructor(type, types).orElseThrow(
-                () -> new AssertionError(
-                        String.format("Could not find constructor for class %s with types %s",
-                                type.getName(), Arrays.toString(types)
-                        )));
+        Constructor<T> constructor = findConstructor(type,
+                types
+        ).orElseThrow(() -> new AssertionError(String.format(
+                "Could not find constructor for class %s with types %s",
+                type.getName(),
+                Arrays.toString(types)
+        )));
 
         return instance(constructor, args);
+    }
+
+    public static <T> Optional<T> instanceField(Class<T> type) {
+        return fieldWithAnnotation(type, Instance.class).stream()
+                .filter(field -> typeCompat(type, field.getType()))
+                .filter(field -> isStatic(field.getModifiers()) && isFinal(field.getModifiers()) &&
+                        isPublic(field.getModifiers()))
+                .findAny()
+                .map(field -> {
+                    try {
+                        return (T) field.get(null);
+                    } catch (IllegalAccessException e) {
+                        throw new AssertionError("Cannot access field", e);
+                    }
+                });
+    }
+
+    public static Class<?>[] types(Object... args) {
+        final Class<?>[] yields = new Class[args.length];
+
+        for (int i = 0; i < args.length; i++) {
+            yields[i] = args[i].getClass();
+        }
+
+        return yields;
+    }
+
+    public static <T> Optional<Constructor<T>> findConstructor(Class<T> inClass, Class<?>[] types) {
+        final Constructor<?>[] constructors = inClass.getDeclaredConstructors();
+
+        if (constructors.length == 0) {
+            return Optional.empty();
+        }
+
+        return Stream.of(constructors)
+                .map(it -> (Constructor<T>) it)
+                .max(Comparator.comparingLong(constr -> Stream.of(constr.getParameterTypes())
+                        .filter(typ -> Stream.of(types)
+                                .anyMatch(typ::isAssignableFrom))
+                        .count()));
     }
 
     public static <T> T instance(Constructor<T> constructor, Object... args)
@@ -44,8 +89,9 @@ public final class ReflectionHelper {
         } catch (InvocationTargetException e) {
             throw new RuntimeException("Error in Constructor", e);
         } catch (IllegalAccessException e) {
-            throw new AssertionError(
-                    String.format("Could not access constructor %s", constructor), e);
+            throw new AssertionError(String.format("Could not access constructor %s", constructor),
+                    e
+            );
         } catch (InstantiationException e) {
             throw new AssertionError(String.format("Class %s is abstract",
                     constructor.getDeclaringClass()
@@ -54,62 +100,22 @@ public final class ReflectionHelper {
         }
     }
 
-    public static <T> Optional<T> instanceField(Class<T> type) {
-        return fieldWithAnnotation(type, Instance.class).stream()
-                .filter(field -> typeCompat(
-                        type, field.getType()))
-                .filter(field -> isStatic(
-                        field.getModifiers()) && isFinal(
-                        field.getModifiers()) && isPublic(
-                        field.getModifiers()))
-                .findAny()
-                .map(field -> {
-                    try {
-                        return (T) field.get(null);
-                    } catch (IllegalAccessException e) {
-                        throw new AssertionError(
-                                "Cannot access field", e);
-                    }
-                });
+    public static Set<Field> fieldWithAnnotation(
+            Class<?> type, Class<? extends Annotation> instanceClass
+    ) {
+        Set<Field> yields = new HashSet<>();
+
+        for (Field field : type.getFields()) {
+            if (field.isAnnotationPresent(instanceClass)) {
+                yields.add(field);
+            }
+        }
+
+        return yields;
     }
 
     public static <T> boolean typeCompat(Class<T> type, Class<?> other) {
         return type.equals(other) || type.isAssignableFrom(other);
-    }
-
-    public static Set<Field> fieldWithAnnotation(
-            Class<?> type,
-            Class<? extends Annotation> instanceClass
-    ) {
-        Set<Field> yields = new HashSet<>();
-
-        for (Field field : type.getFields())
-            if (field.isAnnotationPresent(instanceClass)) yields.add(field);
-
-        return yields;
-    }
-
-    public static Class<?>[] types(Object... args) {
-        final Class<?>[] yields = new Class[args.length];
-
-        for (int i = 0; i < args.length; i++)
-            yields[i] = args[i].getClass();
-
-        return yields;
-    }
-
-    public static <T> Optional<Constructor<T>> findConstructor(Class<T> inClass, Class<?>[] types) {
-        final Constructor<?>[] constructors = inClass.getDeclaredConstructors();
-
-        if (constructors.length == 0) return Optional.empty();
-
-        return Stream.of(constructors)
-                .map(it -> (Constructor<T>) it)
-                .max(Comparator.comparingLong(constr -> Stream.of(constr.getParameterTypes())
-                        .filter(typ -> Stream.of(types)
-                                .anyMatch(
-                                        typ::isAssignableFrom))
-                        .count()));
     }
 
     public static <T> Span<T> collectStaticFields(
@@ -118,15 +124,17 @@ public final class ReflectionHelper {
             boolean forceAccess,
             @Nullable Class<? extends Annotation> withAnnotation
     ) {
-        final Field[]    fields = inClass.getFields();
+        final Field[] fields    = inClass.getFields();
         final HashSet<T> values = new HashSet<>(fields.length);
 
         for (Field field : fields) {
-            if (forceAccess && !field.isAccessible()) field.setAccessible(true);
+            if (forceAccess && !field.isAccessible()) {
+                field.setAccessible(true);
+            }
 
-            if (isStatic(field.getModifiers()) && fieldType.isAssignableFrom(
-                    field.getType()) && (withAnnotation == null || field.isAnnotationPresent(
-                    withAnnotation))) {
+            if (isStatic(field.getModifiers()) && fieldType.isAssignableFrom(field.getType()) && (
+                    withAnnotation == null || field.isAnnotationPresent(withAnnotation)
+            )) {
                 try {
                     values.add((T) field.get(null));
                 } catch (IllegalAccessException e) {
@@ -149,10 +157,25 @@ public final class ReflectionHelper {
                     .filter(it -> typesOrdered[finalli].isInstance(it))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
-                            "No instance of " + typesOrdered[finalli].getName() + " found in array"));
+                            "No instance of " + typesOrdered[finalli].getName() +
+                                    " found in array"));
         }
 
         return yields;
+    }
+
+    public static <T> Class<? super T> canonicalClass(Class<T> of) {
+        if (Object.class.equals(of) || Void.class.equals(of)) {
+            return Object.class;
+        }
+        if (Modifier.isInterface(of.getModifiers()) || of.isPrimitive()) {
+            return of;
+        }
+        if (of.isAnonymousClass()) {
+            return canonicalClass(of.getSuperclass());
+        }
+
+        return of;
     }
 
     private static boolean classExists(String name) {
@@ -166,11 +189,11 @@ public final class ReflectionHelper {
     }
 
     private static <T extends Annotation> Optional<T> annotation(
-            Class<?> type,
-            Class<T> annotationType
+            Class<?> type, Class<T> annotationType
     ) {
-        if (type.isAnnotationPresent(annotationType)) return Optional.ofNullable(
-                type.getAnnotation(annotationType));
+        if (type.isAnnotationPresent(annotationType)) {
+            return Optional.ofNullable(type.getAnnotation(annotationType));
+        }
 
         return Optional.empty();
     }

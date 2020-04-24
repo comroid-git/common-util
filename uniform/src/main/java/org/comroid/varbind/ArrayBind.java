@@ -12,20 +12,14 @@ import org.comroid.uniform.node.UniObjectNode;
 
 public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         extends VarBind<EXTR, DPND, REMAP, FINAL> {
-    @Override
-    String getFieldName();
-
-    @Override
-    Span<EXTR> extract(UniObjectNode node);
-
-    @Override
-    REMAP remap(EXTR from, DPND dependency);
-
-    @Override
-    FINAL finish(Span<REMAP> parts);
-
-    final class Uno<TARGET, FINAL extends Collection<TARGET>> extends AbstractArrayBind<TARGET, Object, TARGET, FINAL> {
-        public Uno(GroupBind group, String fieldName, Function<? extends UniNode, TARGET> extractor, Supplier<FINAL> collectionSupplier) {
+    final class Uno<TARGET, FINAL extends Collection<TARGET>>
+            extends AbstractArrayBind<TARGET, Object, TARGET, FINAL> {
+        public Uno(
+                GroupBind group,
+                String fieldName,
+                Function<? extends UniNode, TARGET> extractor,
+                Supplier<FINAL> collectionSupplier
+        ) {
             super(group, fieldName, extractor, collectionSupplier);
         }
 
@@ -35,10 +29,17 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         }
     }
 
-    final class Duo<EXTR, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
+    final class Duo<EXTR, REMAP, FINAL extends Collection<REMAP>>
+            extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
         private final Function<EXTR, REMAP> remapper;
 
-        public Duo(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Function<EXTR, REMAP> remapper, Supplier<FINAL> collectionSupplier) {
+        public Duo(
+                GroupBind group,
+                String fieldName,
+                Function<? extends UniNode, EXTR> extractor,
+                Function<EXTR, REMAP> remapper,
+                Supplier<FINAL> collectionSupplier
+        ) {
             super(group, fieldName, extractor, collectionSupplier);
 
             this.remapper = remapper;
@@ -50,10 +51,17 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         }
     }
 
-    final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
+    final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
+            extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
         private final BiFunction<DPND, EXTR, REMAP> resolver;
 
-        public Dep(GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, BiFunction<DPND, EXTR, REMAP> resolver, Supplier<FINAL> collectionSupplier) {
+        public Dep(
+                GroupBind group,
+                String fieldName,
+                Function<? extends UniNode, EXTR> extractor,
+                BiFunction<DPND, EXTR, REMAP> resolver,
+                Supplier<FINAL> collectionSupplier
+        ) {
             super(group, fieldName, extractor, collectionSupplier);
 
             this.resolver = resolver;
@@ -64,4 +72,16 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
             return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object"), from);
         }
     }
+
+    @Override
+    String getFieldName();
+
+    @Override
+    Span<EXTR> extract(UniObjectNode node);
+
+    @Override
+    FINAL finish(Span<REMAP> parts);
+
+    @Override
+    REMAP remap(EXTR from, DPND dependency);
 }

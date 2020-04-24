@@ -30,9 +30,13 @@ public final class GroupBind {
         return groupName;
     }
 
-    public List<GroupBind> getSubgroups() {
-        return Collections.unmodifiableList(subgroups);
+    public final List<? extends VarBind<?, ?, ?, ?>> getChildren() {
+        return Collections.unmodifiableList(children);
     }
+
+    final List<? extends VarBind<?, ?, ?, ?>>   children = new ArrayList<>();
+    private final SerializationAdapter<?, ?, ?> serializationAdapter;
+    private final String                        groupName;
 
     public final Optional<GroupBind> getParent() {
         return Optional.ofNullable(parent);
@@ -55,10 +59,6 @@ public final class GroupBind {
             parent.getChildren()
                     .forEach(it -> children.add(Polyfill.deadCast(it)));
         }
-    }
-
-    public final List<? extends VarBind<?, ?, ?, ?>> getChildren() {
-        return Collections.unmodifiableList(children);
     }
 
     public <R extends VarCarrier<D>, D> BiFunction<D, UniObjectNode, R> autoConstructor(
@@ -101,7 +101,9 @@ public final class GroupBind {
         return bind1stage(fieldname, extractor(type));
     }
 
-    public final <T> VarBind.Uno<T> bind1stage(String fieldName, BiFunction<UniObjectNode, String, T> extractor) {
+    public final <T> VarBind.Uno<T> bind1stage(
+            String fieldName, BiFunction<UniObjectNode, String, T> extractor
+    ) {
         return new VarBind.Uno<>(this, fieldName, extractor);
     }
 
@@ -110,17 +112,23 @@ public final class GroupBind {
                 .as(type);
     }
 
-    public final <R> VarBind.Duo<UniObjectNode, R> bind2stage(String fieldName, Function<UniObjectNode, R> remapper) {
+    public final <R> VarBind.Duo<UniObjectNode, R> bind2stage(
+            String fieldName, Function<UniObjectNode, R> remapper
+    ) {
         return bind2stage(fieldName, objectNodeExtractor, remapper);
     }
 
     public final <T, R> VarBind.Duo<T, R> bind2stage(
-            String fieldName, BiFunction<UniObjectNode, String, T> extractor, Function<T, R> remapper
+            String fieldName,
+            BiFunction<UniObjectNode, String, T> extractor,
+            Function<T, R> remapper
     ) {
         return new VarBind.Duo<>(this, fieldName, extractor, remapper);
     }
 
-    public final <T, R> VarBind.Duo<T, R> bind2stage(String fieldName, UniValueNode.ValueType<T> type, Function<T, R> remapper) {
+    public final <T, R> VarBind.Duo<T, R> bind2stage(
+            String fieldName, UniValueNode.ValueType<T> type, Function<T, R> remapper
+    ) {
         return bind2stage(fieldName, extractor(type), remapper);
     }
 
@@ -131,7 +139,9 @@ public final class GroupBind {
     }
 
     public final <T, D, R> VarBind.Dep<T, D, R> bindDependent(
-            String fieldName, BiFunction<UniObjectNode, String, T> extractor, BiFunction<D, T, R> resolver
+            String fieldName,
+            BiFunction<UniObjectNode, String, T> extractor,
+            BiFunction<D, T, R> resolver
     ) {
         return new VarBind.Dep<>(this, fieldName, extractor, resolver);
     }
@@ -149,7 +159,9 @@ public final class GroupBind {
     }
 
     public final <T, C extends Collection<T>> ArrayBind.Uno<T, C> list1stage(
-            String fieldName, Function<? extends UniNode, T> extractor, Supplier<C> collectionSupplier
+            String fieldName,
+            Function<? extends UniNode, T> extractor,
+            Supplier<C> collectionSupplier
     ) {
         return new ArrayBind.Uno<>(this, fieldName, extractor, collectionSupplier);
     }
@@ -159,13 +171,19 @@ public final class GroupBind {
     }
 
     public final <T, R, C extends Collection<R>> ArrayBind.Duo<T, R, C> list2stage(
-            String fieldName, UniValueNode.ValueType<T> type, Function<T, R> remapper, Supplier<C> collectionSupplier
+            String fieldName,
+            UniValueNode.ValueType<T> type,
+            Function<T, R> remapper,
+            Supplier<C> collectionSupplier
     ) {
         return list2stage(fieldName, eachExtractor(type), remapper, collectionSupplier);
     }
 
     public final <T, R, C extends Collection<R>> ArrayBind.Duo<T, R, C> list2stage(
-            String fieldName, Function<? extends UniNode, T> extractor, Function<T, R> remapper, Supplier<C> collectionSupplier
+            String fieldName,
+            Function<? extends UniNode, T> extractor,
+            Function<T, R> remapper,
+            Supplier<C> collectionSupplier
     ) {
         return new ArrayBind.Duo<>(this, fieldName, extractor, remapper, collectionSupplier);
     }
@@ -177,7 +195,9 @@ public final class GroupBind {
     }
 
     public final <D, R, C extends Collection<R>> ArrayBind.Dep<UniObjectNode, D, R, C> listDependent(
-            String fieldName, BiFunction<D, UniObjectNode, R> resolver, Supplier<C> collectionSupplier
+            String fieldName,
+            BiFunction<D, UniObjectNode, R> resolver,
+            Supplier<C> collectionSupplier
     ) {
         return listDependent(fieldName, UniNode::asObjectNode, resolver, collectionSupplier);
     }
@@ -192,7 +212,10 @@ public final class GroupBind {
     }
 
     public final <T, D, R, C extends Collection<R>> ArrayBind.Dep<T, D, R, C> listDependent(
-            String fieldName, UniValueNode.ValueType<T> type, BiFunction<D, T, R> resolver, Supplier<C> collectionSupplier
+            String fieldName,
+            UniValueNode.ValueType<T> type,
+            BiFunction<D, T, R> resolver,
+            Supplier<C> collectionSupplier
     ) {
         return listDependent(fieldName, eachExtractor(type), resolver, collectionSupplier);
     }

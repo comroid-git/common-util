@@ -1,24 +1,23 @@
 package org.comroid.dreadpool.loop.manager;
 
-import org.comroid.common.Polyfill;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.Closeable;
-import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public final class LoopManager implements Closeable {
-    public static final ThreadGroup     THREAD_GROUP = new ThreadGroup("LoopManager");
-    final               Object          lock         = Polyfill.selfawareLock();
-    private final       Queue<Loop<?>>  queue        = new PriorityQueue<>();
-    private             Set<LoopWorker> workers;
+import org.comroid.common.Polyfill;
 
-    private LoopManager() {
-    }
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public final class LoopManager implements Closeable {
+    public static final ThreadGroup THREAD_GROUP = new ThreadGroup("LoopManager");
 
     public static LoopManager start(int parallelism) {
         return start(parallelism, THREAD_GROUP);
@@ -28,7 +27,8 @@ public final class LoopManager implements Closeable {
         final LoopManager manager = new LoopManager();
 
         manager.workers = Collections.unmodifiableSet(IntStream.range(1, parallelism + 1)
-                .mapToObj(iter -> new LoopWorker(manager,
+                .mapToObj(iter -> new LoopWorker(
+                        manager,
                         group,
                         String.format("LoopWorker @" + " " + "%s#%4d", manager.toString(), iter)
                 ))
@@ -36,6 +36,28 @@ public final class LoopManager implements Closeable {
         manager.workers.forEach(Thread::start);
 
         return manager;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("LoopManager{lock=%s}", queue);
+    }
+
+    final         Object          lock  = Polyfill.selfawareLock();
+    private final Queue<Loop<?>>  queue = new PriorityQueue<>();
+    private       Set<LoopWorker> workers;
+
+    private LoopManager() {
+    }
+
+    @Override
+    public void close() {
+        workers.forEach(loopWorker -> {
+            try {
+                loopWorker.stop();
+            } catch (Exception ignored) {
+            }
+        });
     }
 
     public <T> CompletableFuture<T> queue(@NotNull Loop<T> loop) {
@@ -70,23 +92,9 @@ public final class LoopManager implements Closeable {
                 queue.remove();
 
                 return Optional.of(peek);
-            } else
+            } else {
                 return Optional.empty();
-        }
-    }
-
-    @Override
-    public String toString() {
-        return String.format("LoopManager{lock=%s}", queue);
-    }
-
-    @Override
-    public void close() {
-        workers.forEach(loopWorker -> {
-            try {
-                loopWorker.stop();
-            } catch (Exception ignored) {
             }
-        });
+        }
     }
 }

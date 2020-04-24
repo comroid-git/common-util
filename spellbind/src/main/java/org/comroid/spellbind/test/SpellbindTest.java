@@ -1,6 +1,6 @@
-package org.comroid.common.spellbind.test;
+package org.comroid.spellbind.test;
 
-import org.comroid.common.spellbind.Spellbind;
+import org.comroid.spellbind.Spellbind;
 import org.comroid.test.model.AnotherPartialAbstract;
 import org.comroid.test.model.FullAbstract;
 import org.comroid.test.model.NonAbstract;
@@ -10,6 +10,23 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class SpellbindTest {
+    public static class ImplementingClass implements MainInterface {
+        @Override
+        public boolean invert(boolean val) {
+            return !val;
+        }
+
+        @Override
+        public String name() {
+            return "some class";
+        }
+
+        @Override
+        public int getValue() {
+            return 42;
+        }
+    }
+
     @Test
     public void testDirectBound() {
         final ImplementingClass implementingClass = new ImplementingClass();
@@ -36,8 +53,7 @@ public class SpellbindTest {
 
         HyperInterface proxy = Spellbind.builder(HyperInterface.class)
                 .coreObject(implementingClass)
-                .subImplement(
-                        new HyperInterface.SubImpl(), HyperInterface.class)
+                .subImplement(new HyperInterface.SubImpl(), HyperInterface.class)
                 .build();
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
@@ -87,23 +103,5 @@ public class SpellbindTest {
         }
     }
 
-    public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {
-    }
-
-    public static class ImplementingClass implements MainInterface {
-        @Override
-        public boolean invert(boolean val) {
-            return !val;
-        }
-
-        @Override
-        public String name() {
-            return "some class";
-        }
-
-        @Override
-        public int getValue() {
-            return 42;
-        }
-    }
+    public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {}
 }

@@ -9,6 +9,13 @@ public abstract class DoWhile extends Loop<Integer> {
         private final BooleanSupplier continueTester;
         private final Runnable        action;
 
+        public Func(int priority, BooleanSupplier continueTester, Runnable action) {
+            super(priority, action);
+
+            this.continueTester = continueTester;
+            this.action         = action;
+        }
+
         @Override
         protected boolean continueLoop() {
             return continueTester.getAsBoolean();
@@ -19,13 +26,6 @@ public abstract class DoWhile extends Loop<Integer> {
             action.run();
 
             return true;
-        }
-
-        public Func(int priority, BooleanSupplier continueTester, Runnable action) {
-            super(priority, action);
-
-            this.continueTester = continueTester;
-            this.action         = action;
         }
     }
 

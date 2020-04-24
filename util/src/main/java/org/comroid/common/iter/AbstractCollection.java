@@ -13,8 +13,9 @@ public interface AbstractCollection<T> extends Collection<T> {
     @Override
     default boolean contains(Object o) {
         for (T it : this) {
-            if (o.equals(it))
+            if (o.equals(it)) {
                 return true;
+            }
         }
 
         return false;
@@ -31,7 +32,9 @@ public interface AbstractCollection<T> extends Collection<T> {
         boolean added = false;
 
         for (T object : objects) {
-            if (add(object) && !added) added = true;
+            if (add(object) && !added) {
+                added = true;
+            }
         }
 
         return added;
@@ -42,8 +45,9 @@ public interface AbstractCollection<T> extends Collection<T> {
         boolean removed = false;
 
         for (Object object : objects) {
-            if (remove(object) && !removed)
+            if (remove(object) && !removed) {
                 removed = true;
+            }
         }
 
         return removed;
@@ -56,13 +60,17 @@ public interface AbstractCollection<T> extends Collection<T> {
         if (keep.size() > size()) {
             for (Object k : keep) {
                 for (T each : this) {
-                    if (!k.equals(each) && remove(each)) removed = true;
+                    if (!k.equals(each) && remove(each)) {
+                        removed = true;
+                    }
                 }
             }
         } else {
             for (T each : this) {
                 for (Object k : keep) {
-                    if (!k.equals(each) && remove(each)) removed = true;
+                    if (!k.equals(each) && remove(each)) {
+                        removed = true;
+                    }
                 }
             }
         }

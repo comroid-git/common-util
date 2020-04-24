@@ -1,8 +1,5 @@
 package org.comroid.uniform.cache;
 
-import org.comroid.common.iter.Span;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -13,6 +10,10 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import org.comroid.common.iter.Span;
+
+import org.jetbrains.annotations.NotNull;
 
 public class ProvidedCache<K, V> implements Cache<K, V> {
     public static final Executor DEFAULT_EXECUTOR        = ForkJoinPool.commonPool();
@@ -27,20 +28,43 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
         this(DEFAULT_EXECUTOR, valueProvider, DEFAULT_LARGE_THRESHOLD);
     }
 
-    public ProvidedCache(Function<K, CompletableFuture<V>> valueProvider, int largeThreshold) {
-        this(DEFAULT_EXECUTOR, valueProvider, largeThreshold);
-    }
-
-    public ProvidedCache(Executor providerWriteExecutor, Function<K, CompletableFuture<V>> valueProvider) {
-        this(providerWriteExecutor, valueProvider, DEFAULT_LARGE_THRESHOLD);
-    }
-
     public ProvidedCache(
-            Executor providerWriteExecutor, Function<K, CompletableFuture<V>> valueProvider, int largeThreshold
+            Executor providerWriteExecutor,
+            Function<K, CompletableFuture<V>> valueProvider,
+            int largeThreshold
     ) {
         this.providerWriteExecutor = providerWriteExecutor;
         this.valueProvider         = valueProvider;
         this.largeThreshold        = largeThreshold;
+    }
+
+    public ProvidedCache(Function<K, CompletableFuture<V>> valueProvider, int largeThreshold) {
+        this(DEFAULT_EXECUTOR, valueProvider, largeThreshold);
+    }
+
+    public ProvidedCache(
+            Executor providerWriteExecutor, Function<K, CompletableFuture<V>> valueProvider
+    ) {
+        this(providerWriteExecutor, valueProvider, DEFAULT_LARGE_THRESHOLD);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+
+    @NotNull
+    @Override
+    public Iterator<Map.Entry<K, V>> iterator() {
+        return stream().map(ref -> new AbstractMap.SimpleEntry<K, V>(ref.getKey(), ref.get()) {
+            @Override
+            public V setValue(V value) {
+                return getReference(getKey(), false).set(value);
+            }
+        })
+                .map(it -> (Map.Entry<K, V>) it)
+                .collect(Span.collector())
+                .iterator();
     }
 
     @Override
@@ -95,25 +119,8 @@ public class ProvidedCache<K, V> implements Cache<K, V> {
             future.thenAcceptAsync(it -> getReference(key, true).set(it), providerWriteExecutor);
         }
 
-        return getReference(key, false).provider().get();
+        return getReference(key, false).provider()
+                .get();
     }
 
-    @Override
-    public String toString() {
-        return super.toString();
-    }
-
-    @NotNull
-    @Override
-    public Iterator<Map.Entry<K, V>> iterator() {
-        return stream().map(ref -> new AbstractMap.SimpleEntry<K, V>(ref.getKey(), ref.get()) {
-            @Override
-            public V setValue(V value) {
-                return getReference(getKey(), false).set(value);
-            }
-        })
-                .map(it -> (Map.Entry<K, V>) it)
-                .collect(Span.collector())
-                .iterator();
-    }
 }
