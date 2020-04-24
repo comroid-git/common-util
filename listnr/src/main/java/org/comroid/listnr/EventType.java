@@ -7,6 +7,7 @@ import org.comroid.common.util.BitmaskUtil;
 import org.comroid.spellbind.Spellbind;
 import org.comroid.spellbind.annotation.Partial;
 
+import com.sun.net.httpserver.HttpHandler;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,14 +17,14 @@ import static org.comroid.common.util.BitmaskUtil.combine;
 public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<TF, P> {
     final class Support {
         static final class Basic<P extends Event<P>, TF> implements EventType<P, TF> {
-            protected final EventHub<TF>        hub;
-            private final   Class<P>            payloadType;
+            protected final EventHub<HttpHandler, TF> hub;
+            private final   Class<P>                  payloadType;
             private final   int                 flag = BitmaskUtil.nextFlag();
             private final   Predicate<TF>       eventTester;
             private final   ParamFactory<TF, P> payloadFactory;
 
             Basic(
-                    EventHub<TF> hub, Class<P> payloadType, Predicate<TF> eventTester, ParamFactory<TF, P> payloadFactory
+                    EventHub<HttpHandler, TF> hub, Class<P> payloadType, Predicate<TF> eventTester, ParamFactory<TF, P> payloadFactory
             ) {
                 this.hub            = hub;
                 this.payloadType    = payloadType;

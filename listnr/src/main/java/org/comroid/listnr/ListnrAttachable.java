@@ -4,6 +4,8 @@ import java.util.function.Consumer;
 
 import org.comroid.common.util.BitmaskUtil;
 
+import com.sun.net.httpserver.HttpHandler;
+
 public interface ListnrAttachable<TF, E extends EventType<P, TF>, P extends Event<P>> {
     default ListnrManager<TF, E, P> registerListener(Object listener) {
         //noinspection unchecked
@@ -11,7 +13,7 @@ public interface ListnrAttachable<TF, E extends EventType<P, TF>, P extends Even
         return getEventHub().registerAcceptor(acceptorOfClass);
     }
 
-    EventHub<TF> getEventHub();
+    EventHub<HttpHandler, TF> getEventHub();
 
     default <ET extends EventType<T, TF>, T extends Event<T>> ListnrManager<TF, ET, T> listenTo(
             EventType<T, TF> type, Consumer<T> listener

@@ -6,14 +6,16 @@ import org.comroid.listnr.EventHub;
 import org.comroid.listnr.EventType;
 import org.comroid.uniform.node.UniObjectNode;
 
+import com.sun.net.httpserver.HttpHandler;
+
 public final class SocketEvent {
     public static final class Container {
-        private final WebSocket webSocket;
-        private final EventHub<UniObjectNode> eventHub;
+        private final WebSocket                            webSocket;
+        private final EventHub<HttpHandler, UniObjectNode> eventHub;
 
         private final EventType<Generic, UniObjectNode> genericType;
 
-        Container(WebSocket webSocket, EventHub<UniObjectNode> eventHub) {
+        Container(WebSocket webSocket, EventHub<HttpHandler, UniObjectNode> eventHub) {
             this.webSocket = webSocket;
             this.eventHub  = eventHub;
 
