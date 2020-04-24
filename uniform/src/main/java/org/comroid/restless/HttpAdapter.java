@@ -11,6 +11,10 @@ import org.comroid.restless.socket.WebSocket;
 import org.comroid.uniform.SerializationAdapter;
 
 public interface HttpAdapter {
+    static HttpAdapter autodetect() {
+        throw new UnsupportedOperationException();
+    }
+
     CompletableFuture<WebSocket> createWebSocket(
             SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
     );

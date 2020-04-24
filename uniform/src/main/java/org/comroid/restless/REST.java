@@ -28,7 +28,13 @@ public final class REST<D> {
     private final           SerializationAdapter<?, ?, ?> serializationAdapter;
 
     public REST(
-            HttpAdapter httpAdapter, @Nullable D dependencyObject, SerializationAdapter<?, ?, ?> serializationAdapter
+        HttpAdapter httpAdapter, SerializationAdapter<?, ?, ?> serializationAdapter
+) {
+        this(httpAdapter, serializationAdapter, null);
+    }
+
+    public REST(
+            HttpAdapter httpAdapter, SerializationAdapter<?, ?, ?> serializationAdapter, @Nullable D dependencyObject
     ) {
         this.httpAdapter          = Objects.requireNonNull(httpAdapter, "HttpAdapter");
         this.dependencyObject     = dependencyObject;

@@ -9,7 +9,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 
-import org.comroid.common.annotation.OptionalVararg;
 import org.comroid.common.func.ThrowingRunnable;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +40,12 @@ public final class Polyfill {
     }
 
     public static <T extends Throwable> URL url(
+            String spec
+    ) throws T {
+        return url(spec, null);
+    }
+
+    public static <T extends Throwable> URL url(
             String spec, @Nullable Function<MalformedURLException, T> throwableReconfigurator
     ) throws T {
         if (throwableReconfigurator == null) {
@@ -53,6 +58,12 @@ public final class Polyfill {
         } catch (MalformedURLException e) {
             throw throwableReconfigurator.apply(e);
         }
+    }
+
+    public static <T extends Throwable> URI uri(
+            String spec
+    ) throws T {
+        return uri(spec, null);
     }
 
     public static <T extends Throwable> URI uri(
