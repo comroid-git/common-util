@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface ReBind<EXTR, DPND, REMAP> extends VarBind.NotAutoprocessed<EXTR, DPND, REMAP, REMAP> {
+public interface ReBind<EXTR, DPND, REMAP> extends VarBind.NotAutoprocessed<EXTR, DPND, REMAP> {
     final class Duo<EXTR, FINAL> extends AbstractReBind<EXTR, Object, FINAL> {
         private final Function<EXTR, FINAL> remapper;
 
