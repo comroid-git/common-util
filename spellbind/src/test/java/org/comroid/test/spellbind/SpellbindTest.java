@@ -1,4 +1,4 @@
-package org.comroid.spellbind.test;
+package org.comroid.test.spellbind;
 
 import org.comroid.spellbind.Spellbind;
 import org.comroid.test.model.AnotherPartialAbstract;
