@@ -16,16 +16,14 @@ public final class StackTraceUtils {
     }
 
     public static void putStackTrace(
-            final List<String> lines,
-            final Throwable throwable,
-            final int omitAt,
-            final boolean recursive
+            final List<String> lines, final Throwable throwable, final int omitAt, final boolean recursive
     ) {
         if (throwable == null) {
             return;
         }
 
-        lines.add(String.format("%s: %s",
+        lines.add(String.format(
+                "%s: %s",
                 throwable.getClass()
                         .getName(),
                 throwable.getMessage()

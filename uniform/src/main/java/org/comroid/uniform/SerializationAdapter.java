@@ -21,11 +21,7 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     protected SerializationAdapter(
             String mimeType, Class<OBJ> objClass, Class<ARR> arrClass
     ) {
-        this(
-                mimeType,
-                new DataStructureType.Obj<>(objClass),
-                new DataStructureType.Arr<>(arrClass)
-        );
+        this(mimeType, new DataStructureType.Obj<>(objClass), new DataStructureType.Arr<>(arrClass));
     }
 
     protected SerializationAdapter(
@@ -33,15 +29,14 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
             DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType
     ) {
-        this.mimeType   = mimeType;
+        this.mimeType = mimeType;
         this.objectType = objectType;
-        this.arrayType  = arrayType;
+        this.arrayType = arrayType;
     }
 
     @Override
     public String toString() {
-        return String.format(
-                "%s{object=%s;array=%s}",
+        return String.format("%s{object=%s;array=%s}",
                 getClass().getSimpleName(),
                 objectType.tarClass.getName(),
                 arrayType.tarClass.getName()
@@ -78,8 +73,7 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             return createUniArrayNode((ARR) node);
         }
 
-        throw new IllegalArgumentException(String.format(
-                "Unknown node type: %s",
+        throw new IllegalArgumentException(String.format("Unknown node type: %s",
                 node.getClass()
                         .getName()
         ));

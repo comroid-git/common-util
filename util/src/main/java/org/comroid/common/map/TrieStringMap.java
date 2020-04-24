@@ -59,7 +59,8 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
         }
 
         Stream<String> streamKeys(String base) {
-            return Stream.concat(Stream.of(base),
+            return Stream.concat(
+                    Stream.of(base),
                     subStages.entrySet()
                             .stream()
                             .flatMap(entry -> entry.getValue()
@@ -68,7 +69,8 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
         }
 
         Stream<TrieStage<V>> stream() {
-            return Stream.concat(Stream.of(this),
+            return Stream.concat(
+                    Stream.of(this),
                     subStages.values()
                             .stream()
                             .flatMap(TrieStage::stream)
@@ -160,8 +162,8 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
     @NotNull
     public Set<K> keySet() {
         class Pair {
-            String                     key;
-            TrieStringMap.TrieStage<V> stage;
+            final String                     key;
+            final TrieStringMap.TrieStage<V> stage;
 
             Pair(String key, TrieStringMap.TrieStage<V> stage) {
                 this.key   = key;

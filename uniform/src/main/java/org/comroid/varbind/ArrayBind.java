@@ -10,10 +10,8 @@ import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
-public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
-        extends VarBind<EXTR, DPND, REMAP, FINAL> {
-    final class Uno<TARGET, FINAL extends Collection<TARGET>>
-            extends AbstractArrayBind<TARGET, Object, TARGET, FINAL> {
+public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends VarBind<EXTR, DPND, REMAP, FINAL> {
+    final class Uno<TARGET, FINAL extends Collection<TARGET>> extends AbstractArrayBind<TARGET, Object, TARGET, FINAL> {
         public Uno(
                 GroupBind group,
                 String fieldName,
@@ -29,8 +27,7 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         }
     }
 
-    final class Duo<EXTR, REMAP, FINAL extends Collection<REMAP>>
-            extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
+    final class Duo<EXTR, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
         private final Function<EXTR, REMAP> remapper;
 
         public Duo(
@@ -51,8 +48,7 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         }
     }
 
-    final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
-            extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
+    final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
         private final BiFunction<DPND, EXTR, REMAP> resolver;
 
         public Dep(

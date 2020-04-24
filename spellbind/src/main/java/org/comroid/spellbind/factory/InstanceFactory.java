@@ -27,7 +27,7 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
             implements org.comroid.common.func.Builder<InstanceFactory<T>> {
         private final Class<T>                        mainInterface;
         private       Invocable<?>                    coreObjectFactory;
-        private       List<ImplementationNotation<?>> implementations = new ArrayList<>();
+        private final List<ImplementationNotation<?>> implementations = new ArrayList<>();
         private       ClassLoader                     classLoader;
 
         public Builder(Class<T> mainInterface) {
@@ -36,10 +36,8 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
 
         @Override
         public InstanceFactory<T> build() {
-            final Map<Class[], Invocable<T>> strategies = new TrieFuncMap<>((BiFunction<Class,
-                    Class, Boolean>) Class::isAssignableFrom,
-                    Function.identity()
-            );
+            final Map<Class[], Invocable<T>> strategies
+                    = new TrieFuncMap<>((BiFunction<Class, Class, Boolean>) Class::isAssignableFrom, Function.identity());
 
             populateStrategies(strategies);
 
@@ -53,12 +51,10 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
                     .distinct()
                     .toArray(Class[]::new);
 
-            strategies.put(distinctTypes, new CombiningInvocable<>(mainInterface,
+            strategies.put(
                     distinctTypes,
-                    classLoader,
-                    coreObjectFactory,
-                    implementations
-            ));
+                    new CombiningInvocable<>(mainInterface, distinctTypes, classLoader, coreObjectFactory, implementations)
+            );
         }
 
         private Invocable<?>[] allInvocations() {
@@ -82,9 +78,7 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
         public <S extends T> Builder<T, C> subImplement(
                 Provider<S> subFactory, Class<? super S> asInterface
         ) {
-            this.implementations.add(new ImplementationNotation(Invocable.ofProvider(subFactory),
-                    asInterface
-            ));
+            this.implementations.add(new ImplementationNotation(Invocable.ofProvider(subFactory), asInterface));
             return this;
         }
 
@@ -145,8 +139,7 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
     }
 
     @Internal
-    private static final class ImplementationNotation<T>
-            extends Pair<Invocable<T>, Class<? super T>> {
+    private static final class ImplementationNotation<T> extends Pair<Invocable<T>, Class<? super T>> {
         public Invocable<T> getFactory() {
             return super.getFirst();
         }
@@ -180,9 +173,7 @@ public final class InstanceFactory<T> extends ParamFactory.Abstract<InstanceCont
         final Invocable<T> invocable = strategies.get(types);
 
         if (invocable == null) {
-            throw new UnsupportedOperationException(String.format("Cannot construct from types %s",
-                    Arrays.toString(types)
-            ));
+            throw new UnsupportedOperationException(String.format("Cannot construct from types %s", Arrays.toString(types)));
         }
 
         try {

@@ -21,9 +21,8 @@ public interface Event<S extends Event<S>> extends SelfDeclared<S> {
             private final int                  mask;
 
             protected Abstract(EventType<?, ?>... subtypes) {
-                this.eventTypes
-                          = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(subtypes)));
-                this.mask = computeMask();
+                this.eventTypes = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(subtypes)));
+                this.mask       = computeMask();
             }
 
             protected int computeMask() {

@@ -17,10 +17,7 @@ public class ThreadErrorHandler implements RejectedExecutionHandler {
             executor.execute(task);
         } else {
             logger.at(Level.WARNING)
-                    .log(
-                            "Ignored suspicious RejectedExecutionEvent; didnt come from %s",
-                            ThreadPool.class.getName()
-                    );
+                    .log("Ignored suspicious RejectedExecutionEvent; didnt come from %s", ThreadPool.class.getName());
         }
     }
 

@@ -41,10 +41,8 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
             return key;
         }
 
-        private final OutdateableReference<CompletableFuture<V>> firstValueFuture =
-                new OutdateableReference<>();
-        private final Object                                     lock             =
-                Polyfill.selfawareLock();
+        private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
+        private final Object                                     lock             = Polyfill.selfawareLock();
         private final K                                          key;
 
         public Reference(K key) {

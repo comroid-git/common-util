@@ -1,16 +1,14 @@
 package org.comroid.uniform;
 
 public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS, TAR extends BAS> {
-    public static class Obj<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS,
-            OBJ extends BAS, ARR extends BAS>
+    public static class Obj<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
             extends DataStructureType<SERI, BAS, OBJ> {
         public Obj(Class<OBJ> objClass) {
             super(objClass, Primitive.OBJECT);
         }
     }
 
-    public static class Arr<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS,
-            OBJ extends BAS, ARR extends BAS>
+    public static class Arr<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
             extends DataStructureType<SERI, BAS, ARR> {
 
         public Arr(

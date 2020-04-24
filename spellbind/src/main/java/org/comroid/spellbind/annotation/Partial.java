@@ -20,9 +20,7 @@ public @interface Partial {
 
             if (from.isAnnotationPresent(Partial.class)) {
                 if (!Modifier.isInterface(from.getModifiers())) {
-                    throw new ClassCastException(String.format("Class %s is not an interface",
-                            from.getName()
-                    ));
+                    throw new ClassCastException(String.format("Class %s is not an interface", from.getName()));
                 } else {
                     return Optional.of(from);
                 }

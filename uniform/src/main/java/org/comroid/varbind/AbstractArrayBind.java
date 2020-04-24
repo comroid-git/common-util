@@ -10,14 +10,12 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
 /**
- * {@link Collection} building Variable definition with 2 mapping Stages. Used for deserializing
- * arrays of data.
+ * {@link Collection} building Variable definition with 2 mapping Stages. Used for deserializing arrays of data.
  *
  * @param <S>   The serialization input Type
  * @param <A>   The mapping output Type
  * @param <D>   The dependency Type
- * @param <C>   The output {@link Collection} type; this is what you get from {@link
- *              VariableCarrier#getVar(VarBind)}
+ * @param <C>   The output {@link Collection} type; this is what you get from {@link VariableCarrier#getVar(VarBind)}
  * @param <OBJ> Serialization Library Type of the serialization Node
  */
 abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
@@ -28,10 +26,7 @@ abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REM
     private final GroupBind                         group;
 
     protected AbstractArrayBind(
-            GroupBind group,
-            String fieldName,
-            Function<? extends UniNode, EXTR> extractor,
-            Supplier<FINAL> collectionSupplier
+            GroupBind group, String fieldName, Function<? extends UniNode, EXTR> extractor, Supplier<FINAL> collectionSupplier
     ) {
         this.fieldName          = fieldName;
         this.extractor          = extractor;

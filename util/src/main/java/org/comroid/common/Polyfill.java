@@ -41,8 +41,7 @@ public final class Polyfill {
     }
 
     public static <T extends Throwable> URL url(
-            String spec,
-            @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator
+            String spec, @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator
     ) throws T {
         if (throwableReconfigurator.length == 0) {
             throwableReconfigurator = new Function[]{
@@ -74,8 +73,7 @@ public final class Polyfill {
     }
 
     public static <R, T extends Throwable> Runnable handlingRunnable(
-            ThrowingRunnable<R, T> throwingRunnable,
-            @Nullable Function<T, ? extends RuntimeException> remapper
+            ThrowingRunnable<R, T> throwingRunnable, @Nullable Function<T, ? extends RuntimeException> remapper
     ) {
         final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(remapper,
                 (Function<T, ? extends RuntimeException>) RuntimeException::new

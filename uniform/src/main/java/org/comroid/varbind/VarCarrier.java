@@ -19,11 +19,11 @@ public interface VarCarrier<DEP> {
 
     <T> Optional<Reference<T>> getByName(String name);
 
-    <T> @NotNull Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind);
-  
     default <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> bind) {
         return ref(bind).get();
     }
+
+    <T> @NotNull Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind);
 
     default <T> @NotNull Optional<T> wrap(VarBind<?, ? super DEP, ?, T> bind) {
         return ref(bind).wrap();
@@ -42,12 +42,12 @@ public interface VarCarrier<DEP> {
     }
 
     interface Underlying<DEP> extends VarCarrier<DEP> {
-        VarCarrier<DEP> getUnderlyingVarCarrier();
-
         @Override
         default GroupBind getRootBind() {
             return getUnderlyingVarCarrier().getRootBind();
         }
+
+        VarCarrier<DEP> getUnderlyingVarCarrier();
 
         @Override
         default Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node) {

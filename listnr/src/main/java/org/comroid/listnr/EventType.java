@@ -3,9 +3,9 @@ package org.comroid.listnr;
 import java.util.function.Predicate;
 
 import org.comroid.common.func.ParamFactory;
+import org.comroid.common.util.BitmaskUtil;
 import org.comroid.spellbind.Spellbind;
 import org.comroid.spellbind.annotation.Partial;
-import org.comroid.common.util.BitmaskUtil;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +20,7 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
             private final   Class<P>            payloadType;
             private final   int                 flag = BitmaskUtil.nextFlag();
             private final   Predicate<TF>       eventTester;
-            private final ParamFactory<TF, P> payloadFactory;
+            private final   ParamFactory<TF, P> payloadFactory;
 
             Basic(
                     EventHub<TF> hub, Class<P> payloadType, Predicate<TF> eventTester, ParamFactory<TF, P> payloadFactory
@@ -65,8 +65,8 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
         }
 
         private static final class Combination<P extends Event<P>, TF> implements Combined<P, TF> {
-            private final Predicate<TF> eventTester;
-            private final Class<P> payloadType;
+            private final Predicate<TF>              eventTester;
+            private final Class<P>                   payloadType;
             private final EventType<? super P, TF>[] subtypes;
             private final int                        mask;
 
@@ -131,10 +131,10 @@ public interface EventType<P extends Event<? super P>, TF> extends ParamFactory<
         return this instanceof Combined;
     }
 
-    boolean isEvent(@Nullable TF data);
-
     @Override
     P create(@Nullable TF parameter);
+
+    boolean isEvent(@Nullable TF data);
 
     Class<P> payloadType();
 

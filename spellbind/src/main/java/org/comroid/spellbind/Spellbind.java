@@ -74,9 +74,7 @@ public final class Spellbind {
                 if ((
                         implMethod = findMatchingMethod(method, implementationSource.getClass())
                 ) != null) {
-                    map.put(methodString(method),
-                            Invocable.ofMethodCall(implMethod, implementationSource)
-                    );
+                    map.put(methodString(method), Invocable.ofMethodCall(implMethod, implementationSource));
                 }
             }
         }
@@ -95,10 +93,9 @@ public final class Spellbind {
 
         private static boolean matchFootprint(Method abstractMethod, Method method) {
             return abstractMethod.getName()
-                    .equals(method.getName()) && Arrays.equals(abstractMethod.getParameterTypes(),
-                    method.getParameterTypes()
-            ) && abstractMethod.getReturnType()
-                    .equals(method.getReturnType());
+                    .equals(method.getName()) && Arrays.equals(abstractMethod.getParameterTypes(), method.getParameterTypes()) &&
+                    abstractMethod.getReturnType()
+                            .equals(method.getReturnType());
         }
 
         public Builder<T> subImplement(Object sub) {
@@ -113,9 +110,7 @@ public final class Spellbind {
 
         public Builder<T> subImplement(Object sub, Class<?> asInterface) {
             if (!Modifier.isInterface(asInterface.getModifiers())) {
-                throw new IllegalArgumentException(String.format("Class %s is not an interface!",
-                        asInterface.getName()
-                ));
+                throw new IllegalArgumentException(String.format("Class %s is not an interface!", asInterface.getName()));
             }
 
             final Class<?> subClass = sub.getClass();
@@ -125,9 +120,7 @@ public final class Spellbind {
                     .forEach(method -> Stream.of(asInterface.getMethods())
                             .filter(other -> matchFootprint(other, method))
                             .findAny()
-                            .ifPresent(value -> methodBinds.put(methodString(value),
-                                    Invocable.ofMethodCall(method, sub)
-                            )));
+                            .ifPresent(value -> methodBinds.put(methodString(value), Invocable.ofMethodCall(method, sub))));
 
             interfaces.add(asInterface);
 

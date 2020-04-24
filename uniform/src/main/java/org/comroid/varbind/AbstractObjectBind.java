@@ -12,9 +12,7 @@ abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<EXTR, DP
     private final GroupBind                                     group;
 
     protected AbstractObjectBind(
-            GroupBind group,
-            String fieldName,
-            BiFunction<UniObjectNode, String, Span<EXTR>> extractor
+            GroupBind group, String fieldName, BiFunction<UniObjectNode, String, Span<EXTR>> extractor
     ) {
         this.fieldName = fieldName;
         this.extractor = extractor;

@@ -105,8 +105,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
                 private final Collection<T>              initialValues;
                 private final ModifyPolicy               nullPolicy;
                 private final boolean                    fixedSize;
-                private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>,
-                        Span<T>>() {
+                private final Function<Span<T>, Span<T>> finisher    = new Function<Span<T>, Span<T>>() {
                     @Override
                     public Span<T> apply(Span<T> ts) {
                         return Span.<T>make().modifyPolicy(nullPolicy)
@@ -341,11 +340,12 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
             return modifyPolicy.canIterate(cast) ? cast : null;
         }
     }
+
     private final ModifyPolicy modifyPolicy;
     private final Object       dataLock = Polyfill.selfawareLock();
     //endregion
     private       Object[]     data;
-    private       boolean      fixedSize;
+    private final boolean      fixedSize;
 
     public Span() {
         this(new Object[DEFAULT_INITIAL_CAPACITY], DEFAULT_MODIFY_POLICY, DEFAULT_FIXED_SIZE);
@@ -365,11 +365,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
     @Override
     public final String toString() {
         @NotNull Object[] arr = toArray();
-        return String.format("Span{nullPolicy=%s, data={%d}%s}",
-                modifyPolicy,
-                arr.length,
-                Arrays.toString(arr)
-        );
+        return String.format("Span{nullPolicy=%s, data={%d}%s}", modifyPolicy, arr.length, Arrays.toString(arr));
     }
 
     @Nullable
@@ -395,10 +391,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
 
     public Span<T> range(int startIncl, int endExcl) {
         synchronized (dataLock) {
-            return new Span<>(Arrays.copyOfRange(toArray(), startIncl, endExcl),
-                    ModifyPolicy.IMMUTABLE,
-                    true
-            );
+            return new Span<>(Arrays.copyOfRange(toArray(), startIncl, endExcl), ModifyPolicy.IMMUTABLE, true);
         }
     }
 
@@ -507,10 +500,7 @@ public class Span<T> implements AbstractCollection<T>, Reference<T> {
         }
 
         public void fail(String message) throws NullPointerException {
-            throw new NullPointerException(String.format("NullPolicy %s was violated: %s",
-                    name(),
-                    message
-            ));
+            throw new NullPointerException(String.format("NullPolicy %s was violated: %s", name(), message));
         }
     }
 

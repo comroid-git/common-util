@@ -28,7 +28,7 @@ public class LoopManagerTest {
         }
     };
     private       LoopManager   loopManager;
-    private       Loop<Integer> lowPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
+    private final Loop<Integer> lowPrioLoop2 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("low-while2-#2");
@@ -39,9 +39,7 @@ public class LoopManagerTest {
             return results.add("low-while2-#" + each);
         }
     };
-    private       Loop<Integer> medPrioLoop1 = new WhileDo<Integer>(Loop.MEDIUM_PRIO,
-            val -> val + 1
-    ) {
+    private final Loop<Integer> medPrioLoop1 = new WhileDo<Integer>(Loop.MEDIUM_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("med-while1-#2");
@@ -52,9 +50,7 @@ public class LoopManagerTest {
             return results.add("med-while1-#" + each);
         }
     };
-    private       Loop<Integer> medPrioLoop2 = new WhileDo<Integer>(Loop.MEDIUM_PRIO,
-            val -> val + 1
-    ) {
+    private final Loop<Integer> medPrioLoop2 = new WhileDo<Integer>(Loop.MEDIUM_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("med-while2-#2");
@@ -65,9 +61,7 @@ public class LoopManagerTest {
             return results.add("med-while2-#" + each);
         }
     };
-    private       Loop<Integer> higPrioLoop1 = new WhileDo<Integer>(Loop.HIGH_PRIO,
-            val -> val + 1
-    ) {
+    private final Loop<Integer> higPrioLoop1 = new WhileDo<Integer>(Loop.HIGH_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("hig-while1-#2");
@@ -78,9 +72,7 @@ public class LoopManagerTest {
             return results.add("hig-while1-#" + each);
         }
     };
-    private       Loop<Integer> higPrioLoop2 = new WhileDo<Integer>(Loop.HIGH_PRIO,
-            val -> val + 1
-    ) {
+    private final Loop<Integer> higPrioLoop2 = new WhileDo<Integer>(Loop.HIGH_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
             return !results.contains("hig-while2-#2");

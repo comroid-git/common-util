@@ -27,8 +27,7 @@ public final class LoopManager implements Closeable {
         final LoopManager manager = new LoopManager();
 
         manager.workers = Collections.unmodifiableSet(IntStream.range(1, parallelism + 1)
-                .mapToObj(iter -> new LoopWorker(
-                        manager,
+                .mapToObj(iter -> new LoopWorker(manager,
                         group,
                         String.format("LoopWorker @" + " " + "%s#%4d", manager.toString(), iter)
                 ))

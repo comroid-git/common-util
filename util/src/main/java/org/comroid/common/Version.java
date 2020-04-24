@@ -54,8 +54,7 @@ public final class Version implements Comparable<Version> {
         final Matcher matcher = PATTERN.matcher(version.toLowerCase());
 
         if (!matcher.matches()) {
-            throw new IllegalArgumentException(
-                    "Version \"" + version + "\" does not match pattern: " + PATTERN.pattern());
+            throw new IllegalArgumentException("Version \"" + version + "\" does not match pattern: " + PATTERN.pattern());
         }
 
         this.major = parseInt(regexGroupOrDefault(matcher, "major", null));

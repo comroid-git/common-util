@@ -12,8 +12,7 @@ import org.comroid.uniform.SerializationAdapter;
 
 public interface HttpAdapter {
     CompletableFuture<WebSocket> createWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib,
-            WebSocket.Header.List headers, Executor executor, URI uri
+            SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
     );
 
     CompletableFuture<REST.Response> call(

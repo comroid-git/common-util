@@ -13,8 +13,7 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     public static final int MEDIUM_PRIO = 100;
     public static final int HIGH_PRIO   = 200;
 
-    public static final Comparator<Loop<?>> LOOP_COMPARATOR =
-            Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
+    public static final Comparator<Loop<?>> LOOP_COMPARATOR = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
 
     public final  CompletableFuture<L>          result      = new CompletableFuture<>();
     protected     int                           counter     = 0;

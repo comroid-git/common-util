@@ -7,8 +7,7 @@ import org.comroid.common.util.BitmaskUtil;
 public interface ListnrAttachable<TF, E extends EventType<P, TF>, P extends Event<P>> {
     default ListnrManager<TF, E, P> registerListener(Object listener) {
         //noinspection unchecked
-        EventAcceptor<E, P> acceptorOfClass
-                = getEventHub().acceptorOfClass((Class<Object>) listener.getClass(), listener);
+        EventAcceptor<E, P> acceptorOfClass = getEventHub().acceptorOfClass((Class<Object>) listener.getClass(), listener);
         return getEventHub().registerAcceptor(acceptorOfClass);
     }
 
@@ -18,16 +17,13 @@ public interface ListnrAttachable<TF, E extends EventType<P, TF>, P extends Even
             EventType<T, TF> type, Consumer<T> listener
     ) {
         if (!BitmaskUtil.isFlagSet(type.getMask(), getBaseEventType().getMask())) {
-            throw new IllegalArgumentException(String.format(
-                    "Cannot listen to type %s, only subtypes of %s allowed",
+            throw new IllegalArgumentException(String.format("Cannot listen to type %s, only subtypes of %s allowed",
                     type,
                     getBaseEventType()
             ));
         }
 
-        return getEventHub().registerAcceptor(EventAcceptor.ofConsumer(type.payloadType(),
-                listener
-        ));
+        return getEventHub().registerAcceptor(EventAcceptor.ofConsumer(type.payloadType(), listener));
     }
 
     E getBaseEventType();

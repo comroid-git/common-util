@@ -42,7 +42,8 @@ public class TestRestJava11 {
             assertTrue(request.execute$deserialize()
                     .get(0, TimeUnit.SECONDS)
                     .size() >= 3);
-            assertEquals(200,
+            assertEquals(
+                    200,
                     (int) request.execute$statusCode()
                             .get(0, TimeUnit.SECONDS)
             );

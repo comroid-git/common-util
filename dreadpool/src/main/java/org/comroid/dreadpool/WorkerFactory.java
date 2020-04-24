@@ -45,10 +45,8 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
     public void execute(@NotNull Runnable task) {
         ThreadPool.Worker worker = null;
         if (allBusy() && workers.size() < maxSize && (worker = create()) == null) {
-            throw new IllegalThreadStateException(
-                    "Could not create worker even though\n" + "- all workers are busy, and\n" +
-                            "- there's less workers than allowed, and\n" +
-                            "- worker creation failed\n" + "\t");
+            throw new IllegalThreadStateException("Could not create worker even though\n" + "- all workers are busy, and\n" +
+                    "- there's less workers than allowed, and\n" + "- worker creation failed\n" + "\t");
         }
         if (worker != null && !worker.isAlive()) {
             worker.start();
@@ -61,11 +59,6 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
     @Override
     public int counter() {
         return c > maxSize ? maxSize : c++;
-    }
-
-    @Override
-    public int peekCounter() {
-        return Math.min(c, maxSize);
     }
 
     public boolean allBusy() {
@@ -93,11 +86,12 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
     }
 
     @Override
+    public int peekCounter() {
+        return Math.min(c, maxSize);
+    }
+
+    @Override
     public String toString() {
-        return String.format("%s{threadPool=%s, maxSize=%d}",
-                getClass().getSimpleName(),
-                threadPool,
-                maxSize
-        );
+        return String.format("%s{threadPool=%s, maxSize=%d}", getClass().getSimpleName(), threadPool, maxSize);
     }
 }

@@ -49,9 +49,7 @@ public class OkHttp3Adapter implements HttpAdapter {
                                 body == null && method == REST.Method.GET
                                         ? null
                                         : RequestBody.create(MediaType.parse(mimeType),
-                                                Objects.requireNonNull(body,
-                                                        "Null body not supported with " + method
-                                                )
+                                                Objects.requireNonNull(body, "Null body not supported with " + method)
                                         )
                         ));
 
@@ -62,10 +60,7 @@ public class OkHttp3Adapter implements HttpAdapter {
                 final Response     response     = call.execute();
                 final ResponseBody responseBody = response.body();
 
-                return new REST.Response(rest,
-                        response.code(),
-                        responseBody == null ? null : responseBody.string()
-                );
+                return new REST.Response(rest, response.code(), responseBody == null ? null : responseBody.string());
             } catch (IOException e) {
                 throw new RuntimeException("Request failed", e);
             }

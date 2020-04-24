@@ -50,7 +50,7 @@ public final class UniObjectNode extends UniNode {
             return baseNode;
         }
     }
-  
+
     private final Adapter adapter;
 
     public UniObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
@@ -90,10 +90,7 @@ public final class UniObjectNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(
-                    serializationAdapter,
-                    makeValueAdapter(() -> String.valueOf(adapter.get(fieldName)))
-            );
+            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(fieldName))));
         } else {
             return serializationAdapter.createUniNode(value);
         }

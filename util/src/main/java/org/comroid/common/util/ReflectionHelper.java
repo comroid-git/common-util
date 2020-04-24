@@ -22,8 +22,7 @@ import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 
 public final class ReflectionHelper {
-    public static <T> T instance(Class<T> type, Object... args)
-            throws RuntimeException, AssertionError {
+    public static <T> T instance(Class<T> type, Object... args) throws RuntimeException, AssertionError {
         final Optional<T> optInstByField = instanceField(type);
 
         if (optInstByField.isPresent()) {
@@ -31,10 +30,8 @@ public final class ReflectionHelper {
         }
 
         final Class<?>[] types = types(args);
-        Constructor<T> constructor = findConstructor(type,
-                types
-        ).orElseThrow(() -> new AssertionError(String.format(
-                "Could not find constructor for class %s with types %s",
+        Constructor<T> constructor = findConstructor(type, types).orElseThrow(() -> new AssertionError(String.format("Could not" +
+                        " find constructor for class %s with types %s",
                 type.getName(),
                 Arrays.toString(types)
         )));
@@ -82,16 +79,13 @@ public final class ReflectionHelper {
                         .count()));
     }
 
-    public static <T> T instance(Constructor<T> constructor, Object... args)
-            throws RuntimeException, AssertionError {
+    public static <T> T instance(Constructor<T> constructor, Object... args) throws RuntimeException, AssertionError {
         try {
             return constructor.newInstance(args);
         } catch (InvocationTargetException e) {
             throw new RuntimeException("Error in Constructor", e);
         } catch (IllegalAccessException e) {
-            throw new AssertionError(String.format("Could not access constructor %s", constructor),
-                    e
-            );
+            throw new AssertionError(String.format("Could not access constructor %s", constructor), e);
         } catch (InstantiationException e) {
             throw new AssertionError(String.format("Class %s is abstract",
                     constructor.getDeclaringClass()
@@ -157,8 +151,7 @@ public final class ReflectionHelper {
                     .filter(it -> typesOrdered[finalli].isInstance(it))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
-                            "No instance of " + typesOrdered[finalli].getName() +
-                                    " found in array"));
+                            "No instance of " + typesOrdered[finalli].getName() + " found in array"));
         }
 
         return yields;

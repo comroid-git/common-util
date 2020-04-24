@@ -64,24 +64,18 @@ public final class REST<D> {
     private final           SerializationAdapter<?, ?, ?> serializationAdapter;
 
     public REST(
-            HttpAdapter httpAdapter,
-            @Nullable D dependencyObject,
-            SerializationAdapter<?, ?, ?> serializationAdapter
+            HttpAdapter httpAdapter, @Nullable D dependencyObject, SerializationAdapter<?, ?, ?> serializationAdapter
     ) {
         this.httpAdapter          = Objects.requireNonNull(httpAdapter, "HttpAdapter");
         this.dependencyObject     = dependencyObject;
-        this.serializationAdapter = Objects.requireNonNull(serializationAdapter,
-                "SerializationAdapter"
-        );
+        this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
     }
 
     public <T extends VarCarrier<D>> Request<T> request(Class<T> type) {
         return new Request<>(this,
                 VariableCarrier.findRootBind(type)
                         .autoConstructor(type, (Class<D>) (
-                                dependencyObject == null
-                                        ? Object.class
-                                        : dependencyObject.getClass()
+                                dependencyObject == null ? Object.class : dependencyObject.getClass()
                         ))
         );
     }
@@ -213,9 +207,7 @@ public final class REST<D> {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
-                        return Span.singleton(tProducer.apply(dependencyObject,
-                                node.asObjectNode()
-                        ));
+                        return Span.singleton(tProducer.apply(dependencyObject, node.asObjectNode()));
                     case ARRAY:
                         return node.asArrayNode()
                                 .asNodeList()

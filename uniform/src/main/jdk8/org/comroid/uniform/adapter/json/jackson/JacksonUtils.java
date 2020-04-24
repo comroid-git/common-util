@@ -11,13 +11,11 @@ import static org.comroid.common.Polyfill.deadCast;
 
 public class JacksonUtils {
     public static <T> T nodeAs(JsonNode jsonNode, Class<T> targetType) {
-        if ((String.class.isAssignableFrom(targetType) || Object.class.equals(targetType)) &&
-                jsonNode instanceof TextNode) {
+        if ((String.class.isAssignableFrom(targetType) || Object.class.equals(targetType)) && jsonNode instanceof TextNode) {
             return deadCast(jsonNode.asText());
         }
 
-        if ((Boolean.class.isAssignableFrom(targetType) || Object.class.equals(targetType)) &&
-                jsonNode instanceof BooleanNode) {
+        if ((Boolean.class.isAssignableFrom(targetType) || Object.class.equals(targetType)) && jsonNode instanceof BooleanNode) {
             return deadCast(jsonNode.asBoolean());
         }
 
@@ -32,8 +30,7 @@ public class JacksonUtils {
             if (Long.class.isAssignableFrom(targetType)) {
                 return deadCast(jsonNode.asLong());
             }
-            if (Double.class.isAssignableFrom(targetType) ||
-                    Float.class.isAssignableFrom(targetType)) {
+            if (Double.class.isAssignableFrom(targetType) || Float.class.isAssignableFrom(targetType)) {
                 return deadCast(jsonNode.asDouble());
             }
         }

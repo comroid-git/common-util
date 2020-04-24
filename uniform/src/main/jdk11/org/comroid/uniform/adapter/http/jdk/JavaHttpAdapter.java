@@ -56,7 +56,7 @@ public final class JavaHttpAdapter implements HttpAdapter {
 
                 headers.forEach(header -> builder.header(header.getName(), header.getValue()));
 
-                final HttpRequest request = builder.build();
+                final HttpRequest          request  = builder.build();
                 final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 return new REST.Response(rest, response.statusCode(), response.body());

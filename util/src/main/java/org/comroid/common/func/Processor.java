@@ -49,15 +49,15 @@ public interface Processor<T> extends Reference<T>, Cloneable {
                 this.underlying = underlying;
             }
 
-            @Override
-            public boolean isPresent() {
-                return !underlying.isNull();
-            }
-
             @Nullable
             @Override
             public T get() {
                 return underlying.get();
+            }
+
+            @Override
+            public boolean isPresent() {
+                return !underlying.isNull();
             }
         }
 
@@ -70,15 +70,15 @@ public interface Processor<T> extends Reference<T>, Cloneable {
                 this.remapper = remapper;
             }
 
-            @Override
-            public boolean isPresent() {
-                return base.isPresent();
-            }
-
             @Nullable
             @Override
             public R get() {
                 return remapper.apply(base.get());
+            }
+
+            @Override
+            public boolean isPresent() {
+                return base.isPresent();
             }
         }
     }

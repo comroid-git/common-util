@@ -58,18 +58,15 @@ public final class Message extends VariableCarrier<DiscordAPI> {
                 DiscordAPI::parseReaction,
                 ArrayList::new
         );
-        VarBind.Uno<Boolean>                                                     TTS               = GROUP.bind1stage(
-                "tts",
+        VarBind.Uno<Boolean>                                                     TTS               = GROUP.bind1stage("tts",
                 UniValueNode.ValueType.BOOLEAN
         );
-        ArrayBind.Dep<UniObjectNode, DiscordAPI, Embed, Collection<Embed>>       EMBEDS            = GROUP.listDependent(
-                "embeds",
+        ArrayBind.Dep<UniObjectNode, DiscordAPI, Embed, Collection<Embed>>       EMBEDS            = GROUP.listDependent("embeds",
                 UniNode::asObjectNode,
                 Embed.Binds.GROUP.autoConstructor(Embed.class, DiscordAPI.class),
                 ArrayList::new
         );
-        VarBind.Duo<String, String>                                              TIMESTAMP         = GROUP.bind2stage(
-                "timestamp",
+        VarBind.Duo<String, String>                                              TIMESTAMP         = GROUP.bind2stage("timestamp",
                 UniValueNode.ValueType.STRING,
                 Function.identity()
         ); // todo Instant parsing
@@ -77,12 +74,10 @@ public final class Message extends VariableCarrier<DiscordAPI> {
                 "mention_everyone",
                 UniValueNode.ValueType.BOOLEAN
         );
-        VarBind.Uno<Long>                                                        ID                = GROUP.bind1stage(
-                "id",
+        VarBind.Uno<Long>                                                        ID                = GROUP.bind1stage("id",
                 UniValueNode.ValueType.LONG
         );
-        VarBind.Uno<Boolean>                                                     PINNED            = GROUP.bind1stage(
-                "pinned",
+        VarBind.Uno<Boolean>                                                     PINNED            = GROUP.bind1stage("pinned",
                 UniValueNode.ValueType.BOOLEAN
         );
         VarBind.Duo<String, String>                                              EDITED_TIMESTAMP  = GROUP.bind2stage(
@@ -98,11 +93,11 @@ public final class Message extends VariableCarrier<DiscordAPI> {
                 Role.Binds.GROUP.autoConstructor(Role.class, DiscordAPI.class),
                 ArrayList::new
         );
-        VarBind.Uno<String>                                                      CONTENT           = GROUP.bind1stage(
-                "content",
+        VarBind.Uno<String>                                                      CONTENT           = GROUP.bind1stage("content",
                 UniValueNode.ValueType.STRING
         );
-        VarBind.Dep<Long, DiscordAPI, Channel>                                   CHANNEL           = GROUP.bindDependent("channel_id",
+        VarBind.Dep<Long, DiscordAPI, Channel>                                   CHANNEL           = GROUP.bindDependent(
+                "channel_id",
                 UniValueNode.ValueType.LONG,
                 DiscordAPI::getChannelById
         );
@@ -111,8 +106,7 @@ public final class Message extends VariableCarrier<DiscordAPI> {
                 User.Binds.GROUP.autoConstructor(User.class, DiscordAPI.class),
                 ArrayList::new
         );
-        VarBind.Duo<Integer, Message.Type>                                       TYPE              = GROUP.bind2stage(
-                "type",
+        VarBind.Duo<Integer, Message.Type>                                       TYPE              = GROUP.bind2stage("type",
                 UniValueNode.ValueType.INTEGER,
                 Type::new
         );

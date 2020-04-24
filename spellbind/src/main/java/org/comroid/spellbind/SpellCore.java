@@ -45,8 +45,7 @@ public class SpellCore implements InvocationHandler {
                     try {
                         invokeDefault(method, args);
                     } catch (IllegalArgumentException | NoSuchElementException e) {
-                        throw new InvocationTargetException(
-                                e,
+                        throw new InvocationTargetException(e,
                                 String.format("Could not invoke method %s: CoreObject is not of its type", methodString)
                         );
                     }
@@ -91,16 +90,14 @@ public class SpellCore implements InvocationHandler {
                 .stream()
                 .filter(MethodInvocation.class::isInstance)
                 .map(MethodInvocation.class::cast)
-                .filter(mic -> Spellbind.Builder.findMatchingMethod(
-                        method,
+                .filter(mic -> Spellbind.Builder.findMatchingMethod(method,
                         mic.getTarget()
                                 .getClass()
                 ) != null)
                 .findAny()
                 .map(MethodInvocation::getTarget);
 
-        return method.invoke(
-                possibleTarget.orElseThrow(() -> new NoSuchElementException("Could not find a matching target!")),
+        return method.invoke(possibleTarget.orElseThrow(() -> new NoSuchElementException("Could not find a matching target!")),
                 args
         );
     }
@@ -108,8 +105,7 @@ public class SpellCore implements InvocationHandler {
     private void throw$unimplemented(Object methodString, @Nullable Throwable e) throws UnsupportedOperationException {
         throw e == null ? new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy",
                 methodString
-        )) : new UnsupportedOperationException(
-                String.format("Method %s has no " + "implementation in this proxy", methodString),
+        )) : new UnsupportedOperationException(String.format("Method %s has no " + "implementation in this proxy", methodString),
                 e
         );
     }

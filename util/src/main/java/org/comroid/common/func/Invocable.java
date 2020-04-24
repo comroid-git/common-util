@@ -84,8 +84,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public @NotNull T invoke(Object... args)
-                    throws InvocationTargetException, IllegalAccessException {
+            public @NotNull T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
                 try {
                     return constructor.newInstance(args);
                 } catch (InstantiationException e) {
@@ -105,8 +104,7 @@ public interface Invocable<T> {
 
             private OfMethod(Method method, @Nullable Object target) {
                 if (target == null && !Modifier.isStatic(method.getModifiers())) {
-                    throw new IllegalArgumentException(
-                            "Target cannot be null on non-static methods!",
+                    throw new IllegalArgumentException("Target cannot be null on non-static methods!",
                             new NullPointerException()
                     );
                 }
@@ -117,8 +115,7 @@ public interface Invocable<T> {
 
             @Nullable
             @Override
-            public T invoke(Object... args)
-                    throws InvocationTargetException, IllegalAccessException {
+            public T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
                 //noinspection unchecked
                 return (T) method.invoke(target, args);
             }
@@ -152,7 +149,7 @@ public interface Invocable<T> {
         private static final class OfConsumer<T> implements Invocable<T> {
             private final Class<T>    argType;
             private final Consumer<T> consumer;
-            private final Class<?>[]     argTypeArr;
+            private final Class<?>[]  argTypeArr;
 
             public OfConsumer(Class<T> argType, Consumer<T> consumer) {
                 this.argType    = argType;
@@ -167,8 +164,7 @@ public interface Invocable<T> {
                     consumer.accept(argType.cast(args[0]));
                     return null;
                 } else {
-                    throw new IllegalArgumentException(String.format(
-                            "Invalid Type: %s",
+                    throw new IllegalArgumentException(String.format("Invalid Type: %s",
                             args[0].getClass()
                                     .getName()
                     ));
@@ -182,8 +178,7 @@ public interface Invocable<T> {
         }
     }
 
-    default T invokeAutoOrder(Object... args)
-            throws InvocationTargetException, IllegalAccessException {
+    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
         return invoke(ReflectionHelper.arrange(args, typeOrder()));
     }
 

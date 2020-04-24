@@ -20,11 +20,7 @@ public abstract class ForI<V> extends Loop<V> {
         private final IntConsumer      action;
 
         public IntFunc(
-                int priority,
-                IntSupplier initOp,
-                IntPredicate continueTester,
-                IntUnaryOperator accumulator,
-                IntConsumer action
+                int priority, IntSupplier initOp, IntPredicate continueTester, IntUnaryOperator accumulator, IntConsumer action
         ) {
             super(priority);
 

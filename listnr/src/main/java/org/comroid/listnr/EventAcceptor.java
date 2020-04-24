@@ -27,21 +27,22 @@ public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
         return new Support.OfInvocable<>(Invocable.ofMethodCall(method));
     }
 
-    static <E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> ofConsumer(Class<P> payloadType, Consumer<P> consumer) {
+    static <E extends EventType<P, ?>, P extends Event<P>> EventAcceptor<E, P> ofConsumer(
+            Class<P> payloadType,
+            Consumer<P> consumer
+    ) {
         return new Support.OfInvocable<>(Invocable.ofConsumer(payloadType, consumer));
     }
 
     final class Support {
-        public static abstract class Abstract<E extends EventType<P, ?>, P extends Event<P>>
-                implements EventAcceptor<E, P> {
+        public static abstract class Abstract<E extends EventType<P, ?>, P extends Event<P>> implements EventAcceptor<E, P> {
             private final Set<EventType<P, ?>> eventTypes;
             private final int                  mask;
 
             @SafeVarargs
             protected Abstract(EventType<P, ?>... accepted) {
-                this.eventTypes
-                          = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(accepted)));
-                this.mask = computeMask();
+                this.eventTypes = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(accepted)));
+                this.mask       = computeMask();
             }
 
             protected int computeMask() {
@@ -63,8 +64,7 @@ public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
             }
         }
 
-        private static final class OfInvocable<E extends EventType<P, ?>, P extends Event<P>>
-                extends Abstract<E, P> {
+        private static final class OfInvocable<E extends EventType<P, ?>, P extends Event<P>> extends Abstract<E, P> {
             private final Invocable<? extends P> underlying;
 
             private OfInvocable(Invocable<? extends P> underlying) {
@@ -77,8 +77,7 @@ public interface EventAcceptor<E extends EventType<P, ?>, P extends Event<P>> {
             }
         }
 
-        static final class OfSortedInvocables<E extends EventType<P, ?>, P extends Event<P>>
-                extends Abstract<E, P> {
+        static final class OfSortedInvocables<E extends EventType<P, ?>, P extends Event<P>> extends Abstract<E, P> {
             private final Set<Invocable<Object>> invocables;
 
             OfSortedInvocables(

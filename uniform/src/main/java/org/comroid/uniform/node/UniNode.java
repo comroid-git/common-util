@@ -83,10 +83,8 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_RAW", Type.VALUE);
     }
 
-    protected final <T> T unsupported(String actionName, Type expected)
-            throws UnsupportedOperationException {
-        throw new UnsupportedOperationException(String.format(
-                "Cannot invoke %s on node type %s; " + "%s expected",
+    protected final <T> T unsupported(String actionName, Type expected) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException(String.format("Cannot invoke %s on node type %s; " + "%s expected",
                 actionName,
                 getType(),
                 expected
@@ -170,24 +168,15 @@ public abstract class UniNode implements Specifiable<UniNode> {
     }
 
     public final UniObjectNode asObjectNode() {
-        return as(
-                UniObjectNode.class,
-                MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.OBJECT)
-        );
+        return as(UniObjectNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.OBJECT));
     }
 
     public final UniArrayNode asArrayNode() {
-        return as(
-                UniArrayNode.class,
-                MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.ARRAY)
-        );
+        return as(UniArrayNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.ARRAY));
     }
 
     public final <T> UniValueNode<T> asValueNode() {
-        return as(
-                UniValueNode.class,
-                MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.VALUE)
-        );
+        return as(UniValueNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.VALUE));
     }
 
     protected <T> UniValueNode.Adapter<T> makeValueAdapter(Supplier<String> stringSupplier) {

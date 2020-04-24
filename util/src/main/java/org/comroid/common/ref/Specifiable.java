@@ -5,8 +5,7 @@ import java.util.Optional;
 import org.comroid.common.info.MessageSupplier;
 
 public interface Specifiable<B> {
-    default <R extends B, T extends Throwable> R as(Class<R> type, MessageSupplier message)
-            throws T {
+    default <R extends B, T extends Throwable> R as(Class<R> type, MessageSupplier message) throws T {
         return as(type).orElseThrow(() -> new AssertionError(message));
     }
 

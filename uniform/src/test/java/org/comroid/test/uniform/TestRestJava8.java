@@ -43,7 +43,8 @@ public class TestRestJava8 {
             assertTrue(request.execute$deserialize()
                     .get(0, TimeUnit.SECONDS)
                     .size() >= 1);
-            assertEquals(200,
+            assertEquals(
+                    200,
                     (int) request.execute$statusCode()
                             .get(0, TimeUnit.SECONDS)
             );
