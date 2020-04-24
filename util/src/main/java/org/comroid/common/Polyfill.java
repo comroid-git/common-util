@@ -41,34 +41,31 @@ public final class Polyfill {
     }
 
     public static <T extends Throwable> URL url(
-            String spec, @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator
+            String spec, @Nullable Function<MalformedURLException, T> throwableReconfigurator
     ) throws T {
-        if (throwableReconfigurator.length == 0) {
-            throwableReconfigurator = new Function[]{
-                    cause -> (T) new AssertionError(cause)
-            };
+        if (throwableReconfigurator == null) {
+            //noinspection unchecked
+            throwableReconfigurator = cause -> (T) new AssertionError(cause);
         }
 
         try {
             return new URL(spec);
         } catch (MalformedURLException e) {
-            throw throwableReconfigurator[0].apply(e);
+            throw throwableReconfigurator.apply(e);
         }
     }
 
     public static <T extends Throwable> URI uri(
-            String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
+            String spec, Function<URISyntaxException, T> throwableReconfigurator
     ) throws T {
-        if (throwableReconfigurator.length == 0) {
-            throwableReconfigurator = new Function[]{
-                    cause -> (T) new AssertionError(cause)
-            };
+        if (throwableReconfigurator == null) {
+            throwableReconfigurator = cause -> (T) new AssertionError(cause);
         }
 
         try {
             return new URI(spec);
         } catch (URISyntaxException e) {
-            throw throwableReconfigurator[0].apply(e);
+            throw throwableReconfigurator.apply(e);
         }
     }
 

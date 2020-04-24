@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.PARAMETER)
+@Deprecated
 public @interface OptionalVararg {
     int limit() default 1;
 }
