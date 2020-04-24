@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
@@ -29,10 +30,6 @@ public final class GroupBind {
         return groupName;
     }
 
-    public final List<? extends VarBind<?, ?, ?, ?>> getChildren() {
-        return Collections.unmodifiableList(children);
-    }
-
     public List<GroupBind> getSubgroups() {
         return Collections.unmodifiableList(subgroups);
     }
@@ -40,13 +37,11 @@ public final class GroupBind {
     public final Optional<GroupBind> getParent() {
         return Optional.ofNullable(parent);
     }
-
     final                   List<? extends VarBind<?, ?, ?, ?>> children  = new ArrayList<>();
     private final @Nullable GroupBind                           parent;
     private final           SerializationAdapter<?, ?, ?>       serializationAdapter;
     private final           String                              groupName;
     private final           List<GroupBind>                     subgroups = new ArrayList<>();
-
     public GroupBind(SerializationAdapter<?, ?, ?> serializationAdapter, String groupName) {
         this(null, serializationAdapter, groupName);
     }
@@ -55,6 +50,15 @@ public final class GroupBind {
         this.parent               = parent;
         this.serializationAdapter = serializationAdapter;
         this.groupName            = groupName;
+
+        if (parent != null) {
+            parent.getChildren()
+                    .forEach(it -> children.add(Polyfill.deadCast(it)));
+        }
+    }
+
+    public final List<? extends VarBind<?, ?, ?, ?>> getChildren() {
+        return Collections.unmodifiableList(children);
     }
 
     public <R extends VarCarrier<D>, D> BiFunction<D, UniObjectNode, R> autoConstructor(
