@@ -69,7 +69,7 @@ public final class EventHub<I, O> {
             //noinspection unchecked
             publish((P) types[0].create(data));
         } else {
-            EventType.Combined<P, O> combined = EventType.Combined.of(supertype.payloadType(), supertype::isEvent, types);
+            EventType.Combined<P, I, O> combined = EventType.Combined.of(supertype.payloadType(), supertype::isEvent, types);
             publish(combined.create(data));
         }
     }
@@ -97,7 +97,7 @@ public final class EventHub<I, O> {
         publish(asSupertype, subtypes, data);
     }
 
-    public <E extends EventType<P, I, ?>, P extends Event<P>> ListnrManager<I, O, E, P> registerAcceptor(
+    public <E extends EventType<P, I, O>, P extends Event<P>> ListnrManager<I, O, E, P> registerAcceptor(
             EventAcceptor<E, P> acceptor
     ) {
         registeredAcceptors.add(acceptor);
