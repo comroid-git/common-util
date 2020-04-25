@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 import org.comroid.common.func.Provider;
 import org.comroid.restless.HttpAdapter;
@@ -26,8 +27,12 @@ public class OkHttp3Adapter implements HttpAdapter {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
     @Override
-    public CompletableFuture<WebSocket> createWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
+    public <O> CompletableFuture<WebSocket<O>> createWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib,
+            WebSocket.Header.List headers,
+            Executor executor,
+            URI uri,
+            Function<String, O> preprocessor
     ) {
         throw new UnsupportedOperationException(); // todo
     }

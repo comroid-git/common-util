@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 import org.comroid.common.func.Provider;
 import org.comroid.restless.socket.WebSocket;
@@ -15,8 +16,12 @@ public interface HttpAdapter {
         throw new UnsupportedOperationException();
     }
 
-    CompletableFuture<WebSocket> createWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
+    <O> CompletableFuture<WebSocket<O>> createWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib,
+            WebSocket.Header.List headers,
+            Executor executor,
+            URI uri,
+            Function<String, O> preprocessor
     );
 
     CompletableFuture<REST.Response> call(

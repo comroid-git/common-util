@@ -38,11 +38,16 @@ public final class EventHub<I, O> {
             ScheduledExecutorService executorService,
             Function<O, R> preprocessor
     ) {
-        class DependentHub extends EventAcceptor.Support.Abstract<T, E> {
+        class DependentHubForwarder extends EventAcceptor.Support.Abstract<T, E> {
             final EventHub<O, R> dependent = new EventHub<>(executorService, preprocessor);
 
-            DependentHub() {
+            DependentHubForwarder() {
                 super();
+            }
+
+            @Override
+            public boolean canAccept(EventType<E, ?, ?> eventType) {
+                return true;
             }
 
             @Override
@@ -51,7 +56,7 @@ public final class EventHub<I, O> {
             }
         }
 
-        return new DependentHub().dependent;
+        return new DependentHubForwarder().dependent;
     }
 
     public <P extends Event<? super P>> void publish(final P eventPayload) {

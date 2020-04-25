@@ -35,6 +35,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
             new ConcurrentHashMap<>();
     private final DEP                                                                         dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
+    private final Class<? extends VarCarrier<? super DEP>>                                    myType;
 
     public VariableCarrier(
             SerializationAdapter<?, ?, ?> serializationAdapter, @Nullable UniObjectNode initialData
@@ -57,8 +58,10 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
             @Nullable DEP dependencyObject
     ) {
         this.serializationAdapter = serializationAdapter;
-        this.rootBind             = findRootBind(
-                containingClass == null ? (Class<? extends VarCarrier<?>>) getClass() : containingClass);
+        this.myType               = containingClass == null
+                ? (Class<? extends VarCarrier<? super DEP>>) getClass()
+                : containingClass;
+        this.rootBind             = findRootBind(myType);
         this.initiallySet         = unmodifiableSet(updateVars(initialData));
         this.dependencyObject     = dependencyObject;
     }
@@ -187,6 +190,14 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         return ref;
     }
 
+    public VariableCarrier(
+            @Nullable Class<? extends VarCarrier<DEP>> containingClass,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            @Nullable UniObjectNode initialData
+    ) {
+        this(containingClass, serializationAdapter, initialData, null);
+    }
+
     @Deprecated
     protected <BAS, OBJ extends BAS> VariableCarrier(
             SerializationAdapter<BAS, OBJ, ?> serializationAdapter, OBJ initialData, @Nullable DEP dependencyObject
@@ -194,6 +205,11 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         this(serializationAdapter, serializationAdapter.createUniObjectNode(initialData), dependencyObject);
     }
 
+    public Class<? extends VarCarrier<? super DEP>> getRepresentedType() {
+        return myType;
+    }
+
+    @Override
     public final DEP getDependencyObject() {
         return dependencyObject;
     }

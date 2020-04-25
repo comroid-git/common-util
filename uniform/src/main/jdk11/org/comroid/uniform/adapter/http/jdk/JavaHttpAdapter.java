@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 import org.comroid.common.func.Provider;
 import org.comroid.common.util.BitmaskUtil;
@@ -22,15 +23,19 @@ public final class JavaHttpAdapter implements HttpAdapter {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Override
-    public CompletableFuture<WebSocket> createWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib, WebSocket.Header.List headers, Executor executor, URI uri
+    public <O> CompletableFuture<WebSocket<O>> createWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib,
+            WebSocket.Header.List headers,
+            Executor executor,
+            URI uri,
+            Function<String, O> preprocessor
     ) {
         final Builder webSocketBuilder = httpClient.newWebSocketBuilder();
         headers.forEach(header -> webSocketBuilder.header(header.getName(), header.getValue()));
-        final JavaWebSocket javaWebSocket = new JavaWebSocket(new ThreadGroup(String.format("%s" + "-0x%s",
+        final JavaWebSocket<O> javaWebSocket = new JavaWebSocket<>(new ThreadGroup(String.format("%s" + "-0x%s",
                 toString(),
                 Integer.toHexString(BitmaskUtil.nextFlag())
-        )), seriLib);
+        )), preprocessor);
 
         return webSocketBuilder.buildAsync(uri, javaWebSocket.javaListener)
                 .thenApply(socket -> {

@@ -2,29 +2,33 @@ package org.comroid.restless.socket;
 
 import java.util.ArrayList;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 import org.comroid.dreadpool.ThreadPool;
 import org.comroid.listnr.EventHub;
-import org.comroid.uniform.node.UniObjectNode;
 
-public abstract class WebSocket<I> {
-    private final EventHub<I, UniObjectNode> eventHub;
-    private final SocketEvent.Container<I>   eventContainer;
+public abstract class WebSocket<O> {
+    private final EventHub<String, O>      eventHub;
+    private final SocketEvent.Container<O> eventContainer;
 
     protected WebSocket(
-            ThreadGroup threadGroup, Function<I, UniObjectNode> exchangePreprocessor
+            ThreadGroup threadGroup, Function<String, O> exchangePreprocessor
     ) {
         this.eventHub       = new EventHub<>(ThreadPool.fixedSize(threadGroup, 4), exchangePreprocessor);
         this.eventContainer = new SocketEvent.Container<>(this, eventHub);
     }
 
-    public final EventHub<I, UniObjectNode> getEventHub() {
+    public final EventHub<String, O> getEventHub() {
         return eventHub;
     }
 
-    public final SocketEvent.Container<I> getEventContainer() {
+    public final SocketEvent.Container<O> getEventContainer() {
         return eventContainer;
     }
+
+    public abstract IntFunction<String> getCloseCodeResolver();
+
+    public abstract void setCloseCodeResolver(IntFunction<String> closeCodeResolver);
 
     public static final class Header {
         private final String name;

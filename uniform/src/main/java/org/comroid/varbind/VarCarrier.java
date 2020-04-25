@@ -41,6 +41,8 @@ public interface VarCarrier<DEP> {
         return ref(bind).process();
     }
 
+    DEP getDependencyObject();
+
     interface Underlying<DEP> extends VarCarrier<DEP> {
         @Override
         default GroupBind getRootBind() {
@@ -68,6 +70,11 @@ public interface VarCarrier<DEP> {
         @NotNull
         default <T> Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind) {
             return getUnderlyingVarCarrier().ref(bind);
+        }
+
+        @Override
+        default DEP getDependencyObject() {
+            return getUnderlyingVarCarrier().getDependencyObject();
         }
     }
 }

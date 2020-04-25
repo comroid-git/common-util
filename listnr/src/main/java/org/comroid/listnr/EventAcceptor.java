@@ -18,7 +18,7 @@ import static org.comroid.common.util.BitmaskUtil.combine;
 
 @ShouldExtend(EventAcceptor.Support.Abstract.class)
 public interface EventAcceptor<E extends EventType<? super P, ?, ?>, P extends Event<? super P>> {
-    Set<EventType<P, ?, ?>> getAcceptedEventTypes();
+    boolean canAccept(EventType<P, ?, ?> eventType);
 
     @Internal
     int getAcceptedTypesAsMask();
@@ -61,8 +61,8 @@ public interface EventAcceptor<E extends EventType<? super P, ?, ?>, P extends E
             }
 
             @Override
-            public Set<EventType<P, ?, ?>> getAcceptedEventTypes() {
-                return eventTypes;
+            public boolean canAccept(EventType<P, ?, ?> eventType) {
+                return eventTypes.contains(eventType);
             }
 
             @Override
