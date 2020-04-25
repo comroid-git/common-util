@@ -28,15 +28,24 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
 
     Class<P> payloadType();
 
+    interface Combined<P extends Event<P>, I, O> extends EventType<P, I, O> {
+        @SafeVarargs
+        static <P extends Event<P>, I, O> Combined<P, I, O> of(
+                Class<P> payloadInterface, Predicate<O> eventTester, EventType<? super P, I, O>... subtypes
+        ) {
+            return new EventType.Support.Combination<>(subtypes, eventTester, payloadInterface);
+        }
+    }
+
     final class Support {
-        static final class Basic<P extends Event<P>, I, O> implements EventType<P, I, O> {
+        public static final class Basic<P extends Event<P>, I, O> implements EventType<P, I, O> {
             protected final EventHub<I, O>     hub;
             private final   Class<P>           payloadType;
             private final   int                flag = BitmaskUtil.nextFlag();
             private final   Predicate<O>       eventTester;
             private final   ParamFactory<O, P> payloadFactory;
 
-            Basic(
+            protected Basic(
                     EventHub<I, O> hub, Class<P> payloadType, Predicate<O> eventTester, ParamFactory<O, P> payloadFactory
             ) {
                 this.hub            = hub;
@@ -135,15 +144,6 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
             public int peekCounter() {
                 return 0;
             }
-        }
-    }
-
-    interface Combined<P extends Event<P>, I, O> extends EventType<P, I, O> {
-        @SafeVarargs
-        static <P extends Event<P>, I, O> Combined<P, I, O> of(
-                Class<P> payloadInterface, Predicate<O> eventTester, EventType<? super P, I, O>... subtypes
-        ) {
-            return new EventType.Support.Combination<>(subtypes, eventTester, payloadInterface);
         }
     }
 }
