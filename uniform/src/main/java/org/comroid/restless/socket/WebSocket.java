@@ -18,11 +18,11 @@ public abstract class WebSocket<I> {
         this.eventContainer = new SocketEvent.Container<>(this, eventHub);
     }
 
-    protected final EventHub<I, UniObjectNode> getEventHub() {
+    public final EventHub<I, UniObjectNode> getEventHub() {
         return eventHub;
     }
 
-    protected final SocketEvent.Container<I> getEventContainer() {
+    public final SocketEvent.Container<I> getEventContainer() {
         return eventContainer;
     }
 
