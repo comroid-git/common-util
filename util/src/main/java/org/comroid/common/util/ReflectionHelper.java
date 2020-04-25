@@ -1,6 +1,7 @@
 package org.comroid.common.util;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -9,7 +10,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.comroid.common.annotation.Instance;
@@ -170,6 +174,42 @@ public final class ReflectionHelper {
         }
 
         return of;
+    }
+
+    public static <A extends Annotation> Optional<A> findAnnotation(Class<A> annotation, Class<?> inClass, ElementType target) {
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (target) {
+            case TYPE:
+                return Stream.generate(recursiveClassGenerator(inClass))
+                        .filter(type -> type.isAnnotationPresent(annotation))
+                        .findFirst()
+                        .map(type -> type.getAnnotation(annotation));
+            default:
+                throw new UnsupportedOperationException("Please contact the developer");
+        }
+    }
+
+    private static Supplier<Class<?>> recursiveClassGenerator(Class<?> from) {
+        return new Supplier<Class<?>>() {
+            private final Queue<Class<?>> queue = new LinkedBlockingQueue<>();
+
+            {
+                queue.add(from);
+            }
+
+            @Override
+            public Class<?> get() {
+                if (!queue.isEmpty()) {
+                    Class<?> poll = queue.poll();
+                    Optional.ofNullable(poll.getSuperclass())
+                            .ifPresent(queue::add);
+                    queue.addAll(Arrays.asList(poll.getInterfaces()));
+                    return poll;
+                }
+
+                throw new IndexOutOfBoundsException("No more classes available");
+            }
+        };
     }
 
     private static boolean classExists(String name) {

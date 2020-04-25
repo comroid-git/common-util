@@ -7,6 +7,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket.Builder;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -51,7 +52,11 @@ public final class JavaHttpAdapter implements HttpAdapter {
             try {
                 final HttpRequest.Builder builder = HttpRequest.newBuilder(urlProvider.now()
                         .toURI())
-                        .method(method.toString(), HttpRequest.BodyPublishers.ofString(body))
+                        .method(method.toString(), (
+                                body == null && method == REST.Method.GET
+                                        ? HttpRequest.BodyPublishers.noBody()
+                                        : HttpRequest.BodyPublishers.ofString(Objects.requireNonNull(body, "Body cannot be null"))
+                        ))
                         .header("Content-Type", mimeType);
 
                 headers.forEach(header -> builder.header(header.getName(), header.getValue()));

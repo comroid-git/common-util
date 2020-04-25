@@ -1,5 +1,6 @@
 package org.comroid.varbind;
 
+import java.lang.annotation.ElementType;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -47,21 +48,19 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
             @Nullable DEP dependencyObject
     ) {
         this.serializationAdapter = serializationAdapter;
-        this.rootBind             = findRootBind(getClass());
+        this.rootBind             = findRootBind((Class<? extends VarCarrier<?>>) getClass());
         this.initiallySet         = unmodifiableSet(updateVars(initialData));
         this.dependencyObject     = dependencyObject;
     }
 
     @Internal
-    public static GroupBind findRootBind(Class<? extends VarCarrier> inClass) {
-        final VarBind.Location location = inClass.getAnnotation(VarBind.Location.class);
-
-        if (location == null) {
-            throw new IllegalStateException(String.format("Class %s extends VariableCarrier, but does not have a %s annotation.",
-                    inClass.getName(),
-                    VarBind.Location.class.getName()
-            ));
-        }
+    public static GroupBind findRootBind(Class<? extends VarCarrier<?>> inClass) {
+        final VarBind.Location location = ReflectionHelper.findAnnotation(VarBind.Location.class, inClass, ElementType.TYPE)
+                .orElseThrow(() -> new IllegalStateException(String.format(
+                        "Class %s extends VariableCarrier,\nbut does not have a %s annotation.",
+                        inClass.getName(),
+                        VarBind.Location.class.getName()
+                )));
 
         return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class)
                 .requireNonNull();
