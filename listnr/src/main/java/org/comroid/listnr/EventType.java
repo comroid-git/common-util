@@ -38,7 +38,7 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
     }
 
     final class Support {
-        public static final class Basic<P extends Event<P>, I, O> implements EventType<P, I, O> {
+        public static class Basic<P extends Event<P>, I, O> implements EventType<P, I, O> {
             protected final EventHub<I, O>     hub;
             private final   Class<P>           payloadType;
             private final   int                flag = BitmaskUtil.nextFlag();
@@ -87,13 +87,13 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
             }
         }
 
-        private static final class Combination<P extends Event<P>, I, O> implements Combined<P, I, O> {
+        public static class Combination<P extends Event<P>, I, O> implements Combined<P, I, O> {
             private final Predicate<O>                 eventTester;
             private final Class<P>                     payloadType;
             private final EventType<? super P, I, O>[] subtypes;
             private final int                          mask;
 
-            private Combination(EventType<? super P, I, O>[] subtypes, Predicate<O> eventTester, Class<P> payloadType) {
+            protected Combination(EventType<? super P, I, O>[] subtypes, Predicate<O> eventTester, Class<P> payloadType) {
                 this.eventTester = eventTester;
                 this.payloadType = payloadType;
                 this.subtypes    = subtypes;
@@ -109,12 +109,12 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
             }
 
             @Override
-            public int getMask() {
+            public final int getMask() {
                 return mask;
             }
 
             @Override
-            public P create(@Nullable O parameter) {
+            public final P create(@Nullable O parameter) {
                 Spellbind.Builder<P> payloadCombinator = Spellbind.builder(payloadType);
 
                 payloadCombinator.coreObject(new Event.Support.Abstract<P>() {});
@@ -126,24 +126,26 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
             }
 
             @Override
-            public boolean isEvent(@Nullable O data) {
+            public final boolean isEvent(@Nullable O data) {
                 return eventTester.test(data);
             }
 
             @Override
-            public Class<P> payloadType() {
+            public final Class<P> payloadType() {
                 return payloadType;
             }
 
             @Override
-            public int counter() {
-                return 0;
+            public final int counter() {
+                return c++;
             }
 
             @Override
-            public int peekCounter() {
-                return 0;
+            public final int peekCounter() {
+                return c;
             }
+
+            private int c = 0;
         }
     }
 }
