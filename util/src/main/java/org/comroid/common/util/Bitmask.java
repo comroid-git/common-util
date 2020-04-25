@@ -3,6 +3,7 @@ package org.comroid.common.util;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.ToIntFunction;
 
 public final class Bitmask {
     public static final int EMPTY = 0x0;
@@ -53,6 +54,17 @@ public final class Bitmask {
 
         for (int mask : masks) {
             yield = yield | mask;
+        }
+
+        return yield;
+    }
+
+    @SafeVarargs
+    public static <T> int combine(ToIntFunction<T> mapper, T... items) {
+        int yield = EMPTY;
+
+        for (T item : items) {
+            yield = yield | mapper.applyAsInt(item);
         }
 
         return yield;

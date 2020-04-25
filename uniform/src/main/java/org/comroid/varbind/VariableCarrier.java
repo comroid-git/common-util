@@ -13,7 +13,6 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -26,7 +25,6 @@ import static org.comroid.common.Polyfill.deadCast;
 
 @SuppressWarnings("unchecked")
 public class VariableCarrier<DEP> implements VarCarrier<DEP> {
-    private final SerializationAdapter<?, ?, ?>                                               serializationAdapter;
     private final GroupBind                                                                   rootBind;
     private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     =
             new ConcurrentHashMap<>();
@@ -38,45 +36,26 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     private final Class<? extends VarCarrier<? super DEP>>                                    myType;
 
     public VariableCarrier(
-            SerializationAdapter<?, ?, ?> serializationAdapter, @Nullable UniObjectNode initialData
+            @Nullable UniObjectNode initialData
     ) {
-        this(serializationAdapter, initialData, null);
+        this(initialData, null);
     }
 
     public VariableCarrier(
-            SerializationAdapter<?, ?, ?> serializationAdapter,
-            @Nullable UniObjectNode initialData,
-            @Nullable DEP dependencyObject
+            @Nullable UniObjectNode initialData, @Nullable DEP dependencyObject
     ) {
-        this(null, serializationAdapter, initialData, dependencyObject);
+        this(initialData, dependencyObject, null);
     }
 
     public VariableCarrier(
-            @Nullable Class<? extends VarCarrier<DEP>> containingClass,
-            SerializationAdapter<?, ?, ?> serializationAdapter,
             @Nullable UniObjectNode initialData,
-            @Nullable DEP dependencyObject
+            @Nullable DEP dependencyObject,
+            @Nullable Class<? extends VarCarrier<DEP>> containingClass
     ) {
-        this.serializationAdapter = serializationAdapter;
-        this.myType               = containingClass == null
-                ? (Class<? extends VarCarrier<? super DEP>>) getClass()
-                : containingClass;
-        this.rootBind             = findRootBind(myType);
-        this.initiallySet         = unmodifiableSet(updateVars(initialData));
-        this.dependencyObject     = dependencyObject;
-    }
-
-    @Internal
-    public static GroupBind findRootBind(Class<? extends VarCarrier<?>> inClass) {
-        final VarBind.Location location = ReflectionHelper.findAnnotation(VarBind.Location.class, inClass, ElementType.TYPE)
-                .orElseThrow(() -> new IllegalStateException(String.format(
-                        "Class %s extends VariableCarrier,\nbut does not have a %s annotation.",
-                        inClass.getName(),
-                        VarBind.Location.class.getName()
-                )));
-
-        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class)
-                .requireNonNull();
+        this.myType           = containingClass == null ? (Class<? extends VarCarrier<? super DEP>>) getClass() : containingClass;
+        this.rootBind         = findRootBind(myType);
+        this.initiallySet     = unmodifiableSet(updateVars(initialData));
+        this.dependencyObject = dependencyObject;
     }
 
     private Set<VarBind<Object, ? super DEP, ?, Object>> updateVars(
@@ -107,14 +86,6 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     @Override
     public final GroupBind getRootBind() {
         return rootBind;
-    }
-
-    private <T> AtomicReference<Span<T>> extrRef(
-            VarBind<T, ? super DEP, ?, Object> bind
-    ) {
-        return deadCast(vars.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
-                key -> new AtomicReference<>(Span.zeroSize())
-        ));
     }
 
     private <T> OutdateableReference<T> compRef(
@@ -190,27 +161,45 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         return ref;
     }
 
-    public VariableCarrier(
-            @Nullable Class<? extends VarCarrier<DEP>> containingClass,
-            SerializationAdapter<?, ?, ?> serializationAdapter,
-            @Nullable UniObjectNode initialData
-    ) {
-        this(containingClass, serializationAdapter, initialData, null);
+    @Override
+    public final DEP getDependencyObject() {
+        return dependencyObject;
     }
 
-    @Deprecated
-    protected <BAS, OBJ extends BAS> VariableCarrier(
-            SerializationAdapter<BAS, OBJ, ?> serializationAdapter, OBJ initialData, @Nullable DEP dependencyObject
+    VariableCarrier(
+            Map<VarBind<Object, DEP, ?, Object>, Object> initialValues,
+            DEP dependencyObject,
+            Class<? extends VarCarrier<? super DEP>> containingClass
     ) {
-        this(serializationAdapter, serializationAdapter.createUniObjectNode(initialData), dependencyObject);
+        this.myType           = containingClass == null ? (Class<? extends VarCarrier<? super DEP>>) getClass() : containingClass;
+        this.rootBind         = findRootBind(myType);
+        this.initiallySet     = unmodifiableSet(initialValues.keySet());
+        this.dependencyObject = dependencyObject;
+        initialValues.forEach((bind, value) -> extrRef(bind).set(Span.singleton(value)));
+    }
+
+    @Internal
+    public static GroupBind findRootBind(Class<? extends VarCarrier<?>> inClass) {
+        final VarBind.Location location = ReflectionHelper.findAnnotation(VarBind.Location.class, inClass, ElementType.TYPE)
+                .orElseThrow(() -> new IllegalStateException(String.format(
+                        "Class %s extends VariableCarrier,\nbut does not have a %s annotation.",
+                        inClass.getName(),
+                        VarBind.Location.class.getName()
+                )));
+
+        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class)
+                .requireNonNull();
+    }
+
+    private <T> AtomicReference<Span<T>> extrRef(
+            VarBind<T, ? super DEP, ?, Object> bind
+    ) {
+        return deadCast(vars.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
+                key -> new AtomicReference<>(Span.zeroSize())
+        ));
     }
 
     public Class<? extends VarCarrier<? super DEP>> getRepresentedType() {
         return myType;
-    }
-
-    @Override
-    public final DEP getDependencyObject() {
-        return dependencyObject;
     }
 }

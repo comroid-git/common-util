@@ -19,6 +19,12 @@ public class JavaWebSocket<O> extends org.comroid.restless.socket.WebSocket<O> {
     }
 
     @Override
+    protected CompletableFuture<Void> sendString(String node, boolean last) {
+        return socket.thenCompose(socket -> socket.sendText(node, last))
+                .thenApply(nil -> null);
+    }
+
+    @Override
     public IntFunction<String> getCloseCodeResolver() {
         return closeCodeResolver;
     }

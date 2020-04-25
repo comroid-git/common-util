@@ -82,6 +82,11 @@ public final class UniArrayNode extends UniNode {
         return yields;
     }
 
+    @Override
+    public String toString() {
+        return adapter.toString();
+    }
+
     public static UniArrayNode ofList(SerializationAdapter<?, ?, ?> adapter, List<Object> list) {
         class MergedAdapter extends Adapter<List<Object>> {
             protected MergedAdapter(List<Object> underlying) {

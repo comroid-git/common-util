@@ -35,8 +35,13 @@ public final class EventHub<I, O> {
     }
 
     public <R, E extends Event<? super E>, T extends EventType<? super E, ? super O, ? super R>> EventHub<O, R> dependentHub(
-            ScheduledExecutorService executorService,
             Function<O, R> preprocessor
+    ) {
+        return dependentHub(executorService, preprocessor);
+    }
+
+    public <R, E extends Event<? super E>, T extends EventType<? super E, ? super O, ? super R>> EventHub<O, R> dependentHub(
+            ScheduledExecutorService executorService, Function<O, R> preprocessor
     ) {
         class DependentHubForwarder extends EventAcceptor.Support.Abstract<T, E> {
             final EventHub<O, R> dependent = new EventHub<>(executorService, preprocessor);

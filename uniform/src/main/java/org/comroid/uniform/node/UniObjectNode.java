@@ -56,6 +56,11 @@ public final class UniObjectNode extends UniNode {
         }
     }
 
+    @Override
+    public String toString() {
+        return adapter.toString();
+    }
+
     public static UniObjectNode ofMap(SerializationAdapter<?, ?, ?> adapter, Map<String, Object> map) {
         class MergedAdapter extends UniObjectNode.Adapter<Map<String, Object>> {
             protected MergedAdapter(Map<String, Object> underlying) {
