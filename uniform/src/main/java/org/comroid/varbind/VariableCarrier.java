@@ -36,10 +36,10 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     private final DEP                                                                         dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>>                                initiallySet;
 
-    protected <BAS, OBJ extends BAS> VariableCarrier(
-            SerializationAdapter<BAS, OBJ, ?> serializationAdapter, OBJ initialData, @Nullable DEP dependencyObject
+    public VariableCarrier(
+            SerializationAdapter<?, ?, ?> serializationAdapter, @Nullable UniObjectNode initialData
     ) {
-        this(serializationAdapter, serializationAdapter.createUniObjectNode(initialData), dependencyObject);
+        this(serializationAdapter, initialData, null);
     }
 
     public VariableCarrier(
@@ -47,8 +47,18 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
             @Nullable UniObjectNode initialData,
             @Nullable DEP dependencyObject
     ) {
+        this(null, serializationAdapter, initialData, dependencyObject);
+    }
+
+    public VariableCarrier(
+            @Nullable Class<? extends VarCarrier<DEP>> containingClass,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            @Nullable UniObjectNode initialData,
+            @Nullable DEP dependencyObject
+    ) {
         this.serializationAdapter = serializationAdapter;
-        this.rootBind             = findRootBind((Class<? extends VarCarrier<?>>) getClass());
+        this.rootBind             = findRootBind(
+                containingClass == null ? (Class<? extends VarCarrier<?>>) getClass() : containingClass);
         this.initiallySet         = unmodifiableSet(updateVars(initialData));
         this.dependencyObject     = dependencyObject;
     }
@@ -175,6 +185,13 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         }
 
         return ref;
+    }
+
+    @Deprecated
+    protected <BAS, OBJ extends BAS> VariableCarrier(
+            SerializationAdapter<BAS, OBJ, ?> serializationAdapter, OBJ initialData, @Nullable DEP dependencyObject
+    ) {
+        this(serializationAdapter, serializationAdapter.createUniObjectNode(initialData), dependencyObject);
     }
 
     public final DEP getDependencyObject() {

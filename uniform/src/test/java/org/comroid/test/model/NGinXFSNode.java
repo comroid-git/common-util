@@ -10,7 +10,7 @@ import org.comroid.varbind.VariableCarrier;
 @VarBind.Location(NGinXFSNode.Bind.class)
 public final class NGinXFSNode extends VariableCarrier<Void> {
     protected NGinXFSNode(UniObjectNode initialData) {
-        super(FastJSONLib.fastJsonLib, initialData, null);
+        super(, FastJSONLib.fastJsonLib, initialData, null);
     }
 
     public String getName() {

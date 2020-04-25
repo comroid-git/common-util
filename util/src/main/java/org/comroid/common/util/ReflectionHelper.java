@@ -9,12 +9,15 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.comroid.common.annotation.Instance;
 import org.comroid.common.iter.Span;
@@ -180,7 +183,7 @@ public final class ReflectionHelper {
         //noinspection SwitchStatementWithTooFewBranches
         switch (target) {
             case TYPE:
-                return Stream.generate(recursiveClassGenerator(inClass))
+                return StreamSupport.stream(recursiveClassGenerator(inClass), false)
                         .filter(type -> type.isAnnotationPresent(annotation))
                         .findFirst()
                         .map(type -> type.getAnnotation(annotation));
@@ -189,8 +192,8 @@ public final class ReflectionHelper {
         }
     }
 
-    private static Supplier<Class<?>> recursiveClassGenerator(Class<?> from) {
-        return new Supplier<Class<?>>() {
+    private static Spliterator<Class<?>> recursiveClassGenerator(Class<?> from) {
+        return Spliterators.spliteratorUnknownSize(new Iterator<Class<?>>() {
             private final Queue<Class<?>> queue = new LinkedBlockingQueue<>();
 
             {
@@ -198,18 +201,25 @@ public final class ReflectionHelper {
             }
 
             @Override
-            public Class<?> get() {
-                if (!queue.isEmpty()) {
+            public boolean hasNext() {
+                return !queue.isEmpty();
+            }
+
+            @Override
+            public Class<?> next() {
+                if (hasNext()) {
                     Class<?> poll = queue.poll();
+                    assert poll != null;
+
                     Optional.ofNullable(poll.getSuperclass())
                             .ifPresent(queue::add);
                     queue.addAll(Arrays.asList(poll.getInterfaces()));
                     return poll;
+                } else {
+                    throw new IndexOutOfBoundsException("No more classes available!");
                 }
-
-                throw new IndexOutOfBoundsException("No more classes available");
             }
-        };
+        }, Spliterator.DISTINCT);
     }
 
     private static boolean classExists(String name) {
