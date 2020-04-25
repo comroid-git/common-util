@@ -34,7 +34,7 @@ public final class EventHub<I, O> {
         return executorService;
     }
 
-    public <R, E extends Event<E>, T extends EventType<E, O, R>> EventHub<O, R> dependentHub(
+    public <R, E extends Event<? super E>, T extends EventType<? super E, ? super O, ? super R>> EventHub<O, R> dependentHub(
             ScheduledExecutorService executorService,
             Function<O, R> preprocessor
     ) {
@@ -54,7 +54,7 @@ public final class EventHub<I, O> {
         return new DependentHub().dependent;
     }
 
-    public <P extends Event<P>> void publish(final P eventPayload) {
+    public <P extends Event<? super P>> void publish(final P eventPayload) {
         getRegisteredAcceptors().stream()
                 .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(), eventPayload.getEventMask()))
                 .map(it -> {//noinspection unchecked
@@ -68,7 +68,7 @@ public final class EventHub<I, O> {
         return Collections.unmodifiableCollection(registeredAcceptors);
     }
 
-    public <P extends Event<P>> EventType<P, I, O> createEventType(
+    public <P extends Event<? super P>> EventType<P, I, O> createEventType(
             Class<P> payloadType, ParamFactory<O, P> payloadFactory, Predicate<O> eventTester
     ) {
         return new EventType.Support.Basic<>(this, payloadType, eventTester, payloadFactory);
@@ -78,23 +78,22 @@ public final class EventHub<I, O> {
         registeredTypes.add(type);
     }
 
-    public <P extends Event<P>> void publish(I data) {
+    public <P extends Event<? super P>> void publish(I data) {
         final O out = preprocessor.apply(data);
 
         //noinspection unchecked
-        EventType<? super P, I, O>[] subtypes = (EventType<? super P, I, O>[]) getRegisteredEventTypes().stream()
+        EventType<P, I, O>[] subtypes = (EventType<P, I, O>[]) getRegisteredEventTypes().stream()
                 .filter(type -> type.isEvent(out))
                 .toArray();
 
-        //noinspection unchecked
-        publish((EventType<P, I, O>) subtypes[0], subtypes, out);
+        publish(subtypes[0], subtypes, out);
     }
 
     public Span<EventType<?, I, O>> getRegisteredEventTypes() {
         return registeredTypes;
     }
 
-    private <P extends Event<P>> void publish(
+    private <P extends Event<? super P>> void publish(
             EventType<P, I, O> supertype, EventType<? super P, I, O>[] types, O data
     ) {
         if (types.length == 1) {
@@ -106,7 +105,7 @@ public final class EventHub<I, O> {
         }
     }
 
-    public <P extends Event<P>> void publish(EventType<P, I, O> asSupertype, O data) {
+    public <P extends Event<? super P>> void publish(EventType<P, I, O> asSupertype, O data) {
         //noinspection unchecked
         EventType<? super P, I, O>[] subtypes = (EventType<? super P, I, O>[]) getRegisteredEventTypes().stream()
                 .filter(type -> BitmaskUtil.isFlagSet(asSupertype.getMask(), type.getMask()))
@@ -115,20 +114,20 @@ public final class EventHub<I, O> {
         publish(asSupertype, subtypes, data);
     }
 
-    public <E extends EventType<P, I, O>, P extends Event<P>> ListnrManager<I, O, E, P> registerAcceptor(
+    public <E extends EventType<? super P, ? super I, ? super O>, P extends Event<? super P>> ListnrManager<I, O, E, P> registerAcceptor(
             EventAcceptor<E, P> acceptor
     ) {
         registeredAcceptors.add(acceptor);
         return new ListnrManager<>(this, acceptor);
     }
 
-    public <E extends EventType<P, I, O>, P extends Event<P>> boolean unregisterAcceptor(
+    public <E extends EventType<? super P, ? super I, ? super O>, P extends Event<? super P>> boolean unregisterAcceptor(
             EventAcceptor<E, P> acceptor
     ) {
         return registeredAcceptors.remove(acceptor);
     }
 
-    public <T, E extends EventType<P, I, O>, P extends Event<P>> EventAcceptor<E, P> acceptorOfClass(
+    public <T, E extends EventType<? super P, ? super I, ? super O>, P extends Event<? super P>> EventAcceptor<E, P> acceptorOfClass(
             Class<T> klass, T instance
     ) {
         final List<Method> useMethods = Arrays.stream(klass.getMethods())

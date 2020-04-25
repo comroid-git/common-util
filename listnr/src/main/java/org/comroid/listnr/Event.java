@@ -14,14 +14,14 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import static org.comroid.common.util.BitmaskUtil.combine;
 
 @ShouldExtend(Event.Support.Abstract.class)
-public interface Event<S extends Event<S>> extends SelfDeclared<S> {
+public interface Event<S extends Event<? super S>> extends SelfDeclared<S> {
     Set<EventType<?, ?, ?>> getEventTypes();
 
     @Internal
     int getEventMask();
 
     final class Support {
-        public static abstract class Abstract<S extends Event<S>> implements Event<S> {
+        public static abstract class Abstract<S extends Event<? super S>> implements Event<S> {
             private final Set<EventType<?, ?, ?>> eventTypes;
             private final int                     mask;
 

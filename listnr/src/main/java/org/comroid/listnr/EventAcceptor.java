@@ -17,7 +17,7 @@ import static org.comroid.common.Polyfill.deadCast;
 import static org.comroid.common.util.BitmaskUtil.combine;
 
 @ShouldExtend(EventAcceptor.Support.Abstract.class)
-public interface EventAcceptor<E extends EventType<P, ?, ?>, P extends Event<P>> {
+public interface EventAcceptor<E extends EventType<? super P, ?, ?>, P extends Event<? super P>> {
     Set<EventType<P, ?, ?>> getAcceptedEventTypes();
 
     @Internal
@@ -42,7 +42,7 @@ public interface EventAcceptor<E extends EventType<P, ?, ?>, P extends Event<P>>
     }
 
     final class Support {
-        public static abstract class Abstract<E extends EventType<P, ?, ?>, P extends Event<P>> implements EventAcceptor<E, P> {
+        public static abstract class Abstract<E extends EventType<? super P, ?, ?>, P extends Event<? super P>> implements EventAcceptor<E, P> {
             private final Set<EventType<P, ?, ?>> eventTypes;
             private final int                     mask;
 
@@ -71,7 +71,7 @@ public interface EventAcceptor<E extends EventType<P, ?, ?>, P extends Event<P>>
             }
         }
 
-        static final class OfSortedInvocables<E extends EventType<P, ?, ?>, P extends Event<P>> extends Abstract<E, P> {
+        static final class OfSortedInvocables<E extends EventType<? super P, ?, ?>, P extends Event<? super P>> extends Abstract<E, P> {
             private final Set<Invocable<Object>> invocables;
 
             OfSortedInvocables(
