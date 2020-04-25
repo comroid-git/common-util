@@ -35,7 +35,7 @@ public interface EventAcceptor<E extends EventType<? super P, ?, ?>, P extends E
         return new Support.OfInvocable<>(Invocable.ofMethodCall(method));
     }
 
-    static <E extends EventType<P, ?, ?>, P extends Event<P>> EventAcceptor<E, P> ofConsumer(
+    static <E extends EventType<? super P, ?, ?>, P extends Event<? super P>> EventAcceptor<E, P> ofConsumer(
             Class<P> payloadType, Consumer<P> consumer
     ) {
         return new Support.OfInvocable<>(Invocable.ofConsumer(payloadType, consumer));
@@ -90,7 +90,7 @@ public interface EventAcceptor<E extends EventType<? super P, ?, ?>, P extends E
             }
         }
 
-        private static final class OfInvocable<E extends EventType<P, ?, ?>, P extends Event<P>> extends Abstract<E, P> {
+        private static final class OfInvocable<E extends EventType<? super P, ?, ?>, P extends Event<? super P>> extends Abstract<E, P> {
             private final Invocable<? extends P> underlying;
 
             private OfInvocable(Invocable<? extends P> underlying) {
