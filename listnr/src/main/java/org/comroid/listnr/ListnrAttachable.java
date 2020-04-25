@@ -2,7 +2,7 @@ package org.comroid.listnr;
 
 import java.util.function.Consumer;
 
-import org.comroid.common.util.BitmaskUtil;
+import org.comroid.common.util.Bitmask;
 
 public interface ListnrAttachable<I, O, E extends EventType<? super P, ? super I, ? super O>, P extends Event<P>> {
     default ListnrManager<I, O, E, P> registerListener(Object listener) {
@@ -16,7 +16,7 @@ public interface ListnrAttachable<I, O, E extends EventType<? super P, ? super I
     default <ET extends EventType<T, I, O>, T extends Event<T>> ListnrManager<I, O, ET, T> listenTo(
             EventType<T, I, O> type, Consumer<T> listener
     ) {
-        if (!BitmaskUtil.isFlagSet(type.getMask(), getBaseEventType().getMask())) {
+        if (!Bitmask.isFlagSet(type.getMask(), getBaseEventType().getMask())) {
             throw new IllegalArgumentException(String.format("Cannot listen to type %s, only subtypes of %s allowed",
                     type,
                     getBaseEventType()

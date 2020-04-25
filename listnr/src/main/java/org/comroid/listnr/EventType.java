@@ -3,14 +3,14 @@ package org.comroid.listnr;
 import java.util.function.Predicate;
 
 import org.comroid.common.func.ParamFactory;
-import org.comroid.common.util.BitmaskUtil;
+import org.comroid.common.util.Bitmask;
 import org.comroid.spellbind.Spellbind;
 import org.comroid.spellbind.annotation.Partial;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
-import static org.comroid.common.util.BitmaskUtil.combine;
+import static org.comroid.common.util.Bitmask.combine;
 
 @Partial
 public interface EventType<P extends Event<? super P>, I, O> extends ParamFactory<O, P> {
@@ -41,7 +41,7 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
         public static class Basic<P extends Event<? super P>, I, O> implements EventType<P, I, O> {
             protected final EventHub<I, O>     hub;
             private final   Class<P>           payloadType;
-            private final   int                flag = BitmaskUtil.nextFlag();
+            private final   int                flag = Bitmask.nextFlag();
             private final   Predicate<O>       eventTester;
             private final   ParamFactory<O, P> payloadFactory;
 
@@ -101,7 +101,7 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
             }
 
             private int computeMask() {
-                int yield = BitmaskUtil.EMPTY;
+                int yield = Bitmask.EMPTY;
                 for (EventType<? super P, I, O> type : subtypes) {
                     yield = combine(yield, type.getMask());
                 }

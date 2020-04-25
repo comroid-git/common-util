@@ -9,12 +9,12 @@ import java.util.function.Consumer;
 
 import org.comroid.common.annotation.vanity.inheritance.ShouldExtend;
 import org.comroid.common.func.Invocable;
-import org.comroid.common.util.BitmaskUtil;
+import org.comroid.common.util.Bitmask;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import static org.comroid.common.Polyfill.deadCast;
-import static org.comroid.common.util.BitmaskUtil.combine;
+import static org.comroid.common.util.Bitmask.combine;
 
 @ShouldExtend(EventAcceptor.Support.Abstract.class)
 public interface EventAcceptor<E extends EventType<? super P, ?, ?>, P extends Event<? super P>> {
@@ -53,7 +53,7 @@ public interface EventAcceptor<E extends EventType<? super P, ?, ?>, P extends E
             }
 
             protected int computeMask() {
-                int yield = BitmaskUtil.EMPTY;
+                int yield = Bitmask.EMPTY;
                 for (EventType<P, ?, ?> type : eventTypes) {
                     yield = combine(yield, type.getMask());
                 }

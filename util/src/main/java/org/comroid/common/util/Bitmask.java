@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public final class BitmaskUtil {
+public final class Bitmask {
     public static final int EMPTY = 0x0;
 
     public static int modifyFlag(int mask, int flag, boolean newState) {

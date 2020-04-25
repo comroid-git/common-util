@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.func.ParamFactory;
 import org.comroid.common.iter.Span;
-import org.comroid.common.util.BitmaskUtil;
+import org.comroid.common.util.Bitmask;
 
 public final class EventHub<I, O> {
     private final Span<EventType<?, I, O>>  registeredTypes     = new Span<>();
@@ -61,7 +61,7 @@ public final class EventHub<I, O> {
 
     public <P extends Event<? super P>> void publish(final P eventPayload) {
         getRegisteredAcceptors().stream()
-                .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(), eventPayload.getEventMask()))
+                .filter(acceptor -> Bitmask.isFlagSet(acceptor.getAcceptedTypesAsMask(), eventPayload.getEventMask()))
                 .map(it -> {//noinspection unchecked
                     return (EventAcceptor<? extends EventType<P, I, ?>, P>) it;
                 })
@@ -113,7 +113,7 @@ public final class EventHub<I, O> {
     public <P extends Event<? super P>> void publish(EventType<P, I, O> asSupertype, O data) {
         //noinspection unchecked
         EventType<? super P, I, O>[] subtypes = (EventType<? super P, I, O>[]) getRegisteredEventTypes().stream()
-                .filter(type -> BitmaskUtil.isFlagSet(asSupertype.getMask(), type.getMask()))
+                .filter(type -> Bitmask.isFlagSet(asSupertype.getMask(), type.getMask()))
                 .toArray();
 
         publish(asSupertype, subtypes, data);

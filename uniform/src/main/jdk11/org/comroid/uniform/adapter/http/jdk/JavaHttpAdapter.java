@@ -13,7 +13,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import org.comroid.common.func.Provider;
-import org.comroid.common.util.BitmaskUtil;
+import org.comroid.common.util.Bitmask;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
 import org.comroid.restless.socket.WebSocket;
@@ -34,7 +34,7 @@ public final class JavaHttpAdapter implements HttpAdapter {
         headers.forEach(header -> webSocketBuilder.header(header.getName(), header.getValue()));
         final JavaWebSocket<O> javaWebSocket = new JavaWebSocket<>(new ThreadGroup(String.format("%s" + "-0x%s",
                 toString(),
-                Integer.toHexString(BitmaskUtil.nextFlag())
+                Integer.toHexString(Bitmask.nextFlag())
         )), preprocessor);
 
         return webSocketBuilder.buildAsync(uri, javaWebSocket.javaListener)

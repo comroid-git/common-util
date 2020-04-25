@@ -7,11 +7,11 @@ import java.util.Set;
 
 import org.comroid.common.annotation.vanity.inheritance.ShouldExtend;
 import org.comroid.common.ref.SelfDeclared;
-import org.comroid.common.util.BitmaskUtil;
+import org.comroid.common.util.Bitmask;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 
-import static org.comroid.common.util.BitmaskUtil.combine;
+import static org.comroid.common.util.Bitmask.combine;
 
 @ShouldExtend(Event.Support.Abstract.class)
 public interface Event<S extends Event<? super S>> extends SelfDeclared<S> {
@@ -31,7 +31,7 @@ public interface Event<S extends Event<? super S>> extends SelfDeclared<S> {
             }
 
             protected int computeMask() {
-                int yield = BitmaskUtil.EMPTY;
+                int yield = Bitmask.EMPTY;
                 for (EventType<?, ?, ?> type : eventTypes) {
                     yield = combine(yield, type.getMask());
                 }
