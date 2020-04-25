@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -21,19 +20,52 @@ import org.comroid.common.util.BitmaskUtil;
 public final class EventHub<I, O> {
     private final Span<EventType<?, I, O>>  registeredTypes     = new Span<>();
     private final Span<EventAcceptor<?, ?>> registeredAcceptors = new Span<>();
-    private final ExecutorService           executorService;
+    private final ScheduledExecutorService  executorService;
     private final Function<I, O>            preprocessor;
 
-    public <EX extends ExecutorService & ScheduledExecutorService> EventHub(
-            ExecutorService executorService, Function<I, O> preprocessor
+    public EventHub(
+            ScheduledExecutorService executorService, Function<I, O> preprocessor
     ) {
         this.executorService = executorService;
         this.preprocessor    = preprocessor;
     }
 
-    public <EX extends ExecutorService & ScheduledExecutorService> EX getExecutorService() {
-        //noinspection unchecked
-        return (EX) executorService;
+    public ScheduledExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    public <R, E extends Event<E>, T extends EventType<E, O, R>> EventHub<O, R> dependentHub(
+            ScheduledExecutorService executorService,
+            Function<O, R> preprocessor
+    ) {
+        class DependentHub extends EventAcceptor.Support.Abstract<T, E> {
+            final EventHub<O, R> dependent = new EventHub<>(executorService, preprocessor);
+
+            DependentHub() {
+                super();
+            }
+
+            @Override
+            public <P extends E> void acceptEvent(P eventPayload) {
+                dependent.publish(eventPayload);
+            }
+        }
+
+        return new DependentHub().dependent;
+    }
+
+    public <P extends Event<P>> void publish(final P eventPayload) {
+        getRegisteredAcceptors().stream()
+                .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(), eventPayload.getEventMask()))
+                .map(it -> {//noinspection unchecked
+                    return (EventAcceptor<? extends EventType<P, I, ?>, P>) it;
+                })
+                .map(acceptor -> (Runnable) () -> acceptor.acceptEvent(eventPayload))
+                .forEachOrdered(executorService::execute);
+    }
+
+    public Collection<EventAcceptor<?, ?>> getRegisteredAcceptors() {
+        return Collections.unmodifiableCollection(registeredAcceptors);
     }
 
     public <P extends Event<P>> EventType<P, I, O> createEventType(
@@ -72,20 +104,6 @@ public final class EventHub<I, O> {
             EventType.Combined<P, I, O> combined = EventType.Combined.of(supertype.payloadType(), supertype::isEvent, types);
             publish(combined.create(data));
         }
-    }
-
-    public <P extends Event<P>> void publish(final P eventPayload) {
-        getRegisteredAcceptors().stream()
-                .filter(acceptor -> BitmaskUtil.isFlagSet(acceptor.getAcceptedTypesAsMask(), eventPayload.getEventMask()))
-                .map(it -> {//noinspection unchecked
-                    return (EventAcceptor<? extends EventType<P, I, ?>, P>) it;
-                })
-                .map(acceptor -> (Runnable) () -> acceptor.acceptEvent(eventPayload))
-                .forEachOrdered(executorService::execute);
-    }
-
-    public Collection<EventAcceptor<?, ?>> getRegisteredAcceptors() {
-        return Collections.unmodifiableCollection(registeredAcceptors);
     }
 
     public <P extends Event<P>> void publish(EventType<P, I, O> asSupertype, O data) {
