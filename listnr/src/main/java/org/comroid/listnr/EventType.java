@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import static org.comroid.common.util.Bitmask.combine;
 
 @Partial
-public interface EventType<P extends Event<? super P>, I, O> extends ParamFactory<O, P> {
+public interface EventType<I, O, P extends Event<? super P>> extends ParamFactory<O, P> {
     @Internal
     int getMask();
 
@@ -28,25 +28,25 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
 
     Class<P> payloadType();
 
-    interface Combined<P extends Event<? super P>, I, O> extends EventType<P, I, O> {
+    interface Combined<P extends Event<? super P>, I, O> extends EventType<I, O, P> {
         @SafeVarargs
         static <P extends Event<? super P>, I, O> Combined<P, I, O> of(
-                Class<P> payloadInterface, Predicate<O> eventTester, EventType<? super P, I, O>... subtypes
+                Class<P> payloadInterface, Predicate<O> eventTester, EventType<I, O, ? super P>... subtypes
         ) {
             return new EventType.Support.Combination<>(subtypes, eventTester, payloadInterface);
         }
     }
 
     final class Support {
-        public static class Basic<P extends Event<? super P>, I, O> implements EventType<P, I, O> {
-            protected final EventHub<I, O>     hub;
-            private final   Class<P>           payloadType;
-            private final   int                flag = Bitmask.nextFlag();
-            private final   Predicate<O>       eventTester;
-            private final   ParamFactory<O, P> payloadFactory;
+        public static class Basic<I, O, P extends Event<? super P>> implements EventType<I, O, P> {
+            protected final EventHub<I, O, ? extends EventType<? super I, ? super O, ? super P>, P> hub;
+            private final   Class<P>                                                                payloadType;
+            private final   int                                                                     flag = Bitmask.nextFlag();
+            private final   Predicate<O>                                                            eventTester;
+            private final   ParamFactory<O, P>                                                      payloadFactory;
 
             protected Basic(
-                    EventHub<I, O> hub, Class<P> payloadType, Predicate<O> eventTester, ParamFactory<O, P> payloadFactory
+                    EventHub<I, O, ?, P> hub, Class<P> payloadType, Predicate<O> eventTester, ParamFactory<O, P> payloadFactory
             ) {
                 this.hub            = hub;
                 this.payloadType    = payloadType;
@@ -90,10 +90,10 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
         public static class Combination<P extends Event<? super P>, I, O> implements Combined<P, I, O> {
             private final Predicate<O>                 eventTester;
             private final Class<P>                     payloadType;
-            private final EventType<? super P, I, O>[] subtypes;
+            private final EventType<I, O, ? super P>[] subtypes;
             private final int                          mask;
 
-            protected Combination(EventType<? super P, I, O>[] subtypes, Predicate<O> eventTester, Class<P> payloadType) {
+            protected Combination(EventType<I, O, ? super P>[] subtypes, Predicate<O> eventTester, Class<P> payloadType) {
                 this.eventTester = eventTester;
                 this.payloadType = payloadType;
                 this.subtypes    = subtypes;
@@ -102,7 +102,7 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
 
             private int computeMask() {
                 int yield = Bitmask.EMPTY;
-                for (EventType<? super P, I, O> type : subtypes) {
+                for (EventType<I, O, ? super P> type : subtypes) {
                     yield = combine(yield, type.getMask());
                 }
                 return yield;
@@ -118,7 +118,7 @@ public interface EventType<P extends Event<? super P>, I, O> extends ParamFactor
                 Spellbind.Builder<P> payloadCombinator = Spellbind.builder(payloadType);
 
                 payloadCombinator.coreObject(new Event.Support.Abstract<P>() {});
-                for (EventType<? super P, I, O> subtype : subtypes) {
+                for (EventType<I, O, ? super P> subtype : subtypes) {
                     payloadCombinator.subImplement(subtype);
                 }
 

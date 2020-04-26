@@ -17,13 +17,14 @@ import org.comroid.common.util.Bitmask;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
 import org.comroid.restless.socket.WebSocket;
+import org.comroid.restless.socket.WebSocketEvent;
 import org.comroid.uniform.SerializationAdapter;
 
 public final class JavaHttpAdapter implements HttpAdapter {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Override
-    public <O> CompletableFuture<WebSocket<O>> createWebSocket(
+    public <O, E extends WebSocketEvent<? super  E>> CompletableFuture<WebSocket<O, E>> createWebSocket(
             SerializationAdapter<?, ?, ?> seriLib,
             WebSocket.Header.List headers,
             Executor executor,
@@ -32,7 +33,7 @@ public final class JavaHttpAdapter implements HttpAdapter {
     ) {
         final Builder webSocketBuilder = httpClient.newWebSocketBuilder();
         headers.forEach(header -> webSocketBuilder.header(header.getName(), header.getValue()));
-        final JavaWebSocket<O> javaWebSocket = new JavaWebSocket<>(new ThreadGroup(String.format("%s" + "-0x%s",
+        final JavaWebSocket<O, E> javaWebSocket = new JavaWebSocket<>(new ThreadGroup(String.format("%s" + "-0x%s",
                 toString(),
                 Integer.toHexString(Bitmask.nextFlag())
         )), preprocessor);

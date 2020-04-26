@@ -13,6 +13,7 @@ import org.comroid.common.func.Provider;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
 import org.comroid.restless.socket.WebSocket;
+import org.comroid.restless.socket.WebSocketEvent;
 import org.comroid.uniform.SerializationAdapter;
 
 import okhttp3.Call;
@@ -27,7 +28,7 @@ public class OkHttp3Adapter implements HttpAdapter {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
     @Override
-    public <O> CompletableFuture<WebSocket<O>> createWebSocket(
+    public <O, E extends WebSocketEvent<? super E>> CompletableFuture<WebSocket<O, E>> createWebSocket(
             SerializationAdapter<?, ?, ?> seriLib,
             WebSocket.Header.List headers,
             Executor executor,

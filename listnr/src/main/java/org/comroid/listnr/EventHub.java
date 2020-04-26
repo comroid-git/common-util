@@ -12,13 +12,17 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.func.ParamFactory;
 import org.comroid.common.iter.Span;
 import org.comroid.common.util.Bitmask;
 
-public final class EventHub<I, O> {
-    private final Span<EventType<?, I, O>>  registeredTypes     = new Span<>();
+import static org.comroid.common.Polyfill.uncheckedCast;
+
+public final class EventHub<I, O, E extends EventType<? super I, ? super O, ? super P>, P extends Event<? super P>>
+        implements ListnrAttachable<I, O, E, P> {
+    private final Span<EventType<I, O, ?>>  registeredTypes     = new Span<>();
     private final Span<EventAcceptor<?, ?>> registeredAcceptors = new Span<>();
     private final ScheduledExecutorService  executorService;
     private final Function<I, O>            preprocessor;
@@ -34,29 +38,29 @@ public final class EventHub<I, O> {
         return executorService;
     }
 
-    public <R, E extends Event<? super E>, T extends EventType<? super E, ? super O, ? super R>> EventHub<O, R> dependentHub(
+    public <R, X extends Event<? super X>, T extends EventType<? super O, ? super R, ? super X>> EventHub<O, R, T, X> dependentHub(
             Function<O, R> preprocessor
     ) {
         return dependentHub(executorService, preprocessor);
     }
 
-    public <R, E extends Event<? super E>, T extends EventType<? super E, ? super O, ? super R>> EventHub<O, R> dependentHub(
+    public <R, X extends Event<? super X>, T extends EventType<? super O, ? super R, ? super X>> EventHub<O, R, T, X> dependentHub(
             ScheduledExecutorService executorService, Function<O, R> preprocessor
     ) {
-        class DependentHubForwarder extends EventAcceptor.Support.Abstract<T, E> {
-            final EventHub<O, R> dependent = new EventHub<>(executorService, preprocessor);
+        class DependentHubForwarder extends EventAcceptor.Support.Abstract<T, X> {
+            final EventHub<O, R, T, X> dependent = new EventHub<>(executorService, preprocessor);
 
             DependentHubForwarder() {
                 super();
             }
 
             @Override
-            public boolean canAccept(EventType<E, ?, ?> eventType) {
+            public boolean canAccept(EventType<?, ?, X> eventType) {
                 return true;
             }
 
             @Override
-            public <P extends E> void acceptEvent(P eventPayload) {
+            public <P extends X> void acceptEvent(P eventPayload) {
                 dependent.publish(eventPayload);
             }
         }
@@ -68,7 +72,7 @@ public final class EventHub<I, O> {
         getRegisteredAcceptors().stream()
                 .filter(acceptor -> Bitmask.isFlagSet(acceptor.getAcceptedTypesAsMask(), eventPayload.getEventMask()))
                 .map(it -> {//noinspection unchecked
-                    return (EventAcceptor<? extends EventType<P, I, ?>, P>) it;
+                    return (EventAcceptor<? extends EventType<I, ?, P>, P>) it;
                 })
                 .map(acceptor -> (Runnable) () -> acceptor.acceptEvent(eventPayload))
                 .forEachOrdered(executorService::execute);
@@ -78,13 +82,13 @@ public final class EventHub<I, O> {
         return Collections.unmodifiableCollection(registeredAcceptors);
     }
 
-    public <P extends Event<? super P>> EventType<P, I, O> createEventType(
+    public <P extends Event<? super P>> EventType<I, O, P> createEventType(
             Class<P> payloadType, ParamFactory<O, P> payloadFactory, Predicate<O> eventTester
     ) {
-        return new EventType.Support.Basic<>(this, payloadType, eventTester, payloadFactory);
+        return new EventType.Support.Basic<>(uncheckedCast(this), payloadType, eventTester, payloadFactory);
     }
 
-    public void registerEventType(EventType<?, I, O> type) {
+    public void registerEventType(EventType<I, O, ?> type) {
         registeredTypes.add(type);
     }
 
@@ -92,19 +96,19 @@ public final class EventHub<I, O> {
         final O out = preprocessor.apply(data);
 
         //noinspection unchecked
-        EventType<P, I, O>[] subtypes = (EventType<P, I, O>[]) getRegisteredEventTypes().stream()
+        EventType<I, O, P>[] subtypes = (EventType<I, O, P>[]) getRegisteredEventTypes().stream()
                 .filter(type -> type.isEvent(out))
                 .toArray();
 
         publish(subtypes[0], subtypes, out);
     }
 
-    public Span<EventType<?, I, O>> getRegisteredEventTypes() {
+    public Span<EventType<I, O, ?>> getRegisteredEventTypes() {
         return registeredTypes;
     }
 
     private <P extends Event<? super P>> void publish(
-            EventType<P, I, O> supertype, EventType<? super P, I, O>[] types, O data
+            EventType<I, O, P> supertype, EventType<I, O, ? super P>[] types, O data
     ) {
         if (types.length == 1) {
             //noinspection unchecked
@@ -115,29 +119,39 @@ public final class EventHub<I, O> {
         }
     }
 
-    public <P extends Event<? super P>> void publish(EventType<P, I, O> asSupertype, O data) {
+    @Override
+    public EventHub<I, O, E, P> getEventHub() {
+        return this;
+    }
+
+    @Override
+    public E getBaseEventType() {
+        return uncheckedCast(getRegisteredEventTypes().requireNonNull("No EventTypes registered"));
+    }
+
+    public <P extends Event<? super P>> void publish(EventType<I, O, P> asSupertype, O data) {
         //noinspection unchecked
-        EventType<? super P, I, O>[] subtypes = (EventType<? super P, I, O>[]) getRegisteredEventTypes().stream()
+        EventType<I, O, ? super P>[] subtypes = (EventType<I, O, ? super P>[]) getRegisteredEventTypes().stream()
                 .filter(type -> Bitmask.isFlagSet(asSupertype.getMask(), type.getMask()))
                 .toArray();
 
         publish(asSupertype, subtypes, data);
     }
 
-    public <E extends EventType<? super P, ? super I, ? super O>, P extends Event<? super P>> ListnrManager<I, O, E, P> registerAcceptor(
+    public <E extends EventType<? super I, ? super O, ? super P>, P extends Event<? super P>> ListnrManager<I, O, E, P> registerAcceptor(
             EventAcceptor<E, P> acceptor
     ) {
         registeredAcceptors.add(acceptor);
-        return new ListnrManager<>(this, acceptor);
+        return new ListnrManager<>(Polyfill.uncheckedCast(this), acceptor);
     }
 
-    public <E extends EventType<? super P, ? super I, ? super O>, P extends Event<? super P>> boolean unregisterAcceptor(
+    public <E extends EventType<? super I, ? super O, ? super P>, P extends Event<? super P>> boolean unregisterAcceptor(
             EventAcceptor<E, P> acceptor
     ) {
         return registeredAcceptors.remove(acceptor);
     }
 
-    public <T, E extends EventType<? super P, ? super I, ? super O>, P extends Event<? super P>> EventAcceptor<E, P> acceptorOfClass(
+    public <T, E extends EventType<? super I, ? super O, ? super P>, P extends Event<? super P>> EventAcceptor<E, P> acceptorOfClass(
             Class<T> klass, T instance
     ) {
         final List<Method> useMethods = Arrays.stream(klass.getMethods())
@@ -146,7 +160,7 @@ public final class EventHub<I, O> {
                 .filter(method -> method.getParameterCount() == 1)
                 .collect(Collectors.toList());
         //noinspection unchecked
-        final EventType<P, I, O>[] capabilities = (EventType<P, I, O>[]) useMethods.stream()
+        final EventType<I, O, P>[] capabilities = (EventType<I, O, P>[]) useMethods.stream()
                 .map(method -> method.getParameterTypes()[0])
                 .filter(type -> getRegisteredEventTypes().stream()
                         .map(EventType::payloadType)

@@ -8,9 +8,11 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.logging.Level;
 
+import org.comroid.restless.socket.WebSocketEvent;
+
 import com.google.common.flogger.FluentLogger;
 
-public class JavaWebSocket<O> extends org.comroid.restless.socket.WebSocket<O> {
+public class JavaWebSocket<O, E extends WebSocketEvent<? super E>> extends org.comroid.restless.socket.WebSocket<O, E> {
     final WebSocket.Listener           javaListener = new Listener();
     final CompletableFuture<WebSocket> socket       = new CompletableFuture<>();
 

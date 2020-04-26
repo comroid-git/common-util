@@ -15,18 +15,18 @@ import static org.comroid.common.util.Bitmask.combine;
 
 @ShouldExtend(Event.Support.Abstract.class)
 public interface Event<S extends Event<? super S>> extends SelfDeclared<S> {
-    Set<EventType<? extends S, ?, ?>> getEventTypes();
+    Set<EventType<?, ?, ? extends S>> getEventTypes();
 
     @Internal
     int getEventMask();
 
     final class Support {
         public static abstract class Abstract<S extends Event<? super S>> implements Event<S> {
-            private final Set<EventType<? extends S, ?, ?>> eventTypes;
+            private final Set<EventType<?, ?, ? extends S>> eventTypes;
             private final int                               mask;
 
             @SafeVarargs
-            protected Abstract(EventType<? extends S, ?, ?>... subtypes) {
+            protected Abstract(EventType<?, ?, ? extends S>... subtypes) {
                 this.eventTypes = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(subtypes)));
                 this.mask       = computeMask();
             }
@@ -40,7 +40,7 @@ public interface Event<S extends Event<? super S>> extends SelfDeclared<S> {
             }
 
             @Override
-            public Set<EventType<? extends S, ?, ?>> getEventTypes() {
+            public Set<EventType<?, ?, ? extends S>> getEventTypes() {
                 return eventTypes;
             }
 

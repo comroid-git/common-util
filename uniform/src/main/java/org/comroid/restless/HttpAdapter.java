@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 import org.comroid.common.func.Provider;
 import org.comroid.restless.socket.WebSocket;
+import org.comroid.restless.socket.WebSocketEvent;
 import org.comroid.uniform.SerializationAdapter;
 
 public interface HttpAdapter {
@@ -16,7 +17,7 @@ public interface HttpAdapter {
         throw new UnsupportedOperationException();
     }
 
-    <O> CompletableFuture<WebSocket<O>> createWebSocket(
+    <O, E extends WebSocketEvent<? super E>> CompletableFuture<WebSocket<O, E>> createWebSocket(
             SerializationAdapter<?, ?, ?> seriLib,
             WebSocket.Header.List headers,
             Executor executor,

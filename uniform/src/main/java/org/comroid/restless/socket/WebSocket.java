@@ -1,34 +1,33 @@
 package org.comroid.restless.socket;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.iter.Span;
 import org.comroid.dreadpool.ThreadPool;
 import org.comroid.listnr.EventHub;
+import org.comroid.listnr.EventType;
 import org.comroid.uniform.node.UniNode;
 
-public abstract class WebSocket<O> {
-    private final EventHub<String, O>      eventHub;
-    private final SocketEvent.Container<O> eventContainer;
+public abstract class WebSocket<O, E extends WebSocketEvent<? super E>> {
+    private final EventHub<String, O, ? extends EventType<String, O, E>, E> eventHub;
+    private final SocketEvent.Container<O, E>                                  eventContainer;
 
     protected WebSocket(
             ThreadGroup threadGroup, Function<String, O> exchangePreprocessor
     ) {
-        this.eventHub       = new EventHub<>(ThreadPool.fixedSize(threadGroup, 4), exchangePreprocessor);
+        this.eventHub       = Polyfill.uncheckedCast(new EventHub<>(ThreadPool.fixedSize(threadGroup, 4), exchangePreprocessor));
         this.eventContainer = new SocketEvent.Container<>(this, eventHub);
     }
 
-    public final EventHub<String, O> getEventHub() {
-        return eventHub;
+    public final EventHub<String, O, ? extends EventType<String, O, E>, E> getEventHub() {
+        return Polyfill.uncheckedCast(eventHub);
     }
 
-    public final SocketEvent.Container<O> getEventContainer() {
+    public final SocketEvent.Container<O, E> getEventContainer() {
         return eventContainer;
     }
 
