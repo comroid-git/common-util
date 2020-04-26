@@ -40,7 +40,7 @@ public final class GroupBind {
 
         if (parent != null) {
             parent.getChildren()
-                    .forEach(it -> children.add(Polyfill.deadCast(it)));
+                    .forEach(it -> children.add(Polyfill.uncheckedCast(it)));
         }
     }
 

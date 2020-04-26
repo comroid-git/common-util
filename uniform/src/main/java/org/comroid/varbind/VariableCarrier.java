@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
-import static org.comroid.common.Polyfill.deadCast;
+import static org.comroid.common.Polyfill.uncheckedCast;
 
 @SuppressWarnings("unchecked")
 public class VariableCarrier<DEP> implements VarCarrier<DEP> {
@@ -91,7 +91,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     private <T> OutdateableReference<T> compRef(
             VarBind<Object, ? super DEP, ?, T> bind
     ) {
-        return deadCast(computed.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
+        return uncheckedCast(computed.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
                 key -> new OutdateableReference<>()
         ));
     }
@@ -116,7 +116,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
                     .filter(bind -> bind.getFieldName()
                             .equals(name))
                     .findAny()
-                    .map(it -> ref(deadCast(it)));
+                    .map(it -> ref(uncheckedCast(it)));
         }
 
         // any stage in the groupbind tree
@@ -142,7 +142,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
                         .equals(split[1]))
                 .findAny()
                 // get reference of bind
-                .map(it -> ref(deadCast(it)));
+                .map(it -> ref(uncheckedCast(it)));
     }
 
     @Override
@@ -153,7 +153,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         if (ref.isOutdated()) {
             // recompute
 
-            AtomicReference<Span<Object>> reference = extrRef(deadCast(bind));
+            AtomicReference<Span<Object>> reference = extrRef(uncheckedCast(bind));
             final T                       yield     = bind.process(dependencyObject, reference.get());
             ref.update(yield);
         }
@@ -194,7 +194,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     private <T> AtomicReference<Span<T>> extrRef(
             VarBind<T, ? super DEP, ?, Object> bind
     ) {
-        return deadCast(vars.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
+        return uncheckedCast(vars.computeIfAbsent((VarBind<Object, ? super DEP, ?, Object>) bind,
                 key -> new AtomicReference<>(Span.zeroSize())
         ));
     }

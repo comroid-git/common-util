@@ -10,7 +10,7 @@ public abstract class AbstractReBind<EXTR, DPND, REMAP> implements ReBind<EXTR, 
         this.underlying = underlying;
         this.group      = group;
 
-        group.children.add(Polyfill.deadCast(this));
+        group.children.add(Polyfill.uncheckedCast(this));
     }
 
     @Override

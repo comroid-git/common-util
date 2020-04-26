@@ -22,7 +22,7 @@ public abstract class VarCarrierMaker<S extends VarCarrierMaker<S, T, D>, T exte
     }
 
     public final <V> VarCarrierMaker<S, T, D> with(VarBind<V, D, ?, ?> bind, V value) {
-        values.put(Polyfill.deadCast(bind), value);
+        values.put(Polyfill.uncheckedCast(bind), value);
 
         return this;
     }

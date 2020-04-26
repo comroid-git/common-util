@@ -33,7 +33,7 @@ abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REM
         this.collectionSupplier = collectionSupplier;
         this.group              = group;
 
-        group.children.add(Polyfill.deadCast(this));
+        group.children.add(Polyfill.uncheckedCast(this));
     }
 
     @Override
@@ -47,7 +47,7 @@ abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REM
                 .asArrayNode()
                 .asNodeList()
                 .stream()
-                .map(arrayMember -> extractor.apply(Polyfill.deadCast(arrayMember)))
+                .map(arrayMember -> extractor.apply(Polyfill.uncheckedCast(arrayMember)))
                 .collect(Span.collector());
     }
 

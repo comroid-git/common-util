@@ -104,7 +104,7 @@ public final class Polyfill {
         return value;
     }
 
-    public static <R> R deadCast(Object instance) {
+    public static <R> R uncheckedCast(Object instance) {
         return (R) instance;
     }
 

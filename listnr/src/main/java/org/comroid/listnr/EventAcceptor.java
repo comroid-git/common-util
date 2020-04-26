@@ -13,7 +13,7 @@ import org.comroid.common.util.Bitmask;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 
-import static org.comroid.common.Polyfill.deadCast;
+import static org.comroid.common.Polyfill.uncheckedCast;
 import static org.comroid.common.util.Bitmask.combine;
 
 @ShouldExtend(EventAcceptor.Support.Abstract.class)
@@ -83,7 +83,7 @@ public interface EventAcceptor<E extends EventType<? super P, ?, ?>, P extends E
 
             @Override
             public <T extends P> void acceptEvent(T eventPayload) {
-                final Class<T> payloadClass = deadCast(eventPayload.getClass());
+                final Class<T> payloadClass = uncheckedCast(eventPayload.getClass());
                 invocables.stream()
                         .filter(invocable -> invocable.typeOrder()[0].isAssignableFrom(payloadClass))
                         .forEachOrdered(invocable -> invocable.invokeRethrow(eventPayload));

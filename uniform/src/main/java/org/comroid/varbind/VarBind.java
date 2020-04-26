@@ -36,7 +36,7 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     }
 
     default <R> ReBind.Duo<FINAL, R> rebindSimple(GroupBind group, Function<FINAL, R> remapper) {
-        return new ReBind.Duo<>(Polyfill.deadCast(this), group, remapper);
+        return new ReBind.Duo<>(Polyfill.uncheckedCast(this), group, remapper);
     }
 
     default <R, D extends DPND> ReBind.Dep<FINAL, D, R> rebindDependent(BiFunction<FINAL, D, R> resolver) {
@@ -44,7 +44,7 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     }
 
     default <R, D extends DPND> ReBind.Dep<FINAL, D, R> rebindDependent(GroupBind group, BiFunction<FINAL, D, R> resolver) {
-        return new ReBind.Dep<>(Polyfill.deadCast(this), group, resolver);
+        return new ReBind.Dep<>(Polyfill.uncheckedCast(this), group, resolver);
     }
 
     final class Uno<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
