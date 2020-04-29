@@ -4,6 +4,8 @@ import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
+import org.jetbrains.annotations.Nullable;
+
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
     public static SerializationAdapter<?, ?, ?> autodetect() {
         throw new UnsupportedOperationException();
@@ -41,9 +43,9 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
 
     public abstract UniNode parse(String data);
 
-    public abstract UniObjectNode createUniObjectNode(OBJ node);
+    public abstract UniObjectNode createUniObjectNode(@Nullable OBJ node);
 
-    public abstract UniArrayNode createUniArrayNode(ARR node);
+    public abstract UniArrayNode createUniArrayNode(@Nullable ARR node);
 
     public <TAR extends BAS> DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR> typeOf(TAR node) {
         if (objectType.typeClass().isInstance(node))
