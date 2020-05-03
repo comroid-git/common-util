@@ -168,6 +168,11 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         return dependencyObject;
     }
 
+    @Override
+    public UniObjectNode toObjectNode() {
+        return null; // todo
+    }
+
     VariableCarrier(
             Map<VarBind<Object, DEP, ?, Object>, Object> initialValues,
             DEP dependencyObject,

@@ -2,11 +2,11 @@ package org.comroid.restless;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -48,12 +48,11 @@ public final class REST<D> {
     }
 
     public <T extends VarCarrier<D>> Request<T> request(GroupBind<T, D> group) {
-        return new Request<T>(
+        return new Request<>(
                 this,
                 Polyfill.uncheckedCast(group.getConstructor()
                         .orElseThrow(() -> new NoSuchElementException(String.format("No constructor applied to %s", group))))
         );
-        )
     }
 
     public Request<UniObjectNode> request() {
@@ -80,11 +79,22 @@ public final class REST<D> {
         public String getValue() {
             return value;
         }
+
+        public static final class List extends ArrayList<Header> {
+            public boolean add(String name, String value) {
+                return super.add(new Header(name, value));
+            }
+
+            public void forEach(BiConsumer<String, String> action) {
+                forEach(header -> action.accept(header.getName(), header.getValue()));
+            }
+        }
     }
 
-    public static final class Response {
-        private final int     statusCode;
-        private final UniNode body;
+    public static class Response {
+        private final int         statusCode;
+        private final UniNode     body;
+        private final Header.List headers = new Header.List();
 
         public Response(REST rest, int statusCode, String body) {
             this.statusCode = statusCode;
@@ -98,17 +108,21 @@ public final class REST<D> {
         public UniNode getBody() {
             return body;
         }
+
+        public Header.List getHeaders() {
+            return headers;
+        }
     }
 
     public final class Request<T> {
-        private final REST               rest;
-        private final Collection<Header> headers;
-        private final Invocable<T>       tProducer;
+        private final REST         rest;
+        private final Header.List  headers;
+        private final Invocable<T> tProducer;
 
         public Request(REST rest, Invocable<T> tProducer) {
             this.rest      = rest;
             this.tProducer = tProducer;
-            this.headers   = new ArrayList<>();
+            this.headers   = new Header.List();
         }
 
         public final Provider<URL> getUrlProvider() {
@@ -127,8 +141,8 @@ public final class REST<D> {
             return body;
         }
 
-        public final Collection<Header> getHeaders() {
-            return Collections.unmodifiableCollection(headers);
+        public final Header.List getHeaders() {
+            return headers;
         }
 
         public final Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
@@ -257,7 +271,7 @@ public final class REST<D> {
                         ).updateFrom(obj));
             } else {
                 cache.getReference(id, true)
-                        .set(tProducer.apply(dependencyObject, obj));
+                        .set(tProducer.autoInvoke(dependencyObject, obj));
             }
 
             //noinspection unchecked

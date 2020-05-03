@@ -43,6 +43,8 @@ public interface VarCarrier<DEP> {
 
     DEP getDependencyObject();
 
+    UniObjectNode toObjectNode(); // todo
+
     interface Underlying<DEP> extends VarCarrier<DEP> {
         @Override
         default GroupBind getRootBind() {
