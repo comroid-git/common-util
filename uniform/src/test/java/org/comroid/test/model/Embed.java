@@ -15,6 +15,6 @@ public class Embed extends VariableCarrier<DiscordAPI> {
     }
 
     public interface Binds {
-        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "embed");
+        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "embed", invocable);
     }
 }

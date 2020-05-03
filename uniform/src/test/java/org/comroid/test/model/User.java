@@ -15,6 +15,6 @@ public class User extends VariableCarrier<DiscordAPI> {
     }
 
     public interface Binds {
-        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "user");
+        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "user", invocable);
     }
 }

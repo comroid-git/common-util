@@ -45,7 +45,7 @@ public final class Message extends VariableCarrier<DiscordAPI> {
     }
 
     public interface Binds {
-        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "message");
+        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "message", invocable);
         ArrayBind.Duo<String, URL, Collection<URL>>                              ATTACHMENTS       = GROUP.list2stage(
                 "attachments",
                 UniValueNode.ValueType.STRING,

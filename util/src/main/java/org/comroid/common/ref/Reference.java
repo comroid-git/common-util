@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.comroid.common.func.Processor;
@@ -76,5 +77,11 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
 
     interface Settable<T> extends Reference<T> {
         @Nullable T set(T newValue);
+
+        default T compute(Function<T, T> computor) {
+            set(computor.apply(get()));
+
+            return get();
+        }
     }
 }

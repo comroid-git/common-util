@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
+import org.comroid.common.annotation.OptionalVararg;
 import org.comroid.common.util.ReflectionHelper;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -16,28 +18,36 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface Invocable<T> {
-    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
-        return invoke(ReflectionHelper.arrange(args, typeOrder()));
-    }
-
-    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
-
-    Class<?>[] typeOrder();
-
-    default void invokeRethrow(Object... args) {
+    default T invokeRethrow(Object... args) {
         try {
-            invoke(args);
+            return invoke(args);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
+
+    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
+
+    default T autoInvoke(Object... args) {
+        try {
+            return invokeAutoOrder(args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
+        return invoke(ReflectionHelper.arrange(args, typeOrder()));
+    }
+
+    Class<?>[] typeOrder();
 
     static <T> Invocable<T> ofProvider(Provider<T> provider) {
         return new Support.OfProvider<>(provider);
     }
 
     static <T> Invocable<T> ofConsumer(Class<T> type, Consumer<T> consumer) {
-        return new Support.OfConsumer<T>(type, consumer);
+        return new Support.OfConsumer<>(type, consumer);
     }
 
     static <T> Invocable<T> ofMethodCall(@Nullable Method method) {
@@ -48,14 +58,27 @@ public interface Invocable<T> {
         return new Support.OfMethod<>(method, target);
     }
 
-    static <T> Invocable<T> constructing(Class<T> type, Class<?>... args) {
-        return ReflectionHelper.findConstructor(type, args)
-                .map(Invocable::ofConstructor)
-                .orElseThrow(() -> new NoSuchElementException("No suitable constructor found"));
+    static <T> Invocable<T> ofConstructor(Class<T> type, @OptionalVararg Class<?>... params) {
+        Constructor<?>[] constructors = type.getConstructors();
+
+        if (constructors.length > 1) {
+            if (params.length == 0) {
+                throw new IllegalArgumentException("More than 1 constructor found!");
+            } else { //noinspection unchecked
+                return ofConstructor((Constructor<T>) constructors[0]);
+            }
+        } else {
+            return ofConstructor(ReflectionHelper.findConstructor(type, params)
+                    .orElseThrow(() -> new NoSuchElementException("No matching constructor found")));
+        }
     }
 
     static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
         return new Support.OfConstructor<>(constructor);
+    }
+
+    static <T> Invocable<T> paramReturning(Class<T> type) {
+        return new Support.ParamReturning<>(type);
     }
 
     static <T> Invocable<T> constant(T value) {
@@ -139,10 +162,38 @@ public interface Invocable<T> {
             }
         }
 
-        private static final class Constant<T> implements Invocable<T> {
-            private final        T                              value;
+        private static final class ParamReturning<T> implements Invocable<T> {
+            private final Class<T>   type;
+            private final Class<?>[] typeArray;
 
-            public Constant(T value) {
+            private ParamReturning(Class<T> type) {
+                this.type      = type;
+                this.typeArray = new Class[]{ type };
+            }
+
+            @Nullable
+            @Override
+            public T invoke(Object... args) {
+                //noinspection unchecked
+                return Stream.of(args)
+                        .filter(type::isInstance)
+                        .findAny()
+                        .map(it -> (T) it)
+                        .orElseThrow(() -> new NoSuchElementException(String.format("No parameter with type %s given",
+                                type.getName()
+                        )));
+            }
+
+            @Override
+            public Class<?>[] typeOrder() {
+                return typeArray;
+            }
+        }
+
+        private static final class Constant<T> implements Invocable<T> {
+            private final T value;
+
+            private Constant(T value) {
                 this.value = value;
             }
 
@@ -156,6 +207,7 @@ public interface Invocable<T> {
             public Class<?>[] typeOrder() {
                 return NoClasses;
             }
+
             private static final Map<Object, Invocable<Object>> Cache = new ConcurrentHashMap<>();
         }
 
@@ -164,7 +216,7 @@ public interface Invocable<T> {
             private final Consumer<T> consumer;
             private final Class<?>[]  argTypeArr;
 
-            public OfConsumer(Class<T> argType, Consumer<T> consumer) {
+            private OfConsumer(Class<T> argType, Consumer<T> consumer) {
                 this.argType    = argType;
                 this.consumer   = consumer;
                 this.argTypeArr = new Class[]{ argType };

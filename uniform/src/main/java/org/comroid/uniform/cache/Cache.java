@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -57,7 +58,6 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
     default CompletableFuture<V> provide(K key) {
         return Polyfill.failedFuture(new UnsupportedOperationException("Cache can't provide!"));
     }
-
     default @Nullable V set(K key, V newValue) {
         return getReference(key, false).set(newValue);
     }
@@ -67,10 +67,10 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
     }
 
     class Reference<K, V> implements Settable<V> {
-        public final AtomicReference<V> reference = new AtomicReference<>(null);
-        private final        OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
-        private final        Object                                     lock             = Polyfill.selfawareLock();
-        private final        K                                          key;
+        public final  AtomicReference<V>                         reference        = new AtomicReference<>(null);
+        private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
+        private final Object                                     lock             = Polyfill.selfawareLock();
+        private final K                                          key;
 
         public Reference(K key) {
             this.key = key;
@@ -121,7 +121,8 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
         public static <K, V> Reference<K, V> empty() {
             return (Reference<K, V>) EMPTY;
         }
-        private static final Reference<?, ?>                            EMPTY            = new Reference<Object, Object>(null) {
+
+        private static final Reference<?, ?> EMPTY = new Reference<Object, Object>(null) {
             @Nullable
             @Override
             public Object set(Object value) {

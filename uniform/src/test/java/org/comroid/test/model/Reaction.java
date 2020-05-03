@@ -14,6 +14,6 @@ public class Reaction extends VariableCarrier<DiscordAPI> {
     }
 
     public interface Binds {
-        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "reaction");
+        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "reaction", invocable);
     }
 }

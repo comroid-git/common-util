@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.func.Processor;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
@@ -25,7 +26,7 @@ import static org.comroid.common.Polyfill.uncheckedCast;
 
 @SuppressWarnings("unchecked")
 public class VariableCarrier<DEP> implements VarCarrier<DEP> {
-    private final GroupBind                                                                   rootBind;
+    private final GroupBind<?, DEP>                                                                   rootBind;
     private final Map<VarBind<Object, ? super DEP, ?, Object>, AtomicReference<Span<Object>>> vars     =
             new ConcurrentHashMap<>();
     private final Map<VarBind<Object, ? super DEP, ?, Object>, OutdateableReference<Object>>  computed
@@ -70,6 +71,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         getRootBind().getChildren()
                 .stream()
                 .filter(bind -> !(bind instanceof VarBind.NotAutoprocessed))
+                .map(it -> (VarBind<Object, ? super DEP, ?, Object>) it)
                 .filter(bind -> data.has(bind.getFieldName()))
                 .map(it -> (VarBind<Object, Object, Object, Object>) it)
                 .forEach(bind -> {
@@ -84,7 +86,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     }
 
     @Override
-    public final GroupBind getRootBind() {
+    public final GroupBind<?, DEP> getRootBind() {
         return rootBind;
     }
 
@@ -120,14 +122,14 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         }
 
         // any stage in the groupbind tree
-        Processor<GroupBind> parentGroup = Processor.ofConstant(getRootBind());
+        Processor<GroupBind<?, DEP>> parentGroup = Processor.ofConstant(getRootBind());
 
         // find the topmost parent
         while (parentGroup.requireNonNull()
                 .getParent()
                 .isPresent()) {
             parentGroup = parentGroup.map(group -> group.getParent()
-                    .orElse(group));
+                    .orElse(Polyfill.uncheckedCast(group)));
         }
 
         // find the subgroup named the first split part,
@@ -179,7 +181,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
     }
 
     @Internal
-    public static GroupBind findRootBind(Class<? extends VarCarrier<?>> inClass) {
+    public static <T extends VarCarrier<? super D>, D> GroupBind<T, D> findRootBind(Class<T> inClass) {
         final VarBind.Location location = ReflectionHelper.findAnnotation(VarBind.Location.class, inClass, ElementType.TYPE)
                 .orElseThrow(() -> new IllegalStateException(String.format(
                         "Class %s extends VariableCarrier,\nbut does not have a %s annotation.",

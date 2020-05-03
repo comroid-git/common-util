@@ -4,32 +4,38 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.func.Invocable;
 import org.comroid.common.func.Provider;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.cache.Cache;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.varbind.GroupBind;
+import org.comroid.varbind.VarBind;
 import org.comroid.varbind.VarCarrier;
-import org.comroid.varbind.VariableCarrier;
 
+import com.google.common.flogger.FluentLogger;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Nullable;
 
 public final class REST<D> {
+    public static final     FluentLogger                  logger = FluentLogger.forEnclosingClass();
     private final           HttpAdapter                   httpAdapter;
     private final @Nullable D                             dependencyObject;
     private final           SerializationAdapter<?, ?, ?> serializationAdapter;
 
     public REST(
-        HttpAdapter httpAdapter, SerializationAdapter<?, ?, ?> serializationAdapter
-) {
+            HttpAdapter httpAdapter, SerializationAdapter<?, ?, ?> serializationAdapter
+    ) {
         this(httpAdapter, serializationAdapter, null);
     }
 
@@ -41,17 +47,21 @@ public final class REST<D> {
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
     }
 
-    public <T extends VarCarrier<D>> Request<T> request(Class<T> type) {
-        return new Request<>(this,
-                VariableCarrier.findRootBind(type)
-                        .autoConstructor(type, (Class<D>) (
-                                dependencyObject == null ? Object.class : dependencyObject.getClass()
-                        ))
+    public <T extends VarCarrier<D>> Request<T> request(GroupBind<T, D> group) {
+        return new Request<T>(
+                this,
+                Polyfill.uncheckedCast(group.getConstructor()
+                        .orElseThrow(() -> new NoSuchElementException(String.format("No constructor applied to %s", group))))
         );
+        )
     }
 
     public Request<UniObjectNode> request() {
-        return new Request<>(this, (dep, node) -> node);
+        return new Request<>(this, Invocable.paramReturning(UniObjectNode.class));
+    }
+
+    public <T> Request<T> request(Invocable<T> creator) {
+        return new Request<>(this, creator);
     }
 
     public static final class Header {
@@ -89,29 +99,13 @@ public final class REST<D> {
             return body;
         }
     }
-    public enum Method {
-        GET,
-
-        PUT,
-
-        POST,
-
-        PATCH,
-
-        DELETE;
-
-        @Override
-        public String toString() {
-            return name();
-        }
-    }
 
     public final class Request<T> {
-        private final           REST                             rest;
-        private final           Collection<Header>               headers;
-        private final @Nullable BiFunction<D, UniObjectNode, T>  tProducer;
+        private final REST               rest;
+        private final Collection<Header> headers;
+        private final Invocable<T>       tProducer;
 
-        public Request(REST rest, @Nullable BiFunction<D, UniObjectNode, T> tProducer) {
+        public Request(REST rest, Invocable<T> tProducer) {
             this.rest      = rest;
             this.tProducer = tProducer;
             this.headers   = new ArrayList<>();
@@ -186,17 +180,20 @@ public final class REST<D> {
         }
 
         public final CompletableFuture<REST.Response> execute() {
-            return (
-                    execution == null ? (
-                            execution = httpAdapter.call(rest,
-                                    method,
-                                    urlProvider,
-                                    headers,
-                                    serializationAdapter.getMimeType(),
-                                    body
-                            )
-                    ) : execution
-            );
+            if (execution == null) {
+                logger.at(Level.FINE)
+                        .log("Executing request %s @ %s");
+                execution = httpAdapter.call(rest, method, urlProvider, headers, serializationAdapter.getMimeType(), body);
+            }
+
+            return execution.thenApply(response -> {
+                if (response.statusCode != expectedCode) {
+                    logger.at(Level.WARNING)
+                            .log("Unexpected Response status code %d; expected %d", response.statusCode, expectedCode);
+                }
+
+                return response;
+            });
         }
 
         public final CompletableFuture<T> execute$deserializeSingle() {
@@ -207,13 +204,13 @@ public final class REST<D> {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
-                        return Span.singleton(tProducer.apply(dependencyObject, node.asObjectNode()));
+                        return Span.singleton(tProducer.autoInvoke(dependencyObject, node.asObjectNode()));
                     case ARRAY:
                         return node.asArrayNode()
                                 .asNodeList()
                                 .stream()
                                 .map(UniNode::asObjectNode)
-                                .map(sub -> tProducer.apply(dependencyObject, sub))
+                                .map(sub -> tProducer.autoInvoke(dependencyObject, sub))
                                 .collect(Span.collector());
                     case VALUE:
                         throw new AssertionError("Cannot deserialize from UniValueNode");
@@ -225,6 +222,46 @@ public final class REST<D> {
 
         public final CompletableFuture<UniNode> execute$body() {
             return execute().thenApply(Response::getBody);
+        }
+
+        public final <ID> CompletableFuture<Span<T>> execute$autoCache(
+                VarBind<?, ? super D, ?, ID> identifyBind, Cache<ID, ? super T> cache
+        ) {
+            return execute$body().thenApply(node -> {
+                if (node.isObjectNode()) {
+                    return Span.singleton(cacheProduce(identifyBind, cache, node.asObjectNode()));
+                } else if (node.isArrayNode()) {
+                    return node.asNodeList()
+                            .stream()
+                            .map(UniNode::asObjectNode)
+                            .map(obj -> cacheProduce(identifyBind, cache, obj))
+                            .collect(Span.collector());
+                } else {
+                    throw new AssertionError();
+                }
+            });
+        }
+
+        private <ID> T cacheProduce(VarBind<?, ? super D, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
+            ID id = identifyBind.getFrom(obj);
+
+            if (id == null) {
+                throw new IllegalArgumentException("Invalid Data: Could not resolve identifying Bind");
+            }
+
+            if (cache.containsKey(id)) {
+                //noinspection unchecked
+                cache.getReference(id, false) // should be present
+                        .compute(old -> (T) (
+                                (VarCarrier<D>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
+                        ).updateFrom(obj));
+            } else {
+                cache.getReference(id, true)
+                        .set(tProducer.apply(dependencyObject, obj));
+            }
+
+            //noinspection unchecked
+            return (T) cache.requireNonNull(id, "Assert failed: Cache is still missing key " + id);
         }
 
         public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
@@ -242,10 +279,28 @@ public final class REST<D> {
                 return remapper.apply(span.get());
             });
         }
-        private                 CompletableFuture<REST.Response> execution    = null;
-        private                 Provider<URL>                    urlProvider;
-        private                 Method                           method;
-        private                 String                           body;
-        private                 int                              expectedCode = HTTPStatusCodes.OK;
+
+        private CompletableFuture<REST.Response> execution    = null;
+        private Provider<URL>                    urlProvider;
+        private Method                           method;
+        private String                           body;
+        private int                              expectedCode = HTTPStatusCodes.OK;
+    }
+
+    public enum Method {
+        GET,
+
+        PUT,
+
+        POST,
+
+        PATCH,
+
+        DELETE;
+
+        @Override
+        public String toString() {
+            return name();
+        }
     }
 }

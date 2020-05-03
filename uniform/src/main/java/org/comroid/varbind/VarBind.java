@@ -13,13 +13,19 @@ import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniObjectNode;
 
 public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
-    String getFieldName();
+    default FINAL getFrom(UniObjectNode node) {
+        return getFrom(null, node);
+    }
 
-    Span<EXTR> extract(UniObjectNode node);
+    default FINAL getFrom(DPND dependencyObject, UniObjectNode node) {
+        return process(dependencyObject, extract(node));
+    }
 
     default FINAL process(final DPND dependency, Span<EXTR> from) {
         return finish(remapAll(dependency, from));
     }
+
+    Span<EXTR> extract(UniObjectNode node);
 
     FINAL finish(Span<REMAP> parts);
 
@@ -30,6 +36,8 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     }
 
     REMAP remap(EXTR from, DPND dependency);
+
+    String getFieldName();
 
     default <R> ReBind.Duo<FINAL, R> rebindSimple(Function<FINAL, R> remapper) {
         return rebindSimple(getGroup(), remapper);
@@ -46,6 +54,30 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     default <R, D extends DPND> ReBind.Dep<FINAL, D, R> rebindDependent(GroupBind group, BiFunction<FINAL, D, R> resolver) {
         return new ReBind.Dep<>(Polyfill.uncheckedCast(this), group, resolver);
     }
+
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Location {
+        Class<?> value();
+
+        String rootNode() default "";
+    }
+
+    interface NotAutoprocessed<EXTR, DPND, REMAP> extends VarBind<EXTR, DPND, REMAP, REMAP> {
+        @Override
+        default Span<EXTR> extract(UniObjectNode node) {
+            return Span.zeroSize();
+        }
+
+        @Override
+        default REMAP finish(Span<REMAP> parts) {
+            return parts.requireNonNull();
+        }
+    }
+
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Root {}
 
     final class Uno<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
         public Uno(
@@ -97,30 +129,6 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         @Override
         public TARGET remap(EXTR from, DPND dependency) {
             return resolver.apply(Objects.requireNonNull(dependency, "Dependency Object"), from);
-        }
-    }
-
-    @Target(ElementType.TYPE)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Location {
-        Class<?> value();
-
-        String rootNode() default "";
-    }
-
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Root {}
-
-    interface NotAutoprocessed<EXTR, DPND, REMAP> extends VarBind<EXTR, DPND, REMAP, REMAP> {
-        @Override
-        default Span<EXTR> extract(UniObjectNode node) {
-            return Span.zeroSize();
-        }
-
-        @Override
-        default REMAP finish(Span<REMAP> parts) {
-            return parts.requireNonNull();
         }
     }
 }
