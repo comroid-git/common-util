@@ -96,9 +96,13 @@ public final class REST<D> {
         private final UniNode     body;
         private final Header.List headers = new Header.List();
 
-        public Response(REST rest, int statusCode, String body) {
+        public Response(int statusCode, UniNode body) {
             this.statusCode = statusCode;
-            this.body       = rest.serializationAdapter.createUniNode(body);
+            this.body = body;
+        }
+
+        public Response(REST rest, int statusCode, String body) {
+            this(statusCode, rest.serializationAdapter.createUniNode(body));
         }
 
         public int getStatusCode() {
