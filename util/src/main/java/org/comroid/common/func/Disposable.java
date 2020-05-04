@@ -1,38 +1,36 @@
 package org.comroid.common.func;
 
-import java.io.Closeable;
-import java.io.IOException;
+import org.comroid.common.exception.MultipleExceptions;
+import org.comroid.common.iter.Span;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.comroid.common.exception.MultipleExceptions;
-import org.comroid.common.iter.Span;
-
-public class Disposable implements Closeable {
-    private final Span<Closeable> children = new Span<>();
-
+public interface Disposable extends AutoCloseable {
     @Override
-    public void close() {
-        dispose();
+    default void close() throws MultipleExceptions {
+        disposeThrow();
     }
 
-    public final List<? extends Throwable> dispose() {
-        return children.stream()
+    default List<? extends Throwable> dispose() {
+        return Collections.unmodifiableList(getChildren().stream()
                 .map(closeable -> {
                     try {
                         closeable.close();
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         return e;
                     }
 
                     return null;
                 })
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
-    public final void disposeThrow() throws MultipleExceptions {
+    default void disposeThrow() throws MultipleExceptions {
         final List<? extends Throwable> throwables = dispose();
 
         if (throwables.isEmpty()) {
@@ -42,11 +40,39 @@ public class Disposable implements Closeable {
         throw new MultipleExceptions(throwables);
     }
 
-    protected void disposeWith(Closeable child) {
-        if (child == this) {
-            throw new IllegalArgumentException("Disposable cannot contain itself!");
+    void addChildren(AutoCloseable child);
+
+    Collection<? extends AutoCloseable> getChildren();
+
+    class Basic implements Disposable {
+        private final Span<AutoCloseable> children = new Span<>();
+
+        @Override
+        public Span<AutoCloseable> getChildren() {
+            return children;
         }
 
-        children.add(child);
+        @Override
+        public void addChildren(AutoCloseable child) {
+            if (child == this) {
+                throw new IllegalArgumentException("Disposable cannot contain itself!");
+            }
+
+            children.add(child);
+        }
+    }
+
+    interface Container extends Disposable {
+        Disposable getUnderlyingDisposable();
+
+        @Override
+        default void addChildren(AutoCloseable child) {
+            getUnderlyingDisposable().addChildren(child);
+        }
+
+        @Override
+        default Collection<? extends AutoCloseable> getChildren() {
+            return getUnderlyingDisposable().getChildren();
+        }
     }
 }

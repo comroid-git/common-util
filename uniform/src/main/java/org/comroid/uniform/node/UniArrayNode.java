@@ -1,14 +1,15 @@
 package org.comroid.uniform.node;
 
+import org.comroid.uniform.DataStructureType;
+import org.comroid.uniform.SerializationAdapter;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.comroid.uniform.DataStructureType;
-import org.comroid.uniform.SerializationAdapter;
-
-import org.jetbrains.annotations.NotNull;
+import static org.comroid.common.Polyfill.uncheckedCast;
 
 public final class UniArrayNode extends UniNode {
     private final Adapter adapter;
@@ -17,6 +18,41 @@ public final class UniArrayNode extends UniNode {
         super(serializationAdapter, Type.ARRAY);
 
         this.adapter = adapter;
+    }
+
+    public static UniArrayNode ofList(SerializationAdapter<?, ?, ?> adapter, List<?> list) {
+        class MergedAdapter extends Adapter<List<?>> {
+            protected MergedAdapter(List<?> underlying) {
+                super(underlying);
+            }
+
+            @Override
+            public int size() {
+                return getBaseNode().size();
+            }
+
+            @Override
+            public Object get(int index) {
+                return getBaseNode().get(index);
+            }
+
+            @Override
+            public Object set(int index, Object element) {
+                return getBaseNode().set(index, uncheckedCast(element));
+            }
+
+            @Override
+            public void add(int index, Object element) {
+                getBaseNode().add(index, uncheckedCast(element));
+            }
+
+            @Override
+            public Object remove(int index) {
+                return getBaseNode().remove(index);
+            }
+        }
+
+        return new UniArrayNode(adapter, new MergedAdapter(list));
     }
 
     @Override
@@ -85,41 +121,6 @@ public final class UniArrayNode extends UniNode {
     @Override
     public String toString() {
         return adapter.toString();
-    }
-
-    public static UniArrayNode ofList(SerializationAdapter<?, ?, ?> adapter, List<Object> list) {
-        class MergedAdapter extends Adapter<List<Object>> {
-            protected MergedAdapter(List<Object> underlying) {
-                super(underlying);
-            }
-
-            @Override
-            public int size() {
-                return getBaseNode().size();
-            }
-
-            @Override
-            public Object get(int index) {
-                return getBaseNode().get(index);
-            }
-
-            @Override
-            public Object set(int index, Object element) {
-                return getBaseNode().set(index, element);
-            }
-
-            @Override
-            public void add(int index, Object element) {
-                getBaseNode().add(index, element);
-            }
-
-            @Override
-            public Object remove(int index) {
-                return getBaseNode().remove(index);
-            }
-        }
-
-        return new UniArrayNode(adapter, new MergedAdapter(list));
     }
 
     public static abstract class Adapter<B> extends AbstractList<Object> implements UniNode.Adapter<B> {
