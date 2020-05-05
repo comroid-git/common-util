@@ -1,13 +1,12 @@
 package org.comroid.restless;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.util.ArrayUtil;
+import org.comroid.common.ref.StaticCache;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
@@ -40,41 +39,26 @@ public interface RestEndpoint {
     }
 
     default boolean testURL(URL url) {
-        return checkURL(url) != null;
+        return getPattern().matcher(url.toExternalForm()).matches();
     }
 
     default boolean testURI(URI uri) {
-        return checkURI(uri) != null;
+        return getPattern().matcher(uri.toString()).matches();
     }
 
-    default @Nullable Object[] checkURL(URL url) {
-        return extractArgs(getPattern().matcher(url.toExternalForm()), url.toExternalForm());
+    default @Nullable Object[] extractArgs(URL url) {
+        return extractArgs(url.toExternalForm());
     }
 
-    default @Nullable Object[] checkURI(URI uri) {
-        return extractArgs(getPattern().matcher(uri.toString()), uri.toString());
+    default @Nullable Object[] extractArgs(URI uri) {
+        return extractArgs(uri.toString());
     }
 
-    default String processEndpointUrl(IntUnaryOperator groupFx) {
-        String yield = getFullUrl();
-        int c = groupFx.applyAsInt(-1);
+    default @Nullable Object[] extractArgs(String requestUrl) {
+        final Matcher matcher = getPattern().matcher(requestUrl);
 
-        while (yield.contains("%s")) {
-            if (c == -1) {
-                return yield;
-            }
-
-            int fi = yield.indexOf("%s");
-            yield = String.format("%s$%d%s", yield.substring(0, fi), c, yield.substring(fi + 2));
-            c = groupFx.applyAsInt(c);
-        }
-
-        return yield;
-    }
-
-    default @Nullable Object[] extractArgs(Matcher matcher, String expected) {
-        if (matcher.matches() && matcher.replaceAll(processEndpointUrl(getGroupFx()))
-                .equals(expected)) {
+        if (matcher.matches() && matcher.replaceAll(processExtractionUrl(getGroupFx()))
+                .equals(requestUrl)) {
             final IntUnaryOperator fx = getGroupFx();
             int x = -1;
             List<Object> yields = new ArrayList<>();
@@ -85,6 +69,26 @@ public interface RestEndpoint {
             return yields.toArray();
         }
         return null;
+    }
+
+    default String processExtractionUrl(IntUnaryOperator groupFx) {
+        // todo: Inspect overhead
+        return StaticCache.access(this, String.class, () -> {
+            String yield = getFullUrl();
+            int c = groupFx.applyAsInt(-1);
+
+            while (yield.contains("%s")) {
+                if (c == -1) {
+                    return yield;
+                }
+
+                int fi = yield.indexOf("%s");
+                yield = String.format("%s$%d%s", yield.substring(0, fi), c, yield.substring(fi + 2));
+                c = groupFx.applyAsInt(c);
+            }
+
+            return yield;
+        });
     }
 
     default <T> T makeAndValidateUrl(Function<String, T> maker, Object... args) {
