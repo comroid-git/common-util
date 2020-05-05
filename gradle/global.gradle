@@ -42,6 +42,8 @@ dependencies {
     runtimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
 
     compileOnly 'org.jetbrains:annotations:19.0.0'
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
     testImplementation 'junit:junit:4.13'
     testImplementation 'org.easymock:easymock:4.1'

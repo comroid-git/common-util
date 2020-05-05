@@ -1,6 +1,7 @@
 package org.comroid.uniform.cache;
 
 import com.google.common.flogger.FluentLogger;
+import lombok.Builder;
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Disposable;
 import org.comroid.common.io.FileProcessor;
@@ -23,6 +24,7 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
     private final File file;
     private final D dependencyObject;
 
+    @Builder
     public FileCache(SerializationAdapter<?, ?, ?> seriLib, VarBind<?, ?, ?, K> idBind, File file, int largeThreshold, D dependencyObject) {
         super(largeThreshold);
 
