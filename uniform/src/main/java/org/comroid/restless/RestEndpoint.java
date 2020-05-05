@@ -1,11 +1,17 @@
 package org.comroid.restless;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.util.ArrayUtil;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public interface RestEndpoint {
@@ -34,15 +40,19 @@ public interface RestEndpoint {
     }
 
     default boolean testURL(URL url) {
-        return getPattern().matcher(url.toExternalForm())
-                .replaceAll(processEndpointUrl(getGroupFx()))
-                .equals(url.toExternalForm());
+        return checkURL(url) != null;
     }
 
     default boolean testURI(URI uri) {
-        return getPattern().matcher(uri.toString())
-                .replaceAll(processEndpointUrl(getGroupFx()))
-                .equals(uri.toString());
+        return checkURI(uri) != null;
+    }
+
+    default @Nullable Object[] checkURL(URL url) {
+        return extractArgs(getPattern().matcher(url.toExternalForm()), url.toExternalForm());
+    }
+
+    default @Nullable Object[] checkURI(URI uri) {
+        return extractArgs(getPattern().matcher(uri.toString()), uri.toString());
     }
 
     default String processEndpointUrl(IntUnaryOperator groupFx) {
@@ -60,6 +70,21 @@ public interface RestEndpoint {
         }
 
         return yield;
+    }
+
+    default @Nullable Object[] extractArgs(Matcher matcher, String expected) {
+        if (matcher.matches() && matcher.replaceAll(processEndpointUrl(getGroupFx()))
+                .equals(expected)) {
+            final IntUnaryOperator fx = getGroupFx();
+            int x = -1;
+            List<Object> yields = new ArrayList<>();
+
+            while ((x = fx.applyAsInt(x)) != -1 && matcher.matches())
+                yields.add(matcher.group(x));
+
+            return yields.toArray();
+        }
+        return null;
     }
 
     default <T> T makeAndValidateUrl(Function<String, T> maker, Object... args) {
