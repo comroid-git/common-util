@@ -68,8 +68,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
 
         final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
-        getRootBind().getChildren()
-                .stream()
+        getRootBind().streamAllChildren()
                 .filter(bind -> !(bind instanceof VarBind.NotAutoprocessed))
                 .map(it -> (VarBind<Object, ? super DEP, ?, Object>) it)
                 .filter(bind -> data.has(bind.getFieldName()))
@@ -113,8 +112,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
         final String[] split = name.split("\\.");
 
         if (split.length == 1) {
-            return getRootBind().getChildren()
-                    .stream()
+            return getRootBind().streamAllChildren()
                     .filter(bind -> bind.getFieldName()
                             .equals(name))
                     .findAny()
@@ -138,8 +136,7 @@ public class VariableCarrier<DEP> implements VarCarrier<DEP> {
                 .filter(group -> group.getName()
                         .equals(split[0]))
                 // then find the subgroup named second split part
-                .flatMap(group -> group.getChildren()
-                        .stream())
+                .flatMap(GroupBind::streamAllChildren)
                 .filter(bind -> bind.getFieldName()
                         .equals(split[1]))
                 .findAny()

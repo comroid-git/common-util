@@ -4,7 +4,6 @@ import org.comroid.common.func.Disposable;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
-import org.comroid.uniform.node.UniNode;
 import org.comroid.varbind.VarCarrier;
 
 import java.io.*;
@@ -15,7 +14,7 @@ public class FileCache<K, V extends VarCarrier<D>, D> extends BasicCache<K, V> i
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final File file;
 
-    public FileCache(SerializationAdapter<?, ?, ?> seriLib, File file, int largeThreshold) {
+    public FileCache(SerializationAdapter<?, ?, ?> seriLib, File file, int largeThreshold, Class<? extends V>... storedTypes) {
         super(largeThreshold);
 
         this.seriLib = seriLib;

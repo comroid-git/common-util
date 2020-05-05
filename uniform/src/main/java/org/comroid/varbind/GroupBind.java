@@ -1,32 +1,29 @@
 package org.comroid.varbind;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
-
 import org.jetbrains.annotations.Nullable;
 
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public final class GroupBind<T extends VarCarrier<? super D>, D> {
-    final                   List<? extends VarBind<?, ?, ?, ?>> children  = new ArrayList<>();
-    private final           SerializationAdapter<?, ?, ?>       serializationAdapter;
-    private final           String                              groupName;
-    private final @Nullable GroupBind<? super T, D>             parent;
-    private final           List<GroupBind<? extends T, D>>     subgroups = new ArrayList<>();
-    private final @Nullable Invocable<? extends T>              constructor;
+    private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
+            .asObjectNode();
+    final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
+    private final SerializationAdapter<?, ?, ?> serializationAdapter;
+    private final String groupName;
+    private final @Nullable GroupBind<? super T, D> parent;
+    private final List<GroupBind<? extends T, D>> subgroups = new ArrayList<>();
+    private final @Nullable Invocable<? extends T> constructor;
 
     public GroupBind(
             SerializationAdapter<?, ?, ?> serializationAdapter, String groupName
@@ -46,18 +43,26 @@ public final class GroupBind<T extends VarCarrier<? super D>, D> {
             String groupName,
             @Nullable Invocable<? extends T> invocable
     ) {
-        this.parent               = parent;
+        this.parent = parent;
         this.serializationAdapter = serializationAdapter;
-        this.groupName            = groupName;
-        this.constructor          = invocable;
-
-        if (parent != null) {
-            parent.getChildren()
-                    .forEach(it -> children.add(Polyfill.uncheckedCast(it)));
-        }
+        this.groupName = groupName;
+        this.constructor = invocable;
     }
 
-    public List<? extends VarBind<?, ?, ?, ?>> getChildren() {
+    public boolean isValidData(UniObjectNode data) {
+        if (parent != null)
+            return false;
+
+        return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()) || bind.isOptional());
+    }
+
+    public Stream<? extends VarBind<?, D, ?, ?>> streamAllChildren() {
+        return Stream.concat(children.stream(), getParent()
+                .map(GroupBind::streamAllChildren)
+                .orElseGet(Stream::empty));
+    }
+
+    public List<? extends VarBind<?, D, ?, ?>> getChildren() {
         return Collections.unmodifiableList(children);
     }
 
@@ -218,7 +223,4 @@ public final class GroupBind<T extends VarCarrier<? super D>, D> {
                 .map(node -> dataExtractor.apply(node, fieldName))
                 .collect(Collectors.toList());
     }
-
-    private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
-            .asObjectNode();
 }
