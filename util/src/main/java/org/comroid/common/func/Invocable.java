@@ -18,6 +18,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface Invocable<T> {
+    default T autoInvoke(Object... args) {
+        try {
+            return invokeAutoOrder(args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    default T silentAutoInvoke(Object... args) {
+        try {
+            return autoInvoke(args);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
     default T invokeRethrow(Object... args) {
         try {
             return invoke(args);
@@ -27,14 +43,6 @@ public interface Invocable<T> {
     }
 
     @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
-
-    default T autoInvoke(Object... args) {
-        try {
-            return invokeAutoOrder(args);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
         return invoke(ReflectionHelper.arrange(args, typeOrder()));

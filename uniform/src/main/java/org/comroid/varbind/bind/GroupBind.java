@@ -52,6 +52,27 @@ public final class GroupBind<T extends DataContainer<? super D>, D> {
         this.constructor = invocable;
     }
 
+    @Override
+    public String toString() {
+        return String.format("GroupBind{groupName='%s', parent=%s}", groupName, parent);
+    }
+
+    public Optional<GroupBind<? extends T, D>> findGroupForData(UniObjectNode data) {
+        if (isValidData(data)) {
+            if (subgroups.isEmpty())
+                return Optional.of(this);
+
+            GroupBind[] fitting = subgroups.stream()
+                    .filter(group -> group.isValidData(data))
+                    .toArray(GroupBind[]::new);
+            if (fitting.length == 1)
+                //noinspection unchecked
+                return (Optional<GroupBind<? extends T, D>>) fitting[0].findGroupForData(data);
+
+            throw new UnsupportedOperationException("Too many fitting subgroups found: " + Arrays.toString(fitting));
+        } else return Optional.empty();
+    }
+
     public boolean isValidData(UniObjectNode data) {
         if (parent != null)
             return false;

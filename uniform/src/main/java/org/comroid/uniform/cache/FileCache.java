@@ -1,24 +1,34 @@
 package org.comroid.uniform.cache;
 
+import com.google.common.flogger.FluentLogger;
 import org.comroid.common.func.Disposable;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.container.DataContainer;
 
 import java.io.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V> implements FileProcessor, Disposable.Container {
+    public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final Disposable disposable = new Disposable.Basic();
     private final SerializationAdapter<?, ?, ?> seriLib;
+    private final VarBind<?, ?, ?, K> idBind;
     private final File file;
+    private final D dependencyObject;
 
-    public FileCache(SerializationAdapter<?, ?, ?> seriLib, File file, int largeThreshold, Class<? extends V>... storedTypes) {
+    public FileCache(SerializationAdapter<?, ?, ?> seriLib, VarBind<?, ?, ?, K> idBind, File file, int largeThreshold, D dependencyObject) {
         super(largeThreshold);
 
         this.seriLib = seriLib;
+        this.idBind = idBind;
         this.file = file;
+        this.dependencyObject = dependencyObject;
 
         try {
             reloadData();
@@ -38,15 +48,32 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
                 .map(DataContainer::toObjectNode)
                 .collect(Collectors.toList()));
         final FileWriter writer = new FileWriter(file, false);
+        addChildren(writer);
 
         writer.write(data.toString());
+        writer.close();
     }
 
     @Override
     public synchronized void reloadData() throws IOException {
         final BufferedReader reader = new BufferedReader(new FileReader(file));
+        addChildren(reader);
         final UniArrayNode data = seriLib.createUniNode(reader.lines().collect(Collectors.joining())).asArrayNode();
-        //todo What do here
+
+        data.asNodeList().stream()
+                .map(UniNode::asObjectNode)
+                .forEach(node -> {
+                    final K id = idBind.getFrom(node);
+                    final Object generated = idBind.getGroup().findGroupForData(node)
+                            .flatMap(GroupBind::getConstructor)
+                            .map(constr -> constr.silentAutoInvoke(dependencyObject, node))
+                            .orElse(null);
+
+                    if (generated == null) {
+                        logger.at(Level.WARNING).log("Skipped generation; no suitable constructor could be found. Data: %s");
+                        return;
+                    }
+                });
     }
 
     @Override
