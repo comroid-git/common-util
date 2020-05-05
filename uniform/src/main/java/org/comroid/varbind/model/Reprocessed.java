@@ -34,5 +34,29 @@ public interface Reprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPN
         default GroupBind<?, DPND> getGroup() {
             return getUnderlying().getGroup();
         }
+
+        class Base<EXTR, DPND, REMAP, FINAL> implements Underlying<VarBind<EXTR, DPND, REMAP, FINAL>, EXTR, DPND, REMAP, FINAL, FINAL> {
+            private final VarBind<EXTR, DPND, REMAP, FINAL> underlying;
+
+            public Base(VarBind<EXTR, DPND, REMAP, FINAL> underlying) {
+                this.underlying = underlying;
+            }
+
+            @Override
+            public VarBind<EXTR, DPND, REMAP, FINAL> getUnderlying() {
+                return underlying;
+            }
+        }
+    }
+
+    final class Optional<T> extends Underlying.Base<Object, Object, Object, T> {
+        public Optional(VarBind<Object, Object, Object, T> underlying) {
+            super(underlying);
+        }
+
+        @Override
+        public boolean isOptional() {
+            return true;
+        }
     }
 }

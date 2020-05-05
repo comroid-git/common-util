@@ -45,7 +45,9 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
 
     @Override
     public synchronized void storeData() throws IOException {
-        final UniArrayNode data = UniArrayNode.ofList(seriLib, stream().map(Reference::requireNonNull)
+        final UniArrayNode data = UniArrayNode.ofList(seriLib, stream()
+                .filter(ref -> !ref.isNull())
+                .map(Reference::requireNonNull)
                 .map(DataContainer::toObjectNode)
                 .collect(Collectors.toList()));
         final FileWriter writer = new FileWriter(file, false);

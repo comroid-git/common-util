@@ -4,6 +4,7 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.model.AbstractObjectBind;
+import org.comroid.varbind.model.Reprocessed;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -44,8 +45,8 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
         return false;
     }
 
-    default OptionalBind<FINAL> optional() {
-        return OptionalBind.ofBind(this);
+    default Reprocessed.Optional<FINAL> optional() {
+        return new Reprocessed.Optional<>(Polyfill.uncheckedCast(this));
     }
 
     default <R> ReBind.Duo<FINAL, R> rebindSimple(Function<FINAL, R> remapper) {
