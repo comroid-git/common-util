@@ -19,6 +19,11 @@ public interface OptionalBind<T> extends Reprocessed.Underlying<VarBind<Object, 
         return parts.wrap();
     }
 
+    @Override
+    default boolean isOptional() {
+        return true;
+    }
+
     final class Support {
         private static final class OfBind<T> implements OptionalBind<T> {
             private final VarBind<Object, Object, Object, T> underlying;
