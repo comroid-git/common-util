@@ -1,6 +1,7 @@
 package org.comroid.uniform.cache;
 
 import com.google.common.flogger.FluentLogger;
+import org.comroid.common.Polyfill;
 import org.comroid.common.func.Disposable;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.uniform.SerializationAdapter;
@@ -73,6 +74,8 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
                         logger.at(Level.WARNING).log("Skipped generation; no suitable constructor could be found. Data: %s");
                         return;
                     }
+
+                    getReference(id, true).set(Polyfill.uncheckedCast(generated));
                 });
     }
 
