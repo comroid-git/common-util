@@ -54,26 +54,26 @@ public interface RestEndpoint extends Predicate<String> {
                 .equals(url);
     }
 
-    default Object[] extractArgs(URL url) {
+    default String[] extractArgs(URL url) {
         return extractArgs(url.toExternalForm());
     }
 
-    default Object[] extractArgs(URI uri) {
+    default String[] extractArgs(URI uri) {
         return extractArgs(uri.toString());
     }
 
-    default Object[] extractArgs(String requestUrl) {
+    default String[] extractArgs(String requestUrl) {
         final Matcher matcher = getPattern().matcher(requestUrl);
         final IntUnaryOperator fx = getGroupFx();
 
         if (matcher.matches() && test(requestUrl)) {
             int x = -1;
-            List<Object> yields = new ArrayList<>();
+            List<String> yields = new ArrayList<>();
 
             while ((x = fx.applyAsInt(x)) != -1 && matcher.matches())
                 yields.add(matcher.group(x));
 
-            return yields.toArray();
+            return yields.toArray(new String[0]);
         }
 
         return ArrayUtil.empty();

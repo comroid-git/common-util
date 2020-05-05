@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JSONArray> {
     public static @Instance final FastJSONLib fastJsonLib = new FastJSONLib();
@@ -24,7 +25,7 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
     }
 
     @Override
-    public UniNode parse(String data) {
+    public UniNode parse(@Nullable String data) {
         final JSONValidator validator = JSONValidator.from(data);
 
         UniNode node = null;

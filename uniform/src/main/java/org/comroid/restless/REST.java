@@ -1,15 +1,6 @@
 package org.comroid.restless;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.logging.Level;
-
+import com.google.common.flogger.FluentLogger;
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.func.Provider;
@@ -21,16 +12,25 @@ import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.container.DataContainer;
-
-import com.google.common.flogger.FluentLogger;
+import org.comroid.varbind.container.DataContainerBase;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+
 public final class REST<D> {
-    public static final     FluentLogger                  logger = FluentLogger.forEnclosingClass();
-    private final           HttpAdapter                   httpAdapter;
-    private final @Nullable D                             dependencyObject;
-    private final           SerializationAdapter<?, ?, ?> serializationAdapter;
+    public static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private final HttpAdapter httpAdapter;
+    private final @Nullable D dependencyObject;
+    private final SerializationAdapter<?, ?, ?> serializationAdapter;
 
     public REST(
             HttpAdapter httpAdapter, SerializationAdapter<?, ?, ?> serializationAdapter
@@ -41,25 +41,46 @@ public final class REST<D> {
     public REST(
             HttpAdapter httpAdapter, SerializationAdapter<?, ?, ?> serializationAdapter, @Nullable D dependencyObject
     ) {
-        this.httpAdapter          = Objects.requireNonNull(httpAdapter, "HttpAdapter");
-        this.dependencyObject     = dependencyObject;
+        this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
+        this.dependencyObject = dependencyObject;
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
-    }
-
-    public <T extends DataContainer<? extends D>> Request<T> request(GroupBind<T, D> group) {
-        return new Request<>(
-                this,
-                Polyfill.uncheckedCast(group.getConstructor()
-                        .orElseThrow(() -> new NoSuchElementException(String.format("No constructor applied to %s", group))))
-        );
     }
 
     public Request<UniObjectNode> request() {
         return new Request<>(this, Invocable.paramReturning(UniObjectNode.class));
     }
 
+    public <T extends DataContainer<? extends D>> Request<T> request(Class<T> type) {
+        return request(DataContainerBase.findRootBind(type));
+    }
+
+    public <T extends DataContainer<? extends D>> Request<T> request(GroupBind<T, D> group) {
+        return new Request<>(
+                this,
+                Polyfill.uncheckedCast(group.getConstructor()
+                        .orElseThrow(() -> new NoSuchElementException("No constructor applied to GroupBind")))
+        );
+    }
+
     public <T> Request<T> request(Invocable<T> creator) {
         return new Request<>(this, creator);
+    }
+
+    public enum Method {
+        GET,
+
+        PUT,
+
+        POST,
+
+        PATCH,
+
+        DELETE;
+
+        @Override
+        public String toString() {
+            return name();
+        }
     }
 
     public static final class Header {
@@ -67,7 +88,7 @@ public final class REST<D> {
         private final String value;
 
         public Header(String name, String value) {
-            this.name  = name;
+            this.name = name;
             this.value = value;
         }
 
@@ -91,8 +112,8 @@ public final class REST<D> {
     }
 
     public static class Response {
-        private final int         statusCode;
-        private final UniNode     body;
+        private final int statusCode;
+        private final UniNode body;
         private final Header.List headers = new Header.List();
 
         public Response(int statusCode, UniNode body) {
@@ -102,6 +123,10 @@ public final class REST<D> {
 
         public Response(REST rest, int statusCode, String body) {
             this(statusCode, rest.serializationAdapter.createUniNode(body));
+        }
+
+        public static Response empty(SerializationAdapter seriLib, @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
+            return new Response(code, seriLib.createUniNode(null));
         }
 
         public int getStatusCode() {
@@ -118,14 +143,19 @@ public final class REST<D> {
     }
 
     public final class Request<T> {
-        private final REST         rest;
-        private final Header.List  headers;
+        private final REST rest;
+        private final Header.List headers;
         private final Invocable<T> tProducer;
+        private CompletableFuture<REST.Response> execution = null;
+        private Provider<URL> urlProvider;
+        private Method method;
+        private String body;
+        private int expectedCode = HTTPStatusCodes.OK;
 
         public Request(REST rest, Invocable<T> tProducer) {
-            this.rest      = rest;
+            this.rest = rest;
             this.tProducer = tProducer;
-            this.headers   = new Header.List();
+            this.headers = new Header.List();
         }
 
         public final Provider<URL> getUrlProvider() {
@@ -295,29 +325,6 @@ public final class REST<D> {
 
                 return remapper.apply(span.get());
             });
-        }
-
-        private CompletableFuture<REST.Response> execution    = null;
-        private Provider<URL>                    urlProvider;
-        private Method                           method;
-        private String                           body;
-        private int                              expectedCode = HTTPStatusCodes.OK;
-    }
-
-    public enum Method {
-        GET,
-
-        PUT,
-
-        POST,
-
-        PATCH,
-
-        DELETE;
-
-        @Override
-        public String toString() {
-            return name();
         }
     }
 }
