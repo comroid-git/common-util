@@ -98,6 +98,27 @@ public interface Invocable<T> {
 
     Class<?>[] typeOrder();
 
+    abstract class Magic<T> implements Invocable<T> {
+        private final Invocable<T> underlying;
+
+        protected Magic() {
+            this.underlying = Invocable.ofMethodCall(ReflectionHelper.externalMethodsAbove(Magic.class, getClass())
+                    .findAny()
+                    .orElseThrow(() -> new NoSuchElementException("Could not find matching method")), this);
+        }
+
+        @Nullable
+        @Override
+        public T invoke(Object... args) {
+            return underlying.autoInvoke(args);
+        }
+
+        @Override
+        public Class<?>[] typeOrder() {
+            return underlying.typeOrder();
+        }
+    }
+
     @Internal
     final class Support {
         private static final Invocable<?> Empty = constant(null);

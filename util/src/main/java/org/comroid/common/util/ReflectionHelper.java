@@ -2,24 +2,14 @@ package org.comroid.common.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.comroid.common.annotation.Instance;
+import org.comroid.common.func.Invocable;
 import org.comroid.common.iter.Span;
 
 import org.jetbrains.annotations.Nullable;
@@ -240,5 +230,10 @@ public final class ReflectionHelper {
         }
 
         return Optional.empty();
+    }
+
+    public static Stream<Method> externalMethodsAbove(Class<?> above, Class<?> startingFrom) {
+        return Arrays.stream(above.getMethods())
+                .filter(mtd -> !mtd.getDeclaringClass().isAssignableFrom(above));
     }
 }
