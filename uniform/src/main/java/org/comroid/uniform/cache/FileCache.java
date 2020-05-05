@@ -51,8 +51,6 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
                 .map(DataContainer::toObjectNode)
                 .collect(Collectors.toList()));
         final FileWriter writer = new FileWriter(file, false);
-        addChildren(writer);
-
         writer.write(data.toString());
         writer.close();
     }
@@ -60,25 +58,30 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
     @Override
     public synchronized void reloadData() throws IOException {
         final BufferedReader reader = new BufferedReader(new FileReader(file));
-        addChildren(reader);
         final UniArrayNode data = seriLib.createUniNode(reader.lines().collect(Collectors.joining())).asArrayNode();
 
         data.asNodeList().stream()
                 .map(UniNode::asObjectNode)
                 .forEach(node -> {
                     final K id = idBind.getFrom(node);
-                    final Object generated = idBind.getGroup().findGroupForData(node)
-                            .flatMap(GroupBind::getConstructor)
-                            .map(constr -> constr.silentAutoInvoke(dependencyObject, node))
-                            .orElse(null);
 
-                    if (generated == null) {
-                        logger.at(Level.WARNING).log("Skipped generation; no suitable constructor could be found. Data: %s");
-                        return;
+                    if (containsKey(id)) {
+                        getReference(id, false).requireNonNull().updateFrom(node);
+                    } else {
+                        final Object generated = idBind.getGroup().findGroupForData(node)
+                                .flatMap(GroupBind::getConstructor)
+                                .map(constr -> constr.silentAutoInvoke(dependencyObject, node))
+                                .orElse(null);
+
+                        if (generated == null) {
+                            logger.at(Level.WARNING).log("Skipped generation; no suitable constructor could be found. Data: %s", node);
+                            return;
+                        }
+
+                        getReference(id, true).set(Polyfill.uncheckedCast(generated));
                     }
-
-                    getReference(id, true).set(Polyfill.uncheckedCast(generated));
                 });
+        reader.close();
     }
 
     @Override

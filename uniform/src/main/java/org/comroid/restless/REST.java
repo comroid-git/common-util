@@ -46,7 +46,7 @@ public final class REST<D> {
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
     }
 
-    public <T extends DataContainer<D>> Request<T> request(GroupBind<T, D> group) {
+    public <T extends DataContainer<? extends D>> Request<T> request(GroupBind<T, D> group) {
         return new Request<>(
                 this,
                 Polyfill.uncheckedCast(group.getConstructor()
