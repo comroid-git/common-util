@@ -1,7 +1,7 @@
 package org.comroid.test.model;
 
 import org.comroid.varbind.annotation.Location;
-import org.comroid.varbind.annotation.Root;
+import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.container.DataContainerBase;
 
@@ -16,7 +16,7 @@ public class Embed extends DataContainerBase<DiscordAPI> {
     }
 
     public interface Binds {
-        @Root
+        @RootBind
         GroupBind GROUP = new GroupBind(fastJsonLib, "embed", invocable);
     }
 }

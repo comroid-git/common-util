@@ -9,7 +9,7 @@ import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
-import org.comroid.varbind.annotation.Root;
+import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.model.Reprocessed;
@@ -83,7 +83,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                         Location.class.getName()
                 )));
 
-        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, Root.class)
+        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, RootBind.class)
                 .requireNonNull();
     }
 

@@ -11,7 +11,7 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
 import org.comroid.varbind.annotation.Location;
-import org.comroid.varbind.annotation.Root;
+import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.ArrayBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
@@ -47,7 +47,7 @@ public final class Message extends DataContainerBase<DiscordAPI> {
     }
 
     public interface Binds {
-        @Root
+        @RootBind
         GroupBind GROUP = new GroupBind(fastJsonLib, "message", invocable);
         ArrayBind.TwoStage<String, URL, Collection<URL>> ATTACHMENTS       = GROUP.list2stage(
                 "attachments",

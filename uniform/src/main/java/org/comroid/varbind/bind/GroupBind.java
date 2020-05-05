@@ -106,7 +106,7 @@ public final class GroupBind<T extends DataContainer<? super D>, D> {
         return subgroups;
     }
 
-    public Invocable<T> autoConstructor(
+    public Invocable<? extends T> autoConstructor(
             Class<T> resultType, Class<D> dependencyType
     ) {
         final Class<?>[] typesUnordered = {

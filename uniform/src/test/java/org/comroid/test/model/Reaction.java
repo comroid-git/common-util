@@ -2,7 +2,7 @@ package org.comroid.test.model;
 
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
-import org.comroid.varbind.annotation.Root;
+import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.container.DataContainerBase;
 
@@ -15,7 +15,7 @@ public class Reaction extends DataContainerBase<DiscordAPI> {
     }
 
     public interface Binds {
-        @Root
+        @RootBind
         GroupBind GROUP = new GroupBind(fastJsonLib, "reaction", invocable);
     }
 }

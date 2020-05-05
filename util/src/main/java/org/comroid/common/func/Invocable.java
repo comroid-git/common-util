@@ -1,5 +1,11 @@
 package org.comroid.common.func;
 
+import org.comroid.common.annotation.OptionalVararg;
+import org.comroid.common.util.ReflectionHelper;
+import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,14 +16,56 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import org.comroid.common.annotation.OptionalVararg;
-import org.comroid.common.util.ReflectionHelper;
-
-import org.jetbrains.annotations.ApiStatus.Internal;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 public interface Invocable<T> {
+    static <T> Invocable<T> ofProvider(Provider<T> provider) {
+        return new Support.OfProvider<>(provider);
+    }
+
+    static <T> Invocable<T> ofConsumer(Class<T> type, Consumer<T> consumer) {
+        return new Support.OfConsumer<>(type, consumer);
+    }
+
+    static <T> Invocable<T> ofMethodCall(@Nullable Method method) {
+        return new Support.OfMethod<>(method, null);
+    }
+
+    static <T> Invocable<T> ofMethodCall(Method method, @Nullable Object target) {
+        return new Support.OfMethod<>(method, target);
+    }
+
+    static <T> Invocable<? extends T> ofConstructor(Class<T> type, @OptionalVararg Class<?>... params) {
+        Constructor<?>[] constructors = type.getConstructors();
+
+        if (constructors.length > 1) {
+            if (params.length == 0) {
+                throw new IllegalArgumentException("More than 1 constructor found!");
+            } else { //noinspection unchecked
+                return ofConstructor((Constructor<T>) constructors[0]);
+            }
+        } else {
+            return ofConstructor(ReflectionHelper.findConstructor(type, params)
+                    .orElseThrow(() -> new NoSuchElementException("No matching constructor found")));
+        }
+    }
+
+    static <T> Invocable<? extends T> ofConstructor(Constructor<T> constructor) {
+        return new Support.OfConstructor<>(constructor);
+    }
+
+    static <T> Invocable<T> paramReturning(Class<T> type) {
+        return new Support.ParamReturning<>(type);
+    }
+
+    static <T> Invocable<T> constant(T value) {
+        //noinspection unchecked
+        return (Invocable<T>) Support.Constant.Cache.computeIfAbsent(value, Support.Constant::new);
+    }
+
+    static <T> Invocable<T> empty() {
+        //noinspection unchecked
+        return (Invocable<T>) Support.Empty;
+    }
+
     default T autoInvoke(Object... args) {
         try {
             return invokeAutoOrder(args);
@@ -50,57 +98,11 @@ public interface Invocable<T> {
 
     Class<?>[] typeOrder();
 
-    static <T> Invocable<T> ofProvider(Provider<T> provider) {
-        return new Support.OfProvider<>(provider);
-    }
-
-    static <T> Invocable<T> ofConsumer(Class<T> type, Consumer<T> consumer) {
-        return new Support.OfConsumer<>(type, consumer);
-    }
-
-    static <T> Invocable<T> ofMethodCall(@Nullable Method method) {
-        return new Support.OfMethod<>(method, null);
-    }
-
-    static <T> Invocable<T> ofMethodCall(Method method, @Nullable Object target) {
-        return new Support.OfMethod<>(method, target);
-    }
-
-    static <T> Invocable<T> ofConstructor(Class<T> type, @OptionalVararg Class<?>... params) {
-        Constructor<?>[] constructors = type.getConstructors();
-
-        if (constructors.length > 1) {
-            if (params.length == 0) {
-                throw new IllegalArgumentException("More than 1 constructor found!");
-            } else { //noinspection unchecked
-                return ofConstructor((Constructor<T>) constructors[0]);
-            }
-        } else {
-            return ofConstructor(ReflectionHelper.findConstructor(type, params)
-                    .orElseThrow(() -> new NoSuchElementException("No matching constructor found")));
-        }
-    }
-
-    static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
-        return new Support.OfConstructor<>(constructor);
-    }
-
-    static <T> Invocable<T> paramReturning(Class<T> type) {
-        return new Support.ParamReturning<>(type);
-    }
-
-    static <T> Invocable<T> constant(T value) {
-        //noinspection unchecked
-        return (Invocable<T>) Support.Constant.Cache.computeIfAbsent(value, Support.Constant::new);
-    }
-
-    static <T> Invocable<T> empty() {
-        //noinspection unchecked
-        return (Invocable<T>) Support.Empty;
-    }
-
     @Internal
     final class Support {
+        private static final Invocable<?> Empty = constant(null);
+        private static final Class<?>[] NoClasses = new Class[0];
+
         private static final class OfProvider<T> implements Invocable<T> {
             private final Provider<T> provider;
 
@@ -171,12 +173,12 @@ public interface Invocable<T> {
         }
 
         private static final class ParamReturning<T> implements Invocable<T> {
-            private final Class<T>   type;
+            private final Class<T> type;
             private final Class<?>[] typeArray;
 
             private ParamReturning(Class<T> type) {
-                this.type      = type;
-                this.typeArray = new Class[]{ type };
+                this.type = type;
+                this.typeArray = new Class[]{type};
             }
 
             @Nullable
@@ -199,6 +201,7 @@ public interface Invocable<T> {
         }
 
         private static final class Constant<T> implements Invocable<T> {
+            private static final Map<Object, Invocable<Object>> Cache = new ConcurrentHashMap<>();
             private final T value;
 
             private Constant(T value) {
@@ -215,19 +218,17 @@ public interface Invocable<T> {
             public Class<?>[] typeOrder() {
                 return NoClasses;
             }
-
-            private static final Map<Object, Invocable<Object>> Cache = new ConcurrentHashMap<>();
         }
 
         private static final class OfConsumer<T> implements Invocable<T> {
-            private final Class<T>    argType;
+            private final Class<T> argType;
             private final Consumer<T> consumer;
-            private final Class<?>[]  argTypeArr;
+            private final Class<?>[] argTypeArr;
 
             private OfConsumer(Class<T> argType, Consumer<T> consumer) {
-                this.argType    = argType;
-                this.consumer   = consumer;
-                this.argTypeArr = new Class[]{ argType };
+                this.argType = argType;
+                this.consumer = consumer;
+                this.argTypeArr = new Class[]{argType};
             }
 
             @Nullable
@@ -249,8 +250,5 @@ public interface Invocable<T> {
                 return argTypeArr;
             }
         }
-
-        private static final Invocable<?> Empty     = constant(null);
-        private static final Class<?>[]   NoClasses = new Class[0];
     }
 }
