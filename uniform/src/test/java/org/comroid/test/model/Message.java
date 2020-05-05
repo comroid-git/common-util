@@ -46,67 +46,67 @@ public final class Message extends VariableCarrier<DiscordAPI> {
 
     public interface Binds {
         @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "message", invocable);
-        ArrayBind.Duo<String, URL, Collection<URL>>                              ATTACHMENTS       = GROUP.list2stage(
+        ArrayBind.TwoStage<String, URL, Collection<URL>> ATTACHMENTS       = GROUP.list2stage(
                 "attachments",
                 UniValueNode.ValueType.STRING,
                 spec -> Polyfill.url(spec),
                 ArrayList::new
         );
-        ArrayBind.Dep<UniObjectNode, DiscordAPI, Embed, Collection<Embed>>       EMBEDS            = GROUP.listDependent("embeds",
+        ArrayBind.DependentTwoStage<UniObjectNode, DiscordAPI, Embed, Collection<Embed>> EMBEDS            = GROUP.listDependent("embeds",
                 UniNode::asObjectNode,
                 Embed.Binds.GROUP.autoConstructor(Embed.class, DiscordAPI.class),
                 ArrayList::new
         );
-        VarBind.Duo<String, String>                                              EDITED_TIMESTAMP  = GROUP.bind2stage(
+        VarBind.TwoStage<String, String> EDITED_TIMESTAMP  = GROUP.bind2stage(
                 "edited_timestamp",
                 UniValueNode.ValueType.STRING,
                 Function.identity()
         ); // todo Instant parsing
-        VarBind.Dep<UniObjectNode, DiscordAPI, User>                             AUTHOR            = GROUP.bindDependent("author",
+        VarBind.DependentTwoStage<UniObjectNode, DiscordAPI, User> AUTHOR            = GROUP.bindDependent("author",
                 User.Binds.GROUP.autoConstructor(User.class, DiscordAPI.class)
         );
-        VarBind.Uno<String>                                                      CONTENT           = GROUP.bind1stage("content",
+        VarBind.OneStage<String> CONTENT           = GROUP.bind1stage("content",
                 UniValueNode.ValueType.STRING
         );
-        VarBind.Dep<Long, DiscordAPI, Channel>                                   CHANNEL           = GROUP.bindDependent(
+        VarBind.DependentTwoStage<Long, DiscordAPI, Channel> CHANNEL           = GROUP.bindDependent(
                 "channel_id",
                 UniValueNode.ValueType.LONG,
                 DiscordAPI::getChannelById
         );
-        VarBind.Uno<Long>                                                        ID                = GROUP.bind1stage("id",
+        VarBind.OneStage<Long> ID                = GROUP.bind1stage("id",
                 UniValueNode.ValueType.LONG
         );
-        ArrayBind.Dep<UniObjectNode, DiscordAPI, Role, Collection<Role>>         MENTIONED_ROLES   = GROUP.listDependent(
+        ArrayBind.DependentTwoStage<UniObjectNode, DiscordAPI, Role, Collection<Role>> MENTIONED_ROLES   = GROUP.listDependent(
                 "mentioned_roles",
                 Role.Binds.GROUP.autoConstructor(Role.class, DiscordAPI.class),
                 ArrayList::new
         );
-        ArrayBind.Dep<UniObjectNode, DiscordAPI, User, Collection<User>>         MENTIONED_USERS   = GROUP.listDependent(
+        ArrayBind.DependentTwoStage<UniObjectNode, DiscordAPI, User, Collection<User>> MENTIONED_USERS   = GROUP.listDependent(
                 "mentions",
                 User.Binds.GROUP.autoConstructor(User.class, DiscordAPI.class),
                 ArrayList::new
         );
-        VarBind.Uno<Boolean>                                                     MENTIONS_EVERYONE = GROUP.bind1stage(
+        VarBind.OneStage<Boolean> MENTIONS_EVERYONE = GROUP.bind1stage(
                 "mention_everyone",
                 UniValueNode.ValueType.BOOLEAN
         );
-        VarBind.Uno<Boolean>                                                     PINNED            = GROUP.bind1stage("pinned",
+        VarBind.OneStage<Boolean> PINNED            = GROUP.bind1stage("pinned",
                 UniValueNode.ValueType.BOOLEAN
         );
-        ArrayBind.Dep<UniObjectNode, DiscordAPI, Reaction, Collection<Reaction>> REACTIONS         = GROUP.listDependent(
+        ArrayBind.DependentTwoStage<UniObjectNode, DiscordAPI, Reaction, Collection<Reaction>> REACTIONS         = GROUP.listDependent(
                 "reactions",
                 UniNode::asObjectNode,
                 DiscordAPI::parseReaction,
                 ArrayList::new
         );
-        VarBind.Duo<String, String>                                              TIMESTAMP         = GROUP.bind2stage("timestamp",
+        VarBind.TwoStage<String, String> TIMESTAMP         = GROUP.bind2stage("timestamp",
                 UniValueNode.ValueType.STRING,
                 Function.identity()
         ); // todo Instant parsing
-        VarBind.Uno<Boolean>                                                     TTS               = GROUP.bind1stage("tts",
+        VarBind.OneStage<Boolean> TTS               = GROUP.bind1stage("tts",
                 UniValueNode.ValueType.BOOLEAN
         );
-        VarBind.Duo<Integer, Message.Type>                                       TYPE              = GROUP.bind2stage("type",
+        VarBind.TwoStage<Integer, Type> TYPE              = GROUP.bind2stage("type",
                 UniValueNode.ValueType.INTEGER,
                 Type::new
         );

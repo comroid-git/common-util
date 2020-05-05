@@ -23,8 +23,8 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
     @Override
     REMAP remap(EXTR from, DPND dependency);
 
-    final class Uno<TARGET, FINAL extends Collection<TARGET>> extends AbstractArrayBind<TARGET, Object, TARGET, FINAL> {
-        public Uno(
+    final class OneStage<TARGET, FINAL extends Collection<TARGET>> extends AbstractArrayBind<TARGET, Object, TARGET, FINAL> {
+        public OneStage(
                 GroupBind group,
                 String fieldName,
                 Function<? extends UniNode, TARGET> extractor,
@@ -39,10 +39,10 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
         }
     }
 
-    final class Duo<EXTR, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
+    final class TwoStage<EXTR, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, Object, REMAP, FINAL> {
         private final Function<EXTR, REMAP> remapper;
 
-        public Duo(
+        public TwoStage(
                 GroupBind group,
                 String fieldName,
                 Function<? extends UniNode, EXTR> extractor,
@@ -60,10 +60,10 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
         }
     }
 
-    final class Dep<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
+    final class DependentTwoStage<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends AbstractArrayBind<EXTR, DPND, REMAP, FINAL> {
         private final BiFunction<DPND, EXTR, REMAP> resolver;
 
-        public Dep(
+        public DependentTwoStage(
                 GroupBind group,
                 String fieldName,
                 Function<? extends UniNode, EXTR> extractor,

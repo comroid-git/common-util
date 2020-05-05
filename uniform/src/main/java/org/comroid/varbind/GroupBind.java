@@ -102,14 +102,14 @@ public final class GroupBind<T extends VarCarrier<? super D>, D> {
         return groupBind;
     }
 
-    public final <A> VarBind.Uno<A> bind1stage(String fieldname, UniValueNode.ValueType<A> type) {
+    public final <A> VarBind.OneStage<A> bind1stage(String fieldname, UniValueNode.ValueType<A> type) {
         return bind1stage(fieldname, extractor(type));
     }
 
-    public final <A> VarBind.Uno<A> bind1stage(
+    public final <A> VarBind.OneStage<A> bind1stage(
             String fieldName, BiFunction<UniObjectNode, String, A> extractor
     ) {
-        return new VarBind.Uno<>(this, fieldName, extractor);
+        return new VarBind.OneStage<>(this, fieldName, extractor);
     }
 
     private <A> BiFunction<UniObjectNode, String, A> extractor(final UniValueNode.ValueType<A> type) {
@@ -117,92 +117,92 @@ public final class GroupBind<T extends VarCarrier<? super D>, D> {
                 .as(type);
     }
 
-    public final <R> VarBind.Duo<UniObjectNode, R> bind2stage(
+    public final <R> VarBind.TwoStage<UniObjectNode, R> bind2stage(
             String fieldName, Function<UniObjectNode, R> remapper
     ) {
         return bind2stage(fieldName, objectNodeExtractor, remapper);
     }
 
-    public final <A, R> VarBind.Duo<A, R> bind2stage(
+    public final <A, R> VarBind.TwoStage<A, R> bind2stage(
             String fieldName, BiFunction<UniObjectNode, String, A> extractor, Function<A, R> remapper
     ) {
-        return new VarBind.Duo<>(this, fieldName, extractor, remapper);
+        return new VarBind.TwoStage<>(this, fieldName, extractor, remapper);
     }
 
-    public final <A, R> VarBind.Duo<A, R> bind2stage(
+    public final <A, R> VarBind.TwoStage<A, R> bind2stage(
             String fieldName, UniValueNode.ValueType<A> type, Function<A, R> remapper
     ) {
         return bind2stage(fieldName, extractor(type), remapper);
     }
 
-    public final <R> VarBind.Dep<UniObjectNode, D, R> bindDependent(
+    public final <R> VarBind.DependentTwoStage<UniObjectNode, D, R> bindDependent(
             String fieldName, BiFunction<D, UniObjectNode, R> resolver
     ) {
         return bindDependent(fieldName, objectNodeExtractor, resolver);
     }
 
-    public final <A, R> VarBind.Dep<A, D, R> bindDependent(
+    public final <A, R> VarBind.DependentTwoStage<A, D, R> bindDependent(
             String fieldName, BiFunction<UniObjectNode, String, A> extractor, BiFunction<D, A, R> resolver
     ) {
-        return new VarBind.Dep<>(this, fieldName, extractor, resolver);
+        return new VarBind.DependentTwoStage<>(this, fieldName, extractor, resolver);
     }
 
-    public final <A, R> VarBind.Dep<A, D, R> bindDependent(
+    public final <A, R> VarBind.DependentTwoStage<A, D, R> bindDependent(
             String fieldName, UniValueNode.ValueType<A> type, BiFunction<D, A, R> resolver
     ) {
         return bindDependent(fieldName, extractor(type), resolver);
     }
 
-    public final <A, C extends Collection<A>> ArrayBind.Uno<A, C> list1stage(
+    public final <A, C extends Collection<A>> ArrayBind.OneStage<A, C> list1stage(
             String fieldName, UniValueNode.ValueType<A> type, Supplier<C> collectionSupplier
     ) {
         return list1stage(fieldName, eachExtractor(type), collectionSupplier);
     }
 
-    public final <A, C extends Collection<A>> ArrayBind.Uno<A, C> list1stage(
+    public final <A, C extends Collection<A>> ArrayBind.OneStage<A, C> list1stage(
             String fieldName, Function<? extends UniNode, A> extractor, Supplier<C> collectionSupplier
     ) {
-        return new ArrayBind.Uno<>(this, fieldName, extractor, collectionSupplier);
+        return new ArrayBind.OneStage<>(this, fieldName, extractor, collectionSupplier);
     }
 
     private <A> Function<UniNode, A> eachExtractor(final UniValueNode.ValueType<A> type) {
         return root -> root.as(type);
     }
 
-    public final <A, R, C extends Collection<R>> ArrayBind.Duo<A, R, C> list2stage(
+    public final <A, R, C extends Collection<R>> ArrayBind.TwoStage<A, R, C> list2stage(
             String fieldName, UniValueNode.ValueType<A> type, Function<A, R> remapper, Supplier<C> collectionSupplier
     ) {
         return list2stage(fieldName, eachExtractor(type), remapper, collectionSupplier);
     }
 
-    public final <A, R, C extends Collection<R>> ArrayBind.Duo<A, R, C> list2stage(
+    public final <A, R, C extends Collection<R>> ArrayBind.TwoStage<A, R, C> list2stage(
             String fieldName, Function<? extends UniNode, A> extractor, Function<A, R> remapper, Supplier<C> collectionSupplier
     ) {
-        return new ArrayBind.Duo<>(this, fieldName, extractor, remapper, collectionSupplier);
+        return new ArrayBind.TwoStage<>(this, fieldName, extractor, remapper, collectionSupplier);
     }
 
-    public final <R, C extends Collection<R>> ArrayBind.Duo<UniObjectNode, R, C> list2stage(
+    public final <R, C extends Collection<R>> ArrayBind.TwoStage<UniObjectNode, R, C> list2stage(
             String fieldName, Function<UniObjectNode, R> remapper, Supplier<C> collectionSupplier
     ) {
         return list2stage(fieldName, UniNode::asObjectNode, remapper, collectionSupplier);
     }
 
-    public final <R, C extends Collection<R>> ArrayBind.Dep<UniObjectNode, D, R, C> listDependent(
+    public final <R, C extends Collection<R>> ArrayBind.DependentTwoStage<UniObjectNode, D, R, C> listDependent(
             String fieldName, BiFunction<D, UniObjectNode, R> resolver, Supplier<C> collectionSupplier
     ) {
         return listDependent(fieldName, UniNode::asObjectNode, resolver, collectionSupplier);
     }
 
-    public final <A, R, C extends Collection<R>> ArrayBind.Dep<A, D, R, C> listDependent(
+    public final <A, R, C extends Collection<R>> ArrayBind.DependentTwoStage<A, D, R, C> listDependent(
             String fieldName,
             Function<? extends UniNode, A> extractor,
             BiFunction<D, A, R> resolver,
             Supplier<C> collectionSupplier
     ) {
-        return new ArrayBind.Dep<>(this, fieldName, extractor, resolver, collectionSupplier);
+        return new ArrayBind.DependentTwoStage<>(this, fieldName, extractor, resolver, collectionSupplier);
     }
 
-    public final <A, R, C extends Collection<R>> ArrayBind.Dep<A, D, R, C> listDependent(
+    public final <A, R, C extends Collection<R>> ArrayBind.DependentTwoStage<A, D, R, C> listDependent(
             String fieldName, UniValueNode.ValueType<A> type, BiFunction<D, A, R> resolver, Supplier<C> collectionSupplier
     ) {
         return listDependent(fieldName, eachExtractor(type), resolver, collectionSupplier);

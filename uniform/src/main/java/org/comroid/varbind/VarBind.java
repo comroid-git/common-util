@@ -79,8 +79,8 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     @Retention(RetentionPolicy.RUNTIME)
     @interface Root {}
 
-    final class Uno<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
-        public Uno(
+    final class OneStage<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
+        public OneStage(
                 GroupBind group, String fieldName, BiFunction<UniObjectNode, String, TARGET> extractor
         ) {
             super(group, fieldName, extractor.andThen(Span::singleton));
@@ -92,10 +92,10 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         }
     }
 
-    final class Duo<EXTR, TARGET> extends AbstractObjectBind<EXTR, Object, TARGET> {
+    final class TwoStage<EXTR, TARGET> extends AbstractObjectBind<EXTR, Object, TARGET> {
         private final Function<EXTR, TARGET> remapper;
 
-        public Duo(
+        public TwoStage(
                 GroupBind group,
                 String fieldName,
                 BiFunction<UniObjectNode, String, EXTR> extractor,
@@ -112,10 +112,10 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         }
     }
 
-    final class Dep<EXTR, DPND, TARGET> extends AbstractObjectBind<EXTR, DPND, TARGET> {
+    final class DependentTwoStage<EXTR, DPND, TARGET> extends AbstractObjectBind<EXTR, DPND, TARGET> {
         private final BiFunction<DPND, EXTR, TARGET> resolver;
 
-        public Dep(
+        public DependentTwoStage(
                 GroupBind group,
                 String fieldName,
                 BiFunction<UniObjectNode, String, EXTR> extractor,
