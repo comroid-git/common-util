@@ -1,5 +1,5 @@
 package org.comroid.varbind.bind;
 
-public interface GroupedBind {
-    GroupBind getGroup();
+public interface GroupedBind<D> {
+    GroupBind<?, D> getGroup();
 }

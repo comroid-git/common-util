@@ -105,6 +105,7 @@ public final class Polyfill {
     }
 
     public static <R> R uncheckedCast(Object instance) {
+        //noinspection unchecked
         return (R) instance;
     }
 

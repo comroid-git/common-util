@@ -10,6 +10,8 @@ import org.comroid.common.Polyfill;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
+import org.comroid.varbind.annotation.Location;
+import org.comroid.varbind.annotation.Root;
 import org.comroid.varbind.bind.ArrayBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
@@ -19,7 +21,7 @@ import com.alibaba.fastjson.JSONObject;
 
 import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
 
-@VarBind.Location(Message.Binds.class)
+@Location(Message.Binds.class)
 public final class Message extends DataContainerBase<DiscordAPI> {
     public Message(DiscordAPI api, JSONObject node) {
         super(fastJsonLib, node, api);
@@ -45,7 +47,8 @@ public final class Message extends DataContainerBase<DiscordAPI> {
     }
 
     public interface Binds {
-        @VarBind.Root GroupBind GROUP = new GroupBind(fastJsonLib, "message", invocable);
+        @Root
+        GroupBind GROUP = new GroupBind(fastJsonLib, "message", invocable);
         ArrayBind.TwoStage<String, URL, Collection<URL>> ATTACHMENTS       = GROUP.list2stage(
                 "attachments",
                 UniValueNode.ValueType.STRING,

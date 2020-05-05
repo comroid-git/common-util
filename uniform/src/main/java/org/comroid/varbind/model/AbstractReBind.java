@@ -21,7 +21,7 @@ public abstract class AbstractReBind<EXTR, DPND, REMAP> implements ReBind<EXTR, 
     }
 
     @Override
-    public GroupBind getGroup() {
+    public GroupBind<?, DPND> getGroup() {
         return group;
     }
 }

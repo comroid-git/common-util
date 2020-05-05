@@ -39,7 +39,7 @@ public abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<E
     }
 
     @Override
-    public final GroupBind getGroup() {
+    public final GroupBind<?, DPND> getGroup() {
         return group;
     }
 }

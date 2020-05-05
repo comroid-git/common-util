@@ -64,7 +64,7 @@ abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REM
     }
 
     @Override
-    public final GroupBind getGroup() {
+    public final GroupBind<?, DPND> getGroup() {
         return group;
     }
 }

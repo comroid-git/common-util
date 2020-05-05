@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
+public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
     default FINAL getFrom(UniObjectNode node) {
         return getFrom(null, node);
     }
@@ -44,8 +44,8 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
         return false;
     }
 
-    default ReBind.Optional<FINAL> optional() {
-        return new ReBind.Optional<>(Polyfill.uncheckedCast(this), getGroup());
+    default OptionalBind<FINAL> optional() {
+        return OptionalBind.ofBind(this);
     }
 
     default <R> ReBind.Duo<FINAL, R> rebindSimple(Function<FINAL, R> remapper) {
@@ -62,31 +62,6 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
 
     default <R, D extends DPND> ReBind.Dep<FINAL, D, R> rebindDependent(GroupBind group, BiFunction<FINAL, D, R> resolver) {
         return new ReBind.Dep<>(Polyfill.uncheckedCast(this), group, resolver);
-    }
-
-    @Target(ElementType.TYPE)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Location {
-        Class<?> value();
-
-        String rootNode() default "";
-    }
-
-    interface NotAutoprocessed<EXTR, DPND, REMAP> extends VarBind<EXTR, DPND, REMAP, REMAP> {
-        @Override
-        default Span<EXTR> extract(UniObjectNode node) {
-            return Span.zeroSize();
-        }
-
-        @Override
-        default REMAP finish(Span<REMAP> parts) {
-            return parts.requireNonNull();
-        }
-    }
-
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Root {
     }
 
     final class OneStage<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {

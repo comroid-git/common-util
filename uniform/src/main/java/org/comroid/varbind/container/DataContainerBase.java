@@ -8,8 +8,11 @@ import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.varbind.annotation.Location;
+import org.comroid.varbind.annotation.Root;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
+import org.comroid.varbind.model.Reprocessed;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,14 +76,14 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
     @Internal
     public static <T extends DataContainer<? super D>, D> GroupBind<T, D> findRootBind(Class<T> inClass) {
-        final VarBind.Location location = ReflectionHelper.findAnnotation(VarBind.Location.class, inClass, ElementType.TYPE)
+        final Location location = ReflectionHelper.findAnnotation(Location.class, inClass, ElementType.TYPE)
                 .orElseThrow(() -> new IllegalStateException(String.format(
                         "Class %s extends VariableCarrier,\nbut does not have a %s annotation.",
                         inClass.getName(),
-                        VarBind.Location.class.getName()
+                        Location.class.getName()
                 )));
 
-        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, VarBind.Root.class)
+        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, Root.class)
                 .requireNonNull();
     }
 
@@ -94,7 +97,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
         getRootBind().streamAllChildren()
-                .filter(bind -> !(bind instanceof VarBind.NotAutoprocessed))
+                .filter(bind -> !(bind instanceof Reprocessed))
                 .map(it -> (VarBind<Object, ? super DEP, ?, Object>) it)
                 .filter(bind -> data.has(bind.getFieldName()))
                 .map(it -> (VarBind<Object, Object, Object, Object>) it)
