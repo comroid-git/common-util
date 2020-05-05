@@ -31,13 +31,13 @@ import static org.comroid.common.Polyfill.uncheckedCast;
 
 @SuppressWarnings("unchecked")
 public class DataContainerBase<DEP> implements DataContainer<DEP> {
-    private final GroupBind<?, DEP> rootBind;
+    private final GroupBind<? extends DataContainer<DEP>, DEP> rootBind;
     private final Map<VarBind<?, ? super DEP, ?, ?>, String> binds = new ConcurrentHashMap<>();
     private final Map<String, AtomicReference<Span<Object>>> vars = TrieMap.ofString();
     private final Map<String, OutdateableReference<Object>> computed = TrieMap.ofString();
     private final DEP dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
-    private final Class<? extends DataContainer<? super DEP>> myType;
+    private final Class<? extends DataContainer<DEP>> myType;
 
     public DataContainerBase(
             @Nullable UniObjectNode initialData
@@ -56,7 +56,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
             @Nullable DEP dependencyObject,
             @Nullable Class<? extends DataContainer<DEP>> containingClass
     ) {
-        this.myType = containingClass == null ? (Class<? extends DataContainer<? super DEP>>) getClass() : containingClass;
+        this.myType = containingClass == null ? (Class<? extends DataContainer<DEP>>) getClass() : containingClass;
         this.rootBind = findRootBind(myType);
         this.initiallySet = unmodifiableSet(updateVars(initialData));
         this.dependencyObject = dependencyObject;
@@ -65,9 +65,9 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     DataContainerBase(
             Map<VarBind<Object, DEP, ?, Object>, Object> initialValues,
             DEP dependencyObject,
-            Class<? extends DataContainer<? super DEP>> containingClass
+            Class<? extends DataContainer<DEP>> containingClass
     ) {
-        this.myType = containingClass == null ? (Class<? extends DataContainer<? super DEP>>) getClass() : containingClass;
+        this.myType = containingClass == null ? (Class<? extends DataContainer<DEP>>) getClass() : containingClass;
         this.rootBind = findRootBind(myType);
         this.initiallySet = unmodifiableSet(initialValues.keySet());
         this.dependencyObject = dependencyObject;
@@ -75,7 +75,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     @Internal
-    public static <T extends DataContainer<? super D>, D> GroupBind<T, D> findRootBind(Class<T> inClass) {
+    public static <T extends DataContainer<D>, D> GroupBind<T, D> findRootBind(Class<T> inClass) {
         final Location location = ReflectionHelper.findAnnotation(Location.class, inClass, ElementType.TYPE)
                 .orElseThrow(() -> new IllegalStateException(String.format(
                         "Class %s extends VariableCarrier,\nbut does not have a %s annotation.",

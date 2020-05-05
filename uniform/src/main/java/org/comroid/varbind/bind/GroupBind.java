@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class GroupBind<T extends DataContainer<? super D>, D> {
+public final class GroupBind<T extends DataContainer<? extends D>, D> {
     private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
             .asObjectNode();
     final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
