@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public interface Invocable<T> {
@@ -66,20 +67,12 @@ public interface Invocable<T> {
         return (Invocable<T>) Support.Empty;
     }
 
-    default T autoInvoke(Object... args) {
-        try {
-            return invokeAutoOrder(args);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    Class<?>[] typeOrder();
 
-    default T silentAutoInvoke(Object... args) {
-        try {
-            return autoInvoke(args);
-        } catch (Throwable ignored) {
-            return null;
-        }
+    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
+
+    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
+        return invoke(ReflectionHelper.arrange(args, typeOrder()));
     }
 
     default T invokeRethrow(Object... args) {
@@ -90,13 +83,29 @@ public interface Invocable<T> {
         }
     }
 
-    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
-
-    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
-        return invoke(ReflectionHelper.arrange(args, typeOrder()));
+    default <X extends Throwable> T invokeRethrow(Function<ReflectiveOperationException, X> remapper, Object... args) throws X {
+        try {
+            return invoke(args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw remapper.apply(e);
+        }
     }
 
-    Class<?>[] typeOrder();
+    default T autoInvoke(Object... args) {
+        try {
+            return invokeAutoOrder(args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    default @Nullable T silentAutoInvoke(Object... args) {
+        try {
+            return autoInvoke(args);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
 
     abstract class Magic<T> implements Invocable<T> {
         private final Invocable<T> underlying;
