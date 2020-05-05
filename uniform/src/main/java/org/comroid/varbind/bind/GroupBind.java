@@ -1,11 +1,14 @@
-package org.comroid.varbind;
+package org.comroid.varbind.bind;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
+import org.comroid.varbind.container.DataContainer;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -15,7 +18,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class GroupBind<T extends VarCarrier<? super D>, D> {
+public final class GroupBind<T extends DataContainer<? super D>, D> {
     private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
             .asObjectNode();
     final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
@@ -222,5 +225,10 @@ public final class GroupBind<T extends VarCarrier<? super D>, D> {
                 .filter(node -> !node.isNull())
                 .map(node -> dataExtractor.apply(node, fieldName))
                 .collect(Collectors.toList());
+    }
+
+    @Internal
+    public void addChild(VarBind<?, ? super D, ?, ?> child) {
+        children.add(Polyfill.uncheckedCast(child));
     }
 }

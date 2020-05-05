@@ -3,12 +3,12 @@ package org.comroid.test.model;
 import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
-import org.comroid.varbind.GroupBind;
-import org.comroid.varbind.VarBind;
-import org.comroid.varbind.VariableCarrier;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.bind.VarBind;
+import org.comroid.varbind.container.DataContainerBase;
 
 @VarBind.Location(NGinXFSNode.Bind.class)
-public final class NGinXFSNode extends VariableCarrier<Void> {
+public final class NGinXFSNode extends DataContainerBase<Void> {
     protected NGinXFSNode(UniObjectNode initialData) {
         super(, FastJSONLib.fastJsonLib, initialData, null);
     }

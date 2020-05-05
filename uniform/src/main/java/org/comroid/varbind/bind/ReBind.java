@@ -1,4 +1,6 @@
-package org.comroid.varbind;
+package org.comroid.varbind.bind;
+
+import org.comroid.varbind.model.AbstractReBind;
 
 import java.util.Objects;
 import java.util.function.BiFunction;

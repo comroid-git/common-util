@@ -1,4 +1,4 @@
-package org.comroid.varbind;
+package org.comroid.varbind.container;
 
 import java.util.Optional;
 import java.util.Set;
@@ -7,11 +7,13 @@ import org.comroid.common.func.Processor;
 import org.comroid.common.ref.Reference;
 import org.comroid.uniform.node.UniObjectNode;
 
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.bind.VarBind;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface VarCarrier<DEP> {
-    GroupBind getRootBind();
+public interface DataContainer<DEP> {
+    GroupBind<?, DEP> getRootBind();
 
     Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node);
 
@@ -45,13 +47,15 @@ public interface VarCarrier<DEP> {
 
     UniObjectNode toObjectNode(); // todo
 
-    interface Underlying<DEP> extends VarCarrier<DEP> {
+    Class<? extends DataContainer<? super DEP>> getRepresentedType();
+
+    interface Underlying<DEP> extends DataContainer<DEP> {
+        DataContainer<DEP> getUnderlyingVarCarrier();
+
         @Override
-        default GroupBind getRootBind() {
+        default GroupBind<?, DEP> getRootBind() {
             return getUnderlyingVarCarrier().getRootBind();
         }
-
-        VarCarrier<DEP> getUnderlyingVarCarrier();
 
         @Override
         default Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node) {

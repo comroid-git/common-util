@@ -1,15 +1,17 @@
-package org.comroid.varbind;
+package org.comroid.varbind.model;
 
 import java.util.function.BiFunction;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.bind.VarBind;
 
-abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<EXTR, DPND, REMAP, REMAP> {
+public abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<EXTR, DPND, REMAP, REMAP> {
     private final String                                        fieldName;
     private final BiFunction<UniObjectNode, String, Span<EXTR>> extractor;
-    private final GroupBind                                     group;
+    private final GroupBind group;
 
     protected AbstractObjectBind(
             GroupBind group, String fieldName, BiFunction<UniObjectNode, String, Span<EXTR>> extractor

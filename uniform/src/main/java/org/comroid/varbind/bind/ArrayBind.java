@@ -1,4 +1,4 @@
-package org.comroid.varbind;
+package org.comroid.varbind.bind;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.varbind.model.AbstractArrayBind;
 
 public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> extends VarBind<EXTR, DPND, REMAP, FINAL> {
     @Override

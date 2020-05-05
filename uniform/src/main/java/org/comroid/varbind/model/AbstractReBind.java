@@ -1,16 +1,18 @@
-package org.comroid.varbind;
+package org.comroid.varbind.model;
 
-import org.comroid.common.Polyfill;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.bind.ReBind;
+import org.comroid.varbind.bind.VarBind;
 
 public abstract class AbstractReBind<EXTR, DPND, REMAP> implements ReBind<EXTR, DPND, REMAP> {
     private final VarBind<?, DPND, ?, EXTR> underlying;
-    private final GroupBind                 group;
+    private final GroupBind<?, DPND> group;
 
-    public AbstractReBind(VarBind<?, DPND, ?, EXTR> underlying, GroupBind group) {
+    public AbstractReBind(VarBind<?, DPND, ?, EXTR> underlying, GroupBind<?, DPND> group) {
         this.underlying = underlying;
-        this.group      = group;
+        this.group = group;
 
-        group.children.add(Polyfill.uncheckedCast(this));
+        group.addChild(this);
     }
 
     @Override

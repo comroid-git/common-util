@@ -1,4 +1,9 @@
-package org.comroid.varbind;
+package org.comroid.varbind.bind;
+
+import org.comroid.common.Polyfill;
+import org.comroid.common.iter.Span;
+import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.varbind.model.AbstractObjectBind;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,10 +12,6 @@ import java.lang.annotation.Target;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import org.comroid.common.Polyfill;
-import org.comroid.common.iter.Span;
-import org.comroid.uniform.node.UniObjectNode;
 
 public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     default FINAL getFrom(UniObjectNode node) {
@@ -38,6 +39,14 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
     REMAP remap(EXTR from, DPND dependency);
 
     String getFieldName();
+
+    default boolean isOptional() {
+        return false;
+    }
+
+    default ReBind.Optional<FINAL> optional() {
+        return new ReBind.Optional<>(Polyfill.uncheckedCast(this), getGroup());
+    }
 
     default <R> ReBind.Duo<FINAL, R> rebindSimple(Function<FINAL, R> remapper) {
         return rebindSimple(getGroup(), remapper);
@@ -77,7 +86,8 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind {
 
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    @interface Root {}
+    @interface Root {
+    }
 
     final class OneStage<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {
         public OneStage(

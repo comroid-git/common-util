@@ -10,17 +10,17 @@ import org.comroid.common.Polyfill;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
-import org.comroid.varbind.ArrayBind;
-import org.comroid.varbind.GroupBind;
-import org.comroid.varbind.VarBind;
-import org.comroid.varbind.VariableCarrier;
+import org.comroid.varbind.bind.ArrayBind;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.bind.VarBind;
+import org.comroid.varbind.container.DataContainerBase;
 
 import com.alibaba.fastjson.JSONObject;
 
 import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
 
 @VarBind.Location(Message.Binds.class)
-public final class Message extends VariableCarrier<DiscordAPI> {
+public final class Message extends DataContainerBase<DiscordAPI> {
     public Message(DiscordAPI api, JSONObject node) {
         super(fastJsonLib, node, api);
     }

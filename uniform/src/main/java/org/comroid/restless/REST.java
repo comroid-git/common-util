@@ -6,7 +6,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -19,9 +18,9 @@ import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.Cache;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
-import org.comroid.varbind.GroupBind;
-import org.comroid.varbind.VarBind;
-import org.comroid.varbind.VarCarrier;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.bind.VarBind;
+import org.comroid.varbind.container.DataContainer;
 
 import com.google.common.flogger.FluentLogger;
 import org.intellij.lang.annotations.MagicConstant;
@@ -47,7 +46,7 @@ public final class REST<D> {
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
     }
 
-    public <T extends VarCarrier<D>> Request<T> request(GroupBind<T, D> group) {
+    public <T extends DataContainer<D>> Request<T> request(GroupBind<T, D> group) {
         return new Request<>(
                 this,
                 Polyfill.uncheckedCast(group.getConstructor()
@@ -271,7 +270,7 @@ public final class REST<D> {
                 //noinspection unchecked
                 cache.getReference(id, false) // should be present
                         .compute(old -> (T) (
-                                (VarCarrier<D>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
+                                (DataContainer<D>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
                         ).updateFrom(obj));
             } else {
                 cache.getReference(id, true)

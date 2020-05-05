@@ -4,12 +4,12 @@ import org.comroid.common.func.Disposable;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
-import org.comroid.varbind.VarCarrier;
+import org.comroid.varbind.container.DataContainer;
 
 import java.io.*;
 import java.util.stream.Collectors;
 
-public class FileCache<K, V extends VarCarrier<D>, D> extends BasicCache<K, V> implements FileProcessor, Disposable.Container {
+public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V> implements FileProcessor, Disposable.Container {
     private final Disposable disposable = new Disposable.Basic();
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final File file;
@@ -35,7 +35,7 @@ public class FileCache<K, V extends VarCarrier<D>, D> extends BasicCache<K, V> i
     @Override
     public synchronized void storeData() throws IOException {
         final UniArrayNode data = UniArrayNode.ofList(seriLib, stream().map(Reference::requireNonNull)
-                .map(VarCarrier::toObjectNode)
+                .map(DataContainer::toObjectNode)
                 .collect(Collectors.toList()));
         final FileWriter writer = new FileWriter(file, false);
 
