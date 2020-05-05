@@ -1,5 +1,6 @@
 package org.comroid.varbind.bind;
 
+import org.comroid.common.iter.Span;
 import org.comroid.varbind.model.AbstractReBind;
 import org.comroid.varbind.model.Reprocessed;
 
@@ -7,19 +8,13 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface ReBind<EXTR, DPND, REMAP> extends Reprocessed<EXTR, DPND, REMAP> {
+public interface ReBind<EXTR, DPND, REMAP> extends Reprocessed<EXTR, DPND, REMAP, REMAP> {
     @Override
     default String getFieldName() {
         return getUnderlying().getFieldName();
     }
 
     VarBind<?, DPND, ?, EXTR> getUnderlying();
-
-    @Override
-    REMAP remap(EXTR from, DPND dependency);
-
-    @Override
-    GroupBind<?, DPND> getGroup();
 
     final class Duo<EXTR, FINAL> extends AbstractReBind<EXTR, Object, FINAL> {
         private final Function<EXTR, FINAL> remapper;

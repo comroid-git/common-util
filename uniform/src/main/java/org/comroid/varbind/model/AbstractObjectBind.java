@@ -20,7 +20,7 @@ public abstract class AbstractObjectBind<EXTR, DPND, REMAP> implements VarBind<E
         this.extractor = extractor;
         this.group     = group;
 
-        group.children.add(Polyfill.uncheckedCast(this));
+        group.addChild(Polyfill.uncheckedCast(this));
     }
 
     @Override

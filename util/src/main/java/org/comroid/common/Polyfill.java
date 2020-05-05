@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 
 import org.comroid.common.func.ThrowingRunnable;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,6 +105,7 @@ public final class Polyfill {
         return value;
     }
 
+    @Contract("_ -> param1")
     public static <R> R uncheckedCast(Object instance) {
         //noinspection unchecked
         return (R) instance;

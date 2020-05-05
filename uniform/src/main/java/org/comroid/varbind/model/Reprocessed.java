@@ -14,7 +14,7 @@ public interface Reprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPN
 
     @Override
     default FINAL finish(Span<REMAP> parts) {
-        return Polyfill.uncheckedCast(parts.requireNonNull());
+        return Polyfill.uncheckedCast(parts.get());
     }
 
     interface Underlying<V extends VarBind<EXTR, DPND, REMAP, I>, EXTR, DPND, REMAP, I, T> extends Reprocessed<EXTR, DPND, I, T> {

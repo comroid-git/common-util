@@ -22,7 +22,7 @@ import org.comroid.varbind.container.DataContainerBase;
  * @param <C>   The output {@link Collection} type; this is what you get from {@link DataContainerBase#getVar(VarBind)}
  * @param <OBJ> Serialization Library Type of the serialization Node
  */
-abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
+public abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         implements ArrayBind<EXTR, DPND, REMAP, FINAL> {
     final         Supplier<FINAL>                   collectionSupplier;
     private final String                            fieldName;
@@ -37,7 +37,7 @@ abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REM
         this.collectionSupplier = collectionSupplier;
         this.group              = group;
 
-        group.children.add(Polyfill.uncheckedCast(this));
+        group.addChild(Polyfill.uncheckedCast(this));
     }
 
     @Override

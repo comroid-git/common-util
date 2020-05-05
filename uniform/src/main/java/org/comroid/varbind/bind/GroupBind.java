@@ -65,7 +65,7 @@ public final class GroupBind<T extends DataContainer<? super D>, D> {
                 .orElseGet(Stream::empty));
     }
 
-    public List<? extends VarBind<?, D, ?, ?>> getChildren() {
+    public List<? extends VarBind<?, D, ?, ?>> getDirectChildren() {
         return Collections.unmodifiableList(children);
     }
 

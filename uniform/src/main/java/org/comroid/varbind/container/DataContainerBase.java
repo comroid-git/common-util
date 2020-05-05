@@ -94,6 +94,9 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
             return emptySet();
         }
 
+        if (!rootBind.isValidData(data))
+            throw new IllegalArgumentException("Data is invalid");
+
         final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
         getRootBind().streamAllChildren()
