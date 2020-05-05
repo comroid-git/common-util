@@ -2,7 +2,7 @@ package org.comroid.restless;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.ref.StaticCache;
-import org.jetbrains.annotations.Nullable;
+import org.comroid.common.util.ArrayUtil;
 
 import java.net.URI;
 import java.net.URL;
@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public interface RestEndpoint {
+public interface RestEndpoint extends Predicate<String> {
     String getUrlBase();
 
     String getUrlExtension();
@@ -38,28 +39,34 @@ public interface RestEndpoint {
         return makeAndValidateUrl(Polyfill::uri, args);
     }
 
-    default boolean testURL(URL url) {
-        return getPattern().matcher(url.toExternalForm()).matches();
+    default boolean test(URL url) {
+        return test(url.toExternalForm());
     }
 
-    default boolean testURI(URI uri) {
-        return getPattern().matcher(uri.toString()).matches();
+    default boolean test(URI uri) {
+        return test(uri.toString());
     }
 
-    default @Nullable Object[] extractArgs(URL url) {
+    @Override
+    default boolean test(String url) {
+        return getPattern().matcher(url)
+                .replaceAll(processExtractionUrl(getGroupFx()))
+                .equals(url);
+    }
+
+    default Object[] extractArgs(URL url) {
         return extractArgs(url.toExternalForm());
     }
 
-    default @Nullable Object[] extractArgs(URI uri) {
+    default Object[] extractArgs(URI uri) {
         return extractArgs(uri.toString());
     }
 
-    default @Nullable Object[] extractArgs(String requestUrl) {
+    default Object[] extractArgs(String requestUrl) {
         final Matcher matcher = getPattern().matcher(requestUrl);
+        final IntUnaryOperator fx = getGroupFx();
 
-        if (matcher.matches() && matcher.replaceAll(processExtractionUrl(getGroupFx()))
-                .equals(requestUrl)) {
-            final IntUnaryOperator fx = getGroupFx();
+        if (matcher.matches() && test(requestUrl)) {
             int x = -1;
             List<Object> yields = new ArrayList<>();
 
@@ -68,7 +75,8 @@ public interface RestEndpoint {
 
             return yields.toArray();
         }
-        return null;
+
+        return ArrayUtil.empty();
     }
 
     default String processExtractionUrl(IntUnaryOperator groupFx) {
@@ -97,7 +105,8 @@ public interface RestEndpoint {
         }
 
         T url = maker.apply(String.format(getFullUrl(), args));
-        if ((url instanceof URL && testURL((URL) url)) || (url instanceof URI && testURI((URI) url))) {
+        if ((url instanceof URL && test((URL) url))
+                || (url instanceof URI && test((URI) url))) {
             return url;
         }
 
