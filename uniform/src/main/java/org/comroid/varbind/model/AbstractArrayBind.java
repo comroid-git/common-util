@@ -16,11 +16,10 @@ import org.comroid.varbind.container.DataContainerBase;
 /**
  * {@link Collection} building Variable definition with 2 mapping Stages. Used for deserializing arrays of data.
  *
- * @param <S>   The serialization input Type
- * @param <A>   The mapping output Type
- * @param <D>   The dependency Type
- * @param <C>   The output {@link Collection} type; this is what you get from {@link DataContainerBase#getVar(VarBind)}
- * @param <OBJ> Serialization Library Type of the serialization Node
+ * @param <EXTR>   The serialization input Type
+ * @param <DPND>   The mapping output Type
+ * @param <REMAP>   The dependency Type
+ * @param <FINAL>   The output {@link Collection} type; this is what you get from {@link DataContainerBase#get(VarBind)}
  */
 public abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>>
         implements ArrayBind<EXTR, DPND, REMAP, FINAL> {
