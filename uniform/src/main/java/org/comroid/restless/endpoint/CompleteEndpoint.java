@@ -4,13 +4,8 @@ import org.comroid.common.Polyfill;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.function.Function;
 
 public interface CompleteEndpoint {
-    static CompleteEndpoint of(RestEndpoint endpoint, Object... args) {
-        return new Support.OfArgs(endpoint, args);
-    }
-
     RestEndpoint getEndpoint();
 
     String getSpec();
@@ -23,15 +18,14 @@ public interface CompleteEndpoint {
         return Polyfill.uri(getSpec());
     }
 
+    static CompleteEndpoint of(RestEndpoint endpoint, String spec) {
+        return new Support.OfSpec(endpoint, spec);
+    }
+
     final class Support {
-        private static final class OfArgs implements CompleteEndpoint {
+        private static final class OfSpec implements CompleteEndpoint {
             private final RestEndpoint endpoint;
             private final String spec;
-
-            private OfArgs(RestEndpoint endpoint, Object[] args) {
-                this.endpoint = endpoint;
-                this.spec = endpoint.makeAndValidateUrl(Function.identity(), args);
-            }
 
             @Override
             public RestEndpoint getEndpoint() {
@@ -41,6 +35,11 @@ public interface CompleteEndpoint {
             @Override
             public String getSpec() {
                 return spec;
+            }
+
+            private OfSpec(RestEndpoint endpoint, String spec) {
+                this.endpoint = endpoint;
+                this.spec = spec;
             }
         }
     }

@@ -3,8 +3,9 @@ package org.comroid.restless;
 import com.google.common.flogger.FluentLogger;
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
-import org.comroid.common.func.Provider;
 import org.comroid.common.iter.Span;
+import org.comroid.restless.endpoint.CompleteEndpoint;
+import org.comroid.restless.endpoint.RestEndpoint;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.Cache;
 import org.comroid.uniform.node.UniNode;
@@ -16,7 +17,6 @@ import org.comroid.varbind.container.DataContainerBase;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -171,22 +171,13 @@ public final class REST<D> {
         private final Header.List headers;
         private final Invocable<T> tProducer;
         private CompletableFuture<REST.Response> execution = null;
-        private Provider<URL> urlProvider;
+        private CompleteEndpoint endpoint;
         private Method method;
         private String body;
         private int expectedCode = HTTPStatusCodes.OK;
 
-        @Override
-        public String toString() {
-            return String.format("%s @ %s", method.name(), urlProvider.now().toExternalForm());
-        }
-
-        public final Provider<URL> getUrlProvider() {
-            return urlProvider;
-        }
-
-        public final URL getUrl() {
-            return urlProvider.now();
+        public final CompleteEndpoint getEndpoint() {
+            return endpoint;
         }
 
         public final Method getMethod() {
@@ -207,26 +198,25 @@ public final class REST<D> {
             this.headers = new Header.List();
         }
 
+        @Override
+        public String toString() {
+            return String.format("%s @ %s", method.name(), endpoint.getSpec());
+        }
+
         public final Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
             this.expectedCode = code;
 
             return this;
         }
 
-        public final Request<T> url(Provider<URL> urlProvider) {
-            this.urlProvider = urlProvider;
+        public final Request<T> endpoint(CompleteEndpoint endpoint) {
+            this.endpoint = endpoint;
 
             return this;
         }
 
-        public final Request<T> url(String spec) throws AssertionError {
-            return url(Polyfill.url(spec, null));
-        }
-
-        public final Request<T> url(URL url) {
-            this.urlProvider = Provider.constant(url);
-
-            return this;
+        public final Request<T> endpoint(RestEndpoint endpoint, Object... args) {
+            return endpoint(endpoint.complete(args));
         }
 
         public final Request<T> method(REST.Method method) {
@@ -259,7 +249,7 @@ public final class REST<D> {
             if (execution == null) {
                 logger.at(Level.FINE)
                         .log("Executing request %s @ %s");
-                execution = httpAdapter.call(rest, method, urlProvider, headers, serializationAdapter.getMimeType(), body);
+                execution = httpAdapter.call(rest, serializationAdapter.getMimeType(), this);
             }
 
             return execution.thenApply(response -> {

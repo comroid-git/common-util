@@ -12,6 +12,7 @@ import org.comroid.restless.socket.WebSocket;
 import org.comroid.restless.socket.WebSocketEvent;
 import org.comroid.uniform.SerializationAdapter;
 
+@SuppressWarnings("rawtypes")
 public interface HttpAdapter {
     static HttpAdapter autodetect() {
         throw new UnsupportedOperationException();
@@ -25,6 +26,7 @@ public interface HttpAdapter {
             Function<String, O> preprocessor
     );
 
+    @Deprecated
     CompletableFuture<REST.Response> call(
             REST rest,
             REST.Method method,
@@ -33,4 +35,6 @@ public interface HttpAdapter {
             String mimeType,
             String body
     );
+
+    CompletableFuture<REST.Response> call(REST rest, String mimeType, REST.Request request);
 }
