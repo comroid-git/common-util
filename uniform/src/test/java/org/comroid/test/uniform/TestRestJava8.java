@@ -21,7 +21,7 @@ public class TestRestJava8 {
 
     @Before
     public void setup() {
-        rest = new REST<>(new OkHttp3Adapter(), FastJSONLib.fastJsonLib, null);
+        rest = new REST<>(new OkHttp3Adapter(), FastJSONLib.fastJsonLib, null, ratelimiter);
     }
 
     @Test

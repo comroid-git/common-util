@@ -1,6 +1,7 @@
-package org.comroid.restless;
+package org.comroid.restless.endpoint;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.info.NamedGroup;
 import org.comroid.common.ref.StaticCache;
 import org.comroid.common.util.ArrayUtil;
 
@@ -9,19 +10,22 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public interface RestEndpoint extends Predicate<String> {
+public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
     String getUrlBase();
 
     String getUrlExtension();
 
-    Pattern getPattern();
+    default Pattern getPattern() {
+        // todo: Inspect overhead
+        return StaticCache.access(this, Pattern.class,
+                () -> Pattern.compile(getFullUrl().replace("%s", ".*")));
+    }
 
-    IntUnaryOperator getGroupFx();
+    List<? extends NamedGroup> getGroups();
 
     default int getParameterCount() {
         return getUrlExtension().split("%s").length - 1;
@@ -50,7 +54,7 @@ public interface RestEndpoint extends Predicate<String> {
     @Override
     default boolean test(String url) {
         return getPattern().matcher(url)
-                .replaceAll(processExtractionUrl(getGroupFx()))
+                .replaceAll(processExtractionUrl(getGroups()))
                 .equals(url);
     }
 
@@ -64,14 +68,14 @@ public interface RestEndpoint extends Predicate<String> {
 
     default String[] extractArgs(String requestUrl) {
         final Matcher matcher = getPattern().matcher(requestUrl);
-        final IntUnaryOperator fx = getGroupFx();
+        final List<? extends NamedGroup> groups = getGroups();
 
         if (matcher.matches() && test(requestUrl)) {
-            int x = -1;
             List<String> yields = new ArrayList<>();
 
-            while ((x = fx.applyAsInt(x)) != -1 && matcher.matches())
-                yields.add(matcher.group(x));
+            int i = 0;
+            while (groups.size() > i && matcher.matches())
+                yields.add(matcher.group(groups.get(i++).getName()));
 
             return yields.toArray(new String[0]);
         }
@@ -79,20 +83,29 @@ public interface RestEndpoint extends Predicate<String> {
         return ArrayUtil.empty();
     }
 
-    default String processExtractionUrl(IntUnaryOperator groupFx) {
+    @Override
+    default int getRatePerSecond() {
+        return -1;
+    }
+
+    @Override
+    default int getGlobalRatelimit() {
+        return -1;
+    }
+
+    default String processExtractionUrl(List<? extends NamedGroup> groups) {
         // todo: Inspect overhead
         return StaticCache.access(this, String.class, () -> {
             String yield = getFullUrl();
-            int c = groupFx.applyAsInt(-1);
 
-            while (yield.contains("%s")) {
-                if (c == -1) {
-                    return yield;
-                }
-
+            int i = 0;
+            while (yield.contains("%s") && groups.size() > i) {
                 int fi = yield.indexOf("%s");
-                yield = String.format("%s$%d%s", yield.substring(0, fi), c, yield.substring(fi + 2));
-                c = groupFx.applyAsInt(c);
+                yield = String.format("%s$%d%s",
+                        yield.substring(0, fi),
+                        groups.get(i++).getValue(),
+                        yield.substring(fi + 2)
+                );
             }
 
             return yield;
@@ -104,11 +117,12 @@ public interface RestEndpoint extends Predicate<String> {
             throw new IllegalArgumentException("Invalid argument count");
         }
 
-        T url = maker.apply(String.format(getFullUrl(), args));
-        if ((url instanceof URL && test((URL) url))
-                || (url instanceof URI && test((URI) url))) {
-            return url;
-        }
+        final String format = String.format(getFullUrl(), args);
+        final T made = maker.apply(format);
+
+        if ((made instanceof URL && test((URL) made)) || (made instanceof URI && test((URI) made))) {
+            return made;
+        } else if (test(format)) return made;
 
         throw new IllegalArgumentException("Generated URL is invalid");
     }

@@ -26,7 +26,12 @@ public final class Bitmask {
 
     //@CallerSensitive
     public static int nextFlag() {
-        return LAST_FLAG.computeIfAbsent(StackTraceUtils.callerClass(1), key -> new AtomicInteger(0))
+        return nextFlag(0);
+    }
+
+    //@CallerSensitive
+    public static int nextFlag(int traceDelta) {
+        return LAST_FLAG.computeIfAbsent(StackTraceUtils.callerClass(1 + traceDelta), key -> new AtomicInteger(0))
                 .getAndUpdate(value -> {
                     if (value == 3) {
                         throw new RuntimeException("Too many Flags requested! Integer Overflow");

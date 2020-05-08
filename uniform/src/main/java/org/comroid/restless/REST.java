@@ -29,21 +29,28 @@ import java.util.logging.Level;
 public final class REST<D> {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final HttpAdapter httpAdapter;
-    private final @Nullable D dependencyObject;
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
+    private final Ratelimiter ratelimiter;
+    private final @Nullable D dependencyObject;
 
     public REST(
-            HttpAdapter httpAdapter, SerializationAdapter<?, ?, ?> serializationAdapter
-    ) {
-        this(httpAdapter, serializationAdapter, null);
+        HttpAdapter httpAdapter,
+        SerializationAdapter<?, ?, ?> serializationAdapter,
+        @Nullable D dependencyObject
+) {
+        this(httpAdapter, serializationAdapter, Ratelimiter.INSTANT, dependencyObject);
     }
 
     public REST(
-            HttpAdapter httpAdapter, SerializationAdapter<?, ?, ?> serializationAdapter, @Nullable D dependencyObject
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            Ratelimiter ratelimiter,
+            @Nullable D dependencyObject
     ) {
         this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
-        this.dependencyObject = dependencyObject;
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
+        this.ratelimiter = Objects.requireNonNull(ratelimiter, "Ratelimiter");
+        this.dependencyObject = dependencyObject;
     }
 
     public Request<UniObjectNode> request() {
