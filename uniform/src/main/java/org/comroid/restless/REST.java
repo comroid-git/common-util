@@ -246,17 +246,18 @@ public final class REST<D> {
                 logger.at(Level.FINE)
                         .log("Executing request %s @ %s");
                 execution = rest.ratelimiter.apply(endpoint.getEndpoint(), this)
-                        .thenCompose(request -> httpAdapter.call(rest, serializationAdapter.getMimeType(), request));
+                        .thenCompose(request -> httpAdapter.call(rest, serializationAdapter.getMimeType(), request))
+                        .thenApply(response -> {
+                            if (response.statusCode != expectedCode) {
+                                logger.at(Level.WARNING)
+                                        .log("Unexpected Response status code %d; expected %d", response.statusCode, expectedCode);
+                            }
+
+                            return response;
+                        });
             }
 
-            return execution.thenApply(response -> {
-                if (response.statusCode != expectedCode) {
-                    logger.at(Level.WARNING)
-                            .log("Unexpected Response status code %d; expected %d", response.statusCode, expectedCode);
-                }
-
-                return response;
-            });
+            return execution;
         }
 
         public final CompletableFuture<Integer> execute$statusCode() {
