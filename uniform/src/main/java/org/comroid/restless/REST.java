@@ -5,6 +5,7 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.iter.Span;
 import org.comroid.restless.endpoint.CompleteEndpoint;
+import org.comroid.restless.endpoint.RatelimitedEndpoint;
 import org.comroid.restless.endpoint.RestEndpoint;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.Cache;
@@ -22,6 +23,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -33,6 +36,7 @@ public final class REST<D> {
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Ratelimiter ratelimiter;
     private final @Nullable D dependencyObject;
+    private final Executor executor;
 
     public HttpAdapter getHttpAdapter() {
         return httpAdapter;
@@ -53,19 +57,43 @@ public final class REST<D> {
     public REST(
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
+            Executor requestExecutor,
             @Nullable D dependencyObject
     ) {
-        this(httpAdapter, serializationAdapter, Ratelimiter.INSTANT, dependencyObject);
+        this(
+                httpAdapter,
+                serializationAdapter,
+                requestExecutor,
+                Ratelimiter.INSTANT,
+                dependencyObject
+        );
     }
 
     public REST(
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
+            ScheduledExecutorService scheduledExecutorService,
+            @Nullable D dependencyObject,
+            RatelimitedEndpoint... pool) {
+        this(
+                httpAdapter,
+                serializationAdapter,
+                scheduledExecutorService,
+                Ratelimiter.ofPool(scheduledExecutorService, pool),
+                dependencyObject
+        );
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            Executor requestExecutor,
             Ratelimiter ratelimiter,
             @Nullable D dependencyObject
     ) {
         this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
+        this.executor = Objects.requireNonNull(requestExecutor, "RequestExecutor");
         this.ratelimiter = Objects.requireNonNull(ratelimiter, "Ratelimiter");
         this.dependencyObject = dependencyObject;
     }
@@ -79,11 +107,9 @@ public final class REST<D> {
     }
 
     public <T extends DataContainer<? extends D>> Request<T> request(GroupBind<T, D> group) {
-        return new Request<>(
-                this,
-                Polyfill.uncheckedCast(group.getConstructor()
-                        .orElseThrow(() -> new NoSuchElementException("No constructor applied to GroupBind")))
-        );
+        //noinspection unchecked
+        return request((Invocable<T>) Polyfill.uncheckedCast(group.getConstructor()
+                .orElseThrow(() -> new NoSuchElementException("No constructor applied to GroupBind"))));
     }
 
     public <T> Request<T> request(Invocable<T> creator) {
@@ -170,7 +196,7 @@ public final class REST<D> {
         private final REST rest;
         private final Header.List headers;
         private final Invocable<T> tProducer;
-        private CompletableFuture<REST.Response> execution = null;
+        private final CompletableFuture<REST.Response> execution = new CompletableFuture<>();
         private CompleteEndpoint endpoint;
         private Method method;
         private String body;
@@ -241,20 +267,20 @@ public final class REST<D> {
             return headers.removeIf(filter);
         }
 
-        public final CompletableFuture<REST.Response> execute() {
-            if (execution == null) {
+        public final synchronized CompletableFuture<REST.Response> execute() {
+            if (!execution.isDone()) {
                 logger.at(Level.FINE)
                         .log("Executing request %s @ %s");
-                execution = rest.ratelimiter.apply(endpoint.getEndpoint(), this)
+                rest.ratelimiter.apply(endpoint.getEndpoint(), this)
                         .thenCompose(request -> httpAdapter.call(rest, serializationAdapter.getMimeType(), request))
-                        .thenApply(response -> {
+                        .thenAcceptAsync(response -> {
                             if (response.statusCode != expectedCode) {
                                 logger.at(Level.WARNING)
                                         .log("Unexpected Response status code %d; expected %d", response.statusCode, expectedCode);
                             }
 
-                            return response;
-                        });
+                            execution.complete(response);
+                        }, executor);
             }
 
             return execution;

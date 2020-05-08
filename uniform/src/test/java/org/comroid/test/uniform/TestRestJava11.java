@@ -20,7 +20,7 @@ public class TestRestJava11 {
 
     @Before
     public void setup() {
-        rest = new REST<>(new JavaHttpAdapter(), FastJSONLib.fastJsonLib, null, ratelimiter);
+        rest = new REST<>(new JavaHttpAdapter(), FastJSONLib.fastJsonLib, executor, null, ratelimiter, pool);
     }
 
     @Before
