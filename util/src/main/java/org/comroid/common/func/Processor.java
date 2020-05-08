@@ -38,6 +38,9 @@ public interface Processor<T> extends Reference<T>, Cloneable {
         return ofReference(Objects.isNull(value) ? Reference.empty() : Reference.constant(value));
     }
 
+    @Override
+    @Nullable T get();
+
     default boolean test(Predicate<? super T> predicate) {
         return predicate.test(get());
     }
@@ -45,9 +48,6 @@ public interface Processor<T> extends Reference<T>, Cloneable {
     default <R> R into(Function<? super T, R> remapper) {
         return remapper.apply(get());
     }
-
-    @Override
-    @Nullable T get();
 
     @Override
     default Processor<T> process() {
