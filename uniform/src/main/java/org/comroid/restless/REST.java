@@ -20,6 +20,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -33,11 +34,27 @@ public final class REST<D> {
     private final Ratelimiter ratelimiter;
     private final @Nullable D dependencyObject;
 
+    public HttpAdapter getHttpAdapter() {
+        return httpAdapter;
+    }
+
+    public SerializationAdapter<?, ?, ?> getSerializationAdapter() {
+        return serializationAdapter;
+    }
+
+    public Ratelimiter getRatelimiter() {
+        return ratelimiter;
+    }
+
+    public Optional<D> getDependencyObject() {
+        return Optional.ofNullable(dependencyObject);
+    }
+
     public REST(
-        HttpAdapter httpAdapter,
-        SerializationAdapter<?, ?, ?> serializationAdapter,
-        @Nullable D dependencyObject
-) {
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            @Nullable D dependencyObject
+    ) {
         this(httpAdapter, serializationAdapter, Ratelimiter.INSTANT, dependencyObject);
     }
 
@@ -94,17 +111,17 @@ public final class REST<D> {
         private final String name;
         private final String value;
 
-        public Header(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
         public String getName() {
             return name;
         }
 
         public String getValue() {
             return value;
+        }
+
+        public Header(String name, String value) {
+            this.name = name;
+            this.value = value;
         }
 
         public static final class List extends ArrayList<Header> {
@@ -123,6 +140,18 @@ public final class REST<D> {
         private final UniNode body;
         private final Header.List headers = new Header.List();
 
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public UniNode getBody() {
+            return body;
+        }
+
+        public Header.List getHeaders() {
+            return headers;
+        }
+
         public Response(int statusCode, UniNode body) {
             this.statusCode = statusCode;
             this.body = body;
@@ -135,18 +164,6 @@ public final class REST<D> {
         public static Response empty(SerializationAdapter seriLib, @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
             return new Response(code, seriLib.createUniNode(null));
         }
-
-        public int getStatusCode() {
-            return statusCode;
-        }
-
-        public UniNode getBody() {
-            return body;
-        }
-
-        public Header.List getHeaders() {
-            return headers;
-        }
     }
 
     public final class Request<T> {
@@ -158,12 +175,6 @@ public final class REST<D> {
         private Method method;
         private String body;
         private int expectedCode = HTTPStatusCodes.OK;
-
-        public Request(REST rest, Invocable<T> tProducer) {
-            this.rest = rest;
-            this.tProducer = tProducer;
-            this.headers = new Header.List();
-        }
 
         public final Provider<URL> getUrlProvider() {
             return urlProvider;
@@ -183,6 +194,12 @@ public final class REST<D> {
 
         public final Header.List getHeaders() {
             return headers;
+        }
+
+        public Request(REST rest, Invocable<T> tProducer) {
+            this.rest = rest;
+            this.tProducer = tProducer;
+            this.headers = new Header.List();
         }
 
         public final Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
