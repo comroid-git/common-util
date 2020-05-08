@@ -241,15 +241,12 @@ public final class REST<D> {
             return headers.removeIf(filter);
         }
 
-        public final CompletableFuture<Integer> execute$statusCode() {
-            return execute().thenApply(Response::getStatusCode);
-        }
-
         public final CompletableFuture<REST.Response> execute() {
             if (execution == null) {
                 logger.at(Level.FINE)
                         .log("Executing request %s @ %s");
-                execution = httpAdapter.call(rest, serializationAdapter.getMimeType(), this);
+                execution = rest.ratelimiter.apply(endpoint.getEndpoint(), this)
+                        .thenCompose(request -> httpAdapter.call(rest, serializationAdapter.getMimeType(), request));
             }
 
             return execution.thenApply(response -> {
@@ -262,8 +259,12 @@ public final class REST<D> {
             });
         }
 
-        public final CompletableFuture<T> execute$deserializeSingle() {
-            return execute$deserialize().thenApply(Span::requireNonNull);
+        public final CompletableFuture<Integer> execute$statusCode() {
+            return execute().thenApply(Response::getStatusCode);
+        }
+
+        public final CompletableFuture<UniNode> execute$body() {
+            return execute().thenApply(Response::getBody);
         }
 
         public final CompletableFuture<Span<T>> execute$deserialize() {
@@ -286,8 +287,24 @@ public final class REST<D> {
             });
         }
 
-        public final CompletableFuture<UniNode> execute$body() {
-            return execute().thenApply(Response::getBody);
+        public final CompletableFuture<T> execute$deserializeSingle() {
+            return execute$deserialize().thenApply(Span::requireNonNull);
+        }
+
+        public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
+            return execute$deserialize().thenApply(span -> span.stream()
+                    .map(remapper)
+                    .collect(Span.collector()));
+        }
+
+        public final <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
+            return execute$deserialize().thenApply(span -> {
+                if (!span.isSingle()) {
+                    throw new IllegalArgumentException("Span too large");
+                }
+
+                return remapper.apply(span.get());
+            });
         }
 
         public final <ID> CompletableFuture<Span<T>> execute$autoCache(
@@ -328,22 +345,6 @@ public final class REST<D> {
 
             //noinspection unchecked
             return (T) cache.requireNonNull(id, "Assert failed: Cache is still missing key " + id);
-        }
-
-        public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
-            return execute$deserialize().thenApply(span -> span.stream()
-                    .map(remapper)
-                    .collect(Span.collector()));
-        }
-
-        public final <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
-            return execute$deserialize().thenApply(span -> {
-                if (!span.isSingle()) {
-                    throw new IllegalArgumentException("Span too large");
-                }
-
-                return remapper.apply(span.get());
-            });
         }
     }
 }
