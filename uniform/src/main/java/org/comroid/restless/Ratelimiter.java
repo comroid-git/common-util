@@ -3,8 +3,12 @@ package org.comroid.restless;
 import org.comroid.common.iter.Span;
 import org.comroid.restless.endpoint.RatelimitedEndpoint;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -13,8 +17,8 @@ import java.util.stream.Stream;
 public interface Ratelimiter extends BiFunction<RatelimitedEndpoint, REST.Request, CompletableFuture<REST.Request>> {
     Ratelimiter INSTANT = new Support.Instant();
 
-    static Ratelimiter ofEndpoints(RatelimitedEndpoint... endpoints) {
-        return new Support.OfPool(endpoints);
+    static Ratelimiter ofPool(ScheduledExecutorService executor, RatelimitedEndpoint... endpoints) {
+        return new Support.OfPool(executor, endpoints);
     }
 
     /**
@@ -23,7 +27,7 @@ public interface Ratelimiter extends BiFunction<RatelimitedEndpoint, REST.Reques
      * {@linkplain REST.Request request} as soon as this ratelimiter allows its execution.
      *
      * @param restEndpoint The endpoint that is gonna be accessed
-     * @param request The request that is yet to be executed
+     * @param request      The request that is yet to be executed
      * @return A CompletableFuture that completes as soon as the ratelimiter allows execution of the request.
      */
     @Override
@@ -41,10 +45,12 @@ public interface Ratelimiter extends BiFunction<RatelimitedEndpoint, REST.Reques
         }
 
         private static final class OfPool implements Ratelimiter {
+            private final Queue<Bucket> upcoming = new LinkedBlockingQueue<>();
+            private final ScheduledExecutorService executor;
             private final RatelimitedEndpoint[] pool;
             private final int globalRatelimit;
 
-            private OfPool(RatelimitedEndpoint[] pool) {
+            private OfPool(ScheduledExecutorService executor, RatelimitedEndpoint[] pool) {
                 Span<Integer> globalRatelimits = Stream.of(pool)
                         .map(RatelimitedEndpoint::getGlobalRatelimit)
                         .distinct()
@@ -52,16 +58,57 @@ public interface Ratelimiter extends BiFunction<RatelimitedEndpoint, REST.Reques
                 if (!globalRatelimits.isSingle())
                     throw new IllegalArgumentException("Global ratelimit is not unique");
 
+                this.executor = executor;
                 this.pool = pool;
                 this.globalRatelimit = globalRatelimits.requireNonNull();
             }
 
             @Override
             public CompletableFuture<REST.Request> apply(RatelimitedEndpoint restEndpoint, REST.Request request) {
-                if (restEndpoint.getRatePerSecond() == -1 && restEndpoint.getGlobalRatelimit() == -1)
+                if (upcoming.isEmpty() || (restEndpoint.getRatePerSecond() == -1 && restEndpoint.getGlobalRatelimit() == -1))
                     return CompletableFuture.completedFuture(request);
 
                 return null;
+            }
+        }
+
+        private static final class Bucket {
+            private final RatelimitedEndpoint endpoint;
+            private final Queue<BoxedRequest> boxedRequests;
+
+            private RatelimitedEndpoint getEndpoint() {
+                return endpoint;
+            }
+
+            private Queue<BoxedRequest> getQueue() {
+                return boxedRequests;
+            }
+
+            private Bucket(RatelimitedEndpoint endpoint, REST.Request... requests) {
+                this.endpoint = endpoint;
+                this.boxedRequests = Arrays.stream(requests)
+                        .map(BoxedRequest::new)
+                        .collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
+            }
+
+            private BoxedRequest addRequest(REST.Request request) {
+                final BoxedRequest boxed = new BoxedRequest(request);
+
+                boxedRequests.add(boxed);
+                return boxed;
+            }
+        }
+
+        private static final class BoxedRequest {
+            private final CompletableFuture<REST.Request> future = new CompletableFuture<>();
+            private final REST.Request request;
+
+            private BoxedRequest(REST.Request request) {
+                this.request = request;
+            }
+
+            private void complete() {
+                future.complete(request);
             }
         }
     }
