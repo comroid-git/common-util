@@ -74,7 +74,8 @@ public final class REST<D> {
             SerializationAdapter<?, ?, ?> serializationAdapter,
             ScheduledExecutorService scheduledExecutorService,
             @Nullable D dependencyObject,
-            RatelimitedEndpoint... pool) {
+            RatelimitedEndpoint... pool
+    ) {
         this(
                 httpAdapter,
                 serializationAdapter,
@@ -202,6 +203,10 @@ public final class REST<D> {
         private String body;
         private int expectedCode = HTTPStatusCodes.OK;
 
+        public final REST getREST() {
+            return rest;
+        }
+
         public final CompleteEndpoint getEndpoint() {
             return endpoint;
         }
@@ -272,7 +277,7 @@ public final class REST<D> {
                 logger.at(Level.FINE)
                         .log("Executing request %s @ %s");
                 rest.ratelimiter.apply(endpoint.getEndpoint(), this)
-                        .thenCompose(request -> httpAdapter.call(rest, serializationAdapter.getMimeType(), request))
+                        .thenCompose(request -> httpAdapter.call(request, serializationAdapter.getMimeType()))
                         .thenAcceptAsync(response -> {
                             if (response.statusCode != expectedCode) {
                                 logger.at(Level.WARNING)

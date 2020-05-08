@@ -1,5 +1,13 @@
 package org.comroid.restless.adapter.okhttp.v3;
 
+import okhttp3.*;
+import org.comroid.common.func.Provider;
+import org.comroid.restless.HttpAdapter;
+import org.comroid.restless.REST;
+import org.comroid.restless.socket.WebSocket;
+import org.comroid.restless.socket.WebSocketEvent;
+import org.comroid.uniform.SerializationAdapter;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -8,21 +16,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
-
-import org.comroid.common.func.Provider;
-import org.comroid.restless.HttpAdapter;
-import org.comroid.restless.REST;
-import org.comroid.restless.socket.WebSocket;
-import org.comroid.restless.socket.WebSocketEvent;
-import org.comroid.uniform.SerializationAdapter;
-
-import okhttp3.Call;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 public class OkHttp3Adapter implements HttpAdapter {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
@@ -39,33 +32,31 @@ public class OkHttp3Adapter implements HttpAdapter {
     }
 
     @Override
-    public CompletableFuture<REST.Response> call(
-            REST rest,
-            REST.Method method,
-            Provider<URL> urlProvider,
-            Collection<REST.Header> headers,
-            String mimeType,
-            String body
-    ) {
+    public CompletableFuture<REST.Response> call(REST.Request request, String mimeType) {
+
         return CompletableFuture.supplyAsync(() -> {
             try {
-                final Request.Builder builder = new Request.Builder().url(urlProvider.now())
+                final REST.Method requestMethod = request.getMethod();
+                final String requestBody = request.getBody();
+
+                final Request.Builder builder = new Request.Builder().url(request.getEndpoint().getURL())
                         // only support null body for GET method, else throw
-                        .method(method.toString(), (
-                                body == null && method == REST.Method.GET ? null : RequestBody.create(
+                        .method(requestMethod.toString(), (
+                                requestBody == null && requestMethod == REST.Method.GET ? null : RequestBody.create(
                                         MediaType.parse(mimeType),
-                                        Objects.requireNonNull(body, "Null body not supported with " + method)
+                                        Objects.requireNonNull(requestBody, "Null body not supported with " + requestMethod)
                                 )
                         ));
 
-                headers.forEach(header -> builder.addHeader(header.getName(), header.getValue()));
+                request.getHeaders().forEach(header -> builder.addHeader(header.getName(), header.getValue()));
 
-                final Request      request      = builder.build();
-                final Call         call         = httpClient.newCall(request);
-                final Response     response     = call.execute();
+                final Request kRequest = builder.build();
+                final Call call = httpClient.newCall(kRequest);
+                final Response response = call.execute();
                 final ResponseBody responseBody = response.body();
 
-                return new REST.Response(rest, response.code(), responseBody == null ? null : responseBody.string());
+                return new REST.Response(response.code(), request.getREST().getSerializationAdapter()
+                        .createUniNode(responseBody == null ? null : responseBody.string()));
             } catch (IOException e) {
                 throw new RuntimeException("Request failed", e);
             }

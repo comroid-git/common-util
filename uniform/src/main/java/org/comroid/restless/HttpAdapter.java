@@ -26,15 +26,5 @@ public interface HttpAdapter {
             Function<String, O> preprocessor
     );
 
-    @Deprecated
-    CompletableFuture<REST.Response> call(
-            REST rest,
-            REST.Method method,
-            Provider<URL> urlProvider,
-            Collection<REST.Header> headers,
-            String mimeType,
-            String body
-    );
-
-    CompletableFuture<REST.Response> call(REST rest, String mimeType, REST.Request request);
+    CompletableFuture<REST.Response> call(REST.Request request, String mimeType);
 }

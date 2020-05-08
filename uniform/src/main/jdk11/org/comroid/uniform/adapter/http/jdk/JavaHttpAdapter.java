@@ -46,31 +46,23 @@ public final class JavaHttpAdapter implements HttpAdapter {
     }
 
     @Override
-    public CompletableFuture<REST.Response> call(
-            REST rest,
-            REST.Method method,
-            Provider<URL> urlProvider,
-            Collection<REST.Header> headers,
-            String mimeType,
-            String body
-    ) {
+    public CompletableFuture<REST.Response> call(REST.Request request, String mimeType) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                final HttpRequest.Builder builder = HttpRequest.newBuilder(urlProvider.now()
-                        .toURI())
-                        .method(method.toString(), (
-                                body == null && method == REST.Method.GET
+                final HttpRequest.Builder builder = HttpRequest.newBuilder(request.getEndpoint().getURI())
+                        .method(request.getMethod().toString(), (
+                                request.getBody() == null && request.getMethod() == REST.Method.GET
                                         ? HttpRequest.BodyPublishers.noBody()
-                                        : HttpRequest.BodyPublishers.ofString(Objects.requireNonNull(body, "Body cannot be null"))
+                                        : HttpRequest.BodyPublishers.ofString(Objects.requireNonNull(request.getBody(), "Body cannot be null"))
                         ))
                         .header("Content-Type", mimeType);
 
-                headers.forEach(header -> builder.header(header.getName(), header.getValue()));
+                request.getHeaders().forEach(header -> builder.header(header.getName(), header.getValue()));
 
-                final HttpRequest          request  = builder.build();
-                final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                final HttpRequest          jRequest  = builder.build();
+                final HttpResponse<String> response = httpClient.send(jRequest, HttpResponse.BodyHandlers.ofString());
 
-                return new REST.Response(rest, response.statusCode(), response.body());
+                return new REST.Response(request.getREST(), response.statusCode(), response.body());
             } catch (Throwable e) {
                 throw new RuntimeException("Request failed", e);
             }
