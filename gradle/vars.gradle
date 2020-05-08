@@ -17,4 +17,4 @@ ext {
 
 ext.'signing.gnupg.passphrase' = getenv('GPG_PASSPHRASE') //todo: Create TeamCity template
 ext.'signing.gnupg.keyName' = getenv('GPG_KEYNAME')
-ext.'signing.gnupg.useLegacyGpg' = true
+ext.'signing.gnupg.useLegacyGpg' = false
