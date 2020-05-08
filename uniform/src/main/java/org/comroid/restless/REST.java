@@ -54,6 +54,10 @@ public final class REST<D> {
         return Optional.ofNullable(dependencyObject);
     }
 
+    public final Executor getExecutor() {
+        return executor;
+    }
+
     public REST(
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
