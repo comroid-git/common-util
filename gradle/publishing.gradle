@@ -21,7 +21,6 @@ publishing {
 
         /*
         TODO temporarily disabled because sonatype is weird
-
         maven {
             name = 'Sonatype'
             url = snapshot
@@ -33,8 +32,17 @@ publishing {
                 password sonatypePassword
             }
         }
-
          */
+
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/${userbase.toLowerCase()}/${rootProject.name.toLowerCase()}")
+
+            credentials {
+                username githubUsername
+                password githubPassword
+            }
+        }
     }
 
     publications {

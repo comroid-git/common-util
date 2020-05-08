@@ -13,6 +13,9 @@ ext {
 
     sonatypeUsername = getenv('SONATYPE_USERNAME')
     sonatypePassword = getenv('SONATYPE_PASSWORD')
+
+    githubUsername = getenv('GITHUB_USERNAME')
+    githubPassword = getenv('GITHUB_PASSWORD')
 }
 
 ext.'signing.gnupg.passphrase' = getenv('GPG_PASSPHRASE') //todo: Create TeamCity template
