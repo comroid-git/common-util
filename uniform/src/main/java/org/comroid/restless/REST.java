@@ -176,6 +176,11 @@ public final class REST<D> {
         private String body;
         private int expectedCode = HTTPStatusCodes.OK;
 
+        @Override
+        public String toString() {
+            return String.format("%s @ %s", method.name(), urlProvider.now().toExternalForm());
+        }
+
         public final Provider<URL> getUrlProvider() {
             return urlProvider;
         }
