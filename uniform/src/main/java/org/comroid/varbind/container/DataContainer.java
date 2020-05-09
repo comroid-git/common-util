@@ -82,5 +82,15 @@ public interface DataContainer<DEP> {
         default DEP getDependencyObject() {
             return getUnderlyingVarCarrier().getDependencyObject();
         }
+
+        @Override
+        default UniObjectNode toObjectNode() {
+            return getUnderlyingVarCarrier().toObjectNode();
+        }
+
+        @Override
+        default Class<? extends DataContainer<? super DEP>> getRepresentedType() {
+            return getUnderlyingVarCarrier().getRepresentedType();
+        }
     }
 }

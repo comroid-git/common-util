@@ -6,10 +6,6 @@ import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.model.AbstractObjectBind;
 import org.comroid.varbind.model.Reprocessed;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -49,20 +45,20 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
         return new Reprocessed.Optional<>(Polyfill.uncheckedCast(this));
     }
 
-    default <R> ReBind.Duo<FINAL, R> rebindSimple(Function<FINAL, R> remapper) {
+    default <R> ReBind.TwoStage<FINAL, R> rebindSimple(Function<FINAL, R> remapper) {
         return rebindSimple(getGroup(), remapper);
     }
 
-    default <R> ReBind.Duo<FINAL, R> rebindSimple(GroupBind group, Function<FINAL, R> remapper) {
-        return new ReBind.Duo<>(Polyfill.uncheckedCast(this), group, remapper);
+    default <R> ReBind.TwoStage<FINAL, R> rebindSimple(GroupBind group, Function<FINAL, R> remapper) {
+        return new ReBind.TwoStage<>(Polyfill.uncheckedCast(this), group, remapper);
     }
 
-    default <R, D extends DPND> ReBind.Dep<FINAL, D, R> rebindDependent(BiFunction<FINAL, D, R> resolver) {
+    default <R, D extends DPND> ReBind.DependentTwoStage<FINAL, D, R> rebindDependent(BiFunction<FINAL, D, R> resolver) {
         return rebindDependent(getGroup(), resolver);
     }
 
-    default <R, D extends DPND> ReBind.Dep<FINAL, D, R> rebindDependent(GroupBind group, BiFunction<FINAL, D, R> resolver) {
-        return new ReBind.Dep<>(Polyfill.uncheckedCast(this), group, resolver);
+    default <R, D extends DPND> ReBind.DependentTwoStage<FINAL, D, R> rebindDependent(GroupBind group, BiFunction<FINAL, D, R> resolver) {
+        return new ReBind.DependentTwoStage<>(Polyfill.uncheckedCast(this), group, resolver);
     }
 
     final class OneStage<TARGET> extends AbstractObjectBind<TARGET, Object, TARGET> {

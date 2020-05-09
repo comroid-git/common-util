@@ -1,11 +1,26 @@
 package org.comroid.common.util;
 
+import org.comroid.common.ref.IntEnum;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToIntFunction;
 
 public final class Bitmask {
+    public interface Enum extends IntEnum {
+        @Override
+        int getValue();
+
+        default boolean isFlagSet(int inMask) {
+            return Bitmask.isFlagSet(inMask, getValue());
+        }
+
+        default int apply(int toMask, boolean newState) {
+            return Bitmask.modifyFlag(toMask, getValue(), newState);
+        }
+    }
+
     public static final int EMPTY = 0x0;
 
     public static int modifyFlag(int mask, int flag, boolean newState) {

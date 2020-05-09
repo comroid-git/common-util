@@ -11,6 +11,7 @@ import org.comroid.varbind.container.DataContainer;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -26,16 +27,22 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     private final String groupName;
     private final @Nullable GroupBind<? super T, D> parent;
     private final List<GroupBind<? extends T, D>> subgroups = new ArrayList<>();
-    private final @Nullable Invocable<? extends T> constructor;
+    private final @Nullable Invocable<? super T> constructor;
 
     public GroupBind(
             SerializationAdapter<?, ?, ?> serializationAdapter, String groupName
     ) {
-        this(serializationAdapter, groupName, null);
+        this(serializationAdapter, groupName, (Invocable<T>) null);
     }
 
     public GroupBind(
-            SerializationAdapter<?, ?, ?> serializationAdapter, String groupName, Invocable<? extends T> invocable
+            SerializationAdapter<?, ?, ?> serializationAdapter, String groupName, Class<T> constructorClass
+    ) {
+        this(serializationAdapter, groupName, Invocable.ofConstructor(constructorClass));
+    }
+
+    public GroupBind(
+            SerializationAdapter<?, ?, ?> serializationAdapter, String groupName, Invocable<? super T> invocable
     ) {
         this(null, serializationAdapter, groupName, invocable);
     }
@@ -44,7 +51,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
             @Nullable GroupBind<? super T, D> parent,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             String groupName,
-            @Nullable Invocable<? extends T> invocable
+            @Nullable Invocable<? super T> invocable
     ) {
         this.parent = parent;
         this.serializationAdapter = serializationAdapter;
@@ -90,7 +97,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return Collections.unmodifiableList(children);
     }
 
-    public Optional<Invocable<? extends T>> getConstructor() {
+    public Optional<Invocable<? super T>> getConstructor() {
         return Optional.ofNullable(constructor);
     }
 
@@ -106,7 +113,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return subgroups;
     }
 
-    public Invocable<? extends T> autoConstructor(
+    public Invocable<? super T> autoConstructor(
             Class<T> resultType, Class<D> dependencyType
     ) {
         final Class<?>[] typesUnordered = {
@@ -117,10 +124,14 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public <R extends T> GroupBind<R, D> subGroup(String subGroupName) {
-        return subGroup(subGroupName, null);
+        return subGroup(subGroupName, (Invocable<R>) null);
     }
 
-    public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Invocable<? extends R> constructor) {
+    public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Constructor<? extends T> type) {
+        return subGroup(subGroupName, Polyfill.<Invocable<R>>uncheckedCast(Invocable.ofConstructor(type)));
+    }
+
+    public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Invocable<? super R> constructor) {
         final GroupBind<R, D> groupBind = new GroupBind<>(this, serializationAdapter, subGroupName, constructor);
         subgroups.add(groupBind);
         return groupBind;

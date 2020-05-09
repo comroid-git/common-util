@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 public @interface Location {
     Class<?> value();
 
-    String rootNode() default "";
+    String fieldName() default "";
 }

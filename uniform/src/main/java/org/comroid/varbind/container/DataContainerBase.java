@@ -39,6 +39,21 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
     private final Class<? extends DataContainer<DEP>> myType;
 
+    @Override
+    public final GroupBind<?, DEP> getRootBind() {
+        return rootBind;
+    }
+
+    @Override
+    public final DEP getDependencyObject() {
+        return dependencyObject;
+    }
+
+    @Override
+    public Class<? extends DataContainer<? super DEP>> getRepresentedType() {
+        return myType;
+    }
+
     public DataContainerBase(
             @Nullable UniObjectNode initialData
     ) {
@@ -108,16 +123,12 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                     Span<Object> extract = bind.extract(data);
 
                     extrRef(bind).set(extract);
-                    compRef(bind).outdate();
+                    compRef(bind).update(bind.finish(extract));
                     changed.add(bind);
+                    get(bind);
                 });
 
         return unmodifiableSet(changed);
-    }
-
-    @Override
-    public final GroupBind<?, DEP> getRootBind() {
-        return rootBind;
     }
 
     @Override
@@ -170,32 +181,19 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         }
 
         // find the subgroup named the first split part,
-        return parentGroup.flatMap(parent -> parent.getSubgroups()
-                .stream())
-                .filter(group -> group.getName()
-                        .equals(split[0]))
+        return parentGroup.into(parent -> parent.getSubgroups().stream())
+                .filter(group -> group.getName().equals(split[0]))
                 // then find the subgroup named second split part
                 .flatMap(GroupBind::streamAllChildren)
-                .filter(bind -> bind.getFieldName()
-                        .equals(split[1]))
+                .filter(bind -> bind.getFieldName().equals(split[1]))
                 .findAny()
                 // get reference of bind
                 .map(it -> ref(uncheckedCast(it)));
     }
 
     @Override
-    public final DEP getDependencyObject() {
-        return dependencyObject;
-    }
-
-    @Override
     public UniObjectNode toObjectNode() {
         return null; // todo
-    }
-
-    @Override
-    public Class<? extends DataContainer<? super DEP>> getRepresentedType() {
-        return myType;
     }
 
     private <T> AtomicReference<Span<T>> extrRef(

@@ -7,6 +7,7 @@ import org.comroid.common.iter.Span;
 import org.comroid.restless.endpoint.CompleteEndpoint;
 import org.comroid.restless.endpoint.RatelimitedEndpoint;
 import org.comroid.restless.endpoint.RestEndpoint;
+import org.comroid.restless.server.Ratelimiter;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.Cache;
 import org.comroid.uniform.node.UniNode;
@@ -24,6 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -56,6 +58,21 @@ public final class REST<D> {
 
     public final Executor getExecutor() {
         return executor;
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter
+    ) {
+        this(httpAdapter, serializationAdapter, ForkJoinPool.commonPool(), null);
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            @Nullable D dependencyObject
+    ) {
+        this(httpAdapter, serializationAdapter, ForkJoinPool.commonPool(), dependencyObject);
     }
 
     public REST(

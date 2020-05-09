@@ -16,10 +16,10 @@ public interface ReBind<EXTR, DPND, REMAP> extends Reprocessed<EXTR, DPND, REMAP
 
     VarBind<?, DPND, ?, EXTR> getUnderlying();
 
-    final class Duo<EXTR, FINAL> extends AbstractReBind<EXTR, Object, FINAL> {
+    final class TwoStage<EXTR, FINAL> extends AbstractReBind<EXTR, Object, FINAL> {
         private final Function<EXTR, FINAL> remapper;
 
-        public Duo(VarBind<?, Object, ?, EXTR> underlying, GroupBind group, Function<EXTR, FINAL> remapper) {
+        public TwoStage(VarBind<?, Object, ?, EXTR> underlying, GroupBind group, Function<EXTR, FINAL> remapper) {
             super(underlying, group);
 
             this.remapper = remapper;
@@ -31,10 +31,10 @@ public interface ReBind<EXTR, DPND, REMAP> extends Reprocessed<EXTR, DPND, REMAP
         }
     }
 
-    final class Dep<EXTR, DPND, FINAL> extends AbstractReBind<EXTR, DPND, FINAL> {
+    final class DependentTwoStage<EXTR, DPND, FINAL> extends AbstractReBind<EXTR, DPND, FINAL> {
         private final BiFunction<EXTR, DPND, FINAL> remapper;
 
-        public Dep(
+        public DependentTwoStage(
                 VarBind<?, DPND, ?, EXTR> underlying, GroupBind group, BiFunction<EXTR, DPND, FINAL> remapper
         ) {
             super(underlying, group);

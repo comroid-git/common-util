@@ -4,8 +4,6 @@ import okhttp3.*;
 import org.comroid.common.func.Provider;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
-import org.comroid.restless.socket.WebSocket;
-import org.comroid.restless.socket.WebSocketEvent;
 import org.comroid.uniform.SerializationAdapter;
 
 import java.io.IOException;
@@ -19,17 +17,6 @@ import java.util.function.Function;
 
 public class OkHttp3Adapter implements HttpAdapter {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
-
-    @Override
-    public <O, E extends WebSocketEvent<? super E>> CompletableFuture<WebSocket<O, E>> createWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib,
-            WebSocket.Header.List headers,
-            Executor executor,
-            URI uri,
-            Function<String, O> preprocessor
-    ) {
-        throw new UnsupportedOperationException(); // todo
-    }
 
     @Override
     public CompletableFuture<REST.Response> call(REST.Request request, String mimeType) {

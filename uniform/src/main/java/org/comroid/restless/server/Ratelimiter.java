@@ -1,7 +1,8 @@
-package org.comroid.restless;
+package org.comroid.restless.server;
 
 import com.google.common.flogger.FluentLogger;
 import org.comroid.common.iter.Span;
+import org.comroid.restless.REST;
 import org.comroid.restless.endpoint.RatelimitedEndpoint;
 
 import java.util.Arrays;

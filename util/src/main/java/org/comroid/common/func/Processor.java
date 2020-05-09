@@ -4,17 +4,19 @@ import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Closeable;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
  * Cloneable through {@link #process()}.
  */
-public interface Processor<T> extends Reference<T>, Cloneable {
+public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
     default boolean isPresent() {
         return get() != null;
     }
@@ -38,8 +40,21 @@ public interface Processor<T> extends Reference<T>, Cloneable {
         return ofReference(Objects.isNull(value) ? Reference.empty() : Reference.constant(value));
     }
 
+    static <T> Processor<T> providedOptional(Supplier<Optional<T>> supplier) {
+        return new Support.OfReference<>(Reference.provided(() -> supplier.get().orElse(null)));
+    }
+
     @Override
     @Nullable T get();
+
+    /**
+     * Consumes the processor and terminates.
+     * Used for completing some calls that return {@linkplain Processor processors}.
+     */
+    @Override
+    default void close() {
+        get();
+    }
 
     default boolean test(Predicate<? super T> predicate) {
         return predicate.test(get());
@@ -69,12 +84,8 @@ public interface Processor<T> extends Reference<T>, Cloneable {
         });
     }
 
-    default <R> Stream<R> flatMap(Function<? super T, ? extends Stream<R>> mapper) {
-        if (isPresent()) {
-            return mapper.apply(get());
-        }
-
-        return Stream.empty();
+    default <R> Processor<R> flatMap(Function<? super T, ? extends Optional<R>> mapper) {
+        return new Support.Remapped<>(this, it -> mapper.apply(it).orElse(null));
     }
 
     @Internal

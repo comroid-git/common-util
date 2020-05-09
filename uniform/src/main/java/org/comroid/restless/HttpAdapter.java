@@ -8,8 +8,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import org.comroid.common.func.Provider;
-import org.comroid.restless.socket.WebSocket;
-import org.comroid.restless.socket.WebSocketEvent;
 import org.comroid.uniform.SerializationAdapter;
 
 @SuppressWarnings("rawtypes")
@@ -17,14 +15,6 @@ public interface HttpAdapter {
     static HttpAdapter autodetect() {
         throw new UnsupportedOperationException();
     }
-
-    <O, E extends WebSocketEvent<? super E>> CompletableFuture<WebSocket<O, E>> createWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib,
-            WebSocket.Header.List headers,
-            Executor executor,
-            URI uri,
-            Function<String, O> preprocessor
-    );
 
     CompletableFuture<REST.Response> call(REST.Request request, String mimeType);
 }
