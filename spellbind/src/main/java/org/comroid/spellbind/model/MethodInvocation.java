@@ -42,7 +42,7 @@ public final class MethodInvocation<T> implements Invocable<T> {
     }
 
     @Override
-    public Class<?>[] typeOrder() {
+    public Class<?>[] parameterTypesOrdered() {
         return method.getParameterTypes();
     }
 }

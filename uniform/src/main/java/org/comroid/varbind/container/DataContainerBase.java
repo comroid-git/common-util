@@ -45,7 +45,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     @Override
-    public final DEP getDependencyObject() {
+    public final DEP getDependent() {
         return dependencyObject;
     }
 

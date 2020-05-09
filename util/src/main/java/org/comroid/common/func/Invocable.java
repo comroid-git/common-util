@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,12 +68,12 @@ public interface Invocable<T> {
         return (Invocable<T>) Support.Empty;
     }
 
-    Class<?>[] typeOrder();
+    Class<?>[] parameterTypesOrdered();
 
     @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
 
     default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
-        return invoke(ReflectionHelper.arrange(args, typeOrder()));
+        return invoke(ReflectionHelper.arrange(args, parameterTypesOrdered()));
     }
 
     default T invokeRethrow(Object... args) {
@@ -107,6 +108,33 @@ public interface Invocable<T> {
         }
     }
 
+    interface TypeMap<T> extends Invocable<T> {
+        static Map<Class<?>, Object> mapArgs(Object... args) {
+            final long distinct = Stream.of(args)
+                    .map(Object::getClass)
+                    .distinct()
+                    .count();
+
+            if (distinct != args.length)
+                throw new IllegalArgumentException("Duplicate argument types detected");
+
+            final Map<Class<?>, Object> yield = new HashMap<>();
+
+            for (Object arg : args) {
+                yield.put(arg.getClass(), arg);
+            }
+
+            return yield;
+        }
+
+        @Override
+        default @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
+            return invoke(mapArgs(args));
+        }
+
+        @Nullable T invoke(Map<Class<?>, Object> args) throws InvocationTargetException, IllegalAccessException;
+    }
+
     abstract class Magic<T> implements Invocable<T> {
         private final Invocable<T> underlying;
 
@@ -123,8 +151,8 @@ public interface Invocable<T> {
         }
 
         @Override
-        public Class<?>[] typeOrder() {
-            return underlying.typeOrder();
+        public Class<?>[] parameterTypesOrdered() {
+            return underlying.parameterTypesOrdered();
         }
     }
 
@@ -147,7 +175,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class<?>[] typeOrder() {
+            public Class<?>[] parameterTypesOrdered() {
                 return NoClasses;
             }
         }
@@ -169,7 +197,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class<?>[] typeOrder() {
+            public Class<?>[] parameterTypesOrdered() {
                 return constructor.getParameterTypes();
             }
         }
@@ -197,7 +225,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class<?>[] typeOrder() {
+            public Class<?>[] parameterTypesOrdered() {
                 return method.getParameterTypes();
             }
         }
@@ -225,7 +253,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class<?>[] typeOrder() {
+            public Class<?>[] parameterTypesOrdered() {
                 return typeArray;
             }
         }
@@ -245,7 +273,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class<?>[] typeOrder() {
+            public Class<?>[] parameterTypesOrdered() {
                 return NoClasses;
             }
         }
@@ -276,7 +304,7 @@ public interface Invocable<T> {
             }
 
             @Override
-            public Class<?>[] typeOrder() {
+            public Class<?>[] parameterTypesOrdered() {
                 return argTypeArr;
             }
         }

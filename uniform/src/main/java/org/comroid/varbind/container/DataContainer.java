@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.comroid.common.func.Processor;
+import org.comroid.common.info.Dependent;
 import org.comroid.common.ref.Reference;
 import org.comroid.uniform.node.UniObjectNode;
 
@@ -12,7 +13,7 @@ import org.comroid.varbind.bind.VarBind;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface DataContainer<DEP> {
+public interface DataContainer<DEP> extends Dependent<DEP> {
     GroupBind<?, DEP> getRootBind();
 
     Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node);
@@ -42,8 +43,6 @@ public interface DataContainer<DEP> {
     default @NotNull <T> Processor<T> process(VarBind<?, ? super DEP, ?, T> bind) {
         return ref(bind).process();
     }
-
-    DEP getDependencyObject();
 
     UniObjectNode toObjectNode(); // todo
 
@@ -79,8 +78,8 @@ public interface DataContainer<DEP> {
         }
 
         @Override
-        default DEP getDependencyObject() {
-            return getUnderlyingVarCarrier().getDependencyObject();
+        default DEP getDependent() {
+            return getUnderlyingVarCarrier().getDependent();
         }
 
         @Override
