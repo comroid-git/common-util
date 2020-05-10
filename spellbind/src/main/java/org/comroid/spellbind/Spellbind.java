@@ -1,20 +1,17 @@
 package org.comroid.spellbind;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
-
 import org.comroid.common.func.Invocable;
 import org.comroid.common.map.TrieMap;
 import org.comroid.spellbind.annotation.Partial;
-
+import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.comroid.spellbind.SpellCore.methodString;
 
@@ -28,16 +25,37 @@ public final class Spellbind {
     }
 
     public static class Builder<T> implements org.comroid.common.func.Builder<T> {
-        private final Class<T>                       mainInterface;
+        private final Class<T> mainInterface;
         private final Map<String, Invocable<Object>> methodBinds;
-        private final Collection<Class<?>>           interfaces;
+        private final Collection<Class<?>> interfaces;
+        private Object coreObject;
+        private ClassLoader classLoader;
 
         public Builder(Class<T> mainInterface) {
             this.mainInterface = mainInterface;
-            this.methodBinds   = TrieMap.ofString();
-            this.interfaces    = new ArrayList<>(1);
+            this.methodBinds = TrieMap.ofString();
+            this.interfaces = new ArrayList<>(1);
 
             interfaces.add(mainInterface);
+        }
+
+        static @Nullable Method findMatchingMethod(Method abstractMethod, Class<?> inClass) {
+            for (Method method : inClass.getMethods()) {
+                if (matchFootprint(abstractMethod, method)) {
+                    return method;
+                }
+            }
+
+            // TODO: 02.02.2020 doesnt work
+
+            return null;
+        }
+
+        private static boolean matchFootprint(Method abstractMethod, Method method) {
+            return abstractMethod.getName()
+                    .equals(method.getName()) && Arrays.equals(abstractMethod.getParameterTypes(), method.getParameterTypes()) &&
+                    abstractMethod.getReturnType()
+                            .equals(method.getReturnType());
         }
 
         @Override
@@ -82,25 +100,6 @@ public final class Spellbind {
             }
         }
 
-        static @Nullable Method findMatchingMethod(Method abstractMethod, Class<?> inClass) {
-            for (Method method : inClass.getMethods()) {
-                if (matchFootprint(abstractMethod, method)) {
-                    return method;
-                }
-            }
-
-            // TODO: 02.02.2020 doesnt work
-
-            return null;
-        }
-
-        private static boolean matchFootprint(Method abstractMethod, Method method) {
-            return abstractMethod.getName()
-                    .equals(method.getName()) && Arrays.equals(abstractMethod.getParameterTypes(), method.getParameterTypes()) &&
-                    abstractMethod.getReturnType()
-                            .equals(method.getReturnType());
-        }
-
         public Builder<T> subImplement(Object sub) {
             return Partial.Support.findPartialClass(sub.getClass())
                     .map(partialInterface -> subImplement(sub, partialInterface))
@@ -135,7 +134,5 @@ public final class Spellbind {
 
             return this;
         }
-        private       Object                         coreObject;
-        private       ClassLoader                    classLoader;
     }
 }

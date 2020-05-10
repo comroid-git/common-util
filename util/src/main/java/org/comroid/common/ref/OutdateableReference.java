@@ -1,8 +1,9 @@
 package org.comroid.common.ref;
 
 import org.comroid.common.Polyfill;
-
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 public final class OutdateableReference<T> implements Reference<T> {
     private final Object  lock = Polyfill.selfawareLock();
@@ -43,6 +44,13 @@ public final class OutdateableReference<T> implements Reference<T> {
             return outdated || it == null;
         }
     }
-    private       boolean outdated;
+
+    public T compute(Supplier<T> supplier) {
+        if (isOutdated())
+            return update(supplier.get());
+        else return get();
+    }
+
+    private       boolean outdated = true;
     private       T       it;
 }
