@@ -131,6 +131,10 @@ public interface Invocable<T> {
         }
     }
 
+    default TypeMap<T> typeMapped() {
+        return this instanceof TypeMap ? (TypeMap<T>) this : TypeMap.boxed(this);
+    }
+
     interface TypeMap<T> extends Invocable<T> {
         static Map<Class<?>, Object> mapArgs(Object... args) {
             final long distinct = Stream.of(args)
@@ -148,6 +152,23 @@ public interface Invocable<T> {
             }
 
             return yield;
+        }
+
+        static <T> TypeMap<T> boxed(Invocable<T> invocable) {
+            return new TypeMap<T>() {
+                private final Invocable<T> underlying = invocable;
+
+                @Nullable
+                @Override
+                public T invoke(Map<Class<?>, Object> args) throws InvocationTargetException, IllegalAccessException {
+                    return underlying.invokeAutoOrder(args.values().toArray());
+                }
+
+                @Override
+                public Class<?>[] parameterTypesOrdered() {
+                    return underlying.parameterTypesOrdered();
+                }
+            };
         }
 
         @Override
