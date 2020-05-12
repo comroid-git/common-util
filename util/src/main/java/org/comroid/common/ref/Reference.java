@@ -22,11 +22,15 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         return Objects.isNull(get());
     }
 
-    static <T> Reference<T> constant(T of) {
-        return Objects.isNull(of) ? empty() : (Reference<T>) Support.Constant.cache.computeIfAbsent(of, Support.Constant::new);
+    static <T> Reference<T> constant(@Nullable T of) {
+        //noinspection unchecked
+        return Objects.isNull(of)
+                ? empty()
+                : (Reference<T>) Support.Constant.cache.computeIfAbsent(of, Support.Constant::new);
     }
 
     static <T> Reference<T> empty() {
+        //noinspection unchecked
         return (Reference<T>) Support.EMPTY;
     }
 
@@ -81,7 +85,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
 
     @Internal
     final class Support {
-        private static final Reference<?> EMPTY = Reference.constant(null);
+        private static final Reference<?> EMPTY = new Constant<>(null);
 
         private static final class Constant<T> implements Reference<T> {
             private static final Map<Object, Constant<Object>> cache = new ConcurrentHashMap<>();
@@ -111,7 +115,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             @Override
             public T get() {
                 //noinspection unchecked
-                return condition.getAsBoolean() ? supplier.get() : (T) EMPTY.get();
+                return condition.getAsBoolean() ? supplier.get() : (T) empty().get();
             }
         }
     }
