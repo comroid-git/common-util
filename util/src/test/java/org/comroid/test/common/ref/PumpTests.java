@@ -1,7 +1,6 @@
 package org.comroid.test.common.ref;
 
-import org.comroid.common.iter.ReferenceIndex;
-import org.comroid.common.iter.pipe.Pipe;
+import org.comroid.common.iter.pipe.Pump;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +11,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class PipeTest {
+public class PumpTests {
     private List<String> controlGroup;
 
     @Before
@@ -24,28 +23,28 @@ public class PipeTest {
     }
 
     @Test
-    public void testBasicOperations() {
-        final ReferenceIndex<String> strings = ReferenceIndex.of(controlGroup);
-
-        final Pipe<String, String> remapOp = strings.pipe()
-                .map(String::toLowerCase);
+    public void testBasicOperations() throws InterruptedException {
+        final Pump<String, String> remapOp = Pump.<String>create().map(String::toLowerCase);
+        controlGroup.forEach(remapOp);
         for (int i = 0; i < controlGroup.size(); i++)
             Assert.assertEquals("index " + i, controlGroup.get(i).toLowerCase(), remapOp.get(i));
 
-        final Pipe<String, String> filterOp = strings.pipe()
+        final Pump<String, String> filterOp = Pump.<String>create()
                 .filter(str -> str.chars()
                         .map(Character::toLowerCase)
                         .allMatch(c -> c != 'a'));
+        controlGroup.forEach(filterOp);
         for (int i = 0; i < filterOp.size(); i++)
             filterOp.getReference(i)
                     .wrap()
                     .map(String::toLowerCase)
                     .ifPresent(str -> Assert.assertFalse(str.contains("a")));
 
-        final Pipe<String, String> filterMapOp = strings.pipe()
+        final Pump<String, String> filterMapOp = Pump.<String>create()
                 .map(String::toLowerCase)
                 .filter(str -> str.chars()
                         .allMatch(c -> c != 'a'));
+        controlGroup.forEach(filterMapOp);
         for (int i = 0; i < filterOp.size(); i++)
             filterOp.getReference(i)
                     .wrap()

@@ -1,4 +1,4 @@
-package org.comroid.common.ref.pipe;
+package org.comroid.common.iter.pipe;
 
 import org.comroid.common.ref.Reference;
 
@@ -64,9 +64,6 @@ public interface StageAdapter<O, T> extends Function<O, T>, Predicate<O> {
 
             @Override
             public boolean test(T t) {
-                if (c >= limit)
-                    throw new PipeInterruption();
-
                 return c++ < limit;
             }
         }

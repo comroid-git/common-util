@@ -1,6 +1,8 @@
-package org.comroid.common.ref;
+package org.comroid.common.iter;
 
-import org.comroid.common.ref.pipe.Pipe;
+import org.comroid.common.ref.Reference;
+import org.comroid.common.iter.pipe.Pipe;
+import org.comroid.common.iter.pipe.Pipeable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,7 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public interface ReferenceIndex<T> {
+public interface ReferenceIndex<T> extends Pipeable<T> {
+    static <T> ReferenceIndex<T> create() {
+        return of(new ArrayList<>());
+    }
+
     static <T> ReferenceIndex<T> of(List<T> list) {
         return new Support.OfList<>(list);
     }
@@ -25,6 +31,9 @@ public interface ReferenceIndex<T> {
 
     boolean add(T item);
 
+    boolean remove(T item);
+
+    @Override
     Pipe<?, T> pipe();
 
     Reference<T> getReference(int index);
@@ -57,6 +66,11 @@ public interface ReferenceIndex<T> {
             @Override
             public boolean add(T item) {
                 return underlying.add(item);
+            }
+
+            @Override
+            public boolean remove(T item) {
+                return underlying.remove(item);
             }
 
             @Override
