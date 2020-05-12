@@ -6,10 +6,11 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -161,6 +162,21 @@ public interface Invocable<T> {
                 @Nullable
                 @Override
                 public T invoke(Map<Class<?>, Object> args) throws InvocationTargetException, IllegalAccessException {
+                    if (underlying instanceof Support.OfMethod) {
+                        final Method method = ((Support.OfMethod<T>) underlying).method;
+                        final Class<?>[] param = method.getParameterTypes();
+                        final AnnotatedType[] annParam = method.getAnnotatedParameterTypes();
+
+                        for (int i = 0; i < param.length; i++) {
+                            final AnnotatedType annotated = annParam[i];
+                            final Class<?> key = param[i];
+
+                            if (args.containsKey(key) || !annotated.isAnnotationPresent(Null.class))
+                                continue;
+                            args.put(key, null);
+                        }
+                    }
+
                     return underlying.invokeAutoOrder(args.values().toArray());
                 }
 
@@ -177,6 +193,11 @@ public interface Invocable<T> {
         }
 
         @Nullable T invoke(Map<Class<?>, Object> args) throws InvocationTargetException, IllegalAccessException;
+
+        @Target(ElementType.PARAMETER)
+        @Retention(RetentionPolicy.RUNTIME)
+        @interface Null {
+        }
     }
 
     abstract class Magic<T> implements Invocable<T> {

@@ -22,7 +22,7 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
 
     default Pattern getPattern() {
         // todo: Inspect overhead
-        return StaticCache.access(this, Pattern.class,
+        return StaticCache.access(this, "pattern",
                 () -> Pattern.compile(getFullUrl().replace("%s", ".*")));
     }
 
@@ -116,7 +116,7 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
     @Internal
     default String replacer(List<? extends NamedGroup> groups) {
         // todo: Inspect overhead
-        return StaticCache.access(this, String.class, () -> {
+        return StaticCache.access(this, "replacer", () -> {
             String yield = getFullUrl();
 
             int i = 0;

@@ -1,24 +1,22 @@
 package org.comroid.common.ref;
 
+import org.comroid.common.Polyfill;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-/**
- * @deprecated It is there. That doesnt mean you should use it.
- */
-@Deprecated
 public final class StaticCache {
     private static final Map<Object, StaticCache> staticCache = new ConcurrentHashMap<>();
-    private final Map<Class<?>, Object> cache = new ConcurrentHashMap<>();
+    private final Map<String, Object> cache = new ConcurrentHashMap<>();
     private final Object owner;
 
     private StaticCache(Object owner) {
         this.owner = owner;
     }
 
-    public static <T> T access(Object accessor, Class<T> cacheType, Supplier<T> supplier) {
-        return myCache(accessor).computeIfAbsent(cacheType, supplier);
+    public static <T> T access(Object accessor, String key, Supplier<T> supplier) {
+        return myCache(accessor).computeIfAbsent(key, supplier);
     }
 
     public static StaticCache myCache(Object accessor) {
@@ -29,14 +27,10 @@ public final class StaticCache {
         staticCache.remove(accessor);
     }
 
-    private <T> T computeIfAbsent(Class<T> type, Supplier<T> supplier) {
-        final Object value = cache.computeIfAbsent(type, (key) -> supplier.get());
+    private <T> T computeIfAbsent(String key, Supplier<T> supplier) {
+        final Object value = cache.computeIfAbsent(key, (k) -> supplier.get());
 
-        if (!type.isInstance(value)) {
-            throw new AssertionError();
-        }
-
-        return type.cast(value);
+        return Polyfill.uncheckedCast(value);
     }
 
     @Override
