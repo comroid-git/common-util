@@ -121,7 +121,8 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, AutoCloseabl
             @Override
             public Reference<T> getReference(int index) {
                 return Reference.conditional(
-                        () -> (index > 0 || refs.size() >= index) && adapter.test(refs.get(index)),
+                        () -> (index >= 0 || refs.size() >= index)
+                                && adapter.test(refs.get(index)),
                         () -> adapter.apply(refs.get(index))
                 );
             }

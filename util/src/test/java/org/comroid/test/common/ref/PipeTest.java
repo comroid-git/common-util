@@ -6,7 +6,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -28,8 +27,28 @@ public class PipeTest {
     public void testBasicOperations() {
         final ReferenceIndex<String> strings = ReferenceIndex.of(controlGroup);
 
-        final Pipe<String, String> lowerCases = strings.pipe().map(String::toLowerCase);
+        final Pipe<String, String> remapOp = strings.pipe()
+                .map(String::toLowerCase);
         for (int i = 0; i < controlGroup.size(); i++)
-            Assert.assertEquals("index " + i, controlGroup.get(0).toLowerCase(), lowerCases.get(i));
+            Assert.assertEquals("index " + i, controlGroup.get(i).toLowerCase(), remapOp.get(i));
+
+        final Pipe<String, String> filterOp = strings.pipe()
+                .filter(str -> str.chars()
+                        .map(Character::toLowerCase)
+                        .allMatch(c -> c != 'a'));
+        for (int i = 0; i < filterOp.size(); i++)
+            filterOp.getReference(i)
+                    .wrap()
+                    .map(String::toLowerCase)
+                    .ifPresent(str -> Assert.assertFalse(str.contains("a")));
+
+        final Pipe<String, String> filterMapOp = strings.pipe()
+                .map(String::toLowerCase)
+                .filter(str -> str.chars()
+                        .allMatch(c -> c != 'a'));
+        for (int i = 0; i < filterOp.size(); i++)
+            filterOp.getReference(i)
+                    .wrap()
+                    .ifPresent(str -> Assert.assertFalse(str.contains("a")));
     }
 }
