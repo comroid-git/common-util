@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -27,11 +28,33 @@ public interface Invocable<T> {
         return new Support.OfConsumer<>(type, consumer);
     }
 
-    static <T> Invocable<T> ofMethodCall(@Nullable Method method) {
-        return new Support.OfMethod<>(method, null);
+    @Deprecated
+    static <T> Invocable<T> ofMethodCall(Method method, @Nullable Object target) {
+        return new Support.OfMethod<>(method, target);
     }
 
-    static <T> Invocable<T> ofMethodCall(Method method, @Nullable Object target) {
+    static <T> Invocable<T> ofMethodCall(Class<?> inClass, String methodName) {
+        return ofMethodCall(null, inClass, methodName);
+    }
+
+    static <T> Invocable<T> ofMethodCall(@NotNull Object target, String methodName) {
+        return ofMethodCall(target, target.getClass(), methodName);
+    }
+
+    static <T> Invocable<T> ofMethodCall(@Nullable Object target, Class<?> inClass, String methodName) {
+        return Arrays.stream(inClass.getMethods())
+                .filter(mtd -> mtd.getName().equals(methodName))
+                .findAny()
+                .map(mtd -> Invocable.<T>ofMethodCall(target, mtd))
+                .orElseThrow(() -> new NoSuchElementException(
+                        String.format("Class %s does not have a method named %s", inClass, methodName)));
+    }
+
+    static <T> Invocable<T> ofMethodCall(Method method) {
+        return ofMethodCall((Object) null, method);
+    }
+
+    static <T> Invocable<T> ofMethodCall(@Nullable Object target, Method method) {
         return new Support.OfMethod<>(method, target);
     }
 

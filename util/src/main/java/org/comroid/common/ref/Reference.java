@@ -33,8 +33,8 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         return supplier::get;
     }
 
-    static <T> Reference<T> later(CompletableFuture<T> future) {
-        return new Support.OfFuture(future);
+    static <T> FutureReference<T> later(CompletableFuture<T> future) {
+        return new FutureReference<>(future);
     }
 
     @Override
@@ -93,18 +93,5 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             }
         }
 
-        private static final class OfFuture<T> implements Reference<T> {
-            private final CompletableFuture<T> future;
-
-            public OfFuture(CompletableFuture<T> future) {
-                this.future = future;
-            }
-
-            @Nullable
-            @Override
-            public T get() {
-                return future.join();
-            }
-        }
     }
 }
