@@ -1,6 +1,7 @@
 package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.func.Disposable;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.iter.ReferenceIndex;
 
@@ -10,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>{
+public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
     StageAdapter<O, T> getAdapter();
 
     static <T> Pipe<T, T> create() {

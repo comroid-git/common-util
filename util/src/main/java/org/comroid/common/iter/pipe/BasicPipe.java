@@ -39,6 +39,11 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     }
 
     @Override
+    public void clear() {
+        refs.clear();
+    }
+
+    @Override
     public void accept(O other) {
         refs.add(other);
     }

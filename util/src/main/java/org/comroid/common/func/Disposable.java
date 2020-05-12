@@ -2,14 +2,22 @@ package org.comroid.common.func;
 
 import org.comroid.common.exception.MultipleExceptions;
 import org.comroid.common.iter.Span;
+import org.comroid.common.ref.StaticCache;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public interface Disposable extends AutoCloseable {
+    String CACHE_KEY = "disposable.children";
+
+    default Collection<? extends AutoCloseable> getChildren() {
+        return Collections.unmodifiableCollection(StaticCache.access(this, CACHE_KEY, ArrayList::new));
+    }
+
+    default void addChildren(AutoCloseable child) {
+        StaticCache.access(this, CACHE_KEY, ArrayList::new).add(child);
+    }
+
     @Override
     default void close() throws MultipleExceptions {
         disposeThrow();
@@ -40,9 +48,19 @@ public interface Disposable extends AutoCloseable {
         throw new MultipleExceptions(throwables);
     }
 
-    void addChildren(AutoCloseable child);
+    interface Container extends Disposable {
+        Disposable getUnderlyingDisposable();
 
-    Collection<? extends AutoCloseable> getChildren();
+        @Override
+        default Collection<? extends AutoCloseable> getChildren() {
+            return getUnderlyingDisposable().getChildren();
+        }
+
+        @Override
+        default void addChildren(AutoCloseable child) {
+            getUnderlyingDisposable().addChildren(child);
+        }
+    }
 
     class Basic implements Disposable {
         private final Span<AutoCloseable> children = new Span<>();
@@ -59,20 +77,6 @@ public interface Disposable extends AutoCloseable {
             }
 
             children.add(child);
-        }
-    }
-
-    interface Container extends Disposable {
-        Disposable getUnderlyingDisposable();
-
-        @Override
-        default void addChildren(AutoCloseable child) {
-            getUnderlyingDisposable().addChildren(child);
-        }
-
-        @Override
-        default Collection<? extends AutoCloseable> getChildren() {
-            return getUnderlyingDisposable().getChildren();
         }
     }
 }

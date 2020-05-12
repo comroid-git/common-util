@@ -33,6 +33,11 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
 
     boolean remove(T item);
 
+    /**
+     * Deletes all elements
+     */
+    void clear();
+
     @Override
     Pipe<?, T> pipe();
 
@@ -71,6 +76,11 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
             @Override
             public boolean remove(T item) {
                 return underlying.remove(item);
+            }
+
+            @Override
+            public void clear() {
+                underlying.clear();
             }
 
             @Override

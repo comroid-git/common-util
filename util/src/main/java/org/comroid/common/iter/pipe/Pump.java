@@ -1,5 +1,6 @@
 package org.comroid.common.iter.pipe;
 
+import org.comroid.common.func.Disposable;
 import org.comroid.common.info.ExecutorBound;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.iter.ReferenceIndex;
