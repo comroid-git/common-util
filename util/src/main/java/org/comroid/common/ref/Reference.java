@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -31,6 +32,10 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
 
     static <T> Reference<T> provided(Supplier<T> supplier) {
         return supplier::get;
+    }
+
+    static <T> Reference<T> conditional(BooleanSupplier condition, Supplier<T> supplier) {
+        return new Support.Conditional<>(condition, supplier);
     }
 
     static <T> FutureReference<T> later(CompletableFuture<T> future) {
@@ -93,5 +98,21 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             }
         }
 
+        private static final class Conditional<T> implements Reference<T> {
+            private final BooleanSupplier condition;
+            private final Supplier<T> supplier;
+
+            private Conditional(BooleanSupplier condition, Supplier<T> supplier) {
+                this.condition = condition;
+                this.supplier = supplier;
+            }
+
+            @Nullable
+            @Override
+            public T get() {
+                //noinspection unchecked
+                return condition.getAsBoolean() ? supplier.get() : (T) EMPTY.get();
+            }
+        }
     }
 }
