@@ -8,7 +8,7 @@ import java.util.function.BiConsumer;
 public interface TypeFragmentProvider<T extends TypeFragment> extends BiConsumer<Spellbind.Builder<?>, Object[]> {
     Class<T> getInterface();
 
-    Invocable<? extends T> getInstanceSupplier();
+    Invocable.TypeMap<? extends T> getInstanceSupplier();
 
     @Override
     default void accept(Spellbind.Builder<?> builder, Object... args) {
