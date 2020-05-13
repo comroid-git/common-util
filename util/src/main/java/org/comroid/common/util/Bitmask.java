@@ -21,6 +21,15 @@ public final class Bitmask {
         }
     }
 
+    public static int combine(Bitmask.Enum... values) {
+        int yield = EMPTY;
+
+        for (Bitmask.Enum value : values)
+            yield = value.apply(yield, true);
+
+        return yield;
+    }
+
     public static final int EMPTY = 0x0;
 
     public static int modifyFlag(int mask, int flag, boolean newState) {
