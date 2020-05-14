@@ -25,10 +25,10 @@ public interface WebSocketEventType<P extends WebSocketEventPayload<? extends We
             return payloadGenerator;
         }
 
-        public Basic(WebSocket webSo, Class<P> payloadType, Invocable.TypeMap<? extends P> payloadGenerator) {
-            super(Collections.emptyList(), payloadType, webSo);
+        public Basic(WebSocket webSocket, Class<P> payloadType) {
+            super(Collections.emptyList(), payloadType, webSocket);
 
-            this.payloadGenerator = payloadGenerator;
+            this.payloadGenerator = Invocable.<P>ofMethodCall(this, "createPayload").typeMapped();
         }
     }
 }

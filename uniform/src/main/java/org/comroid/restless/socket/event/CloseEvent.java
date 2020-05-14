@@ -1,69 +1,50 @@
 package org.comroid.restless.socket.event;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.func.Invocable.TypeMap.Null;
-import org.comroid.common.ref.StaticCache;
 import org.comroid.restless.socket.WebSocket;
-import org.comroid.uniform.node.UniObjectNode;
-
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import org.comroid.restless.socket.event.multipart.WebSocketEventContainer;
+import org.comroid.restless.socket.event.multipart.WebSocketEventPayload;
+import org.comroid.restless.socket.event.multipart.WebSocketEventType;
 
 public interface CloseEvent {
-    /*
-    we need these classes to extend the SocketEvent classes
-     */
-
-    interface Type extends WebSocketEvent.Type<Payload> {
+    static WebSocketEventContainer<Type, Payload> container(WebSocket webSocket) {
+        return new Support.Container(webSocket);
     }
 
-    interface Payload extends WebSocketEvent.Payload<Type> {
-        int getCloseCode();
+    interface Type extends WebSocketEventType<Payload> {
     }
 
-    final class Container extends WebSocketEvent.Container<Payload> {
-        private final Type type;
+    interface Payload extends WebSocketEventPayload<Type> {
+        int getStatusCode();
+    }
 
-        @Override
-        public Type getType() {
-            return type;
-        }
-
-        public Container(WebSocket webSocket) {
-            super(webSocket, new CompletableFuture<>());
-            this.type = new TypeImpl(webSocket);
-            typeFuture.complete(type);
-        }
-
-        private final class TypeImpl extends WebSocketEvent.Container<Payload>.TypeImpl implements Type {
-            @Override
-            public Invocable.TypeMap<? extends Payload> getInstanceSupplier() {
-                return StaticCache.access(this, "instanceSupplier",
-                        () -> Invocable.<Payload>ofMethodCall(this, "craftClosePayload").typeMapped());
-            }
-
-            public TypeImpl(WebSocket bot) {
-                super(Polyfill.uncheckedCast(Collections.singletonList(getWebSocket().getEventHub().Base.getType())), Payload.class, bot);
-            }
-
-            public PayloadImpl craftOpenPayload(@Null UniObjectNode data, int closeCode) {
-                return new PayloadImpl(this, closeCode);
+    final class Support {
+        private static final class Container extends WebSocketEventContainer.Basic<Type, Payload> {
+            public Container(WebSocket webSocket) {
+                super(new TypeImpl(webSocket, Payload.class));
             }
         }
 
-        private final class PayloadImpl extends WebSocketEvent.Container<Payload>.PayloadImpl<Type> implements Payload {
-            private final int closeCode;
+        private static final class TypeImpl extends WebSocketEventType.Basic<Payload> implements Type {
+            public TypeImpl(WebSocket webSo, Class<Payload> payloadType) {
+                super(webSo, payloadType);
+            }
+
+            public Payload createPayload(int statusCode) {
+                return new PayloadImpl(statusCode, this);
+            }
+        }
+
+        private static final class PayloadImpl extends WebSocketEventPayload.Base<Type> implements Payload {
+            private final int statusCode;
 
             @Override
-            public int getCloseCode() {
-                return closeCode;
+            public int getStatusCode() {
+                return statusCode;
             }
 
-            public PayloadImpl(Type masterEventType, int closeCode) {
-                super(masterEventType, null);
-
-                this.closeCode = closeCode;
+            public PayloadImpl(int statusCode, Type masterEventType) {
+                super(masterEventType);
+                this.statusCode = statusCode;
             }
         }
     }
