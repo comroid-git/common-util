@@ -1,21 +1,22 @@
 package org.comroid.test.model;
 
-import org.comroid.varbind.GroupBind;
-import org.comroid.varbind.VarBind;
-import org.comroid.varbind.VariableCarrier;
+import org.comroid.varbind.annotation.Location;
+import org.comroid.varbind.annotation.RootBind;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.container.DataContainerBase;
 
 import com.alibaba.fastjson.JSONObject;
 
 import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
 
-@VarBind.Location(Role.Binds.class)
-public class Role extends VariableCarrier<DiscordAPI> {
+@Location(Role.Binds.class)
+public class Role extends DataContainerBase<DiscordAPI> {
     public Role(DiscordAPI dependencyObject, JSONObject data) {
         super(fastJsonLib, data, dependencyObject);
     }
 
     public interface Binds {
-        @VarBind.Root GroupBind GROUP = new GroupBind(
-                fastJsonLib, "role");
+        @RootBind
+        GroupBind GROUP = new GroupBind(fastJsonLib, "role", invocable);
     }
 }

@@ -22,10 +22,6 @@ allprojects {
     apply from: "$rootDir/gradle/global.gradle"
 }
 
-dependencies {
-    testImplementation 'junit:junit:4.13'
-}
-
 task allJavadoc(type: Javadoc) {
     source = files(rootProject.allprojects.stream()
             .filter { !Objects.isNull(it) }

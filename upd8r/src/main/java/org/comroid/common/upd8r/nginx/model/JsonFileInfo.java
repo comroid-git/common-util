@@ -15,8 +15,8 @@ public class JsonFileInfo {
             @JSONField(name = "size") int size
     ) {
         this.fileName = fileName;
-        this.myTime = myTime;
-        this.size = size;
+        this.myTime   = myTime;
+        this.size     = size;
     }
 
     public String getFileName() {

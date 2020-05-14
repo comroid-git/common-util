@@ -17,9 +17,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SpanTest {
-    private Span<String>                span;
-    private List<Pair<String, Integer>> generated;
-
     @Test
     public void baseTest() {
         this.span = Span.<String>make().span();
@@ -61,9 +58,8 @@ public class SpanTest {
                 .filter(it -> it.equals(removeThis))
                 .count();
         System.out.println("removing value   = " + removeThis + "; found " + count + " occurrence" + (
-                count == 1
-                        ? ""
-                        : "s"));
+                count == 1 ? "" : "s"
+        ));
         assertTrue(span.remove(removeThis));
         System.out.println("span after rem   = " + span);
         bound -= 1;
@@ -88,11 +84,7 @@ public class SpanTest {
 
         final Object[] iterable = span.toArray();
         System.out.println("span after       = " + span);
-        System.out.printf(
-                "span iterable    = {%d}%s%n",
-                iterable.length,
-                Arrays.toString(iterable)
-        );
+        System.out.printf("span iterable    = {%d}%s%n", iterable.length, Arrays.toString(iterable));
 
         assertEquals(successful, remove);
         //assertEquals(size_beforeBulk - successful, iterable.length);
@@ -108,6 +100,8 @@ public class SpanTest {
                 .getFirst();
     }
 
-    private static final Random rng   = new Random();
-    private static       int    bound = rng.nextInt(100) + 50;
+    private static final Random                      rng = new Random();
+    private static       int                         bound = rng.nextInt(100) + 50;
+    private              Span<String>                span;
+    private              List<Pair<String, Integer>> generated;
 }

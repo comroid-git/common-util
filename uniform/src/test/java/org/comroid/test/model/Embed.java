@@ -1,21 +1,22 @@
 package org.comroid.test.model;
 
-import org.comroid.varbind.GroupBind;
-import org.comroid.varbind.VarBind;
-import org.comroid.varbind.VariableCarrier;
+import org.comroid.varbind.annotation.Location;
+import org.comroid.varbind.annotation.RootBind;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.container.DataContainerBase;
 
 import com.alibaba.fastjson.JSONObject;
 
 import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
 
-@VarBind.Location(Embed.Binds.class)
-public class Embed extends VariableCarrier<DiscordAPI> {
+@Location(Embed.Binds.class)
+public class Embed extends DataContainerBase<DiscordAPI> {
     public Embed(DiscordAPI dependencyObject, JSONObject data) {
         super(fastJsonLib, data, dependencyObject);
     }
 
     public interface Binds {
-        @VarBind.Root GroupBind GROUP = new GroupBind(
-                fastJsonLib, "embed");
+        @RootBind
+        GroupBind GROUP = new GroupBind(fastJsonLib, "embed", invocable);
     }
 }

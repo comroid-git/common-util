@@ -1,20 +1,21 @@
 package org.comroid.test.model;
 
 import org.comroid.uniform.node.UniObjectNode;
-import org.comroid.varbind.GroupBind;
-import org.comroid.varbind.VarBind;
-import org.comroid.varbind.VariableCarrier;
+import org.comroid.varbind.annotation.Location;
+import org.comroid.varbind.annotation.RootBind;
+import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.container.DataContainerBase;
 
 import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
 
-@VarBind.Location(Reaction.Binds.class)
-public class Reaction extends VariableCarrier<DiscordAPI> {
+@Location(Reaction.Binds.class)
+public class Reaction extends DataContainerBase<DiscordAPI> {
     public Reaction(DiscordAPI dependencyObject, UniObjectNode data) {
-        super(fastJsonLib, data, dependencyObject);
+        super(, fastJsonLib, data, dependencyObject);
     }
 
     public interface Binds {
-        @VarBind.Root GroupBind GROUP = new GroupBind(
-                fastJsonLib, "reaction");
+        @RootBind
+        GroupBind GROUP = new GroupBind(fastJsonLib, "reaction", invocable);
     }
 }

@@ -6,6 +6,7 @@ import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -17,7 +18,7 @@ public final class OrgJsonLib extends SerializationAdapter<Object, JSONObject, J
     }
 
     @Override
-    public UniNode parse(String data) {
+    public UniNode parse(@Nullable String data) {
         throw new UnsupportedOperationException();
     }
 

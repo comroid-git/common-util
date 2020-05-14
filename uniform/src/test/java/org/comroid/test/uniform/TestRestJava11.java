@@ -3,10 +3,10 @@ package org.comroid.test.uniform;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import org.comroid.test.model.NGinXFSNode;
-import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
-import org.comroid.uniform.adapter.http.jdk.JavaHttpAdapter;
 import org.comroid.restless.REST;
+import org.comroid.test.model.NGinXFSNode;
+import org.comroid.uniform.adapter.http.jdk.JavaHttpAdapter;
+import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
 
 import org.junit.Before;
 
@@ -18,11 +18,9 @@ import static org.junit.Assert.assertTrue;
 public class TestRestJava11 {
     public final static URL testUrl = url("https://api.cdn.comroid.org/app/SymBLink/");
 
-    private REST rest;
-
     @Before
     public void setup() {
-        rest = new REST<>(new JavaHttpAdapter(), null, FastJSONLib.fastJsonLib);
+        rest = new REST<>(new JavaHttpAdapter(), FastJSONLib.fastJsonLib, executor, null, ratelimiter, pool);
     }
 
     @Before
@@ -43,8 +41,10 @@ public class TestRestJava11 {
                     .get(0, TimeUnit.SECONDS)
                     .size() >= 3);
             assertEquals(
-                    200, (int) request.execute$statusCode()
-                            .get(0, TimeUnit.SECONDS));
+                    200,
+                    (int) request.execute$statusCode()
+                            .get(0, TimeUnit.SECONDS)
+            );
 
             assertTrue(request.execute$map(NGinXFSNode::getType)
                     .get(0, TimeUnit.SECONDS)
@@ -55,4 +55,6 @@ public class TestRestJava11 {
             t.printStackTrace(System.out);
         }
     }
+
+    private REST rest;
 }

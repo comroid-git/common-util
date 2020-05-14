@@ -1,12 +1,12 @@
 package org.comroid.uniform;
 
 public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS, TAR extends BAS> {
-    public final    Primitive  typ;
+    public final Primitive typ;
     protected final Class<TAR> tarClass;
 
     protected DataStructureType(Class<TAR> tarClass, Primitive typ) {
         this.tarClass = tarClass;
-        this.typ = typ;
+        this.typ      = typ;
     }
 
     @Override
@@ -16,12 +16,18 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DataStructureType<?, ?, ?> that = (DataStructureType<?, ?, ?>) o;
 
-        if (!tarClass.equals(that.tarClass)) return false;
+        if (!tarClass.equals(that.tarClass)) {
+            return false;
+        }
         return typ == that.typ;
     }
 
@@ -35,11 +41,16 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
     }
 
     public TAR cast(Object node) throws ClassCastException {
-        if (tarClass.isInstance(node)) return tarClass.cast(node);
+        if (tarClass.isInstance(node)) {
+            return tarClass.cast(node);
+        }
 
-        throw new ClassCastException(String.format("Cannot cast %s to targeted %s type %s",
+        throw new ClassCastException(String.format(
+                "Cannot cast %s to targeted %s type %s",
                 node.getClass()
-                        .getName(), typ.name(), tarClass.getName()
+                        .getName(),
+                typ.name(),
+                tarClass.getName()
         ));
     }
 

@@ -5,30 +5,6 @@ import java.util.function.BooleanSupplier;
 import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class DoWhile extends Loop<Integer> {
-    public static final class Func extends DoWhile {
-        private final BooleanSupplier continueTester;
-        private final Runnable        action;
-
-        @Override
-        protected boolean continueLoop() {
-            return continueTester.getAsBoolean();
-        }
-
-        @Override
-        protected boolean executeLoop(Integer each) {
-            action.run();
-
-            return true;
-        }
-
-        public Func(int priority, BooleanSupplier continueTester, Runnable action) {
-            super(priority, action);
-
-            this.continueTester = continueTester;
-            this.action         = action;
-        }
-    }
-
     public DoWhile(int priority) {
         super(priority);
 
@@ -51,4 +27,28 @@ public abstract class DoWhile extends Loop<Integer> {
 
     @Override
     protected abstract boolean executeLoop(Integer each);
+
+    public static final class Func extends DoWhile {
+        private final BooleanSupplier continueTester;
+        private final Runnable        action;
+
+        public Func(int priority, BooleanSupplier continueTester, Runnable action) {
+            super(priority, action);
+
+            this.continueTester = continueTester;
+            this.action         = action;
+        }
+
+        @Override
+        protected boolean continueLoop() {
+            return continueTester.getAsBoolean();
+        }
+
+        @Override
+        protected boolean executeLoop(Integer each) {
+            action.run();
+
+            return true;
+        }
+    }
 }

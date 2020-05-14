@@ -20,19 +20,16 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class NGinXUpdateChannel implements UpdateChannel {
-    private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
-
+    private final OkHttpClient              httpClient = new OkHttpClient.Builder().build();
     private final Function<String, Version> filenameVersioning;
     private final Function<String, URL>     fileDownloadLink;
     private final Version.Container         versionContainer;
     private final String                    baseURL;
-
     /**
      * @param versionContainer   The container whose version to use for comparison
      * @param baseURL            NGinX API Base URL
      * @param filenameVersioning A Function to generate a version from server response filenames.
-     * @param fileDownloadLink   A Function to generate a download URL from a server response
-     *                           filename.
+     * @param fileDownloadLink   A Function to generate a download URL from a server response filename.
      */
     public NGinXUpdateChannel(
             Version.Container versionContainer,
@@ -40,10 +37,10 @@ public class NGinXUpdateChannel implements UpdateChannel {
             Function<String, Version> filenameVersioning,
             Function<String, URL> fileDownloadLink
     ) {
-        this.versionContainer = versionContainer;
-        this.baseURL = baseURL;
+        this.versionContainer   = versionContainer;
+        this.baseURL            = baseURL;
         this.filenameVersioning = filenameVersioning;
-        this.fileDownloadLink = fileDownloadLink;
+        this.fileDownloadLink   = fileDownloadLink;
     }
 
     @Override
@@ -72,18 +69,19 @@ public class NGinXUpdateChannel implements UpdateChannel {
                 final Response response = httpClient.newCall(request)
                         .execute();
 
-                if (response.body() != null) return JSONArray.parseArray(
-                        response.body()
-                                .string(), JsonFileInfo.class);
-                else throw new NullPointerException("No response body received");
+                if (response.body() != null) {
+                    return JSONArray.parseArray(response.body()
+                            .string(), JsonFileInfo.class);
+                } else {
+                    throw new NullPointerException("No response body received");
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Error requesting files", e);
             }
         })
                 .thenApply(files -> files.stream()
                         .map(JsonFileInfo::getFileName)
-                        .max(Comparator.comparing(
-                                filenameVersioning))
+                        .max(Comparator.comparing(filenameVersioning))
                         .orElseThrow(AssertionError::new))
                 .thenApply(fileDownloadLink);
     }
@@ -99,11 +97,9 @@ public class NGinXUpdateChannel implements UpdateChannel {
         })
                 .thenApplyAsync(stream -> {
                     try {
-                        final File tempFile = File.createTempFile(
-                                UUID.randomUUID()
-                                        .toString(), ".tmp");
-                        final FileOutputStream outputStream = new FileOutputStream(
-                                tempFile);
+                        final File tempFile = File.createTempFile(UUID.randomUUID()
+                                .toString(), ".tmp");
+                        final FileOutputStream outputStream = new FileOutputStream(tempFile);
 
                         //stream.transferTo(outputStream);
                         Objects.requireNonNull(outputStream, "outputStream");

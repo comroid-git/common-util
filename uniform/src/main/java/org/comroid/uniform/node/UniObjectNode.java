@@ -1,6 +1,7 @@
 package org.comroid.uniform.node;
 
 import java.util.AbstractMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -19,17 +20,8 @@ public final class UniObjectNode extends UniNode {
     }
 
     @Override
-    public @NotNull UniNode get(String fieldName) {
-        final Object value = adapter.get(fieldName);
-
-        if (value == null)
-            return UniValueNode.nullNode();
-
-        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
-                .map(DataStructureType::typeClass)
-                .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(fieldName))));
-        } else return serializationAdapter.createUniNode(value);
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
     }
 
     @Override
@@ -48,8 +40,45 @@ public final class UniObjectNode extends UniNode {
     }
 
     @Override
-    public final Object getBaseNode() {
-        return adapter.getBaseNode();
+    public @NotNull UniNode get(String fieldName) {
+        final Object value = adapter.get(fieldName);
+
+        if (value == null) {
+            return UniValueNode.nullNode();
+        }
+
+        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
+                .map(DataStructureType::typeClass)
+                .noneMatch(type -> type.isInstance(value))) {
+            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(fieldName))));
+        } else {
+            return serializationAdapter.createUniNode(value);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return adapter.toString();
+    }
+
+    public static UniObjectNode ofMap(SerializationAdapter<?, ?, ?> adapter, Map<String, Object> map) {
+        class MergedAdapter extends UniObjectNode.Adapter<Map<String, Object>> {
+            protected MergedAdapter(Map<String, Object> underlying) {
+                super(underlying);
+            }
+
+            @Override
+            public Object put(String key, Object value) {
+                return getBaseNode().put(key, value);
+            }
+
+            @Override
+            public @NotNull Set<Entry<String, Object>> entrySet() {
+                return getBaseNode().entrySet();
+            }
+        }
+
+        return new UniObjectNode(adapter, new MergedAdapter(map));
     }
 
     public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {

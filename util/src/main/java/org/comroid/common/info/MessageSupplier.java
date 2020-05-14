@@ -16,13 +16,13 @@ public interface MessageSupplier extends Supplier<String> {
         }
 
         @Override
-        public String get() {
-            return supplier.get();
+        public String toString() {
+            return get();
         }
 
         @Override
-        public String toString() {
-            return get();
+        public String get() {
+            return supplier.get();
         }
     }
 }

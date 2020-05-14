@@ -6,6 +6,27 @@ import java.util.function.Consumer;
 import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class ForEach<T> extends Loop<T> {
+    private final Iterator<T> iterator;
+
+    public ForEach(int priority, Iterable<T> iterable) {
+        super(priority);
+
+        this.iterator = iterable.iterator();
+    }
+
+    @Override
+    protected final boolean continueLoop() {
+        return iterator.hasNext();
+    }
+
+    @Override
+    protected final T produce(int loop) {
+        return iterator.next();
+    }
+
+    @Override
+    protected abstract boolean executeLoop(T each);
+
     public static final class Func<T> extends ForEach<T> {
         private final Consumer<T> action;
 
@@ -21,26 +42,5 @@ public abstract class ForEach<T> extends Loop<T> {
 
             return continueLoop();
         }
-    }
-
-    private final Iterator<T> iterator;
-
-    public ForEach(int priority, Iterable<T> iterable) {
-        super(priority);
-
-        this.iterator = iterable.iterator();
-    }
-
-    @Override
-    protected abstract boolean executeLoop(T each);
-
-    @Override
-    protected final T produce(int loop) {
-        return iterator.next();
-    }
-
-    @Override
-    protected final boolean continueLoop() {
-        return iterator.hasNext();
     }
 }

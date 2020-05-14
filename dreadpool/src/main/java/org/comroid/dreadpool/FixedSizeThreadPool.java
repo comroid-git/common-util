@@ -1,7 +1,5 @@
 package org.comroid.dreadpool;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -9,11 +7,15 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jetbrains.annotations.NotNull;
+
 public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor implements ThreadPool {
     private final Lock                   lock      = new ReentrantLock();
     private final Queue<ThreadPool.Task> taskQueue = new PriorityQueue<>();
 
-    public FixedSizeThreadPool(int corePoolSize, WorkerFactory threadFactory, ThreadErrorHandler handler) {
+    public FixedSizeThreadPool(
+            int corePoolSize, WorkerFactory threadFactory, ThreadErrorHandler handler
+    ) {
         super(corePoolSize, threadFactory, handler);
 
         threadFactory.threadPool = this;
@@ -25,8 +27,8 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
     }
 
     @Override
-    public final ThreadErrorHandler getThreadErrorHandler() {
-        return (ThreadErrorHandler) super.getRejectedExecutionHandler();
+    public String toString() {
+        return String.format("FixedSizeThreadPool{lock=%s}", lock);
     }
 
     @Override
@@ -36,11 +38,17 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
     }
 
     @Override
+    public final ThreadErrorHandler getThreadErrorHandler() {
+        return (ThreadErrorHandler) super.getRejectedExecutionHandler();
+    }
+
+    @Override
     public void flush() {
         try {
             // we need the lock here
-            if (!lock.tryLock())
+            if (!lock.tryLock()) {
                 lock.lockInterruptibly();
+            }
         } catch (InterruptedException e) {
             getThreadErrorHandler().handleInterrupted(e);
         } finally {
@@ -59,8 +67,9 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
 
         try {
             // we need the lock here
-            if (!lock.tryLock())
+            if (!lock.tryLock()) {
                 lock.lockInterruptibly();
+            }
         } catch (InterruptedException e) {
             getThreadErrorHandler().handleInterrupted(e);
         } finally {
@@ -79,8 +88,9 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
 
         try {
             // we need the lock here
-            if (!lock.tryLock())
+            if (!lock.tryLock()) {
                 lock.lockInterruptibly();
+            }
         } catch (InterruptedException e) {
             getThreadErrorHandler().handleInterrupted(e);
         } finally {
@@ -98,10 +108,5 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
     @Override
     public int queueSize() {
         return taskQueue.size();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("FixedSizeThreadPool{lock=%s}", lock);
     }
 }

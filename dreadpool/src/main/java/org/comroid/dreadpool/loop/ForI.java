@@ -13,6 +13,37 @@ import java.util.function.UnaryOperator;
 import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class ForI<V> extends Loop<V> {
+    protected ForI(int priority) {
+        super(priority);
+    }
+
+    @Override
+    public boolean oneCycle() {
+        if (canContinueWith(v)) {
+            final boolean cont = super.oneCycle();
+            v = accumulate(v);
+            return cont;
+        } else {
+            return false;
+        }
+    }
+
+    protected abstract boolean canContinueWith(V value);
+
+    protected abstract V accumulate(V value);
+
+    @Override
+    protected boolean continueLoop() {
+        return canContinueWith(v);
+    }
+
+    @Override
+    protected V produce(int loop) {
+        return v;
+    }
+
+    protected abstract V init();
+
     public static final class IntFunc extends ForI<Integer> {
         private final IntSupplier      initOp;
         private final IntPredicate     continueTester;
@@ -20,11 +51,7 @@ public abstract class ForI<V> extends Loop<V> {
         private final IntConsumer      action;
 
         public IntFunc(
-                int priority,
-                IntSupplier initOp,
-                IntPredicate continueTester,
-                IntUnaryOperator accumulator,
-                IntConsumer action
+                int priority, IntSupplier initOp, IntPredicate continueTester, IntUnaryOperator accumulator, IntConsumer action
         ) {
             super(priority);
 
@@ -80,8 +107,9 @@ public abstract class ForI<V> extends Loop<V> {
 
                 @Override
                 public boolean test(T t) {
-                    if (cache.add(t))
+                    if (cache.add(t)) {
                         return pContinueTester.test(t);
+                    }
                     return false;
                 }
             };
@@ -113,33 +141,4 @@ public abstract class ForI<V> extends Loop<V> {
     }
 
     private V v;
-
-    protected ForI(int priority) {
-        super(priority);
-    }
-
-    @Override
-    public boolean oneCycle() {
-        if (canContinueWith(v)) {
-            final boolean cont = super.oneCycle();
-            v = accumulate(v);
-            return cont;
-        } else return false;
-    }
-
-    protected abstract V init();
-
-    protected abstract boolean canContinueWith(V value);
-
-    protected abstract V accumulate(V value);
-
-    @Override
-    protected boolean continueLoop() {
-        return canContinueWith(v);
-    }
-
-    @Override
-    protected V produce(int loop) {
-        return v;
-    }
 }

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jetbrains.annotations.Nullable;
 
 public final class JacksonLib extends SerializationAdapter<JsonNode, ObjectNode, ArrayNode> {
     public static @Instance final JacksonLib   jacksonLib   = new JacksonLib();
@@ -20,7 +21,7 @@ public final class JacksonLib extends SerializationAdapter<JsonNode, ObjectNode,
     }
 
     @Override
-    public UniNode parse(String data) {
+    public UniNode parse(@Nullable String data) {
         throw new UnsupportedOperationException();
     }
 
