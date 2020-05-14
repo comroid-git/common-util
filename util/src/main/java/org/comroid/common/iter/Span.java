@@ -101,9 +101,9 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
         return toArray(new Object[0], Function.identity());
     }
 
-    @NotNull
     @Override
-    public final <R> R[] toArray(@NotNull R[] dummy) {
+    public final <R> @NotNull R[] toArray(@NotNull R[] dummy) {
+        //noinspection unchecked
         return toArray(dummy, it -> (R) it);
     }
 
