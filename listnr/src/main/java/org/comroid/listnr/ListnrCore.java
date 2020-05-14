@@ -14,10 +14,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
-public abstract class ListnrCore<IN, D, T extends EventType<IN, D, ? extends P>, P extends EventPayload<D, ? extends T>>
+public abstract class ListnrCore<IN, D, T extends EventType<IN, D, ? super P>, P extends EventPayload<D, ? super T>>
         implements Dependent<D>, ExecutorBound {
     private final Collection<EventType<IN, D, ? extends T>> types = new ArrayList<>();
-    private final Map<Listnr.Attachable<IN, D, ? extends T, ? extends P>, EventConsumers> consumers = new ConcurrentHashMap<>();
+    private final Map<Listnr.Attachable<IN, D, ? super T, ? super P>, EventConsumers> consumers = new ConcurrentHashMap<>();
     private final Class<IN> inClass;
     private final D dependent;
     private final Executor executor;
@@ -38,7 +38,7 @@ public abstract class ListnrCore<IN, D, T extends EventType<IN, D, ? extends P>,
 
     /**
      * @param inTypeClass Type class to represent the IN parameter.
-     * @param dependent The dependency object.
+     * @param dependent   The dependency object.
      */
     protected ListnrCore(Class<IN> inTypeClass, D dependent) {
         this(ForkJoinPool.commonPool(), inTypeClass, dependent);
@@ -55,17 +55,19 @@ public abstract class ListnrCore<IN, D, T extends EventType<IN, D, ? extends P>,
     }
 
     @Internal
-    <EP extends P> Runnable listen(final Listnr.Attachable<IN, D, ? extends T, ? extends P> listener,
+    <EP extends P> Runnable listen(final Listnr.Attachable<IN, D, ? super T, ? super P> listener,
                                    final EventType<IN, D, ? extends EP> eventType,
                                    final Consumer<EP> payloadConsumer) {
-        consumers(listener, eventType).add(payloadConsumer);
+        synchronized (listener) {
+            consumers(listener, eventType).add(payloadConsumer);
 
-        return () -> consumers(listener, eventType).remove(payloadConsumer);
+            return () -> consumers(listener, eventType).remove(payloadConsumer);
+        }
     }
 
     @Internal
     public <ET extends EventType<IN, D, EventPayload<D, ET>>> void publish(
-            final Listnr.Attachable<IN, D, T, P> attachable,
+            final Listnr.Attachable<IN, D, ? super T, ? super P> attachable,
             final ET eventType,
             final Object[] data
     ) {
@@ -83,7 +85,7 @@ public abstract class ListnrCore<IN, D, T extends EventType<IN, D, ? extends P>,
     }
 
     private Collection<Consumer<? extends P>> consumers(
-            Listnr.Attachable<IN, D, ? extends T, ? extends P> attachable,
+            Listnr.Attachable<IN, D, ? super T, ? super P> attachable,
             EventType<IN, D, ? extends P> type) {
         return consumers.computeIfAbsent(attachable, EventConsumers::new)
                 .computeIfAbsent(type, key -> new ArrayList<>());
@@ -91,9 +93,9 @@ public abstract class ListnrCore<IN, D, T extends EventType<IN, D, ? extends P>,
 
     private class EventConsumers extends ConcurrentHashMap<EventType<IN, D, ? extends P>, Collection<Consumer<? extends P>>> {
         @SuppressWarnings("FieldCanBeLocal")
-        private final Listnr.Attachable<IN, D, ? extends T, ? extends P> owner;
+        private final Listnr.Attachable<IN, D, ? super T, ? super P> owner;
 
-        public EventConsumers(Listnr.Attachable<IN, D, ? extends T, ? extends P> owner) {
+        public EventConsumers(Listnr.Attachable<IN, D, ? super T, ? super P> owner) {
             this.owner = owner;
         }
     }

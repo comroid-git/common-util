@@ -10,31 +10,33 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static org.comroid.common.Polyfill.uncheckedCast;
+
 public @interface Listnr {
-    interface Attachable<IN, D, T extends EventType<IN, D, ? extends P>, P extends EventPayload<D, ? extends T>> {
+    interface Attachable<IN, D, T extends EventType<IN, D, ? super P>, P extends EventPayload<D, ? super T>> {
         ListnrCore<IN, D, T, P> getListnrCore();
 
-        default <ET extends EventType<IN, D, ? extends EP>, EP extends EventPayload<D, ? extends ET>>
+        default <ET extends EventType<IN, D, ? super EP>, EP extends EventPayload<D, ? super ET>>
         Listnr.API<IN, D, ET, EP> listenTo(ET eventType) throws IllegalArgumentException {
             verifyEventType(eventType);
 
-            return new Listnr.API<>(Polyfill.uncheckedCast(this), eventType);
+            return new Listnr.API<>(uncheckedCast(this), eventType);
         }
 
-        default void publish(EventType<IN, D, ? extends P> eventType, Object... data) {
-            verifyEventType(eventType);
+        default void publish(EventType<IN, D, ? super P> eventType, Object... data) {
+            verifyEventType(uncheckedCast(eventType));
 
-            getListnrCore().publish(this, Polyfill.uncheckedCast(eventType), data);
+            getListnrCore().publish(this, uncheckedCast(eventType), data);
         }
 
         @Internal
-        default <ET extends EventType<IN, D, ? extends EP>, EP extends EventPayload<D, ? extends ET>> void verifyEventType(ET eventType) {
+        default <ET extends EventType<IN, D, ? super EP>, EP extends EventPayload<D, ? super ET>> void verifyEventType(ET eventType) {
             if (!getListnrCore().getRegisteredEventTypes().contains(eventType))
                 throw new IllegalArgumentException(String.format("Type %s is not managed by %s", eventType, this));
         }
     }
 
-    final class API<IN, D, T extends EventType<IN, D, ? extends P>, P extends EventPayload<D, ? extends T>> implements Pipeable<P> {
+    final class API<IN, D, T extends EventType<IN, D, ? super P>, P extends EventPayload<D, ? super T>> implements Pipeable<P> {
         private final Attachable<IN, D, T, P> attachable;
         private final T eventType;
 
@@ -50,7 +52,7 @@ public @interface Listnr {
          * @return A runnable that will detach the handler.
          */
         public final Runnable directly(Consumer<P> payloadConsumer) {
-            return attachable.getListnrCore().listen(attachable, eventType, payloadConsumer);
+            return attachable.getListnrCore().listen(attachable, uncheckedCast(eventType), payloadConsumer);
         }
 
         @Override
@@ -69,7 +71,7 @@ public @interface Listnr {
         @Override
         public final Pump<?, P> pump() {
             final Pump<P, P> pump = Pump.create();
-            final Runnable detacher = attachable.getListnrCore().listen(attachable, eventType, pump);
+            final Runnable detacher = attachable.getListnrCore().listen(attachable, uncheckedCast(eventType), pump);
             pump.addChildren(detacher::run);
 
             return pump;
@@ -95,7 +97,7 @@ public @interface Listnr {
 
             final FutureCompleter completer = new FutureCompleter();
             final Runnable detacher = attachable.getListnrCore()
-                    .listen(attachable, eventType, completer);
+                    .listen(attachable, uncheckedCast(eventType), completer);
             completer.future.thenRunAsync(detacher, Runnable::run)
                     .exceptionally(Polyfill.exceptionLogger());
 

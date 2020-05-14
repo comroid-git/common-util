@@ -1,5 +1,6 @@
 package org.comroid.common;
 
+import org.comroid.common.func.Provider;
 import org.comroid.common.func.ThrowingRunnable;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,11 @@ import java.util.regex.Matcher;
 import static java.util.Objects.isNull;
 
 public final class Polyfill {
+    public static <T> T supplyOnce(Provider<T> provider, Function<T, T> writer, Supplier<T> accessor) {
+        final T accessed = accessor.get();
+        return accessed == null ? (writer.apply(provider.now())) : accessed;
+    }
+
     public static String regexGroupOrDefault(
             Matcher matcher, String groupName, @Nullable String orDefault
     ) {

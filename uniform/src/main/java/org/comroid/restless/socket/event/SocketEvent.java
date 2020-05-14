@@ -2,6 +2,7 @@ package org.comroid.restless.socket.event;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
+import org.comroid.common.func.Provider;
 import org.comroid.common.ref.Specifiable;
 import org.comroid.listnr.model.EventContainer;
 import org.comroid.listnr.model.EventPayload;
@@ -22,14 +23,14 @@ public interface SocketEvent {
         return new Container<>(socket);
     }
 
-    interface Type<P extends Payload<? extends Type<P>>> extends EventType<UniObjectNode, WebSocket, P> {
+    interface Type<P extends Payload<? extends Type<? super P>>> extends EventType<UniObjectNode, WebSocket, P> {
     }
 
-    interface Payload<T extends Type<? extends Payload<T>>> extends EventPayload<WebSocket, T>, Specifiable<Payload<T>> {
+    interface Payload<T extends Type<? extends Payload<? super T>>> extends EventPayload<WebSocket, T>, Specifiable<Payload<T>> {
         WebSocket getWebSocket();
     }
 
-    class Container<P extends Payload<? extends Type<P>>> implements EventContainer<UniObjectNode, WebSocket, Type<P>, P> {
+    class Container<P extends Payload<? extends Type<? super P>>> implements EventContainer<UniObjectNode, WebSocket, Type<P>, P> {
         protected final CompletableFuture<Type<P>> typeFuture;
         private final WebSocket webSocket;
         private Type<P> type;
@@ -40,7 +41,7 @@ public interface SocketEvent {
 
         @Override
         public Type<P> getType() {
-            return type == null ? (type = typeFuture.join()) : type;
+            return Polyfill.supplyOnce(Provider.of(typeFuture), it -> this.type = it, () -> this.type);
         }
 
         private Container(WebSocket webSocket) {
@@ -75,14 +76,14 @@ public interface SocketEvent {
             }
         }
 
-        class PayloadImpl<XT extends Type<? extends Payload<XT>>> extends EventPayload.Basic<WebSocket, XT> implements Payload<XT> {
+        class PayloadImpl<XT extends Type<? extends Payload<? super XT>>> extends EventPayload.Basic<WebSocket, XT> implements Payload<XT> {
             @Override
             public WebSocket getWebSocket() {
                 return webSocket;
             }
 
-            public PayloadImpl(XT masterEventType, @Nullable UniObjectNode data) {
-                super(masterEventType, data, webSocket);
+            public PayloadImpl(XT masterEventType) {
+                super(masterEventType, webSocket);
             }
         }
     }

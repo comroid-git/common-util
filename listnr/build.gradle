@@ -10,5 +10,4 @@ ext {
 dependencies {
     api project(":util")
     api project(":spellbind")
-    implementation project(":dreadpool")
 }

@@ -2,6 +2,7 @@ package org.comroid.varbind.bind;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
+import org.comroid.common.iter.Span;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -25,9 +26,29 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final String groupName;
-    private final @Nullable GroupBind<? super T, D> parent;
+    private final Span<GroupBind<? super T, D>> parents;
     private final List<GroupBind<? extends T, D>> subgroups = new ArrayList<>();
     private final @Nullable Invocable<? super T> constructor;
+
+    public List<? extends VarBind<?, D, ?, ?>> getDirectChildren() {
+        return Collections.unmodifiableList(children);
+    }
+
+    public Optional<Invocable<? super T>> getConstructor() {
+        return Optional.ofNullable(constructor);
+    }
+
+    public String getName() {
+        return groupName;
+    }
+
+    public Span<GroupBind<? super T, D>> getParents() {
+        return parents;
+    }
+
+    public Collection<GroupBind<? extends T, D>> getSubgroups() {
+        return subgroups;
+    }
 
     public GroupBind(
             SerializationAdapter<?, ?, ?> serializationAdapter, String groupName
@@ -44,24 +65,66 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     public GroupBind(
             SerializationAdapter<?, ?, ?> serializationAdapter, String groupName, Invocable<? super T> invocable
     ) {
-        this(null, serializationAdapter, groupName, invocable);
+        this(Span.zeroSize(), serializationAdapter, groupName, invocable);
     }
 
     private GroupBind(
-            @Nullable GroupBind<? super T, D> parent,
+            GroupBind<? super T, D> parents,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             String groupName,
             @Nullable Invocable<? super T> invocable
     ) {
-        this.parent = parent;
+        this(
+                Span.singleton(Objects.requireNonNull(parents, "parents")),
+                serializationAdapter,
+                groupName,
+                invocable
+        );
+    }
+
+    private GroupBind(
+            Span<GroupBind<? super T, D>> parents,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            String groupName,
+            @Nullable Invocable<? super T> invocable
+    ) {
+        this.parents = parents;
         this.serializationAdapter = serializationAdapter;
         this.groupName = groupName;
         this.constructor = invocable;
     }
 
+    private static <T extends DataContainer<? extends D>, D> GroupBind<? super T, D> findRootParent(Collection<GroupBind<? super T, D>> groups) {
+        if (groups.size() == 0)
+            throw new AssertionError();
+
+        if (groups.size() == 1)
+            return groups.iterator().next();
+
+        //noinspection RedundantCast -> false positive; todo: wtf is this
+        return (GroupBind<? super T, D>) findRootParent(groups.stream()
+                .map(GroupBind::getParents)
+                .flatMap(Collection::stream)
+                .map(it -> (GroupBind<? super T, D>) it)
+                .collect(Collectors.toSet()));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> combine(String groupName, GroupBind<? super T, D>... parents) {
+        return combine(groupName, null, parents);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> combine(String groupName, Invocable<? super T> invocable, GroupBind<? super T, D>... parents) {
+        //noinspection RedundantCast -> false positive; todo: wtf is this
+        final GroupBind<? super T, D> rootParent = (GroupBind<? super T, D>) findRootParent(Arrays.asList(parents));
+
+        return new GroupBind<>(Span.immutable(parents), rootParent.serializationAdapter, groupName, invocable);
+    }
+
     @Override
     public String toString() {
-        return String.format("GroupBind{groupName='%s', parent=%s}", groupName, parent);
+        return String.format("GroupBind{groupName='%s', parent=%s}", groupName, parents);
     }
 
     public Optional<GroupBind<? extends T, D>> findGroupForData(UniObjectNode data) {
@@ -69,6 +132,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
             if (subgroups.isEmpty())
                 return Optional.of(this);
 
+            //noinspection rawtypes
             GroupBind[] fitting = subgroups.stream()
                     .filter(group -> group.isValidData(data))
                     .toArray(GroupBind[]::new);
@@ -81,36 +145,17 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public boolean isValidData(UniObjectNode data) {
-        if (parent != null)
+        if (parents != null)
             return false;
 
         return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()) || bind.isOptional());
     }
 
     public Stream<? extends VarBind<?, D, ?, ?>> streamAllChildren() {
-        return Stream.concat(children.stream(), getParent()
-                .map(GroupBind::streamAllChildren)
-                .orElseGet(Stream::empty));
-    }
-
-    public List<? extends VarBind<?, D, ?, ?>> getDirectChildren() {
-        return Collections.unmodifiableList(children);
-    }
-
-    public Optional<Invocable<? super T>> getConstructor() {
-        return Optional.ofNullable(constructor);
-    }
-
-    public String getName() {
-        return groupName;
-    }
-
-    public Optional<GroupBind<? super T, D>> getParent() {
-        return Optional.ofNullable(parent);
-    }
-
-    public Collection<GroupBind<? extends T, D>> getSubgroups() {
-        return subgroups;
+        return Stream.concat(children.stream(), getParents()
+                .stream()
+                .flatMap(GroupBind::streamAllChildren)
+        ).distinct();
     }
 
     public Invocable<? super T> autoConstructor(

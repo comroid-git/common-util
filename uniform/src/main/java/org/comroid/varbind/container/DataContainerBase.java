@@ -174,9 +174,9 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
         // find the topmost parent
         while (parentGroup.requireNonNull()
-                .getParent()
+                .getParents()
                 .isPresent()) {
-            parentGroup = parentGroup.map(group -> group.getParent()
+            parentGroup = parentGroup.map(group -> group.getParents()
                     .orElse(Polyfill.uncheckedCast(group)));
         }
 

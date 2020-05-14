@@ -31,7 +31,6 @@ public class ProvidedCache<K, V> extends BasicCache<K, V> {
             future.thenAcceptAsync(it -> getReference(key, true).set(it), providerWriteExecutor);
         }
 
-        return getReference(key, false).provider()
-                .get();
+        return getReference(key, false).provider().get();
     }
 }
