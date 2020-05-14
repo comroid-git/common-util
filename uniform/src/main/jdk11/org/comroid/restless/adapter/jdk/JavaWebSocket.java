@@ -3,7 +3,7 @@ package org.comroid.restless.adapter.jdk;
 import com.google.common.flogger.FluentLogger;
 import org.comroid.listnr.ListnrCore;
 import org.comroid.restless.socket.WebSocket;
-import org.comroid.restless.socket.event.SocketEvent;
+import org.comroid.restless.socket.event.WebSocketEvent;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 
@@ -19,7 +19,7 @@ public class JavaWebSocket extends WebSocket {
     private final JListener jListener;
 
     @Override
-    public ListnrCore<UniObjectNode, WebSocket, SocketEvent.Type<?>, SocketEvent.Payload<?>> getListnrCore() {
+    public ListnrCore<UniObjectNode, WebSocket, WebSocketEvent.Type<?>, WebSocketEvent.Payload<?>> getListnrCore() {
         return getEventHub();
     }
 

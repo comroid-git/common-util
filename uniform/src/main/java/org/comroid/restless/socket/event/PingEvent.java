@@ -10,14 +10,14 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 public interface PingEvent {
-    interface Type extends SocketEvent.Type<Payload> {
+    interface Type extends WebSocketEvent.Type<Payload> {
     }
 
-    interface Payload extends SocketEvent.Payload<Type> {
+    interface Payload extends WebSocketEvent.Payload<Type> {
         int getCloseCode();
     }
 
-    final class Container extends SocketEvent.Container<Payload> {
+    final class Container extends WebSocketEvent.Container<Payload> {
         private final Type type;
 
         @Override
@@ -31,7 +31,7 @@ public interface PingEvent {
             typeFuture.complete(type);
         }
 
-        private final class TypeImpl extends SocketEvent.Container<Payload>.TypeImpl implements Type {
+        private final class TypeImpl extends WebSocketEvent.Container<Payload>.TypeImpl implements Type {
             @Override
             public Invocable.TypeMap<? extends Payload> getInstanceSupplier() {
                 return StaticCache.access(this, "instanceSupplier",
@@ -47,7 +47,7 @@ public interface PingEvent {
             }
         }
 
-        private final class PayloadImpl extends SocketEvent.Container<Payload>.PayloadImpl<Type> implements Payload {
+        private final class PayloadImpl extends WebSocketEvent.Container<Payload>.PayloadImpl<Type> implements Payload {
             private final int closeCode;
 
             @Override

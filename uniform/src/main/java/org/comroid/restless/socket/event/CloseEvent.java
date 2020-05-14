@@ -15,14 +15,14 @@ public interface CloseEvent {
     we need these classes to extend the SocketEvent classes
      */
 
-    interface Type extends SocketEvent.Type<Payload> {
+    interface Type extends WebSocketEvent.Type<Payload> {
     }
 
-    interface Payload extends SocketEvent.Payload<Type> {
+    interface Payload extends WebSocketEvent.Payload<Type> {
         int getCloseCode();
     }
 
-    final class Container extends SocketEvent.Container<Payload> {
+    final class Container extends WebSocketEvent.Container<Payload> {
         private final Type type;
 
         @Override
@@ -36,7 +36,7 @@ public interface CloseEvent {
             typeFuture.complete(type);
         }
 
-        private final class TypeImpl extends SocketEvent.Container<Payload>.TypeImpl implements Type {
+        private final class TypeImpl extends WebSocketEvent.Container<Payload>.TypeImpl implements Type {
             @Override
             public Invocable.TypeMap<? extends Payload> getInstanceSupplier() {
                 return StaticCache.access(this, "instanceSupplier",
@@ -52,7 +52,7 @@ public interface CloseEvent {
             }
         }
 
-        private final class PayloadImpl extends SocketEvent.Container<Payload>.PayloadImpl<Type> implements Payload {
+        private final class PayloadImpl extends WebSocketEvent.Container<Payload>.PayloadImpl<Type> implements Payload {
             private final int closeCode;
 
             @Override

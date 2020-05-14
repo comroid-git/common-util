@@ -65,7 +65,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     public GroupBind(
             SerializationAdapter<?, ?, ?> serializationAdapter, String groupName, Invocable<? super T> invocable
     ) {
-        this(Span.zeroSize(), serializationAdapter, groupName, invocable);
+        this(Span.empty(), serializationAdapter, groupName, invocable);
     }
 
     private GroupBind(

@@ -9,7 +9,7 @@ import org.comroid.varbind.bind.VarBind;
 public interface Reprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPND, REMAP, FINAL> {
     @Override
     default Span<EXTR> extract(UniObjectNode node) {
-        return Span.zeroSize();
+        return Span.empty();
     }
 
     @Override

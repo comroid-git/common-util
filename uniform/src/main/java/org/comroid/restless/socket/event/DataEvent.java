@@ -4,20 +4,22 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.ref.StaticCache;
 import org.comroid.restless.socket.WebSocket;
+import org.comroid.restless.socket.event.multipart.WebSocketEventPayload;
+import org.comroid.restless.socket.event.multipart.WebSocketEventType;
 import org.comroid.uniform.node.UniObjectNode;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 public interface DataEvent {
-    interface Type extends SocketEvent.Type<Payload> {
+    interface Type extends WebSocketEventType<Payload> {
     }
 
-    interface Payload extends SocketEvent.Payload<Type> {
+    interface Payload extends WebSocketEventPayload<Type> {
         int getCloseCode();
     }
 
-    final class Container extends SocketEvent.Container<Payload> {
+    final class Container extends WebSocketEvent.Container<Payload> {
         private final Type type;
 
         @Override
@@ -31,7 +33,7 @@ public interface DataEvent {
             typeFuture.complete(type);
         }
 
-        private final class TypeImpl extends SocketEvent.Container<Payload>.TypeImpl implements Type {
+        private final class TypeImpl extends WebSocketEvent.Container<Payload>.TypeImpl implements Type {
             @Override
             public Invocable.TypeMap<? extends Payload> getInstanceSupplier() {
                 return StaticCache.access(this, "instanceSupplier",
@@ -47,7 +49,7 @@ public interface DataEvent {
             }
         }
 
-        private final class PayloadImpl extends SocketEvent.Container<Payload>.PayloadImpl<Type> implements Payload {
+        private final class PayloadImpl extends WebSocketEvent.Container<Payload>.PayloadImpl<Type> implements Payload {
             private final int closeCode;
 
             @Override
