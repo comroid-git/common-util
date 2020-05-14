@@ -2,6 +2,7 @@ package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Disposable;
+import org.comroid.common.iter.Span;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.iter.ReferenceIndex;
 
@@ -72,5 +73,9 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
     @Override
     default void accept(O o) {
         add(getAdapter().apply(o));
+    }
+
+    default Span<T> span() {
+        return new Span<>(this, Span.ModifyPolicy.SKIP_NULLS);
     }
 }
