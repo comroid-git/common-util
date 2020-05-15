@@ -13,7 +13,7 @@
   <name>common-util</name>
   <description>Update Handler using NGinX file hosts</description>
   <url>https://github.com/comroid-git/common-util</url>
-  <inceptionYear>2019</inceptionYear>
+  <inceptionYear>2020</inceptionYear>
   <licenses>
     <license>
       <name>The Apache License, Version 2.0</name>
@@ -22,9 +22,9 @@
   </licenses>
   <developers>
     <developer>
-      <id>burdoto</id>
+      <id>kaleidox</id>
       <name>Tobias Burdow</name>
-      <email>burdoto@outlook.com</email>
+      <email>contact@comroid.org</email>
     </developer>
   </developers>
   <scm>
@@ -36,13 +36,13 @@
     <dependency>
       <groupId>org.comroid</groupId>
       <artifactId>common-util</artifactId>
-      <version>1.4.0</version>
+      <version>1.4.1-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger</artifactId>
-      <version>0.4</version>
+      <version>0.5.1</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger-system-backend</artifactId>
-      <version>0.4</version>
+      <version>0.5.1</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>
