@@ -56,19 +56,21 @@ public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? super MP>,
     }
 
     @Internal
-    <ET extends MT, EP extends MP> Runnable listen(final Listnr.Attachable<IN, D, ? super ET, ? super EP> listener,
-                                    final EventType<IN, D, ? extends EP> eventType,
-                                    final Consumer<EP> payloadConsumer) {
+    <ET extends MT, EP extends MP> Runnable listen(
+            final Listnr.Attachable<IN, D, ? extends ET, ? extends EP> listener,
+            final ET eventType,
+            final Consumer<EP> payloadConsumer
+    ) {
         synchronized (listener) {
-            consumers(listener, eventType).add(payloadConsumer);
+            this.<ET, EP>consumers(listener, eventType).add(payloadConsumer);
 
-            return () -> consumers(listener, eventType).remove(payloadConsumer);
+            return () -> this.<ET, EP>consumers(listener, eventType).remove(payloadConsumer);
         }
     }
 
     @Internal
     public <ET extends MT, EP extends MP> void publish(
-            final Listnr.Attachable<IN, D, ? super MT, ? super MP> attachable,
+            final Listnr.Attachable<IN, D, ? extends ET, ? extends EP> attachable,
             final ET eventType,
             final Object[] data
     ) {
@@ -82,7 +84,7 @@ public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? super MP>,
                                 inClass.getSimpleName(), Arrays.toString(data))
                 )));
 
-        getExecutor().execute(() -> consumers(attachable, eventType)
+        getExecutor().execute(() -> this.<ET, EP>consumers(attachable, eventType)
                 .forEach(consumer -> consumer.accept(payload)));
     }
 
