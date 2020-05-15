@@ -1,14 +1,18 @@
 package org.comroid.listnr.model;
 
+import org.comroid.common.ref.SelfDeclared;
 import org.comroid.spellbind.model.TypeFragment;
-import org.jetbrains.annotations.Nullable;
 
-public interface EventPayload<D, ET extends EventType<?, D, ? extends EventPayload<D, ? super ET>>>
-        extends TypeFragment {
+public interface EventPayload<D,
+        ET extends EventType<?, D, ET, EP>,
+        EP extends EventPayload<D, ET, EP>>
+        extends TypeFragment, SelfDeclared<EP> {
     ET getMasterEventType();
 
-    class Basic<D, ET extends EventType<?, D, ? extends EventPayload<D, ? super ET>>>
-            implements EventPayload<D, ET> {
+    class Basic<D,
+            ET extends EventType<?, D, ET, EP>,
+            EP extends EventPayload<D, ET, EP>>
+            implements EventPayload<D, ET, EP> {
         private final ET masterEventType;
 
         @Override

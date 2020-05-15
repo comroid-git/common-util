@@ -8,11 +8,15 @@ import org.comroid.uniform.node.UniObjectNode;
 
 import java.util.Collections;
 
-public interface WebSocketEventType<P extends WebSocketEventPayload<? extends WebSocketEventType<? super P>>>
-        extends EventType<UniObjectNode, WebSocket, P>, WebSocketBound {
-    class Basic<P extends WebSocketEventPayload<? extends WebSocketEventType<? super P>>>
-            extends EventType.Basic<UniObjectNode, WebSocket, P>
-            implements WebSocketEventType<P> {
+public interface WebSocketEventType<
+        T extends WebSocketEventType<T, P>,
+        P extends WebSocketEventPayload<T, P>>
+        extends EventType<UniObjectNode, WebSocket, T, P>, WebSocketBound {
+    class Basic<
+            T extends WebSocketEventType<T, P>,
+            P extends WebSocketEventPayload<T, P>>
+            extends EventType.Basic<UniObjectNode, WebSocket, T, P>
+            implements WebSocketEventType<T, P> {
         private final Invocable.TypeMap<? extends P> payloadGenerator;
 
         @Override

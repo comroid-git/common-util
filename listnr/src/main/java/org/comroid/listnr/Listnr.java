@@ -13,8 +13,8 @@ import java.util.function.Consumer;
 import static org.comroid.common.Polyfill.uncheckedCast;
 
 public @interface Listnr {
-    interface Attachable<IN, D, MT extends EventType<IN, D, ? extends MP>, MP extends EventPayload<D, ? extends MT>> {
-        ListnrCore<IN, D, MT, MP> getListnrCore();
+    interface Attachable<IN, D, MT extends EventType<IN, D, ? super MT, ? super MP>, MP extends EventPayload<D, ? super MT, ? super MP>> {
+        ListnrCore<IN, D, ? super MT, ? super MP> getListnrCore();
 
         default <ET extends MT, EP extends MP> Listnr.API<IN, D, MT, MP, ET, EP> listenTo(ET eventType)
                 throws IllegalArgumentException {
@@ -26,7 +26,7 @@ public @interface Listnr {
         default <ET extends MT, EP extends MP> void publish(ET eventType, Object... data) {
             verifyEventType(eventType);
 
-            final ListnrCore<IN, D, MT, MP> listnrCore = this.getListnrCore();
+            final ListnrCore<IN, D, ? super MT, ? super MP> listnrCore = this.getListnrCore();
             listnrCore.publish(this, eventType, data);
         }
 
@@ -38,8 +38,8 @@ public @interface Listnr {
     }
 
     final class API<IN, D,
-            MT extends EventType<IN, D, ? extends MP>, // main event type
-            MP extends EventPayload<D, ? extends MT>, // main event payload
+            MT extends EventType<IN, D, ? super MT, ? super MP>, // main event type
+            MP extends EventPayload<D, ? super MT, ? super MP>, // main event payload
             ET extends MT, EP extends MP> // this events information
             implements Pipeable<EP> {
         private final Attachable<IN, D, MT, MP> attachable;

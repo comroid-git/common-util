@@ -14,10 +14,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
-public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? extends MP>, MP extends EventPayload<D, ? extends MT>>
+public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? extends MT, ? extends MP>, MP extends EventPayload<D, ? extends MT, ? extends MP>>
         implements Dependent<D>, ExecutorBound {
     private final Collection<? extends MT> types = new ArrayList<>();
-    private final Map<Listnr.Attachable<IN, D, ? super MT, ? super MP>, EventConsumers<? extends MT, ? extends MP>> consumers
+    private final Map<Listnr.Attachable<IN, D, ? super MT, ? super MP>, EventConsumers<? super MT, ? super MP>> consumers
             = new ConcurrentHashMap<>();
     private final Class<IN> inClass;
     private final D dependent;
@@ -74,6 +74,7 @@ public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? extends MP
             final ET eventType,
             final Object[] data
     ) {
+        //noinspection unchecked
         final EP payload = (EP) eventType.makePayload(Arrays.stream(data)
                 .filter(inClass::isInstance)
                 .findAny()
@@ -91,9 +92,9 @@ public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? extends MP
             Listnr.Attachable<IN, D, ? super ET, ? super EP> attachable,
             ET type) {
         //todo: whatever is to do here
-        //noinspection unchecked
+        //noinspection Convert2MethodRef
         return Polyfill.<Map<ET, Collection<Consumer<? super EP>>>>uncheckedCast((consumers
-                .computeIfAbsent(Polyfill.uncheckedCast(attachable), EventConsumers::new)))
+                .computeIfAbsent(Polyfill.uncheckedCast(attachable), owner -> new EventConsumers<>(owner))))
                 .computeIfAbsent(type, key -> new ArrayList<>());
     }
 

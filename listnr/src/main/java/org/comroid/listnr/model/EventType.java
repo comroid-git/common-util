@@ -4,10 +4,10 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.info.Dependent;
 import org.comroid.common.ref.Reference;
+import org.comroid.common.ref.SelfDeclared;
 import org.comroid.common.util.ArrayUtil;
 import org.comroid.spellbind.factory.InstanceFactory;
 import org.comroid.spellbind.model.TypeFragmentProvider;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,11 +17,13 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public interface EventType<IN, D, EP extends EventPayload<D, ? extends EventType<? super IN, ? super D, ? super EP>>>
-        extends Predicate<IN>, Dependent<D>, TypeFragmentProvider<EP> {
-    Collection<? extends EventType<? super IN, ? super D, ? super EP>> getParents();
+public interface EventType<IN, D,
+        ET extends EventType<IN, D, ET, EP>,
+        EP extends EventPayload<D, ET, EP>>
+        extends Predicate<IN>, Dependent<D>, TypeFragmentProvider<EP>, SelfDeclared<ET> {
+    Collection<? super ET> getParents();
 
-    Collection<EventType<? extends IN, ? extends D, ?>> getChildren();
+    Collection<? extends ET> getChildren();
 
     Invocable.TypeMap<? extends EP> getPayloadConstructor();
 
@@ -29,7 +31,7 @@ public interface EventType<IN, D, EP extends EventPayload<D, ? extends EventType
     boolean test(IN in);
 
     @Internal
-    void addChild(EventType<? extends IN, ? extends D, ?> child);
+    <NT extends ET> void addChild(NT child);
 
     default EP makePayload(Object... input) {
         return makePayload(getPayloadConstructor(), input);
@@ -39,21 +41,23 @@ public interface EventType<IN, D, EP extends EventPayload<D, ? extends EventType
         return constructor.autoInvoke(ArrayUtil.insert(input, input.length, getDependent()));
     }
 
-    abstract class Basic<IN, D, EP extends EventPayload<D, ? extends EventType<? super IN, ? super D, ? super EP>>>
-            implements EventType<IN, D, EP>, Reference<EP> {
-        private final Collection<? extends EventType<IN, D, ? super EP>> parents;
-        private final List<EventType<? extends IN, ? extends D, ?>> children = new ArrayList<>();
+    abstract class Basic<IN, D,
+            ET extends EventType<IN, D, ET, EP>,
+            EP extends EventPayload<D, ET, EP>>
+            implements EventType<IN, D, ET, EP>, Reference<EP> {
+        private final Collection<? super ET> parents;
+        private final List<? extends ET> children = new ArrayList<>();
         private final InstanceFactory<EP, D> payloadFactory;
         private final Class<EP> payloadType;
         private final D dependent;
 
         @Override
-        public final Collection<? extends EventType<? super IN, ? super D, ? super EP>> getParents() {
+        public final Collection<? super ET> getParents() {
             return parents;
         }
 
         @Override
-        public final Collection<EventType<? extends IN, ? extends D, ?>> getChildren() {
+        public final Collection<? extends ET> getChildren() {
             return children;
         }
 
@@ -72,13 +76,16 @@ public interface EventType<IN, D, EP extends EventPayload<D, ? extends EventType
             return payloadType;
         }
 
-        public Basic(Collection<? extends EventType<IN, D, ?>> parents, Class<EP> payloadType, D dependent) {
-            parents.forEach(p -> p.addChild(this));
+        public Basic(Collection<? super ET> parents, Class<EP> payloadType, D dependent) {
+            //noinspection unchecked
+            parents.forEach(p -> ((ET) p)
+                    .addChild(Polyfill.uncheckedCast(this)));
 
-            this.parents = Polyfill.uncheckedCast(parents);
+            this.parents = parents;
             this.payloadType = payloadType;
             this.dependent = dependent;
 
+            //noinspection SuspiciousToArrayCall
             this.payloadFactory = new InstanceFactory<>(
                     payloadType,
                     this,
@@ -93,8 +100,8 @@ public interface EventType<IN, D, EP extends EventPayload<D, ? extends EventType
         }
 
         @Override
-        public final void addChild(EventType<? extends IN, ? extends D, ?> child) {
-            children.add(child);
+        public final <NT extends ET> void addChild(NT child) {
+            children.add(Polyfill.uncheckedCast(child));
         }
 
         @Override
