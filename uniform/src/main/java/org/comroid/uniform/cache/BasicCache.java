@@ -3,6 +3,7 @@ package org.comroid.uniform.cache;
 import org.comroid.common.func.Provider;
 import org.comroid.common.iter.Span;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
@@ -13,6 +14,7 @@ import java.util.stream.Stream;
 
 public class BasicCache<K, V> implements Cache<K, V> {
     public static final int DEFAULT_LARGE_THRESHOLD = 250;
+    private final @Nullable Provider.Now<V> emptyValueProvider;
     private final Map<K, Reference<K, V>> cache;
     private final int largeThreshold;
 
@@ -21,12 +23,23 @@ public class BasicCache<K, V> implements Cache<K, V> {
     }
 
     public BasicCache(int largeThreshold) {
-        this(largeThreshold, ConcurrentHashMap::new);
+        this(largeThreshold, new ConcurrentHashMap<>());
     }
 
-    public BasicCache(int largeThreshold, Provider.Now<Map<K, Reference<K, V>>> mapProducer) {
+    protected BasicCache(Map<K, Reference<K, V>> map) {
+        this(DEFAULT_LARGE_THRESHOLD, map);
+    }
+
+    protected BasicCache(int largeThreshold, Map<K, Reference<K, V>> map) {
+        this(largeThreshold, map, null);
+    }
+
+    protected BasicCache(int largeThreshold,
+                         Map<K, Reference<K, V>> map,
+                         @Nullable Provider.Now<V> emptyValueProvider) {
         this.largeThreshold = largeThreshold;
-        this.cache = mapProducer.now();
+        this.cache = map;
+        this.emptyValueProvider = emptyValueProvider;
     }
 
     @Override
@@ -83,6 +96,11 @@ public class BasicCache<K, V> implements Cache<K, V> {
 
     @Override
     public @NotNull Reference<K, V> getReference(K key, boolean createIfAbsent) {
-        return createIfAbsent ? cache.computeIfAbsent(key, Reference::new) : cache.getOrDefault(key, Cache.Reference.empty());
+        return createIfAbsent
+                ? cache.computeIfAbsent(key, Reference::new)
+                : cache.getOrDefault(key,
+                emptyValueProvider == null
+                        ? Reference.empty()
+                        : Reference.constant(key, emptyValueProvider.now()));
     }
 }

@@ -119,14 +119,25 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>> {
         }
 
         public static <K, V> Reference<K, V> empty() {
+            //noinspection unchecked
             return (Reference<K, V>) EMPTY;
+        }
+
+        public static <K, V> Reference<K, V> constant(K key, V value) {
+            return new Reference<K, V>(key, value) {
+                @Nullable
+                @Override
+                public V set(V value) {
+                    throw new UnsupportedOperationException("Reference is constant");
+                }
+            };
         }
 
         private static final Reference<?, ?> EMPTY = new Reference<Object, Object>(null) {
             @Nullable
             @Override
             public Object set(Object value) {
-                throw new UnsupportedOperationException("Cannot overwrite Empty Reference!");
+                throw new UnsupportedOperationException("Cannot overwrite Empty Reference");
             }
 
             @Nullable
