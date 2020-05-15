@@ -1,28 +1,32 @@
 package org.comroid.uniform.cache;
 
+import org.comroid.common.func.Provider;
+import org.comroid.common.iter.Span;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import org.comroid.common.iter.Span;
-
-import org.jetbrains.annotations.NotNull;
-
 public class BasicCache<K, V> implements Cache<K, V> {
     public static final int DEFAULT_LARGE_THRESHOLD = 250;
-    private final Map<K, Reference<K, V>> cache = new ConcurrentHashMap<>();
-    private final int                     largeThreshold;
+    private final Map<K, Reference<K, V>> cache;
+    private final int largeThreshold;
 
     public BasicCache() {
         this(DEFAULT_LARGE_THRESHOLD);
     }
 
     public BasicCache(int largeThreshold) {
+        this(largeThreshold, ConcurrentHashMap::new);
+    }
+
+    public BasicCache(int largeThreshold, Provider.Now<Map<K, Reference<K, V>>> mapProducer) {
         this.largeThreshold = largeThreshold;
+        this.cache = mapProducer.now();
     }
 
     @Override
@@ -72,7 +76,7 @@ public class BasicCache<K, V> implements Cache<K, V> {
                         ? cache.entrySet()
                         .parallelStream()
                         : cache.entrySet()
-                                .stream()
+                        .stream()
         ).filter(entry -> filter.test(entry.getKey()))
                 .map(Map.Entry::getValue);
     }
