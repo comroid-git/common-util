@@ -25,7 +25,7 @@ public class BasicPump<O, T> extends BasicPipe<O, T> implements Pump<O, T> {
     }
 
     public BasicPump(Executor executor, ReferenceIndex<O> old, StageAdapter<O, T> adapter) {
-        super(old, adapter);
+        super(old, adapter, autoEmpty);
 
         this.executor = executor;
     }
