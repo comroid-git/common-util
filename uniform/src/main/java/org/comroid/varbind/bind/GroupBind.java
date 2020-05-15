@@ -110,16 +110,18 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> combine(String groupName, GroupBind<? super T, D>... parents) {
+    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> combine(String groupName, GroupBind<?, D>... parents) {
         return combine(groupName, null, parents);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> combine(String groupName, Invocable<? super T> invocable, GroupBind<? super T, D>... parents) {
-        //noinspection RedundantCast -> false positive; todo: wtf is this
-        final GroupBind<? super T, D> rootParent = (GroupBind<? super T, D>) findRootParent(Arrays.asList(parents));
+    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> combine(String groupName, Invocable<? super T> invocable, GroupBind<?, D>... parents) {
+        final GroupBind<?, D> rootParent = (GroupBind<?, D>) findRootParent(Polyfill.uncheckedCast(Arrays.asList(parents)));
 
-        return new GroupBind<>(Span.immutable(parents), rootParent.serializationAdapter, groupName, invocable);
+        // god is never gonna forgive me for this
+
+        return new GroupBind<>(Polyfill.<GroupBind<? super T, D>>uncheckedCast(Span.immutable(parents)),
+                rootParent.serializationAdapter, groupName, invocable);
     }
 
     @Override
