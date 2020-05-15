@@ -13,24 +13,24 @@ import java.util.function.Consumer;
 import static org.comroid.common.Polyfill.uncheckedCast;
 
 public @interface Listnr {
-    interface Attachable<IN, D, T extends EventType<IN, D, ? super P>, P extends EventPayload<D, ? super T>> {
-        ListnrCore<IN, D, T, P> getListnrCore();
+    interface Attachable<IN, D, MT extends EventType<IN, D, ? super MP>, MP extends EventPayload<D, ? super MT>> {
+        ListnrCore<IN, D, MT, MP> getListnrCore();
 
-        default <ET extends EventType<IN, D, ? super EP>, EP extends EventPayload<D, ? super ET>>
-        Listnr.API<IN, D, ET, EP> listenTo(ET eventType) throws IllegalArgumentException {
+        default <ET extends MT, EP extends MP> Listnr.API<IN, D, ET, EP> listenTo(ET eventType)
+                throws IllegalArgumentException {
             verifyEventType(eventType);
 
             return new Listnr.API<>(uncheckedCast(this), eventType);
         }
 
-        default void publish(EventType<IN, D, ? super P> eventType, Object... data) {
+        default <ET extends MT, EP extends MP> void publish(ET eventType, Object... data) {
             verifyEventType(uncheckedCast(eventType));
 
-            getListnrCore().publish(this, uncheckedCast(eventType), data);
+            getListnrCore().publish(this, eventType, data);
         }
 
         @Internal
-        default <ET extends EventType<IN, D, ? super EP>, EP extends EventPayload<D, ? super ET>> void verifyEventType(ET eventType) {
+        default <ET extends MT, EP extends MP> void verifyEventType(ET eventType) {
             if (!getListnrCore().getRegisteredEventTypes().contains(eventType))
                 throw new IllegalArgumentException(String.format("Type %s is not managed by %s", eventType, this));
         }
