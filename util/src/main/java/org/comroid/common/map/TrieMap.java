@@ -24,6 +24,6 @@ public interface TrieMap<K, V> extends Map<K, V> {
     }
 
     static <V> TrieMap<String, V> ofString() {
-        return new TrieStringMap<>(Function.identity());
+        return new TrieStringMap<>(Function.identity(), Function.identity());
     }
 }

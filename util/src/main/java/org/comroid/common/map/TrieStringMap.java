@@ -13,12 +13,13 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
+public final class TrieStringMap<K, V> implements TrieMap<K, V> {
     private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
-    //endregion
+    private final Function<K, String> keyExtractor;
     private final Function<String, K>          keyMapper;
 
-    TrieStringMap(Function<String, K> keyMapper) {
+    public TrieStringMap(Function<K, String> keyExtractor, Function<String, K> keyMapper) {
+        this.keyExtractor = keyExtractor;
         this.keyMapper = keyMapper;
     }
 
@@ -62,9 +63,7 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
     @Override
     @Contract(mutates = "this")
     public V put(K key, V value) {
-        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!")
-                .toString()
-                .toCharArray();
+        final char[] chars = keyExtractor.apply(key).toCharArray();
 
         return baseStages.computeIfAbsent(chars[0], each -> new TrieStringMap.TrieStage<>())
                 .set(chars, 1, value);
@@ -77,9 +76,8 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
             throw new ClassCastException(String.format("Unsupported key type: %s", key.getClass()));
         }
 
-        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!")
-                .toString()
-                .toCharArray();
+        //noinspection unchecked
+        final char[] chars = keyExtractor.apply((K) key).toCharArray();
 
         return baseStages.computeIfAbsent(chars[0], each -> new TrieStringMap.TrieStage<>())
                 .remove(chars, 1);
@@ -160,7 +158,6 @@ class TrieStringMap<K extends CharSequence, V> implements TrieMap<K, V> {
                 return old;
             }
         }
-        //noinspection ConstantConditions
         return baseStages.values()
                 .stream()
                 .flatMap(TrieStringMap.TrieStage::stream)
