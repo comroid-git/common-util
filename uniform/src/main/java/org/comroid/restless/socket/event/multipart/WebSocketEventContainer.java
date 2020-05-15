@@ -5,18 +5,18 @@ import org.comroid.listnr.model.EventType;
 import org.comroid.restless.socket.WebSocket;
 import org.comroid.uniform.node.UniObjectNode;
 
-public interface WebSocketEventContainer<T extends WebSocketEventType<P>, P extends WebSocketEventPayload<T>>
+public interface WebSocketEventContainer<T extends WebSocketEventType<T,P>, P extends WebSocketEventPayload<T,P>>
         extends EventContainer<UniObjectNode, WebSocket, T, P> {
-    class Basic<T extends WebSocketEventType<P>, P extends WebSocketEventPayload<T>>
+    class Basic<T extends WebSocketEventType<T,P>, P extends WebSocketEventPayload<T,P>>
             implements WebSocketEventContainer<T, P> {
-        private final EventType<UniObjectNode, WebSocket, ? super P> type;
+        private final T type;
 
         @Override
-        public final EventType<UniObjectNode, WebSocket, ? super P> getType() {
+        public final T getType() {
             return type;
         }
 
-        public Basic(EventType<UniObjectNode, WebSocket, ? super P> type) {
+        public Basic(T type) {
             this.type = type;
         }
     }

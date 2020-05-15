@@ -3,7 +3,9 @@ package org.comroid.restless.adapter.jdk;
 import com.google.common.flogger.FluentLogger;
 import org.comroid.listnr.ListnrCore;
 import org.comroid.restless.socket.WebSocket;
-import org.comroid.restless.socket.event.WebSocketEvent;
+import org.comroid.restless.socket.WebSocketEventHub;
+import org.comroid.restless.socket.event.multipart.WebSocketEventPayload;
+import org.comroid.restless.socket.event.multipart.WebSocketEventType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 
@@ -15,12 +17,14 @@ import java.util.concurrent.CompletionStage;
 
 public class JavaWebSocket extends WebSocket {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private final ListnrCore<UniObjectNode, WebSocket, ? super WebSocketEventType<?, ?>, ? super WebSocketEventPayload<?, ?>> listnrCore;
     private final java.net.http.WebSocket jSocket;
+    @SuppressWarnings("FieldCanBeLocal")
     private final JListener jListener;
 
     @Override
-    public ListnrCore<UniObjectNode, WebSocket, WebSocketEvent.Type<?>, WebSocketEvent.Payload<?>> getListnrCore() {
-        return getEventHub();
+    public ListnrCore<UniObjectNode, WebSocket, ? super WebSocketEventType<?, ?>, ? super WebSocketEventPayload<?, ?>> getListnrCore() {
+        return listnrCore;
     }
 
     protected JavaWebSocket(SerializationAdapter<?, ?, ?> seriLib, HttpClient httpClient, Header.List headers, ThreadGroup threadGroup, URI uri) {
@@ -29,6 +33,7 @@ public class JavaWebSocket extends WebSocket {
         java.net.http.WebSocket.Builder builder = httpClient.newWebSocketBuilder();
         headers.forEach(head -> builder.header(head.getName(), head.getValue()));
 
+        this.listnrCore = new WebSocketEventHub(this);
         this.jListener = new JListener();
         this.jSocket = builder.buildAsync(uri, this.jListener).join();
     }

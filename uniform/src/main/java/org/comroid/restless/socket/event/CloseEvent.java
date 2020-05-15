@@ -10,10 +10,10 @@ public interface CloseEvent {
         return new Support.Container(webSocket);
     }
 
-    interface Type extends WebSocketEventType<Payload> {
+    interface Type extends WebSocketEventType<Type, Payload> {
     }
 
-    interface Payload extends WebSocketEventPayload<Type> {
+    interface Payload extends WebSocketEventPayload<Type, Payload> {
         int getStatusCode();
     }
 
@@ -24,7 +24,7 @@ public interface CloseEvent {
             }
         }
 
-        private static final class TypeImpl extends WebSocketEventType.Basic<Payload> implements Type {
+        private static final class TypeImpl extends WebSocketEventType.Basic<Type, Payload> implements Type {
             public TypeImpl(WebSocket webSo, Class<Payload> payloadType) {
                 super(webSo, payloadType);
             }
@@ -34,7 +34,7 @@ public interface CloseEvent {
             }
         }
 
-        private static final class PayloadImpl extends WebSocketEventPayload.Base<Type> implements Payload {
+        private static final class PayloadImpl extends WebSocketEventPayload.Base<Type, Payload> implements Payload {
             private final int statusCode;
 
             @Override

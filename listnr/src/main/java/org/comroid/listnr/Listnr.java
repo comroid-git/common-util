@@ -13,39 +13,41 @@ import java.util.function.Consumer;
 import static org.comroid.common.Polyfill.uncheckedCast;
 
 public @interface Listnr {
-    interface Attachable<IN, D, MT extends EventType<IN, D, ? super MT, ? super MP>, MP extends EventPayload<D, ? super MT, ? super MP>> {
+    interface Attachable<IN, D,
+            MT extends EventType<IN, D, ? extends MT, ? extends MP>,
+            MP extends EventPayload<D,? extends MT, ? extends MP>> {
         ListnrCore<IN, D, ? super MT, ? super MP> getListnrCore();
 
         default <ET extends MT, EP extends MP> Listnr.API<IN, D, MT, MP, ET, EP> listenTo(ET eventType)
                 throws IllegalArgumentException {
-            verifyEventType(eventType);
-
             return new Listnr.API<>(this, eventType);
         }
 
         default <ET extends MT, EP extends MP> void publish(ET eventType, Object... data) {
-            verifyEventType(eventType);
+            hasEventTypeManaged(eventType);
 
             final ListnrCore<IN, D, ? super MT, ? super MP> listnrCore = this.getListnrCore();
             listnrCore.publish(this, eventType, data);
         }
 
         @Internal
-        default <ET extends MT, EP extends MP> void verifyEventType(ET eventType) {
+        default <ET extends MT, EP extends MP> void hasEventTypeManaged(ET eventType) {
             if (!getListnrCore().getRegisteredEventTypes().contains(eventType))
                 throw new IllegalArgumentException(String.format("Type %s is not managed by %s", eventType, this));
         }
     }
 
     final class API<IN, D,
-            MT extends EventType<IN, D, ? super MT, ? super MP>, // main event type
-            MP extends EventPayload<D, ? super MT, ? super MP>, // main event payload
+            MT extends EventType<IN, D, ? extends MT, ? extends MP>, // main event type
+            MP extends EventPayload<D, ? extends MT, ? extends MP>, // main event payload
             ET extends MT, EP extends MP> // this events information
             implements Pipeable<EP> {
         private final Attachable<IN, D, MT, MP> attachable;
         private final ET eventType;
 
         private API(Attachable<IN, D, MT, MP> attachable, ET eventType) {
+            attachable.hasEventTypeManaged(eventType);
+
             this.attachable = attachable;
             this.eventType = eventType;
         }

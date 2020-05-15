@@ -174,9 +174,9 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
         // find the topmost parent
         while (parentGroup.requireNonNull()
-                .getParents()
-                .isPresent()) {
+                .getParents().isSingle()) {
             parentGroup = parentGroup.map(group -> group.getParents()
+                    .wrap()
                     .orElse(Polyfill.uncheckedCast(group)));
         }
 
@@ -199,7 +199,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private <T> AtomicReference<Span<T>> extrRef(
             VarBind<T, ? super DEP, ?, Object> bind
     ) {
-        return uncheckedCast(vars.computeIfAbsent(fieldName(bind), key -> new AtomicReference<>(Span.zeroSize())));
+        return uncheckedCast(vars.computeIfAbsent(fieldName(bind), key -> new AtomicReference<>(Span.empty())));
     }
 
     private <T> OutdateableReference<T> compRef(

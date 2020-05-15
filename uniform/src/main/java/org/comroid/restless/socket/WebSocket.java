@@ -77,7 +77,7 @@ public abstract class WebSocket implements WebSocketEventHub.Attachable {
 
     public CompletableFuture<PongEvent.Payload> completePing() {
         return sendPing(ByteBuffer.allocate(0))
-                .thenCompose(nil -> listenTo(eventHub.Pong.getType()).once());
+                .thenCompose(nil -> this.<PongEvent.Type, PongEvent.Payload>listenTo(eventHub.Pong.getType()).once());
     }
 
     protected abstract CompletableFuture<Void> sendString(String data, boolean last);
