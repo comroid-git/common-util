@@ -4,6 +4,7 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.info.Dependent;
 import org.comroid.common.ref.Reference;
+import org.comroid.common.util.ArrayUtil;
 import org.comroid.spellbind.factory.InstanceFactory;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.ApiStatus;
@@ -30,12 +31,12 @@ public interface EventType<IN, D, EP extends EventPayload<D, ? extends EventType
     @Internal
     void addChild(EventType<? extends IN, ? extends D, ?> child);
 
-    default EP makePayload(IN input) {
+    default EP makePayload(Object... input) {
         return makePayload(getPayloadConstructor(), input);
     }
 
-    default <P extends EP> P makePayload(Invocable<? extends P> constructor, IN input) {
-        return constructor.autoInvoke(getDependent(), input);
+    default <P extends EP> P makePayload(Invocable<? extends P> constructor, Object... input) {
+        return constructor.autoInvoke(ArrayUtil.insert(input, input.length, getDependent()));
     }
 
     abstract class Basic<IN, D, EP extends EventPayload<D, ? extends EventType<? super IN, ? super D, ? super EP>>>

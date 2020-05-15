@@ -20,13 +20,14 @@ public @interface Listnr {
                 throws IllegalArgumentException {
             verifyEventType(eventType);
 
-            return new Listnr.API<>(uncheckedCast(this), eventType);
+            return new Listnr.API<IN, D, ET, EP>(this, eventType);
         }
 
         default <ET extends MT, EP extends MP> void publish(ET eventType, Object... data) {
-            verifyEventType(uncheckedCast(eventType));
+            verifyEventType(eventType);
 
-            getListnrCore().publish(this, eventType, data);
+            final ListnrCore<IN, D, MT, MP> listnrCore = this.getListnrCore();
+            listnrCore.publish(this, eventType, data);
         }
 
         @Internal
@@ -37,10 +38,10 @@ public @interface Listnr {
     }
 
     final class API<IN, D, T extends EventType<IN, D, ? super P>, P extends EventPayload<D, ? super T>> implements Pipeable<P> {
-        private final Attachable<IN, D, T, P> attachable;
+        private final Attachable<IN, D, ? super T, ? super P> attachable;
         private final T eventType;
 
-        private API(Attachable<IN, D, T, P> attachable, T eventType) {
+        private API(Attachable<IN, D, ? super T, ? super P> attachable, T eventType) {
             this.attachable = attachable;
             this.eventType = eventType;
         }

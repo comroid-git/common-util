@@ -17,7 +17,8 @@ import java.util.function.Consumer;
 public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? super MP>, MP extends EventPayload<D, ? super MT>>
         implements Dependent<D>, ExecutorBound {
     private final Collection<? extends MT> types = new ArrayList<>();
-    private final Map<Listnr.Attachable<IN, D, ? super MT, ? super MP>, EventConsumers> consumers = new ConcurrentHashMap<>();
+    private final Map<Listnr.Attachable<IN, D, ? extends MT, ? extends MP>, EventConsumers<? extends MT, ? extends MP>> consumers
+            = new ConcurrentHashMap<>();
     private final Class<IN> inClass;
     private final D dependent;
     private final Executor executor;
@@ -55,7 +56,7 @@ public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? super MP>,
     }
 
     @Internal
-    <EP extends MP> Runnable listen(final Listnr.Attachable<IN, D, ? super MT, ? super MP> listener,
+    <ET extends MT, EP extends MP> Runnable listen(final Listnr.Attachable<IN, D, ? super ET, ? super EP> listener,
                                     final EventType<IN, D, ? extends EP> eventType,
                                     final Consumer<EP> payloadConsumer) {
         synchronized (listener) {
@@ -66,12 +67,13 @@ public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? super MP>,
     }
 
     @Internal
-    public <ET extends EventType<IN, D, EventPayload<D, ET>>> void publish(
+    public <ET extends MT, EP extends MP> void publish(
             final Listnr.Attachable<IN, D, ? super MT, ? super MP> attachable,
             final ET eventType,
             final Object[] data
     ) {
-        final EventPayload<D, ET> payload = eventType.makePayload(Arrays.stream(data)
+        //noinspection unchecked -> allowed cast
+        final EP payload = (EP) eventType.makePayload(Arrays.stream(data)
                 .filter(inClass::isInstance)
                 .findAny()
                 .map(inClass::cast)
@@ -80,22 +82,25 @@ public abstract class ListnrCore<IN, D, MT extends EventType<IN, D, ? super MP>,
                                 inClass.getSimpleName(), Arrays.toString(data))
                 )));
 
-        getExecutor().execute(() -> consumers(attachable, Polyfill.uncheckedCast(eventType))
-                .forEach(consumer -> consumer.accept(Polyfill.uncheckedCast(payload))));
+        getExecutor().execute(() -> consumers(attachable, eventType)
+                .forEach(consumer -> consumer.accept(payload)));
     }
 
-    private Collection<Consumer<? extends MP>> consumers(
-            Listnr.Attachable<IN, D, ? super MT, ? super MP> attachable,
-            EventType<IN, D, ? extends MP> type) {
-        return consumers.computeIfAbsent(attachable, EventConsumers::new)
+    private <ET extends MT, EP extends MP> Collection<Consumer<? super EP>> consumers(
+            Listnr.Attachable<IN, D, ? extends ET, ? extends EP> attachable,
+            ET type) {
+        // fuck this bullshit
+        //noinspection unchecked
+        return Polyfill.<Map<ET, Collection<Consumer<? super EP>>>>uncheckedCast((consumers // <-- this cast is allowed
+                .computeIfAbsent(attachable, EventConsumers::new))) // <-- this call is not and i'm done
                 .computeIfAbsent(type, key -> new ArrayList<>());
     }
 
-    private class EventConsumers extends ConcurrentHashMap<EventType<IN, D, ? extends MP>, Collection<Consumer<? extends MP>>> {
+    private class EventConsumers<ET extends MT, EP extends MP> extends ConcurrentHashMap<ET, Collection<Consumer<? extends EP>>> {
         @SuppressWarnings("FieldCanBeLocal")
-        private final Listnr.Attachable<IN, D, ? super MT, ? super MP> owner;
+        private final Listnr.Attachable<IN, D, ? super ET, ? super EP> owner;
 
-        public EventConsumers(Listnr.Attachable<IN, D, ? super MT, ? super MP> owner) {
+        public EventConsumers(Listnr.Attachable<IN, D, ? super ET, ? super EP> owner) {
             this.owner = owner;
         }
     }
