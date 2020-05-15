@@ -13,14 +13,14 @@ import java.util.function.Consumer;
 import static org.comroid.common.Polyfill.uncheckedCast;
 
 public @interface Listnr {
-    interface Attachable<IN, D, MT extends EventType<IN, D, ? super MP>, MP extends EventPayload<D, ? super MT>> {
+    interface Attachable<IN, D, MT extends EventType<IN, D, ? extends MP>, MP extends EventPayload<D, ? extends MT>> {
         ListnrCore<IN, D, MT, MP> getListnrCore();
 
-        default <ET extends MT, EP extends MP> Listnr.API<IN, D, ET, EP> listenTo(ET eventType)
+        default <ET extends MT, EP extends MP> Listnr.API<IN, D, MT, MP, ET, EP> listenTo(ET eventType)
                 throws IllegalArgumentException {
             verifyEventType(eventType);
 
-            return new Listnr.API<IN, D, ET, EP>(this, eventType);
+            return new Listnr.API<>(this, eventType);
         }
 
         default <ET extends MT, EP extends MP> void publish(ET eventType, Object... data) {
@@ -37,11 +37,15 @@ public @interface Listnr {
         }
     }
 
-    final class API<IN, D, T extends EventType<IN, D, ? super P>, P extends EventPayload<D, ? super T>> implements Pipeable<P> {
-        private final Attachable<IN, D, ? super T, ? super P> attachable;
-        private final T eventType;
+    final class API<IN, D,
+            MT extends EventType<IN, D, ? extends MP>, // main event type
+            MP extends EventPayload<D, ? extends MT>, // main event payload
+            ET extends MT, EP extends MP> // this events information
+            implements Pipeable<EP> {
+        private final Attachable<IN, D, MT, MP> attachable;
+        private final ET eventType;
 
-        private API(Attachable<IN, D, ? super T, ? super P> attachable, T eventType) {
+        private API(Attachable<IN, D, MT, MP> attachable, ET eventType) {
             this.attachable = attachable;
             this.eventType = eventType;
         }
@@ -52,12 +56,12 @@ public @interface Listnr {
          * @param payloadConsumer The handler for the incoming payloads.
          * @return A runnable that will detach the handler.
          */
-        public final Runnable directly(Consumer<P> payloadConsumer) {
-            return attachable.getListnrCore().listen(attachable, uncheckedCast(eventType), payloadConsumer);
+        public final Runnable directly(Consumer<EP> payloadConsumer) {
+            return attachable.getListnrCore().<ET, EP>listen(attachable, uncheckedCast(eventType), payloadConsumer);
         }
 
         @Override
-        public Pump<?, P> pipe() {
+        public Pump<?, EP> pipe() {
             return pump();
         }
 
@@ -70,9 +74,9 @@ public @interface Listnr {
          * @return A pump that will be filled with payloads
          */
         @Override
-        public final Pump<?, P> pump() {
-            final Pump<P, P> pump = Pump.create();
-            final Runnable detacher = attachable.getListnrCore().listen(attachable, uncheckedCast(eventType), pump);
+        public final Pump<?, EP> pump() {
+            final Pump<EP, EP> pump = Pump.create();
+            final Runnable detacher = directly(pump);
             pump.addChildren(detacher::run);
 
             return pump;
@@ -83,12 +87,12 @@ public @interface Listnr {
          *
          * @return A future to contain the first received data
          */
-        public final CompletableFuture<P> once() {
-            class FutureCompleter implements Consumer<P> {
-                private final CompletableFuture<P> future = new CompletableFuture<>();
+        public final CompletableFuture<EP> once() {
+            class FutureCompleter implements Consumer<EP> {
+                private final CompletableFuture<EP> future = new CompletableFuture<>();
 
                 @Override
-                public synchronized void accept(P p) {
+                public synchronized void accept(EP p) {
                     if (future.isDone())
                         throw new IllegalStateException("Future is already completed");
 
@@ -97,8 +101,7 @@ public @interface Listnr {
             }
 
             final FutureCompleter completer = new FutureCompleter();
-            final Runnable detacher = attachable.getListnrCore()
-                    .listen(attachable, uncheckedCast(eventType), completer);
+            final Runnable detacher = directly(completer);
             completer.future.thenRunAsync(detacher, Runnable::run)
                     .exceptionally(Polyfill.exceptionLogger());
 
