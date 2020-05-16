@@ -16,8 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface Invocable<T> {
@@ -134,6 +136,39 @@ public interface Invocable<T> {
 
     default TypeMap<T> typeMapped() {
         return this instanceof TypeMap ? (TypeMap<T>) this : TypeMap.boxed(this);
+    }
+
+    default Supplier<T> supplier() {
+        class Adapter implements Supplier<T> {
+            @Override
+            public T get() {
+                return autoInvoke();
+            }
+        }
+
+        return new Adapter();
+    }
+
+    default <I> Function<I, T> function() {
+        class Adapter implements Function<I, T> {
+            @Override
+            public T apply(I i) {
+                return autoInvoke(i);
+            }
+        }
+
+        return new Adapter();
+    }
+
+    default <I1, I2> BiFunction<I1, I2, T> biFunction() {
+        class Adapter implements BiFunction<I1, I2, T> {
+            @Override
+            public T apply(I1 i1, I2 i2) {
+                return autoInvoke(i1, i2);
+            }
+        }
+
+        return new Adapter();
     }
 
     interface TypeMap<T> extends Invocable<T> {

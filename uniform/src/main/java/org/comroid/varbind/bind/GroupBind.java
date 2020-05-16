@@ -217,6 +217,15 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return bind2stage(fieldName, extractor(type), remapper);
     }
 
+    public final <R extends DataContainer<D>> VarBind.DependentTwoStage<UniObjectNode, D, R> bindDependent(
+        String fieldName,
+        GroupBind<R, D> group
+    ) {
+        return bindDependent(fieldName,group.getConstructor()
+                .map(it -> Polyfill.<BiFunction<D, UniObjectNode, R>>uncheckedCast(it.<D, UniObjectNode>biFunction()))
+                .orElseThrow(() -> new NoSuchElementException("No Constructor available for GroupBind " + group)));
+    }
+
     public final <R> VarBind.DependentTwoStage<UniObjectNode, D, R> bindDependent(
             String fieldName, BiFunction<D, UniObjectNode, R> resolver
     ) {
@@ -267,6 +276,15 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
             String fieldName, Function<UniObjectNode, R> remapper, Supplier<C> collectionSupplier
     ) {
         return list2stage(fieldName, UniNode::asObjectNode, remapper, collectionSupplier);
+    }
+
+    public final <R extends DataContainer<D>, C extends Collection<R>> ArrayBind.DependentTwoStage<UniObjectNode, D, R, C> listDependent(
+        String fieldName, GroupBind<R, D> group, Supplier<C> collectionSupplier
+) {
+        return listDependent(fieldName, group.getConstructor()
+                .map(it -> Polyfill.<BiFunction<D, UniObjectNode, R>>uncheckedCast(it.<D, UniObjectNode>biFunction()))
+                .orElseThrow(() -> new NoSuchElementException("No Constructor available for GroupBind " + group)),
+                collectionSupplier);
     }
 
     public final <R, C extends Collection<R>> ArrayBind.DependentTwoStage<UniObjectNode, D, R, C> listDependent(
