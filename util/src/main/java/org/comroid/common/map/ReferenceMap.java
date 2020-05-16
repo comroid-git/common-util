@@ -1,22 +1,26 @@
 package org.comroid.common.map;
 
-import java.util.Objects;
-import java.util.Optional;
-
+import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public interface ReferenceMap<K, V> {
-    default Optional<V> wrap(K key) {
-        return Optional.ofNullable(get(key));
+    Reference<V> getReference(K key);
+
+    default V get(K key) {
+        return getReference(key).get();
     }
 
-    V get(K key);
+    default Optional<V> wrap(K key) {
+        return getReference(key).wrap();
+    }
 
     default @NotNull V requireNonNull(K key) {
-        return Objects.requireNonNull(get(key));
+        return getReference(key).requireNonNull();
     }
 
     default @NotNull V requireNonNull(K key, String message) {
-        return Objects.requireNonNull(get(key), message);
+        return getReference(key).requireNonNull(message);
     }
 }
