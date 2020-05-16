@@ -152,6 +152,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             @Override
             public T set(T newValue) {
                 synchronized (lock) {
+                    this.value = newValue;
                     return value;
                 }
             }

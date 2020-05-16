@@ -5,7 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class CommandLineArgumentsParserTest {
-    private static final String args = "-r --ver 1.15.5 --ciao --adios=amigos -dE";
+    private static final String args = "-r --ver 1.15.5 -dE --ciao --adios=amigos";
 
     @Test
     public void test() {
