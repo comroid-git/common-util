@@ -147,6 +147,23 @@ tasks.findByName('publishMavenJavaPublicationToSonatypeRepository')?.onlyIf {
 
     return code != 200
 }
+// block github release if exists
+if (canPublishToGitHub)
+    tasks.findByName('publishMavenJavaPublicationToGitHubPackagesRepository').onlyIf {
+        if (snapshot) return false
+
+        def uri = new URI("https://$githubUsername:$githubPassword@maven.pkg.github.com/$userbase" +
+                "/${rootProject.name.replace('.', '/')}/${rootProject.group.replace('.', '/')}" +
+                "/$artifactId/$project.version/$artifactId-$project.version.jar")
+        def response = client.send(HttpRequest.newBuilder(uri).GET()
+                .header("Authorization", "$githubUsername:$githubPassword")
+                .build(), BodyHandlers.ofString())
+        def code = response.statusCode()
+
+        System.out.printf("Checked for existing GitHubPackages Artifact: %s RETURNED %d\n", uri, code)
+
+        return code != 200
+    }
 
 task generateGithubPom(type: GenerateMavenPom) {
     destination = file("$projectDir/pom.xml")
