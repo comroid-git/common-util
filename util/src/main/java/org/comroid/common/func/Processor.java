@@ -56,14 +56,6 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         get();
     }
 
-    default boolean test(Predicate<? super T> predicate) {
-        return predicate.test(get());
-    }
-
-    default <R> R into(Function<? super T, R> remapper) {
-        return remapper.apply(get());
-    }
-
     @Override
     default Processor<T> process() {
         return Processor.ofReference(this);
