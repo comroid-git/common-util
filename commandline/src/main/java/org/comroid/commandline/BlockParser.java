@@ -1,6 +1,5 @@
 package org.comroid.commandline;
 
-import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,35 +18,31 @@ public class BlockParser {
         if (arg.startsWith("-")) {
             if (!arg.startsWith("--")) {
                 if (len > 2) {
-                    if (arg.contains("=")) {
-                        // handle special case where = is used to define value of argument
-                        final String[] pair = name.split("=");
+                    // parse single chars
+                    name.chars().forEach(ic -> {
+                        compute(String.valueOf((char) ic));
+                        prevName = null;
+                    });
 
-                        compute(pair[0]).set(pair[1]);
-                        prevName = pair[0];
-                        return;
-                    } else {
-                        // parse single chars
-                        name.chars().forEach(ic -> {
-                            compute(String.valueOf((char) ic));
-                            prevName = null;
-                        });
+                    return;
+                }
+            } else if (arg.contains("=")) {
+                // handle special case where = is used to define value of argument
+                final String[] pair = name.split("=");
 
-                        return;
-                    }
-                } else assert prevName == null;
+                compute(pair[0]).set(pair[1]);
+                prevName = pair[0];
+                return;
             }
-
-            compute(name);
-            if (name.length() > 1)
-                prevName = name;
-        } else {
-            if (prevName != null) {
-                final Reference.Settable<String> compute = compute(prevName);
-                compute.set(arg);
-                prevName = null;
-            }
+        } else if (prevName != null) {
+            final Reference.Settable<String> compute = compute(prevName);
+            compute.set(arg);
+            prevName = null;
         }
+
+        compute(name);
+        if (name.length() > 1)
+            prevName = name;
     }
 
     @NotNull
