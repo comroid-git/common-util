@@ -1,5 +1,6 @@
 package org.comroid.common.ref;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.func.Processor;
 import org.comroid.common.func.Provider;
@@ -74,6 +75,14 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
     }
 
     interface Settable<T> extends Reference<T> {
+        static <T> Settable<T> create() {
+            return create(null);
+        }
+
+        static <T> Settable<T> create(T initialValue) {
+            return new Support.Settable<>(initialValue);
+        }
+
         @Nullable T set(T newValue);
 
         default T compute(Function<T, T> computor) {
@@ -116,6 +125,35 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             public T get() {
                 //noinspection unchecked
                 return condition.getAsBoolean() ? supplier.get() : (T) empty().get();
+            }
+        }
+
+        private static final class Settable<T> implements Reference.Settable<T> {
+            private final Object lock = Polyfill.selfawareLock();
+            private @Nullable T value;
+
+            public Settable() {
+                this(null);
+            }
+
+            public Settable(@Nullable T initialValue) {
+                this.value = initialValue;
+            }
+
+            @Nullable
+            @Override
+            public T get() {
+                synchronized (lock) {
+                    return value;
+                }
+            }
+
+            @Nullable
+            @Override
+            public T set(T newValue) {
+                synchronized (lock) {
+                    return value;
+                }
             }
         }
     }

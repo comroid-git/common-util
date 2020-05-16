@@ -1,25 +1,20 @@
 package org.comroid.common.util;
 
 import org.comroid.common.ref.IntEnum;
+import org.comroid.common.ref.SelfDeclared;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
 public final class Bitmask {
-    public interface Enum extends IntEnum {
-        @Override
-        int getValue();
-
-        default boolean isFlagSet(int inMask) {
-            return Bitmask.isFlagSet(inMask, getValue());
-        }
-
-        default int apply(int toMask, boolean newState) {
-            return Bitmask.modifyFlag(toMask, getValue(), newState);
-        }
-    }
+    public static final int EMPTY = 0x0;
+    private static final Map<Class<?>, AtomicInteger> LAST_FLAG = new ConcurrentHashMap<>();
 
     public static int combine(Bitmask.Enum... values) {
         int yield = EMPTY;
@@ -29,8 +24,6 @@ public final class Bitmask {
 
         return yield;
     }
-
-    public static final int EMPTY = 0x0;
 
     public static int modifyFlag(int mask, int flag, boolean newState) {
         if (isFlagSet(mask, flag) && !newState) {
@@ -55,27 +48,11 @@ public final class Bitmask {
 
     //@CallerSensitive
     public static int nextFlag(int traceDelta) {
-        return LAST_FLAG.computeIfAbsent(StackTraceUtils.callerClass(1 + traceDelta), key -> new AtomicInteger(0))
-                .getAndUpdate(value -> {
-                    if (value == 3) {
-                        throw new RuntimeException("Too many Flags requested! Integer Overflow");
-                    }
+        final AtomicInteger atom = LAST_FLAG.computeIfAbsent(StackTraceUtils
+                .callerClass(1 + traceDelta), key -> new AtomicInteger(-1));
 
-                    if (value < 0 && value * 2 != 0) {
-                        return value == -1 ? -2 : value * 2;
-                    } else if (value < 0) {
-                        return 3;
-                    }
-
-                    if (value == 0) {
-                        return 1;
-                    }
-                    if (value * 2 == Integer.MIN_VALUE) {
-                        return -1;
-                    }
-
-                    return value == 1 ? 2 : value * 2;
-                });
+        atom.accumulateAndGet(1, Integer::sum);
+        return 1 << atom.get();
     }
 
     public static int combine(int... masks) {
@@ -99,5 +76,42 @@ public final class Bitmask {
         return yield;
     }
 
-    private static final Map<Class<?>, AtomicInteger> LAST_FLAG = new ConcurrentHashMap<>();
+    public interface Enum<S extends Enum<S>> extends IntEnum, SelfDeclared<S> {
+        @Override
+        int getValue();
+
+        static <T extends java.lang.Enum<? extends T> & Enum<T>> Set<T> valueOf(int mask, Class<T> viaEnum) {
+            return valueOf(mask, viaEnum, Class::getEnumConstants);
+        }
+
+        static <T extends java.lang.Enum<? extends T> & Enum<T>> Set<T> valueOf(
+                int mask,
+                Class<T> viaEnum,
+                Function<Class<T>, T[]> valuesProvider) {
+            if (!viaEnum.isEnum())
+                throw new IllegalArgumentException("Only enums allowed as parameter 'viaEnum'");
+
+            final T[] constants = valuesProvider.apply(viaEnum);
+            HashSet<T> yields = new HashSet<>();
+
+            for (T constant : constants) {
+                if (constant.isFlagSet(mask))
+                    yields.add(constant);
+            }
+
+            return Collections.unmodifiableSet(yields);
+        }
+
+        default boolean hasFlag(Enum<S> other) {
+            return Bitmask.isFlagSet(getValue(), other.getValue());
+        }
+
+        default boolean isFlagSet(int inMask) {
+            return Bitmask.isFlagSet(inMask, getValue());
+        }
+
+        default int apply(int toMask, boolean newState) {
+            return Bitmask.modifyFlag(toMask, getValue(), newState);
+        }
+    }
 }
