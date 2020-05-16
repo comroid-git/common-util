@@ -2,12 +2,13 @@ package org.comroid.commandline;
 
 import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.NotNull;
+import org.comroid.common.map.TrieMap;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BlockParser {
-    public final Map<String, Reference.Settable<String>> yields = new ConcurrentHashMap<>();//TrieMap.ofString();
+    public final Map<String, Reference.Settable<String>> yields = TrieMap.ofString();
 
     private String prevName = null;
 
