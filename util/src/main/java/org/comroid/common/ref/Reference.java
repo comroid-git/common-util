@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @FunctionalInterface
@@ -72,6 +73,14 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
 
     default Processor<T> process() {
         return Processor.ofReference(this);
+    }
+
+    default boolean test(Predicate<? super T> predicate) {
+        return predicate.test(get());
+    }
+
+    default <R> R into(Function<? super T, R> remapper) {
+        return remapper.apply(get());
     }
 
     interface Settable<T> extends Reference<T> {
