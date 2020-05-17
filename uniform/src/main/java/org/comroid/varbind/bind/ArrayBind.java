@@ -6,7 +6,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.model.AbstractArrayBind;
@@ -16,10 +16,10 @@ public interface ArrayBind<EXTR, DPND, REMAP, FINAL extends Collection<REMAP>> e
     String getFieldName();
 
     @Override
-    Span<EXTR> extract(UniObjectNode node);
+    BasicSpan<EXTR> extract(UniObjectNode node);
 
     @Override
-    FINAL finish(Span<REMAP> parts);
+    FINAL finish(BasicSpan<REMAP> parts);
 
     @Override
     REMAP remap(EXTR from, DPND dependency);

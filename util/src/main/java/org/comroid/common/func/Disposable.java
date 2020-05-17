@@ -1,7 +1,8 @@
 package org.comroid.common.func;
 
 import org.comroid.common.exception.MultipleExceptions;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
+import org.comroid.common.iter.span.Span;
 import org.comroid.common.ref.StaticCache;
 
 import java.util.*;
@@ -63,7 +64,7 @@ public interface Disposable extends AutoCloseable {
     }
 
     class Basic implements Disposable {
-        private final Span<AutoCloseable> children = new Span<>();
+        private final Span<AutoCloseable> children = new BasicSpan<>();
 
         @Override
         public Span<AutoCloseable> getChildren() {

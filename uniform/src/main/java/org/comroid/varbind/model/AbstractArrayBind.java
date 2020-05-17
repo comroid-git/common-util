@@ -5,7 +5,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
+import org.comroid.common.iter.span.Span;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.ArrayBind;
@@ -45,7 +46,7 @@ public abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collect
     }
 
     @Override
-    public final Span<EXTR> extract(UniObjectNode node) {
+    public final BasicSpan<EXTR> extract(UniObjectNode node) {
         return node.get(fieldName)
                 .asArrayNode()
                 .asNodeList()
@@ -55,7 +56,7 @@ public abstract class AbstractArrayBind<EXTR, DPND, REMAP, FINAL extends Collect
     }
 
     @Override
-    public final FINAL finish(Span<REMAP> parts) {
+    public final FINAL finish(BasicSpan<REMAP> parts) {
         final FINAL yields = collectionSupplier.get();
         yields.addAll(parts);
 

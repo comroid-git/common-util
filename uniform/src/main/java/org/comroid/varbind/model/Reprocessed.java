@@ -1,19 +1,20 @@
 package org.comroid.varbind.model;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
+import org.comroid.common.iter.span.Span;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 
 public interface Reprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPND, REMAP, FINAL> {
     @Override
-    default Span<EXTR> extract(UniObjectNode node) {
+    default BasicSpan<EXTR> extract(UniObjectNode node) {
         return Span.empty();
     }
 
     @Override
-    default FINAL finish(Span<REMAP> parts) {
+    default FINAL finish(BasicSpan<REMAP> parts) {
         return Polyfill.uncheckedCast(parts.get());
     }
 

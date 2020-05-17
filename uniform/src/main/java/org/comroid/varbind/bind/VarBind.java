@@ -1,7 +1,8 @@
 package org.comroid.varbind.bind;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
+import org.comroid.common.iter.span.Span;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.model.AbstractObjectBind;
 import org.comroid.varbind.model.Reprocessed;
@@ -19,15 +20,15 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
         return process(dependencyObject, extract(node));
     }
 
-    default FINAL process(final DPND dependency, Span<EXTR> from) {
+    default FINAL process(final DPND dependency, BasicSpan<EXTR> from) {
         return finish(remapAll(dependency, from));
     }
 
-    Span<EXTR> extract(UniObjectNode node);
+    BasicSpan<EXTR> extract(UniObjectNode node);
 
-    FINAL finish(Span<REMAP> parts);
+    FINAL finish(BasicSpan<REMAP> parts);
 
-    default Span<REMAP> remapAll(final DPND dependency, Span<EXTR> from) {
+    default BasicSpan<REMAP> remapAll(final DPND dependency, BasicSpan<EXTR> from) {
         return from.stream()
                 .map(each -> remap(each, dependency))
                 .collect(Span.collector());

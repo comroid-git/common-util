@@ -9,8 +9,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.comroid.common.annotation.Instance;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.Span;
 
 import org.jetbrains.annotations.Nullable;
 

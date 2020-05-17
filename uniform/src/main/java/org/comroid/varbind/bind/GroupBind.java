@@ -2,7 +2,8 @@ package org.comroid.varbind.bind;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
+import org.comroid.common.iter.span.Span;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -26,7 +27,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final String groupName;
-    private final Span<GroupBind<? super T, D>> parents;
+    private final BasicSpan<GroupBind<? super T, D>> parents;
     private final List<GroupBind<? extends T, D>> subgroups = new ArrayList<>();
     private final @Nullable Invocable<? super T> constructor;
 
@@ -42,7 +43,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return groupName;
     }
 
-    public Span<GroupBind<? super T, D>> getParents() {
+    public BasicSpan<GroupBind<? super T, D>> getParents() {
         return parents;
     }
 
@@ -83,7 +84,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     private GroupBind(
-            Span<GroupBind<? super T, D>> parents,
+            BasicSpan<GroupBind<? super T, D>> parents,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             String groupName,
             @Nullable Invocable<? super T> invocable

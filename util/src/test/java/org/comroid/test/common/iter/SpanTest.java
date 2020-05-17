@@ -8,7 +8,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
+import org.comroid.common.iter.span.Span;
 import org.comroid.common.ref.Pair;
 
 import org.junit.Test;
@@ -102,6 +103,6 @@ public class SpanTest {
 
     private static final Random                      rng = new Random();
     private static       int                         bound = rng.nextInt(100) + 50;
-    private              Span<String>                span;
+    private BasicSpan<String> span;
     private              List<Pair<String, Integer>> generated;
 }

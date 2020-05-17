@@ -2,7 +2,8 @@ package org.comroid.varbind.container;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Processor;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
+import org.comroid.common.iter.span.Span;
 import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
@@ -120,7 +121,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                 .filter(bind -> data.has(bind.getFieldName()))
                 .map(it -> (VarBind<Object, Object, Object, Object>) it)
                 .forEach(bind -> {
-                    Span<Object> extract = bind.extract(data);
+                    BasicSpan<Object> extract = bind.extract(data);
 
                     extrRef(bind).set(extract);
                     compRef(bind).update(bind.finish(extract));

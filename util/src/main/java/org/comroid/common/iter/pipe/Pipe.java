@@ -2,7 +2,8 @@ package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Disposable;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.BasicSpan;
+import org.comroid.common.iter.span.Span;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.iter.ReferenceIndex;
 
@@ -76,6 +77,6 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
     }
 
     default Span<T> span() {
-        return new Span<>(this, Span.ModifyPolicy.SKIP_NULLS);
+        return new BasicSpan<>(this, BasicSpan.ModifyPolicy.SKIP_NULLS);
     }
 }

@@ -1,7 +1,7 @@
 package org.comroid.uniform.cache;
 
 import org.comroid.common.func.Provider;
-import org.comroid.common.iter.Span;
+import org.comroid.common.iter.span.Span;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
