@@ -8,10 +8,40 @@ import org.comroid.spellbind.Spellbind;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>> {
     static <X, Y, V> Matrix2<X, Y, V> create() {
         return new Builder<X, Y, V>(TrieMap.ofString()).build();
+    }
+
+    default boolean containsKey(X x, Y y) {
+        return containsCoordinate(generateCoordinate(x, y));
+    }
+
+    default boolean isNull(X x, Y y) {
+        return isNull(generateCoordinate(x, y));
+    }
+
+    default V get(X x, Y y) {
+        return getEntryAt(generateCoordinate(x, y), null).get();
+    }
+
+    default V put(X x, Y y, V value) {
+        return put(generateCoordinate(x, y), value);
+    }
+
+    default V compute(X x, Y y, BiFunction<String, ? super V, ? extends V> computor) {
+        return compute(generateCoordinate(x, y), computor);
+    }
+
+    default V computeIfPresent(X x, Y y, BiFunction<String, ? super V, ? extends V> computor) {
+        return computeIfPresent(generateCoordinate(x, y), computor);
+    }
+
+    default V computeIfAbsent(X x, Y y, Function<String, ? extends V> supplier) {
+        return computeIfAbsent(generateCoordinate(x, y), supplier);
     }
 
     default String generateCoordinate(X x, Y y) {
@@ -19,8 +49,10 @@ public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>> {
     }
 
     interface Entry<X, Y, V> extends Matrix.Entry<V> {
+        @Nullable
         X getX();
 
+        @Nullable
         Y getY();
     }
 

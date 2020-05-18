@@ -23,16 +23,26 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> implements Ma
 
     protected abstract @NotNull E createEntry(String key, @Nullable V initialValue);
 
-    @Nullable
     @Override
-    public E getEntryAt(String coordinate, boolean createIfAbsent) {
+    public V get(String coordinate) {
+        return getEntryAt(coordinate, null).get();
+    }
+
+    @Override
+    public V put(String coordinate, V newValue) {
+        final E entry = getEntryAt(coordinate, null);
+        V old = entry.getValue();
+        entry.set(newValue);
+
+        return old;
+    }
+
+    @Override
+    public @NotNull E getEntryAt(String coordinate, @Nullable V initialValue) {
         if (containsCoordinate(coordinate))
             return entries.get(coordinate);
 
-        if (!createIfAbsent)
-            return null;
-
-        final E entry = createEntry(coordinate, null);
+        final E entry = createEntry(coordinate, initialValue);
         entries.put(coordinate, entry);
 
         return entry;
@@ -45,20 +55,34 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> implements Ma
 
     @Nullable
     @Override
-    public E compute(String coordinate, BiFunction<String, ? super E, ? extends E> computor) {
-        return entries.compute(coordinate, computor);
+    public V compute(String coordinate, BiFunction<String, ? super V, ? extends V> computor) {
+        return entries.compute(coordinate, (key, value) -> {
+            if (value == null)
+                value = createEntry(key, null);
+
+            final V result = computor.apply(key, value.get());
+            value.set(result);
+
+            return value;
+        }).get();
     }
 
     @Nullable
     @Override
-    public E computeIfPresent(String coordinate, BiFunction<String, ? super E, ? extends E> computor) {
-        return entries.computeIfPresent(coordinate, computor);
+    public V computeIfPresent(String coordinate, BiFunction<String, ? super V, ? extends V> computor) {
+        //noinspection ConstantConditions
+        return entries.computeIfPresent(coordinate, (key, value) -> {
+            final V result = computor.apply(key, value.get());
+            value.set(result);
+
+            return value;
+        }).get();
     }
 
     @Nullable
     @Override
-    public E computeIfAbsent(String coordinate, Function<? super String, ? extends E> supplier) {
-        return entries.computeIfAbsent(coordinate, supplier);
+    public V computeIfAbsent(String coordinate, Function<? super String, ? extends V> supplier) {
+        return entries.computeIfAbsent(coordinate, key -> createEntry(key, supplier.apply(key))).get();
     }
 
     @NotNull
