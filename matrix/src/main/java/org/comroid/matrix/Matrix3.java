@@ -1,7 +1,7 @@
 package org.comroid.matrix;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.matrix.impl.MatrixCapability;
+import org.comroid.matrix.impl.MatrixCapability;
 import org.comroid.matrix.impl.PartialMatrix;
 import org.comroid.spellbind.Spellbind;
 import org.jetbrains.annotations.Nullable;
