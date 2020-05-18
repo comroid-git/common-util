@@ -1,6 +1,7 @@
 package org.comroid.matrix;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.map.TrieMap;
 import org.comroid.matrix.impl.MatrixCapability;
 import org.comroid.matrix.impl.PartialMatrix;
 import org.comroid.spellbind.Spellbind;
@@ -9,6 +10,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>> {
+    static <X, Y, Z, V> Matrix3<X, Y, Z, V> create() {
+        return new Builder<X, Y, Z, V>(TrieMap.ofString()).build();
+    }
+
     default String generateCoordinate(X x, Y y, Z z) {
         return String.format("%s-%s-%s", x, y, z);
     }
