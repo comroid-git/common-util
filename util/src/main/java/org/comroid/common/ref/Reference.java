@@ -88,7 +88,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             return create(null);
         }
 
-        static <T> Settable<T> create(T initialValue) {
+        static <T> Settable<T> create(@Nullable T initialValue) {
             return new Support.Settable<>(initialValue);
         }
 

@@ -12,4 +12,6 @@ include(':spellbind')
 
 include(':listnr')
 
+include(':matrix')
+
 include(':upd8r')

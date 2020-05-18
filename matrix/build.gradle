@@ -1,0 +1,13 @@
+version = '0.10.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Lightning-fast matrix-like structures in Java 8"
+}
+
+dependencies {
+    implementation project(":util")
+    implementation project(":spellbind")
+}
