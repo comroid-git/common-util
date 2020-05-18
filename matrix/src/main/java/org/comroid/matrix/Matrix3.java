@@ -72,8 +72,8 @@ public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>
         protected Builder(@Nullable Map<String, Entry<X, Y, Z, V>> initValues) {
             this.initValues = initValues;
 
-            binder.coreObject(new PartialMatrix<>(initValues));
-            binder.subImplement(new MatrixCapability.TriDimensional<>(), Matrix3.class);
+            binder.coreObject(new MatrixCapability.TriDimensional<>());
+            binder.subImplement(new PartialMatrix<>(initValues), Matrix.class);
         }
 
         @Override
