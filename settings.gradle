@@ -1,17 +1,10 @@
 rootProject.name = 'common-util'
 
 include(':commandline')
-
 include(':util')
-
 include(':uniform')
-
 include(':dreadpool')
-
 include(':spellbind')
-
 include(':listnr')
-
 include(':matrix')
-
 include(':upd8r')

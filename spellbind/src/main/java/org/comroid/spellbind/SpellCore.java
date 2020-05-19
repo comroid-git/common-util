@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.comroid.common.func.Invocable;
-import org.comroid.spellbind.model.MethodInvocation;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -30,36 +29,14 @@ public class SpellCore implements InvocationHandler {
         final String            methodString = methodString(method);
         final Invocable<Object> invoc        = methodBinds.get(methodString);
 
-        if (invoc instanceof MethodInvocation) {
-            MethodInvocation<Object> methodInvocation = (MethodInvocation<Object>) invoc;
+        if (invoc == null)
+            throw$unimplemented(methodString, new NoSuchElementException("Bound Invocable"));
 
-            if (Modifier.isAbstract(methodInvocation.getMethod()
-                    .getModifiers())) {
-                if (!Modifier.isAbstract(method.getModifiers())) {
-                    try {
-                        invokeDefault(method, args);
-                    } catch (IllegalArgumentException | NoSuchElementException e) {
-                        throw new InvocationTargetException(e,
-                                String.format("Could not invoke method %s: CoreObject is not of its type", methodString)
-                        );
-                    }
-                } else {
-                    throw$unimplemented(methodString, null);
-                }
-            }
-
-            return methodInvocation.invoke(args);
+        try {
+            return invoc.invoke(args);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
-
-        if (invoc == null) {
-            try {
-                return invokeDefault(method, args);
-            } catch (Throwable e) {
-                throw$unimplemented(methodString, e);
-            }
-        }
-
-        return invoc.invoke(args);
     }
 
     public static String methodString(@Nullable Method method) {
@@ -78,24 +55,6 @@ public class SpellCore implements InvocationHandler {
         );
     }
 
-    private @Nullable Object invokeDefault(Method method, Object[] args)
-            throws IllegalAccessException, InvocationTargetException {
-        final Optional<Object> possibleTarget = methodBinds.values()
-                .stream()
-                .filter(MethodInvocation.class::isInstance)
-                .map(MethodInvocation.class::cast)
-                .filter(mic -> Spellbind.Builder.findMatchingMethod(method,
-                        mic.getTarget()
-                                .getClass()
-                ) != null)
-                .findAny()
-                .map(MethodInvocation::getTarget);
-
-        return method.invoke(possibleTarget.orElseThrow(() -> new NoSuchElementException("Could not find a matching target!")),
-                args
-        );
-    }
-
     private void throw$unimplemented(Object methodString, @Nullable Throwable e) throws UnsupportedOperationException {
         throw e == null ? new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy",
                 methodString
@@ -106,7 +65,7 @@ public class SpellCore implements InvocationHandler {
 
     private static String paramString(Method method) {
         return Stream.of(method.getParameterTypes())
-                .map(Class::getSimpleName)
+                .map(Class::getName)
                 .collect(Collectors.joining(", "));
     }
 

@@ -72,8 +72,11 @@ public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>> {
         protected Builder(@Nullable Map<String, Entry<X, Y, V>> initValues) {
             this.initValues = initValues;
 
+            final PartialMatrix<V, Entry<X, Y, V>> matrix = new PartialMatrix<>(initValues);
+
             binder.coreObject(new MatrixCapability.BiDimensional<>());
-            binder.subImplement(new PartialMatrix<>(initValues), Matrix.class);
+            binder.subImplement(matrix, Matrix.class);
+            binder.subImplement(matrix, Iterable.class);
         }
 
         @Override
