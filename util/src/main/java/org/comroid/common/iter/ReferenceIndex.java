@@ -38,6 +38,7 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
         return subset;
     }
 
+    //todo: returns empty list
     default List<T> unwrap() {
         final ArrayList<T> list = new ArrayList<>();
         pipe().forEach(list::add);
@@ -114,6 +115,11 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
                 return (index < 0 || underlying.size() >= index)
                         ? Reference.constant(underlying.get(index))
                         : Reference.empty();
+            }
+
+            @Override
+            public int size() {
+                return underlying.size();
             }
         }
     }

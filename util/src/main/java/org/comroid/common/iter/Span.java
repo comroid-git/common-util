@@ -17,10 +17,10 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     public static final int UNFIXED_SIZE = -1;
     public static final ModifyPolicy DEFAULT_MODIFY_POLICY = ModifyPolicy.SKIP_NULLS;
     private static final Span<?> EMPTY = new Span<>(ReferenceIndex.empty(), ModifyPolicy.IMMUTABLE);
+    private final Object dataLock = Polyfill.selfawareLock();
     private final ReferenceIndex<T> storage;
     private final int fixedCapacity;
     private final ModifyPolicy modifyPolicy;
-    private final Object dataLock = Polyfill.selfawareLock();
 
     public final boolean isSingle() {
         return size() == 1;
@@ -44,6 +44,10 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
     public Span(ReferenceIndex<T> referenceIndex, ModifyPolicy modifyPolicy) {
         this(referenceIndex, UNFIXED_SIZE, modifyPolicy);
+    }
+
+    public Span(ReferenceIndex<? extends T> data, ModifyPolicy modifyPolicy, boolean fixedSize) {
+        this(data, fixedSize ? data.size() : UNFIXED_SIZE, modifyPolicy);
     }
 
     protected Span(ReferenceIndex<? extends T> data, int fixedCapacity, ModifyPolicy modifyPolicy) {
@@ -78,9 +82,9 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
     public static <T> Span<T> immutable(Collection<T> of) {
         return Span.<T>make()
+                .modifyPolicy(ModifyPolicy.IMMUTABLE)
                 .initialValues(of)
                 .fixedSize(true)
-                .modifyPolicy(ModifyPolicy.IMMUTABLE)
                 .span();
     }
 
@@ -284,7 +288,7 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
     @Contract("-> new")
     public final API<T> reconfigure(/* todo: boolean parameter finalizeOldSpan? */) {
-        return new API<>(this);
+        return new API<>(storage);
     }
 
     public final <C extends Collection<T>> C into(Supplier<C> collectionSupplier) {
@@ -374,18 +378,16 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     //region API Class
     public static final class API<T> {
         private static final int RESULT_FIXED_SIZE = -2;
-        private final Span<T> base;
-        private final Collection<T> extraValues;
+        private final ReferenceIndex<T> storage;
         private ModifyPolicy modifyPolicy;
         private int fixedSize;
 
         public API() {
-            this(new Span<>());
+            this(ReferenceIndex.create());
         }
 
-        private API(Span<T> base) {
-            this.base = base;
-            this.extraValues = new ArrayList<>();
+        private API(ReferenceIndex<T> storage) {
+            this.storage = storage;
         }
 
         public Collector<T, ?, Span<T>> collector() {
@@ -394,17 +396,13 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
                 private final BiConsumer<Span<T>, T> accumulator = Span::add;
                 private final BinaryOperator<Span<T>> combiner = (ts, ts2) -> {
                     ts.addAll(ts2);
-
                     return ts;
                 };
                 private final Function<Span<T>, Span<T>> finisher = new Function<Span<T>, Span<T>>() {
                     @Override
                     public Span<T> apply(Span<T> ts) {
-                        return Span.<T>make()
-                                .initialValues(base)
-                                .initialValues(ts)
-                                .fixedSize(fixedSize == API.RESULT_FIXED_SIZE)
-                                .span();
+                        ts.forEach(storage::add);
+                        return span();
                     }
                 };
 
@@ -438,19 +436,12 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
         }
 
         public Span<T> span() {
-            final ReferenceIndex<T> subset = base.subset();
-            extraValues.forEach(subset::add);
-
-            if (fixedSize == UNFIXED_SIZE)
-                return new Span<>(subset, modifyPolicy);
-            else if (fixedSize == API.RESULT_FIXED_SIZE)
-                return new Span<>(subset, subset.size(), modifyPolicy);
-            else return new Span<>(subset, fixedSize, modifyPolicy);
+            return new Span<>(storage, modifyPolicy, fixedSize == API.RESULT_FIXED_SIZE);
         }
 
         @Contract(value = "_ -> this", mutates = "this")
         public API<T> initialValues(Collection<T> values) {
-            extraValues.addAll(values);
+            values.forEach(storage::add);
 
             return this;
         }
@@ -462,9 +453,6 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
         @Contract(value = "_ -> this", mutates = "this")
         public API<T> fixedSize(int fixedSize) {
-            if (base.isFixedSize())
-                throw new UnsupportedOperationException("Underlying Span has fixed size");
-
             this.fixedSize = fixedSize;
 
             return this;
@@ -472,9 +460,6 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
         @Contract(value = "_ -> this", mutates = "this")
         public API<T> fixedSize(boolean fixedSize) {
-            if (base.isFixedSize())
-                throw new UnsupportedOperationException("Underlying Span has fixed size");
-
             this.fixedSize = API.RESULT_FIXED_SIZE;
 
             return this;

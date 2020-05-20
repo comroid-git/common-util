@@ -98,8 +98,13 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                         Location.class.getName()
                 )));
 
-        return ReflectionHelper.collectStaticFields(GroupBind.class, location.value(), true, RootBind.class)
-                .requireNonNull();
+        return ReflectionHelper
+                .<GroupBind<T, D>>collectStaticFields(
+                        Polyfill.uncheckedCast(GroupBind.class),
+                        location.value(),
+                        true,
+                        RootBind.class
+                ).requireNonNull(String.format("No @RootBind annotated field found in %s", location.value()));
     }
 
     private Set<VarBind<Object, ? super DEP, ?, Object>> updateVars(

@@ -124,9 +124,9 @@ public final class ReflectionHelper {
                 field.setAccessible(true);
             }
 
-            if (isStatic(field.getModifiers()) && fieldType.isAssignableFrom(field.getType()) && (
-                    withAnnotation == null || field.isAnnotationPresent(withAnnotation)
-            )) {
+            if (isStatic(field.getModifiers())
+                    && fieldType.isAssignableFrom(field.getType())
+                    && (withAnnotation == null || field.isAnnotationPresent(withAnnotation))) {
                 try {
                     values.add(fieldType.cast(field.get(null)));
                 } catch (IllegalAccessException e) {
@@ -135,10 +135,7 @@ public final class ReflectionHelper {
             }
         }
 
-        return Span.<T>make()
-                .initialValues(values)
-                .fixedSize(true)
-                .span();
+        return Span.immutable(values);
     }
 
     public static Object[] arrange(Object[] args, Class<?>[] typesOrdered) {
