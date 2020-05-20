@@ -6,7 +6,7 @@ import org.comroid.common.ref.Reference;
 import java.util.Collections;
 import java.util.Map;
 
-public final class CommandLineArgs implements ReferenceMap<String, String> {
+public final class CommandLineArgs implements ReferenceMap<String, String, Reference<String>> {
     private final Map<String, Reference<String>> values;
 
     private CommandLineArgs(Map<String, Reference<String>> values) {

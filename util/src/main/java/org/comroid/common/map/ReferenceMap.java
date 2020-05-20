@@ -5,8 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public interface ReferenceMap<K, V> {
-    Reference<V> getReference(K key);
+public interface ReferenceMap<K, V, REF extends Reference<V>> {
+    REF getReference(K key);
 
     default V get(K key) {
         return getReference(key).get();
