@@ -68,7 +68,7 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
 
     private UniObjectNode.Adapter objectAdapter(JSONObject node) {
         class Local extends UniObjectNode.Adapter<JSONObject> {
-            protected Local(JSONObject baseNode) {
+            protected Local(@NotNull JSONObject baseNode) {
                 super(baseNode);
             }
 
@@ -84,12 +84,12 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
             }
         }
 
-        return new Local(node);
+        return new Local(node == null ? new JSONObject() : node);
     }
 
     private UniArrayNode.Adapter arrayAdapter(JSONArray node) {
         class Local extends UniArrayNode.Adapter<JSONArray> {
-            private Local(JSONArray node) {
+            private Local(@NotNull JSONArray node) {
                 super(node);
             }
 
@@ -119,6 +119,6 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
             }
         }
 
-        return new Local(node);
+        return new Local(node == null ? new JSONArray() : node);
     }
 }
