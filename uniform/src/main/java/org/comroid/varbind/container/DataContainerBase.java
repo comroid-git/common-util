@@ -154,8 +154,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
         if (split.length == 1) {
             return getRootBind().streamAllChildren()
-                    .filter(bind -> bind.getFieldName()
-                            .equals(name))
+                    .filter(bind -> bind.getFieldName().equals(name))
                     .findAny()
                     .map(it -> getComputedReference(uncheckedCast(it)));
         }

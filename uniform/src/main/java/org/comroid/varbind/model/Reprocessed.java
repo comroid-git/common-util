@@ -50,15 +50,4 @@ public interface Reprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPN
             }
         }
     }
-
-    final class Optional<T> extends Underlying.Base<Object, Object, Object, T> {
-        public Optional(VarBind<Object, Object, Object, T> underlying) {
-            super(underlying);
-        }
-
-        @Override
-        public boolean isOptional() {
-            return true;
-        }
-    }
 }

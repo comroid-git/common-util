@@ -1,5 +1,9 @@
 package org.comroid.dreadpool;
 
+import org.comroid.common.Polyfill;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Flushable;
 import java.util.Comparator;
 import java.util.Objects;
@@ -9,17 +13,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.comroid.common.Polyfill;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import static java.lang.System.nanoTime;
 
 public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecutorService {
     WorkerFactory getThreadFactory();
 
     ThreadErrorHandler getThreadErrorHandler();
+
+    static FixedSizeThreadPool fixedSize(ThreadGroup group, int corePoolSize) {
+        return new FixedSizeThreadPool(corePoolSize, new WorkerFactory(group, corePoolSize), new ThreadErrorHandler());
+    }
 
     @Override
     void execute(@NotNull Runnable command);
@@ -33,18 +36,10 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
 
     int queueSize();
 
-    static FixedSizeThreadPool fixedSize(ThreadGroup group, int corePoolSize) {
-        return new FixedSizeThreadPool(corePoolSize, new WorkerFactory(group, corePoolSize), new ThreadErrorHandler());
-    }
-
     final class Task implements Comparable<Task> {
         public static final Comparator<Task> TASK_COMPARATOR = Comparator.comparingLong(Task::getIssuedAt);
-        private final long     issuedAt = nanoTime();
+        private final long issuedAt = nanoTime();
         private final Runnable runnable;
-
-        public Task(Runnable runnable) {
-            this.runnable = runnable;
-        }
 
         public long getIssuedAt() {
             return issuedAt;
@@ -54,6 +49,10 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
             return runnable;
         }
 
+        public Task(Runnable runnable) {
+            this.runnable = runnable;
+        }
+
         @Override
         public int compareTo(@NotNull ThreadPool.Task other) {
             return TASK_COMPARATOR.compare(this, other);
@@ -61,20 +60,23 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
     }
 
     class Worker extends org.comroid.dreadpool.Worker implements Executor, Comparable<ThreadPool.Worker> {
-        public static final int                ERR_STACKSIZE     = 5;
+        public static final int ERR_STACKSIZE = 5;
         public static final Comparator<Worker> WORKER_COMPARATOR = Comparator.comparingLong(Worker::lastOp);
-        private final Object          lock     = Polyfill.selfawareLock();
-        private final Queue<Runnable> queue    = new LinkedBlockingQueue<>();
-        private final int             errStack = 0;
-
-        protected Worker(@Nullable ThreadGroup group, @NotNull String name) {
-            super(group, name);
-        }
+        private final Object lock = Polyfill.selfawareLock();
+        private final Queue<Runnable> queue = new LinkedBlockingQueue<>();
+        private final int errStack = 0;
+        ThreadPool threadPool;
+        private boolean busy = true;
+        private long lastOp = 0;
 
         public boolean isBusy() {
             synchronized (lock) {
                 return busy;
             }
+        }
+
+        protected Worker(@Nullable ThreadGroup group, @NotNull String name) {
+            super(group, name);
         }
 
         @Override
@@ -95,11 +97,14 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
 
                     busy = true;
                     while (!queue.isEmpty()) {
-                        queue.poll()
-                                .run();
+                        final Runnable poll = queue.poll();
+                        if (poll instanceof Thread)
+                            if (!((Thread) poll).isAlive())
+                                ((Thread) poll).start();
+                        else poll.run();
                     }
                     lastOp = nanoTime();
-                    busy   = false;
+                    busy = false;
                 }
             }
         }
@@ -127,8 +132,5 @@ public interface ThreadPool extends ExecutorService, Flushable, ScheduledExecuto
         public long lastOp() {
             return lastOp;
         }
-        ThreadPool threadPool;
-        private       boolean         busy     = true;
-        private       long            lastOp   = 0;
     }
 }
