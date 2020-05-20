@@ -9,6 +9,7 @@ import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
@@ -199,9 +200,8 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                     return;
                 }
 
-                if (it instanceof DataContainer || it instanceof Serializable)
+                if (it != null)
                     applyValueToNode(applyTo, key, it);
-
                 return;
             }
 
@@ -219,6 +219,8 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private void applyValueToNode(UniObjectNode applyTo, String key, Object it) {
         if (it instanceof DataContainer)
             ((DataContainer<DEP>) it).toObjectNode(applyTo.putObject(key));
+        else if (it instanceof UniNode)
+            applyTo.putObject(key).copyFrom((UniNode) it);
         else applyTo.put(key, ValueType.STRING, String.valueOf(it));
     }
 
@@ -232,7 +234,10 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                 span.add(apply);
                 return span;
             });
-            getComputedReference(bind).update(value);
+
+            if (prev != null)
+                ((Collection<R>) prev).addAll((Collection<R>) value);
+            else getComputedReference(bind).update((R) Span.singleton(value));
         } else {
             getExtractionReference(bind).set(Span.singleton(apply));
             getComputedReference(bind).update(value);

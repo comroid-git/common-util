@@ -70,7 +70,7 @@ public final class UniObjectNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(fieldName))));
+            return new UniValueNode<>(serializationAdapter, makeValueAdapter(String.valueOf(adapter.get(fieldName))));
         } else {
             return serializationAdapter.createUniNode(value);
         }
@@ -106,6 +106,16 @@ public final class UniObjectNode extends UniNode {
 
         adapter.put(key, arrayNode.getBaseNode());
         return arrayNode;
+    }
+
+    @Override
+    public UniObjectNode copyFrom(@NotNull UniNode it) {
+        if (it instanceof UniObjectNode) {
+            //noinspection unchecked
+            adapter.putAll(((UniObjectNode) it).adapter);
+            return this;
+        }
+        return unsupported("COPY_FROM", Type.OBJECT);
     }
 
     @Override

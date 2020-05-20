@@ -45,6 +45,15 @@ public class UniValueNode<T> extends UniNode {
     }
 
     @Override
+    public UniValueNode copyFrom(@NotNull UniNode it) {
+        if (it instanceof UniValueNode) {
+            this.adapter.set(it.asString(null));
+            return this;
+        }
+        return unsupported("COPY_FROM", Type.VALUE);
+    }
+
+    @Override
     public Object asRaw(@Nullable Object fallback) {
         final String str = asString(null);
 
@@ -159,21 +168,28 @@ public class UniValueNode<T> extends UniNode {
     public interface Adapter<T> extends UniNode.Adapter {
         @Nullable <R> R get(ValueType<R> as);
 
+        @Nullable String set(String value);
+
         final class ViaString<T> implements Adapter<T> {
-            private final Reference<String> sub;
+            private final Reference.Settable<String> sub;
 
             @Override
             public Object getBaseNode() {
                 return null;
             }
 
-            public ViaString(Reference<String> sub) {
+            public ViaString(Reference.Settable<String> sub) {
                 this.sub = sub;
             }
 
             @Override
             public <R> @Nullable R get(ValueType<R> as) {
                 return as.apply(sub.get());
+            }
+
+            @Override
+            public @Nullable String set(String value) {
+                return sub.set(value);
             }
         }
     }
@@ -191,6 +207,11 @@ public class UniValueNode<T> extends UniNode {
                 @Override
                 public <R> @Nullable R get(ValueType<R> as) {
                     return null;
+                }
+
+                @Override
+                public @Nullable String set(String value) {
+                    throw new UnsupportedOperationException();
                 }
             });
         }

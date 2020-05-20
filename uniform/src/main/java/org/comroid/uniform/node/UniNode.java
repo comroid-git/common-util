@@ -5,6 +5,7 @@ import org.comroid.common.ref.Reference;
 import org.comroid.common.ref.Specifiable;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,6 +126,9 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("PUT_ARRAY_KEY", Type.ARRAY);
     }
 
+    @Contract(value = "_ -> this", mutates = "this")
+    public abstract UniNode copyFrom(@NotNull UniNode it);
+
     public Object asRaw(@Nullable Object fallback) {
         if (isNull() && fallback != null) {
             return fallback;
@@ -229,14 +233,14 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return as(UniValueNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.VALUE));
     }
 
-    protected <T> UniValueNode.Adapter<T> makeValueAdapter(Supplier<String> stringSupplier) {
-        return new UniValueNode.Adapter.ViaString<>(stringSupplier::get);
+    protected <T> UniValueNode.Adapter<T> makeValueAdapter(String stringSupplier) {
+        return new UniValueNode.Adapter.ViaString<>(Reference.Settable.create(stringSupplier));
     }
 
     @NotNull
     protected <T> UniValueNode<T> generateValueNode(String ofString) {
         final UniValueNode.Adapter.ViaString<T> valueAdapter
-                = new UniValueNode.Adapter.ViaString<>(Reference.constant(ofString));
+                = new UniValueNode.Adapter.ViaString<>(Reference.Settable.create(ofString));
         return new UniValueNode<>(serializationAdapter, valueAdapter);
     }
 

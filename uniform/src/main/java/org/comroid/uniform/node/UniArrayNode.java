@@ -41,10 +41,20 @@ public final class UniArrayNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(() -> String.valueOf(adapter.get(index))));
+            return new UniValueNode<>(serializationAdapter, makeValueAdapter(String.valueOf(adapter.get(index))));
         } else {
             return serializationAdapter.createUniNode(value);
         }
+    }
+
+    @Override
+    public UniArrayNode copyFrom(@NotNull UniNode it) {
+        if (it instanceof UniArrayNode) {
+            //noinspection unchecked
+            adapter.addAll(((UniArrayNode) it).adapter);
+            return this;
+        }
+        return unsupported("COPY_FROM", Type.ARRAY);
     }
 
     @Override

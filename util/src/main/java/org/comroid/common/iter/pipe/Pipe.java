@@ -76,6 +76,6 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
     }
 
     default Span<T> span() {
-        return new Span<>(this, Span.ModifyPolicy.SKIP_NULLS);
+        return new Span<>(this, Span.DefaultModifyPolicy.SKIP_NULLS);
     }
 }
