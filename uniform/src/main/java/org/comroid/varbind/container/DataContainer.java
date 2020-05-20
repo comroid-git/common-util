@@ -1,20 +1,22 @@
 package org.comroid.varbind.container;
 
-import java.util.Optional;
-import java.util.Set;
-
 import org.comroid.common.func.Processor;
 import org.comroid.common.info.Dependent;
 import org.comroid.common.ref.Reference;
 import org.comroid.uniform.node.UniObjectNode;
-
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+
 public interface DataContainer<DEP> extends Dependent<DEP> {
     GroupBind<?, DEP> getRootBind();
+
+    Class<? extends DataContainer<? super DEP>> getRepresentedType();
 
     Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node);
 
@@ -46,7 +48,7 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
 
     UniObjectNode toObjectNode(); // todo
 
-    Class<? extends DataContainer<? super DEP>> getRepresentedType();
+    <T, S> @Nullable T put(VarBind<S, ? super DEP, ?, T> bind, Function<T, S> parser, T value);
 
     interface Underlying<DEP> extends DataContainer<DEP> {
         DataContainer<DEP> getUnderlyingVarCarrier();
@@ -54,6 +56,16 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         @Override
         default GroupBind<?, DEP> getRootBind() {
             return getUnderlyingVarCarrier().getRootBind();
+        }
+
+        @Override
+        default DEP getDependent() {
+            return getUnderlyingVarCarrier().getDependent();
+        }
+
+        @Override
+        default Class<? extends DataContainer<? super DEP>> getRepresentedType() {
+            return getUnderlyingVarCarrier().getRepresentedType();
         }
 
         @Override
@@ -78,18 +90,8 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         }
 
         @Override
-        default DEP getDependent() {
-            return getUnderlyingVarCarrier().getDependent();
-        }
-
-        @Override
         default UniObjectNode toObjectNode() {
             return getUnderlyingVarCarrier().toObjectNode();
-        }
-
-        @Override
-        default Class<? extends DataContainer<? super DEP>> getRepresentedType() {
-            return getUnderlyingVarCarrier().getRepresentedType();
         }
     }
 }

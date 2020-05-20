@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
@@ -202,14 +203,25 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         return null; // todo
     }
 
+    @Override
+    public <R, T> @Nullable R put(VarBind<T, ? super DEP, ?, R> bind, Function<R, T> parser, R value) {
+        final T apply = parser.apply(value);
+
+        final R prev = compRef(bind).get();
+        extrRef(bind).set(Span.singleton(apply));
+        compRef(bind).update(value);
+
+        return prev;
+    }
+
     private <T> AtomicReference<Span<T>> extrRef(
-            VarBind<T, ? super DEP, ?, Object> bind
+            VarBind<T, ? super DEP, ?, ?> bind
     ) {
         return uncheckedCast(vars.computeIfAbsent(fieldName(bind), key -> new AtomicReference<>(Span.empty())));
     }
 
     private <T> OutdateableReference<T> compRef(
-            VarBind<Object, ? super DEP, ?, T> bind
+            VarBind<?, ? super DEP, ?, T> bind
     ) {
         return uncheckedCast(computed.computeIfAbsent(fieldName(bind), key -> new OutdateableReference<>()));
     }

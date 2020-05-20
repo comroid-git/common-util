@@ -5,12 +5,19 @@ import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.model.AbstractObjectBind;
 import org.comroid.varbind.model.Reprocessed;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
+    String getFieldName();
+
+    default boolean isOptional() {
+        return false;
+    }
+
     default FINAL getFrom(UniObjectNode node) {
         return getFrom(null, node);
     }
@@ -34,12 +41,6 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
     }
 
     REMAP remap(EXTR from, DPND dependency);
-
-    String getFieldName();
-
-    default boolean isOptional() {
-        return false;
-    }
 
     default Reprocessed.Optional<FINAL> optional() {
         return new Reprocessed.Optional<>(Polyfill.uncheckedCast(this));
