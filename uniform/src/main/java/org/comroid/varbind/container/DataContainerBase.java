@@ -8,6 +8,7 @@ import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.ValueType;
+import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
@@ -191,8 +192,9 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
                 // support array binds
                 if (it instanceof Collection) {
+                    final UniArrayNode array = applyTo.putArray(key);
                     //noinspection rawtypes
-                    ((Collection) it).forEach(each -> applyValueToNode(applyTo, key, each));
+                    ((Collection) it).forEach(each -> applyValueToNode(array.addObject(), key, each));
 
                     return;
                 }
@@ -205,7 +207,10 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
             if (them.isSingle())
                 applyValueToNode(applyTo, key, them.requireNonNull("AssertionFailure"));
-            else them.forEach(it -> applyValueToNode(applyTo, key, it));
+            else {
+                final UniArrayNode array = applyTo.putArray(key);
+                them.forEach(it -> applyValueToNode(array.addObject(), key, it));
+            }
         });
 
         return applyTo;
