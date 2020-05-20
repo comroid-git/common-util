@@ -7,9 +7,9 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.comroid.common.Polyfill;
+import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
-import org.comroid.uniform.node.UniValueNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.ArrayBind;
@@ -51,7 +51,7 @@ public final class Message extends DataContainerBase<DiscordAPI> {
         GroupBind GROUP = new GroupBind(fastJsonLib, "message", invocable);
         ArrayBind.TwoStage<String, URL, Collection<URL>> ATTACHMENTS       = GROUP.list2stage(
                 "attachments",
-                UniValueNode.ValueType.STRING,
+                ValueType.STRING,
                 spec -> Polyfill.url(spec),
                 ArrayList::new
         );
@@ -62,22 +62,22 @@ public final class Message extends DataContainerBase<DiscordAPI> {
         );
         VarBind.TwoStage<String, String> EDITED_TIMESTAMP  = GROUP.bind2stage(
                 "edited_timestamp",
-                UniValueNode.ValueType.STRING,
+                ValueType.STRING,
                 Function.identity()
         ); // todo Instant parsing
         VarBind.DependentTwoStage<UniObjectNode, DiscordAPI, User> AUTHOR            = GROUP.bindDependent("author",
                 User.Binds.GROUP.autoConstructor(User.class, DiscordAPI.class)
         );
         VarBind.OneStage<String> CONTENT           = GROUP.bind1stage("content",
-                UniValueNode.ValueType.STRING
+                ValueType.STRING
         );
         VarBind.DependentTwoStage<Long, DiscordAPI, Channel> CHANNEL           = GROUP.bindDependent(
                 "channel_id",
-                UniValueNode.ValueType.LONG,
+                ValueType.LONG,
                 DiscordAPI::getChannelById
         );
         VarBind.OneStage<Long> ID                = GROUP.bind1stage("id",
-                UniValueNode.ValueType.LONG
+                ValueType.LONG
         );
         ArrayBind.DependentTwoStage<UniObjectNode, DiscordAPI, Role, Collection<Role>> MENTIONED_ROLES   = GROUP.listDependent(
                 "mentioned_roles",
@@ -91,10 +91,10 @@ public final class Message extends DataContainerBase<DiscordAPI> {
         );
         VarBind.OneStage<Boolean> MENTIONS_EVERYONE = GROUP.bind1stage(
                 "mention_everyone",
-                UniValueNode.ValueType.BOOLEAN
+                ValueType.BOOLEAN
         );
         VarBind.OneStage<Boolean> PINNED            = GROUP.bind1stage("pinned",
-                UniValueNode.ValueType.BOOLEAN
+                ValueType.BOOLEAN
         );
         ArrayBind.DependentTwoStage<UniObjectNode, DiscordAPI, Reaction, Collection<Reaction>> REACTIONS         = GROUP.listDependent(
                 "reactions",
@@ -103,14 +103,14 @@ public final class Message extends DataContainerBase<DiscordAPI> {
                 ArrayList::new
         );
         VarBind.TwoStage<String, String> TIMESTAMP         = GROUP.bind2stage("timestamp",
-                UniValueNode.ValueType.STRING,
+                ValueType.STRING,
                 Function.identity()
         ); // todo Instant parsing
         VarBind.OneStage<Boolean> TTS               = GROUP.bind1stage("tts",
-                UniValueNode.ValueType.BOOLEAN
+                ValueType.BOOLEAN
         );
         VarBind.TwoStage<Integer, Type> TYPE              = GROUP.bind2stage("type",
-                UniValueNode.ValueType.INTEGER,
+                ValueType.INTEGER,
                 Type::new
         );
     }

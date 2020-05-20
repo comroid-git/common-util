@@ -1,15 +1,18 @@
 package org.comroid.uniform.node;
 
-import java.util.function.Function;
-
 import org.comroid.common.ref.Reference;
 import org.comroid.uniform.SerializationAdapter;
-
+import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UniValueNode<T> extends UniNode {
     private final Adapter<T> adapter;
+
+    @Override
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
+    }
 
     public UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
         super(serializationAdapter, Type.VALUE);
@@ -17,9 +20,8 @@ public class UniValueNode<T> extends UniNode {
         this.adapter = adapter;
     }
 
-    @Override
-    public final Object getBaseNode() {
-        return adapter.getBaseNode();
+    public static <T> UniValueNode<T> nullNode() {
+        return (UniValueNode<T>) Null.instance;
     }
 
     @Override
@@ -154,63 +156,43 @@ public class UniValueNode<T> extends UniNode {
         return adapter.get(ValueType.CHARACTER);
     }
 
-    public static <T> UniValueNode<T> nullNode() {
-        return (UniValueNode<T>) Null.instance;
-    }
-
-    public static final class ValueType<R> {
-        public static final UniValueNode.ValueType<Boolean>   BOOLEAN   = new ValueType<>(Boolean::parseBoolean);
-        public static final UniValueNode.ValueType<Character> CHARACTER = new ValueType<>(str -> str.toCharArray()[0]);
-        public static final UniValueNode.ValueType<Double>    DOUBLE    = new ValueType<>(Double::parseDouble);
-        public static final UniValueNode.ValueType<Float>     FLOAT     = new ValueType<>(Float::parseFloat);
-        public static final UniValueNode.ValueType<Integer>   INTEGER   = new ValueType<>(Integer::parseInt);
-        public static final UniValueNode.ValueType<Long>      LONG      = new ValueType<>(Long::parseLong);
-        public static final UniValueNode.ValueType<Short>     SHORT     = new ValueType<>(Short::parseShort);
-        public static final UniValueNode.ValueType<String>    STRING    = new ValueType<>(Function.identity());
-        private final Function<String, R> mapper;
-
-        public ValueType(Function<String, R> mapper) {
-            this.mapper = mapper;
-        }
-    }
-
     public interface Adapter<T> extends UniNode.Adapter {
-        @Nullable <R> R get(UniValueNode.ValueType<R> as);
+        @Nullable <R> R get(ValueType<R> as);
 
         final class ViaString<T> implements Adapter<T> {
             private final Reference<String> sub;
+
+            @Override
+            public Object getBaseNode() {
+                return null;
+            }
 
             public ViaString(Reference<String> sub) {
                 this.sub = sub;
             }
 
             @Override
-            public <R> @Nullable R get(UniValueNode.ValueType<R> as) {
-                return as.mapper.apply(sub.get());
-            }
-
-            @Override
-            public Object getBaseNode() {
-                return null;
+            public <R> @Nullable R get(ValueType<R> as) {
+                return as.apply(sub.get());
             }
         }
     }
 
     static final class Null extends UniValueNode<Void> {
+        private static final UniValueNode<?> instance = new Null();
+
         private Null() {
             super(null, new UniValueNode.Adapter<Void>() {
-                @Override
-                public <R> @Nullable R get(ValueType<R> as) {
-                    return null;
-                }
-
                 @Override
                 public Object getBaseNode() {
                     return instance;
                 }
+
+                @Override
+                public <R> @Nullable R get(ValueType<R> as) {
+                    return null;
+                }
             });
         }
-
-        private static final UniValueNode<?> instance = new Null();
     }
 }

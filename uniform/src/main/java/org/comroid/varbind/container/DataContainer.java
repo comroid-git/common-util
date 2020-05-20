@@ -5,10 +5,10 @@ import org.comroid.common.info.Dependent;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
+import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +53,11 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         return getComputedReference(bind).process();
     }
 
-    UniObjectNode toObjectNode(); // todo
+    UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter);
+
+    default<T> @Nullable T put(VarBind<T, ? super DEP, ?, T> bind, T value) {
+        return put(bind, Function.identity(), value);
+    }
 
     <T, S> @Nullable T put(VarBind<S, ? super DEP, ?, T> bind, Function<T, S> parser, T value);
 
@@ -107,8 +111,8 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         }
 
         @Override
-        default UniObjectNode toObjectNode() {
-            return getUnderlyingVarCarrier().toObjectNode();
+        default UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter) {
+            return getUnderlyingVarCarrier().toObjectNode(null);
         }
 
         @Override

@@ -1,8 +1,8 @@
 package org.comroid.test.model;
 
+import org.comroid.uniform.ValueType;
 import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
 import org.comroid.uniform.node.UniObjectNode;
-import org.comroid.uniform.node.UniValueNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.GroupBind;
@@ -30,8 +30,8 @@ public final class NGinXFSNode extends DataContainerBase<Void> {
     interface Bind {
         @RootBind
         GroupBind root = new GroupBind(FastJSONLib.fastJsonLib, "fsnode", invocable);
-        VarBind.OneStage<String> Name  = root.bind1stage("name", UniValueNode.ValueType.STRING);
-        VarBind.OneStage<String> Type  = root.bind1stage("type", UniValueNode.ValueType.STRING);
-        VarBind.OneStage<String> MTime = root.bind1stage("mtime", UniValueNode.ValueType.STRING);
+        VarBind.OneStage<String> Name  = root.bind1stage("name", ValueType.STRING);
+        VarBind.OneStage<String> Type  = root.bind1stage("type", ValueType.STRING);
+        VarBind.OneStage<String> MTime = root.bind1stage("mtime", ValueType.STRING);
     }
 }

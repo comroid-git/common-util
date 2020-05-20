@@ -1,17 +1,23 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.ref.Reference;
+import org.comroid.uniform.DataStructureType;
+import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.ValueType;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.comroid.uniform.DataStructureType;
-import org.comroid.uniform.SerializationAdapter;
-
-import org.jetbrains.annotations.NotNull;
-
 public final class UniObjectNode extends UniNode {
     private final Adapter adapter;
+
+    @Override
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
+    }
 
     public UniObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
         super(serializationAdapter, Type.OBJECT);
@@ -19,9 +25,24 @@ public final class UniObjectNode extends UniNode {
         this.adapter = adapter;
     }
 
-    @Override
-    public final Object getBaseNode() {
-        return adapter.getBaseNode();
+    public static UniObjectNode ofMap(SerializationAdapter<?, ?, ?> adapter, Map<String, Object> map) {
+        class MergedAdapter extends UniObjectNode.Adapter<Map<String, Object>> {
+            protected MergedAdapter(Map<String, Object> underlying) {
+                super(underlying);
+            }
+
+            @Override
+            public Object put(String key, Object value) {
+                return getBaseNode().put(key, value);
+            }
+
+            @Override
+            public @NotNull Set<Entry<String, Object>> entrySet() {
+                return getBaseNode().entrySet();
+            }
+        }
+
+        return new UniObjectNode(adapter, new MergedAdapter(map));
     }
 
     @Override
@@ -57,32 +78,41 @@ public final class UniObjectNode extends UniNode {
     }
 
     @Override
+    public @NotNull <T> UniValueNode<T> put(String key, ValueType<T> type, T value) {
+        final UniValueNode<T> valueNode = generateValueNode(type.convert(value, ValueType.STRING));
+
+        adapter.put(key, valueNode.getBaseNode());
+        return valueNode;
+    }
+
+    @Override
+    public @NotNull UniObjectNode putObject(String key) {
+        final UniObjectNode objectNode = serializationAdapter.createUniObjectNode(null);
+
+        adapter.put(key, objectNode.getBaseNode());
+        return objectNode;
+    }
+
+    @Override
+    public @NotNull UniArrayNode putArray(String key) {
+        final UniArrayNode arrayNode = serializationAdapter.createUniArrayNode(null);
+
+        adapter.put(key, arrayNode.getBaseNode());
+        return arrayNode;
+    }
+
+    @Override
     public String toString() {
         return adapter.toString();
     }
 
-    public static UniObjectNode ofMap(SerializationAdapter<?, ?, ?> adapter, Map<String, Object> map) {
-        class MergedAdapter extends UniObjectNode.Adapter<Map<String, Object>> {
-            protected MergedAdapter(Map<String, Object> underlying) {
-                super(underlying);
-            }
-
-            @Override
-            public Object put(String key, Object value) {
-                return getBaseNode().put(key, value);
-            }
-
-            @Override
-            public @NotNull Set<Entry<String, Object>> entrySet() {
-                return getBaseNode().entrySet();
-            }
-        }
-
-        return new UniObjectNode(adapter, new MergedAdapter(map));
-    }
-
     public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {
         protected final B baseNode;
+
+        @Override
+        public B getBaseNode() {
+            return baseNode;
+        }
 
         protected Adapter(B baseNode) {
             this.baseNode = baseNode;
@@ -94,10 +124,5 @@ public final class UniObjectNode extends UniNode {
         @NotNull
         @Override
         public abstract Set<Entry<String, Object>> entrySet();
-
-        @Override
-        public B getBaseNode() {
-            return baseNode;
-        }
     }
 }

@@ -4,10 +4,10 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
-import org.comroid.uniform.node.UniValueNode;
 import org.comroid.varbind.container.DataContainer;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
@@ -184,7 +184,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return groupBind;
     }
 
-    public final <A> VarBind.OneStage<A> bind1stage(String fieldname, UniValueNode.ValueType<A> type) {
+    public final <A> VarBind.OneStage<A> bind1stage(String fieldname, ValueType<A> type) {
         return bind1stage(fieldname, extractor(type));
     }
 
@@ -194,7 +194,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return new VarBind.OneStage<>(this, fieldName, extractor);
     }
 
-    private <A> BiFunction<UniObjectNode, String, A> extractor(final UniValueNode.ValueType<A> type) {
+    private <A> BiFunction<UniObjectNode, String, A> extractor(final ValueType<A> type) {
         return (root, fieldName) -> root.get(fieldName)
                 .as(type);
     }
@@ -212,7 +212,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public final <A, R> VarBind.TwoStage<A, R> bind2stage(
-            String fieldName, UniValueNode.ValueType<A> type, Function<A, R> remapper
+            String fieldName, ValueType<A> type, Function<A, R> remapper
     ) {
         return bind2stage(fieldName, extractor(type), remapper);
     }
@@ -239,13 +239,13 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public final <A, R> VarBind.DependentTwoStage<A, D, R> bindDependent(
-            String fieldName, UniValueNode.ValueType<A> type, BiFunction<D, A, R> resolver
+            String fieldName, ValueType<A> type, BiFunction<D, A, R> resolver
     ) {
         return bindDependent(fieldName, extractor(type), resolver);
     }
 
     public final <A, C extends Collection<A>> ArrayBind.OneStage<A, C> list1stage(
-            String fieldName, UniValueNode.ValueType<A> type, Supplier<C> collectionSupplier
+            String fieldName, ValueType<A> type, Supplier<C> collectionSupplier
     ) {
         return list1stage(fieldName, eachExtractor(type), collectionSupplier);
     }
@@ -256,12 +256,12 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return new ArrayBind.OneStage<>(this, fieldName, extractor, collectionSupplier);
     }
 
-    private <A> Function<UniNode, A> eachExtractor(final UniValueNode.ValueType<A> type) {
+    private <A> Function<UniNode, A> eachExtractor(final ValueType<A> type) {
         return root -> root.as(type);
     }
 
     public final <A, R, C extends Collection<R>> ArrayBind.TwoStage<A, R, C> list2stage(
-            String fieldName, UniValueNode.ValueType<A> type, Function<A, R> remapper, Supplier<C> collectionSupplier
+            String fieldName, ValueType<A> type, Function<A, R> remapper, Supplier<C> collectionSupplier
     ) {
         return list2stage(fieldName, eachExtractor(type), remapper, collectionSupplier);
     }
@@ -303,7 +303,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public final <A, R, C extends Collection<R>> ArrayBind.DependentTwoStage<A, D, R, C> listDependent(
-            String fieldName, UniValueNode.ValueType<A> type, BiFunction<D, A, R> resolver, Supplier<C> collectionSupplier
+            String fieldName, ValueType<A> type, BiFunction<D, A, R> resolver, Supplier<C> collectionSupplier
     ) {
         return listDependent(fieldName, eachExtractor(type), resolver, collectionSupplier);
     }

@@ -7,6 +7,7 @@ import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
+import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
@@ -15,6 +16,7 @@ import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.model.Reprocessed;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.ElementType;
@@ -180,8 +182,24 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     @Override
-    public UniObjectNode toObjectNode() {
-        return null; // todo
+    public UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter) {
+        final UniObjectNode data = serializationAdapter.createUniObjectNode(null);
+
+        binds.keySet().forEach(key -> {
+            final @NotNull Span<Object> them = getExtractionReference(key).requireNonNull("Span is null");
+
+            if (them.isEmpty())
+                return;
+
+            if (them.isSingle()) {
+                final Object it = them.requireNonNull("AssertionFailure");
+
+                if (it instanceof DataContainer)
+                    data.putObject()
+            }
+        });
+
+        return data;
     }
 
     @Override

@@ -1,24 +1,20 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.info.MessageSupplier;
+import org.comroid.common.ref.Reference;
+import org.comroid.common.ref.Specifiable;
+import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.ValueType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.comroid.common.info.MessageSupplier;
-import org.comroid.common.ref.Specifiable;
-import org.comroid.uniform.SerializationAdapter;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
-    private final   Type                          type;
-
-    protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
-        this.serializationAdapter = serializationAdapter;
-        this.type                 = type;
-    }
+    private final Type type;
 
     public String getSerializedString() {
         return toString();
@@ -46,6 +42,15 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return getType() == Type.VALUE;
     }
 
+    public boolean isNull() {
+        return this instanceof UniValueNode.Null;
+    }
+
+    protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
+        this.serializationAdapter = serializationAdapter;
+        this.type = type;
+    }
+
     public @NotNull Optional<UniNode> wrap(int index) {
         return has(index) ? Optional.of(get(index)) : Optional.empty();
     }
@@ -67,13 +72,46 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return has(fieldName) ? Optional.of(get(fieldName)) : Optional.empty();
     }
 
-    public boolean isNull() {
-        return this instanceof UniValueNode.Null;
-    }
-
     public abstract boolean has(String fieldName);
 
     public abstract @NotNull UniNode get(String fieldName);
+
+    // todo: add helper methods
+    public <T> @NotNull UniValueNode<T> add(ValueType<T> type, T value) throws UnsupportedOperationException {
+        return put(size(), type, value);
+    }
+
+    public <T> @NotNull UniValueNode<T> put(int index, ValueType<T> type, T value) throws UnsupportedOperationException {
+        return unsupported("PUT_INDEX", Type.ARRAY);
+    }
+
+    public <T> @NotNull UniValueNode<T> put(String key, ValueType<T> type, T value) throws UnsupportedOperationException {
+        return unsupported("PUT_KEY", Type.OBJECT);
+    }
+
+    public @NotNull UniObjectNode addObject() throws UnsupportedOperationException {
+        return putObject(size());
+    }
+
+    public @NotNull UniObjectNode putObject(int index) throws UnsupportedOperationException {
+        return unsupported("PUT_OBJECT_INDEX", Type.ARRAY);
+    }
+
+    public @NotNull UniObjectNode putObject(String key) throws UnsupportedOperationException {
+        return unsupported("PUT_OBJECT_KEY", Type.OBJECT);
+    }
+
+    public @NotNull UniArrayNode addArray() throws UnsupportedOperationException {
+        return putArray(size());
+    }
+
+    public @NotNull UniArrayNode putArray(int index) throws UnsupportedOperationException {
+        return unsupported("PUT_ARRAY_INDEX", Type.ARRAY);
+    }
+
+    public @NotNull UniArrayNode putArray(String key) throws UnsupportedOperationException {
+        return unsupported("PUT_ARRAY_KEY", Type.ARRAY);
+    }
 
     public Object asRaw(@Nullable Object fallback) {
         if (isNull() && fallback != null) {
@@ -91,7 +129,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
         ));
     }
 
-    public <R> R as(UniValueNode.ValueType<R> type) {
+    public <R> R as(ValueType<R> type) {
         return unsupported("GET_AS", Type.VALUE);
     }
 
@@ -183,12 +221,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return new UniValueNode.Adapter.ViaString<>(stringSupplier::get);
     }
 
-    public interface Adapter<B> {
-        B getBaseNode();
+    @NotNull
+    protected <T> UniValueNode<T> generateValueNode(String ofString) {
+        final UniValueNode.Adapter.ViaString<T> valueAdapter
+                = new UniValueNode.Adapter.ViaString<>(Reference.constant(ofString));
+        return new UniValueNode<>(serializationAdapter, valueAdapter);
     }
+
     public enum Type {
         OBJECT,
         ARRAY,
         VALUE
+    }
+
+    public interface Adapter<B> {
+        B getBaseNode();
     }
 }

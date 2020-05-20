@@ -2,6 +2,7 @@ package org.comroid.uniform.node;
 
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractList;
@@ -94,6 +95,30 @@ public final class UniArrayNode extends UniNode {
     @Override
     public @NotNull UniNode get(String fieldName) {
         return unsupported("GET_FIELD", Type.OBJECT);
+    }
+
+    @Override
+    public @NotNull <T> UniValueNode<T> put(int index, ValueType<T> type, T value) {
+        final UniValueNode<T> valueNode = generateValueNode(type.convert(value, ValueType.STRING));
+
+        adapter.add(index, valueNode.getBaseNode());
+        return valueNode;
+    }
+
+    @Override
+    public @NotNull UniObjectNode putObject(int index) {
+        final UniObjectNode objectNode = serializationAdapter.createUniObjectNode(null);
+
+        adapter.add(index, objectNode.getBaseNode());
+        return objectNode;
+    }
+
+    @Override
+    public @NotNull UniArrayNode putArray(int index) {
+        final UniArrayNode arrayNode = serializationAdapter.createUniArrayNode(null);
+
+        adapter.add(index, arrayNode.getBaseNode());
+        return arrayNode;
     }
 
     @Override
