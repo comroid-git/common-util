@@ -6,7 +6,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
 
 public class OutdateableReference<T> implements Reference<T> {
-    private final Object  lock = Polyfill.selfawareLock();
+    private final Object lock = Polyfill.selfawareLock();
+    private boolean outdated = true;
+    private T it;
+
+    public boolean isOutdated() {
+        synchronized (lock) {
+            return outdated || it == null;
+        }
+    }
 
     @Override
     public @Nullable T get() {
@@ -20,7 +28,7 @@ public class OutdateableReference<T> implements Reference<T> {
      */
     public T update(T newValue) {
         synchronized (lock) {
-            this.it  = newValue;
+            this.it = newValue;
             outdated = false;
             return newValue;
         }
@@ -39,18 +47,9 @@ public class OutdateableReference<T> implements Reference<T> {
         }
     }
 
-    public boolean isOutdated() {
-        synchronized (lock) {
-            return outdated || it == null;
-        }
-    }
-
     public T compute(Supplier<T> supplier) {
         if (isOutdated())
             return update(supplier.get());
         else return get();
     }
-
-    private       boolean outdated = true;
-    private       T       it;
 }

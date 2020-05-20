@@ -122,8 +122,8 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         }
 
         @Override
-        default <T> OutdateableReference<T> getComputedReference(String fieldName) {
-            return getUnderlyingVarCarrier().getComputedReference(fieldName);
+        default <T, E> OutdateableReference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
+            return getUnderlyingVarCarrier().getComputedReference(bind);
         }
     }
 }
