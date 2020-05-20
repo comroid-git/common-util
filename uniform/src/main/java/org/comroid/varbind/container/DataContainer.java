@@ -2,10 +2,14 @@ package org.comroid.varbind.container;
 
 import org.comroid.common.func.Processor;
 import org.comroid.common.info.Dependent;
+import org.comroid.common.iter.Span;
+import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +32,10 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         return ref(bind).get();
     }
 
-    <T> @NotNull Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind);
+    @Deprecated
+    default <T> @NotNull Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind) {
+        return getComputedReference(bind);
+    }
 
     default <T> @NotNull Optional<T> wrap(VarBind<?, ? super DEP, ?, T> bind) {
         return ref(bind).wrap();
@@ -49,6 +56,17 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
     UniObjectNode toObjectNode(); // todo
 
     <T, S> @Nullable T put(VarBind<S, ? super DEP, ?, T> bind, Function<T, S> parser, T value);
+
+    <E> Reference.Settable<Span<E>> getExtractionReference(String fieldName);
+
+    default <E> Reference.Settable<Span<E>> getExtractionReference(VarBind<E, ? super DEP, ?, ?> bind) {
+        return getExtractionReference(cacheBind(bind));
+    }
+
+    <T, E> OutdateableReference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind);
+
+    @Internal
+    <T> String cacheBind(VarBind<?, ? super DEP, ?, ?> bind);
 
     interface Underlying<DEP> extends DataContainer<DEP> {
         DataContainer<DEP> getUnderlyingVarCarrier();
@@ -84,14 +102,28 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         }
 
         @Override
-        @NotNull
-        default <T> Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind) {
-            return getUnderlyingVarCarrier().ref(bind);
+        default <T, S> @Nullable T put(VarBind<S, ? super DEP, ?, T> bind, Function<T, S> parser, T value) {
+            return getUnderlyingVarCarrier().put(bind, parser, value);
         }
 
         @Override
         default UniObjectNode toObjectNode() {
             return getUnderlyingVarCarrier().toObjectNode();
+        }
+
+        @Override
+        default <T> String cacheBind(VarBind<?, ? super DEP, ?, ?> bind) {
+            return getUnderlyingVarCarrier().cacheBind(bind);
+        }
+
+        @Override
+        default <E> Reference.Settable<Span<E>> getExtractionReference(String fieldName) {
+            return getUnderlyingVarCarrier().getExtractionReference(fieldName);
+        }
+
+        @Override
+        default <T> OutdateableReference<T> getComputedReference(String fieldName) {
+            return getUnderlyingVarCarrier().getComputedReference(fieldName);
         }
     }
 }

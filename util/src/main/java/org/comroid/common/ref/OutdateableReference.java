@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public final class OutdateableReference<T> implements Reference<T> {
+public class OutdateableReference<T> implements Reference<T> {
     private final Object  lock = Polyfill.selfawareLock();
 
     @Override

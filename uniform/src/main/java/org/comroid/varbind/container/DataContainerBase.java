@@ -15,7 +15,6 @@ import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.model.Reprocessed;
 import org.jetbrains.annotations.ApiStatus.Internal;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.ElementType;
@@ -23,8 +22,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
@@ -34,8 +31,8 @@ import static org.comroid.common.Polyfill.uncheckedCast;
 @SuppressWarnings("unchecked")
 public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private final GroupBind<? extends DataContainer<DEP>, DEP> rootBind;
-    private final Map<VarBind<?, ? super DEP, ?, ?>, String> binds = new ConcurrentHashMap<>();
-    private final Map<String, AtomicReference<Span<Object>>> vars = TrieMap.ofString();
+    private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = TrieMap.ofString();
+    private final Map<String, Reference.Settable<Span<Object>>> vars = TrieMap.ofString();
     private final Map<String, OutdateableReference<Object>> computed = TrieMap.ofString();
     private final DEP dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
@@ -88,7 +85,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         this.rootBind = findRootBind(myType);
         this.initiallySet = unmodifiableSet(initialValues.keySet());
         this.dependencyObject = dependencyObject;
-        initialValues.forEach((bind, value) -> extrRef(bind).set(Span.singleton(value)));
+        initialValues.forEach((bind, value) -> getExtractionReference(bind).set(Span.singleton(value)));
     }
 
     @Internal
@@ -129,30 +126,14 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                 .forEach(bind -> {
                     Span<Object> extract = bind.extract(data);
 
-                    extrRef(bind).set(extract);
-                    compRef(bind).update(bind.finish(extract));
+                    getExtractionReference(bind).set(extract);
+                    getComputedReference(bind).update(bind.finish(extract));
                     changed.add(bind);
                     //get(bind);
                     //bind is already computed to the end when the compRef is updated
                 });
 
         return unmodifiableSet(changed);
-    }
-
-    @Override
-    public final @NotNull <T> OutdateableReference<T> ref(VarBind<?, ? super DEP, ?, T> pBind) {
-        VarBind<Object, ? super DEP, Object, T> bind = (VarBind<Object, ? super DEP, Object, T>) pBind;
-        OutdateableReference<T> ref = compRef(bind);
-
-        if (ref.isOutdated()) {
-            // recompute
-
-            AtomicReference<Span<Object>> reference = extrRef(uncheckedCast(bind));
-            final T yield = bind.process(dependencyObject, reference.get());
-            ref.update(yield);
-        }
-
-        return ref;
     }
 
     @Override
@@ -174,7 +155,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                     .filter(bind -> bind.getFieldName()
                             .equals(name))
                     .findAny()
-                    .map(it -> ref(uncheckedCast(it)));
+                    .map(it -> getComputedReference(uncheckedCast(it)));
         }
 
         // any stage in the groupbind tree
@@ -196,7 +177,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                 .filter(bind -> bind.getFieldName().equals(split[1]))
                 .findAny()
                 // get reference of bind
-                .map(it -> ref(uncheckedCast(it)));
+                .map(it -> getComputedReference(uncheckedCast(it)));
     }
 
     @Override
@@ -207,35 +188,59 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     @Override
     public <R, T> @Nullable R put(VarBind<T, ? super DEP, ?, R> bind, Function<R, T> parser, R value) {
         final T apply = parser.apply(value);
-        final R prev = compRef(bind).get();
+        final R prev = getComputedReference(bind).get();
 
         if (bind instanceof ArrayBind) {
-            extrRef(bind).updateAndGet(span -> {
+            getExtractionReference(bind).compute(span -> {
                 span.add(apply);
                 return span;
             });
-            compRef(bind).update(value);
+            getComputedReference(bind).update(value);
         } else {
-            extrRef(bind).set(Span.singleton(apply));
-            compRef(bind).update(value);
+            getExtractionReference(bind).set(Span.singleton(apply));
+            getComputedReference(bind).update(value);
         }
 
         return prev;
     }
 
-    private <T> AtomicReference<Span<T>> extrRef(
-            VarBind<T, ? super DEP, ?, ?> bind
-    ) {
-        return uncheckedCast(vars.computeIfAbsent(fieldName(bind), key -> new AtomicReference<>(Span.empty())));
+    @Override
+    public <E> Reference.Settable<Span<E>> getExtractionReference(String fieldName) {
+        return Polyfill.uncheckedCast(vars.computeIfAbsent(fieldName,
+                key -> Reference.Settable.create(new Span<>())));
     }
 
-    private <T> OutdateableReference<T> compRef(
-            VarBind<?, ? super DEP, ?, T> bind
-    ) {
-        return uncheckedCast(computed.computeIfAbsent(fieldName(bind), key -> new OutdateableReference<>()));
+    @Override
+    public <T, E> OutdateableReference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
+        return Polyfill.uncheckedCast(computed.computeIfAbsent(cacheBind(bind),
+                key -> Polyfill.uncheckedCast(new ComputedReference<>(bind))));
     }
 
-    private <T> String fieldName(VarBind<?, ? super DEP, ?, ?> bind) {
-        return binds.computeIfAbsent(bind, VarBind::getFieldName);
+    @Override
+    public <T> String cacheBind(VarBind<?, ? super DEP, ?, ?> bind) {
+        final String fieldName = bind.getFieldName();
+        final Span<VarBind<?, ? super DEP, ?, ?>> span = binds.computeIfAbsent(fieldName, key -> new Span<>());
+
+        span.add(bind);
+        return fieldName;
+    }
+
+    public class ComputedReference<T, E> extends OutdateableReference<T> {
+        private final VarBind<E, ? super DEP, ?, T> bind;
+        private final Processor<T> accessor;
+
+        public ComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
+            this.bind = bind;
+            this.accessor = getExtractionReference(bind)
+                    .process()
+                    .map(extr -> this.bind.process(getDependent(), extr));
+        }
+
+        @Override
+        public final @Nullable T get() {
+            if (!isOutdated())
+                return super.get();
+            return update(accessor.get());
+        }
     }
 }
