@@ -32,7 +32,9 @@ public final class CommandLineArgs implements ReferenceMap<String, String, Refer
     }
 
     @Override
-    public Reference<String> getReference(String key) {
-        return values.getOrDefault(key, Reference.empty());
+    public Reference<String> getReference(String key, boolean createIfAbsent) {
+        return createIfAbsent
+                ? values.computeIfAbsent(key, k -> Reference.empty())
+                : values.getOrDefault(key, Reference.empty());
     }
 }

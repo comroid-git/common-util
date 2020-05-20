@@ -99,6 +99,20 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
 
             return get();
         }
+
+        default T computeIfPresent(Function<T, T> computor) {
+            if (!isNull())
+                set(computor.apply(get()));
+
+            return get();
+        }
+
+        default T computeIfAbsent(Supplier<T> supplier) {
+            if (isNull())
+                set(supplier.get());
+
+            return get();
+        }
     }
 
     @Internal
