@@ -100,7 +100,7 @@ public class BasicCache<K, V> implements Cache<K, V> {
                 ? cache.computeIfAbsent(key, Reference::new)
                 : cache.getOrDefault(key,
                 emptyValueProvider == null
-                        ? Reference.empty()
+                        ? Reference.create()
                         : Reference.constant(key, emptyValueProvider.now()));
     }
 }

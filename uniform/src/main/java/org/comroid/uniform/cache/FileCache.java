@@ -25,7 +25,7 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final Disposable disposable = new Disposable.Basic();
     private final SerializationAdapter<?, ?, ?> seriLib;
-    private final VarBind<?, ?, ?, K> idBind;
+    private final VarBind<?, D, ?, K> idBind;
     private final File file;
     private final D dependencyObject;
 
@@ -39,11 +39,17 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
         return disposable;
     }
 
-    public FileCache(SerializationAdapter<?, ?, ?> seriLib, VarBind<?, ?, ?, K> idBind, File file, int largeThreshold, D dependencyObject) {
+    public FileCache(
+            SerializationAdapter<?, ?, ?> seriLib,
+            VarBind<?, ? super D, ?, K> idBind,
+            File file,
+            int largeThreshold,
+            D dependencyObject
+    ) {
         super(largeThreshold);
 
         this.seriLib = seriLib;
-        this.idBind = idBind;
+        this.idBind = Polyfill.uncheckedCast(idBind);
         this.file = file;
         this.dependencyObject = dependencyObject;
 
@@ -52,6 +58,14 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public boolean add(V value) {
+        final K key = value.requireNonNull(idBind);
+
+        set(key, value);
+
+        return true;
     }
 
     public final <T extends V> Processor<T> autoUpdate(Class<T> type, UniObjectNode data) {
@@ -98,7 +112,14 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
     @Override
     public synchronized void reloadData() throws IOException {
         final BufferedReader reader = new BufferedReader(new FileReader(file));
-        final UniArrayNode data = seriLib.createUniNode(reader.lines().collect(Collectors.joining())).asArrayNode();
+        final String str = reader.lines().collect(Collectors.joining());
+
+        if (str.isEmpty()) {
+            reader.close();
+            return;
+        }
+
+        final UniArrayNode data = seriLib.createUniNode(str).asArrayNode();
 
         data.asNodeList().stream()
                 .map(UniNode::asObjectNode)

@@ -37,15 +37,15 @@ public interface ReferenceMap<K, V, REF extends Reference<V>> {
         }
 
         default @Nullable V compute(K key, Function<V, V> computor) {
-            return getReference(key).compute(computor);
+            return getReference(key, true).compute(computor);
         }
 
         default @Nullable V computeIfPresent(K key, Function<V, V> computor) {
-            return getReference(key).computeIfPresent(computor);
+            return getReference(key, true).computeIfPresent(computor);
         }
 
         default @Nullable V computeIfAbsent(K key, Supplier<V> supplier) {
-            return getReference(key).computeIfAbsent(supplier);
+            return getReference(key, true).computeIfAbsent(supplier);
         }
     }
 }

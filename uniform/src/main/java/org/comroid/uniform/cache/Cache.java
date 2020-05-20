@@ -4,12 +4,11 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.func.Provider;
 import org.comroid.common.map.ReferenceMap;
 import org.comroid.common.ref.OutdateableReference;
-import org.comroid.common.ref.Reference;
-import org.comroid.common.ref.Reference.Settable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
@@ -46,19 +45,6 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
     }
 
     class Reference<K, V> implements org.comroid.common.ref.Reference.Settable<V> {
-        private static final Reference<?, ?> EMPTY = new Reference<Object, Object>(null) {
-            @Nullable
-            @Override
-            public Object set(Object value) {
-                throw new UnsupportedOperationException("Cannot overwrite Empty Reference");
-            }
-
-            @Nullable
-            @Override
-            public Object get() {
-                return null;
-            }
-        };
         public final AtomicReference<V> reference = new AtomicReference<>(null);
         private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
         private final Object lock = Polyfill.selfawareLock();
@@ -78,9 +64,9 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
             this.firstValueFuture.outdate();
         }
 
-        public static <K, V> Reference<K, V> empty() {
+        public static <K, V> Reference<K, V> create() {
             //noinspection unchecked
-            return (Reference<K, V>) EMPTY;
+            return (Reference<K, V>) new Reference<>(null);
         }
 
         public static <K, V> Reference<K, V> constant(K key, V value) {
@@ -97,10 +83,10 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
         @Override
         public V set(V value) {
             synchronized (lock) {
-                if (!firstValueFuture.isOutdated() && !firstValueFuture.get()
-                        .isDone()) {
-                    firstValueFuture.get()
-                            .complete(value);
+                if (!firstValueFuture.isOutdated()
+                        && !firstValueFuture.isNull()
+                        && !Objects.requireNonNull(firstValueFuture.get(), "AssertionFailure").isDone()) {
+                    firstValueFuture.get().complete(value);
                 }
 
                 return reference.getAndSet(value);
