@@ -147,7 +147,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public boolean isValidData(UniObjectNode data) {
-        if (parents != null)
+        if (!parents.isEmpty())
             return false;
 
         return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()) || bind.isOptional());
