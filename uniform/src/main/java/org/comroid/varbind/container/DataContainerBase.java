@@ -127,10 +127,9 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                     Span<Object> extract = bind.extract(data);
 
                     getExtractionReference(bind).set(extract);
-                    getComputedReference(bind).update(bind.finish(extract));
+                    // do not compute reference at first
+                    //getComputedReference(bind).update(bind.finish(extract));
                     changed.add(bind);
-                    //get(bind);
-                    //bind is already computed to the end when the compRef is updated
                 });
 
         return unmodifiableSet(changed);

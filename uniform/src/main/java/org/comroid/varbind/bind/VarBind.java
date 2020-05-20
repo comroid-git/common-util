@@ -35,9 +35,9 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
     FINAL finish(Span<REMAP> parts);
 
     default Span<REMAP> remapAll(final DPND dependency, Span<EXTR> from) {
-        return from.stream()
+        return from.pipe()
                 .map(each -> remap(each, dependency))
-                .collect(Span.collector());
+                .span();
     }
 
     REMAP remap(EXTR from, DPND dependency);

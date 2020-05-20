@@ -1,6 +1,5 @@
 package org.comroid.varbind.bind;
 
-import org.comroid.common.iter.Span;
 import org.comroid.varbind.model.AbstractReBind;
 import org.comroid.varbind.model.Reprocessed;
 

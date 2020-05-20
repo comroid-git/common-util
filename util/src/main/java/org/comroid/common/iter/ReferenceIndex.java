@@ -45,9 +45,7 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
         return list;
     }
 
-    default int size() {
-        return unwrap().size();
-    }
+    int size();
 
     boolean add(T item);
 
@@ -65,7 +63,8 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
 
     @Nullable
     default T get(int index) {
-        return getReference(index).get();
+        final Reference<T> reference = getReference(index);
+        return reference.get();
     }
 
     default Optional<T> wrap(int index) {

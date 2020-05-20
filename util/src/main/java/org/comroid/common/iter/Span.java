@@ -1,6 +1,7 @@
 package org.comroid.common.iter;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.iter.pipe.BasicPipe;
 import org.comroid.common.iter.pipe.Pipe;
 import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.Contract;
@@ -185,7 +186,7 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
     @Override
     public Pipe<?, T> pipe() {
-        return null;
+        return new BasicPipe<>(this, 512);
     }
 
     @Override

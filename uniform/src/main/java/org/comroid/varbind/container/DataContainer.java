@@ -28,29 +28,29 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
 
     <T> Optional<Reference<T>> getByName(String name);
 
-    default <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> bind) {
-        return ref(bind).get();
-    }
-
     @Deprecated
     default <T> @NotNull Reference<T> ref(VarBind<?, ? super DEP, ?, T> bind) {
         return getComputedReference(bind);
     }
 
+    default <T> @Nullable T get(VarBind<?, ? super DEP, ?, T> bind) {
+        return getComputedReference(bind).get();
+    }
+
     default <T> @NotNull Optional<T> wrap(VarBind<?, ? super DEP, ?, T> bind) {
-        return ref(bind).wrap();
+        return getComputedReference(bind).wrap();
     }
 
     default @NotNull <T> T requireNonNull(VarBind<?, ? super DEP, ?, T> bind) {
-        return ref(bind).requireNonNull();
+        return getComputedReference(bind).requireNonNull();
     }
 
     default @NotNull <T> T requireNonNull(VarBind<?, ? super DEP, ?, T> bind, String message) {
-        return ref(bind).requireNonNull(message);
+        return getComputedReference(bind).requireNonNull(message);
     }
 
     default @NotNull <T> Processor<T> process(VarBind<?, ? super DEP, ?, T> bind) {
-        return ref(bind).process();
+        return getComputedReference(bind).process();
     }
 
     UniObjectNode toObjectNode(); // todo

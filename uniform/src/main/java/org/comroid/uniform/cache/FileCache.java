@@ -119,9 +119,14 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
             return;
         }
 
-        final UniArrayNode data = seriLib.createUniNode(str).asArrayNode();
+        final UniNode uniNode = seriLib.createUniNode(str);
+        if (!uniNode.isArrayNode())
+            return;
+
+        final UniArrayNode data = uniNode.asArrayNode();
 
         data.asNodeList().stream()
+                .filter(UniNode::isObjectNode)
                 .map(UniNode::asObjectNode)
                 .forEach(node -> {
                     final K id = idBind.getFrom(node);

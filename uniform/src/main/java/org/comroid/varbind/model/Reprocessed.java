@@ -22,7 +22,9 @@ public interface Reprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPN
 
         @Override
         default I remap(EXTR from, DPND dependency) {
-            return getUnderlying().finish(Span.singleton(getUnderlying().remap(from, dependency)));
+            return getUnderlying()
+                    .finish(Span.singleton(getUnderlying()
+                    .remap(from, dependency)));
         }
 
         @Override
