@@ -128,14 +128,15 @@ public final class ReflectionHelper {
                     withAnnotation == null || field.isAnnotationPresent(withAnnotation)
             )) {
                 try {
-                    values.add((T) field.get(null));
+                    values.add(fieldType.cast(field.get(null)));
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException("", e);
                 }
             }
         }
 
-        return Span.<T>make().initialValues(values)
+        return Span.<T>make()
+                .initialValues(values)
                 .fixedSize(true)
                 .span();
     }

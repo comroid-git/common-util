@@ -22,10 +22,10 @@ public abstract class DataContainerBuilder<S extends DataContainerBuilder<S, T, 
         this.dependencyObject = dependencyObject;
     }
 
-    public final <V> DataContainerBuilder<S, T, D> with(VarBind<V, D, ?, ?> bind, V value) {
+    public final <V> S with(VarBind<V, ? super D, ?, ?> bind, V value) {
         values.put(Polyfill.uncheckedCast(bind), value);
 
-        return this;
+        return Polyfill.uncheckedCast(this);
     }
 
     @Override

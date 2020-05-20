@@ -1,5 +1,9 @@
 package org.comroid.common.map;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -9,14 +13,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 public final class TrieStringMap<K, V> implements TrieMap<K, V> {
     private final Map<Character, TrieStage<V>> baseStages = new ConcurrentHashMap<>();
     private final Function<K, String> keyExtractor;
-    private final Function<String, K>          keyMapper;
+    private final Function<String, K> keyMapper;
 
     public TrieStringMap(Function<K, String> keyExtractor, Function<String, K> keyMapper) {
         this.keyExtractor = keyExtractor;
@@ -48,13 +48,11 @@ public final class TrieStringMap<K, V> implements TrieMap<K, V> {
     @Override
     @Contract
     public V get(@NotNull Object key) {
-        if (!(key instanceof CharSequence)) {
-            throw new ClassCastException(String.format("Unsupported key type: %s", key.getClass()));
-        }
-
-        final char[] chars = Objects.requireNonNull(key, "Key cannot be null!")
-                .toString()
-                .toCharArray();
+        //noinspection unchecked
+        final char[] chars = (key instanceof CharSequence
+                ? Objects.requireNonNull(key, "Key cannot be null!").toString()
+                : keyExtractor.apply((K) key)
+        ).toCharArray();
 
         return baseStages.computeIfAbsent(chars[0], each -> new TrieStringMap.TrieStage<>())
                 .get(chars, 1);
@@ -96,10 +94,11 @@ public final class TrieStringMap<K, V> implements TrieMap<K, V> {
     @NotNull
     public Set<K> keySet() {
         class Pair {
-            final String                     key;
+            final String key;
             final TrieStringMap.TrieStage<V> stage;
+
             Pair(String key, TrieStringMap.TrieStage<V> stage) {
-                this.key   = key;
+                this.key = key;
                 this.stage = stage;
             }
         }
@@ -129,13 +128,8 @@ public final class TrieStringMap<K, V> implements TrieMap<K, V> {
     @NotNull
     public Set<Entry<K, V>> entrySet() {
         class Local implements Entry<K, V> {
-            private final K                          key;
+            private final K key;
             private final TrieStringMap.TrieStage<V> stage;
-
-            public Local(K key, TrieStringMap.TrieStage<V> stage) {
-                this.key   = key;
-                this.stage = stage;
-            }
 
             @Override
             @Contract(pure = true)
@@ -147,6 +141,11 @@ public final class TrieStringMap<K, V> implements TrieMap<K, V> {
             @Contract(pure = true)
             public V getValue() {
                 return stage.value;
+            }
+
+            public Local(K key, TrieStringMap.TrieStage<V> stage) {
+                this.key = key;
+                this.stage = stage;
             }
 
             @Override
@@ -167,7 +166,8 @@ public final class TrieStringMap<K, V> implements TrieMap<K, V> {
 
     //region Stage Class
     private static class TrieStage<V> {
-        private final     Map<Character, TrieStage<V>> subStages = new ConcurrentHashMap<>();
+        private final Map<Character, TrieStage<V>> subStages = new ConcurrentHashMap<>();
+        private @Nullable V value;
 
         @Nullable V get(char[] chars, int index) {
             if (chars.length == 0 || index >= chars.length) {
@@ -226,6 +226,5 @@ public final class TrieStringMap<K, V> implements TrieMap<K, V> {
                             .flatMap(TrieStage::stream)
             );
         }
-        private @Nullable V                            value;
     }
 }

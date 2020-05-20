@@ -14,7 +14,7 @@ import java.util.stream.Collector;
 import static java.util.Objects.nonNull;
 
 public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Reference<T> {
-    public static final int SIZE_UNFIXED = -1;
+    public static final int UNFIXED_SIZE = -1;
     public static final ModifyPolicy DEFAULT_MODIFY_POLICY = ModifyPolicy.SKIP_NULLS;
     private static final Span<?> EMPTY = new Span<>(ReferenceIndex.empty(), ModifyPolicy.IMMUTABLE);
     private final ReferenceIndex<T> storage;
@@ -31,11 +31,11 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     }
 
     public final boolean isFixedSize() {
-        return fixedCapacity != SIZE_UNFIXED;
+        return fixedCapacity != UNFIXED_SIZE;
     }
 
     public Span() {
-        this(ReferenceIndex.create(), SIZE_UNFIXED, DEFAULT_MODIFY_POLICY);
+        this(ReferenceIndex.create(), UNFIXED_SIZE, DEFAULT_MODIFY_POLICY);
     }
 
     public Span(int fixedCapacity) {
@@ -43,7 +43,7 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     }
 
     public Span(ReferenceIndex<T> referenceIndex, ModifyPolicy modifyPolicy) {
-        this(referenceIndex, SIZE_UNFIXED, modifyPolicy);
+        this(referenceIndex, UNFIXED_SIZE, modifyPolicy);
     }
 
     protected Span(ReferenceIndex<? extends T> data, int fixedCapacity, ModifyPolicy modifyPolicy) {
@@ -54,7 +54,8 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     }
 
     public static <T> Collector<T, ?, Span<T>> collector() {
-        return Span.<T>make().fixedSize(true)
+        return Span.<T>make()
+                .fixedSize(true)
                 .modifyPolicy(ModifyPolicy.IMMUTABLE)
                 .collector();
     }
@@ -371,10 +372,11 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
     //region API Class
     public static final class API<T> {
+        private static final int RESULT_FIXED_SIZE = -2;
         private final Span<T> base;
-        private Collection<T> initialValues;
+        private final Collection<T> extraValues;
         private ModifyPolicy modifyPolicy;
-        private boolean fixedSize;
+        private int fixedSize;
 
         public API() {
             this(new Span<>());
@@ -382,13 +384,7 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
         private API(Span<T> base) {
             this.base = base;
-        }
-
-        @Contract(value = "_ -> this", mutates = "this")
-        public API<T> initialSize(int initialSize) {
-            this.initialValues = new ArrayList<>(initialSize);
-
-            return this;
+            this.extraValues = new ArrayList<>();
         }
 
         public Collector<T, ?, Span<T>> collector() {
@@ -400,27 +396,16 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
                     return ts;
                 };
-                private final Collection<T> initialValues;
-                private final ModifyPolicy nullPolicy;
-                private final boolean fixedSize;
                 private final Function<Span<T>, Span<T>> finisher = new Function<Span<T>, Span<T>>() {
                     @Override
                     public Span<T> apply(Span<T> ts) {
-                        return Span.<T>make().modifyPolicy(nullPolicy)
-                                .fixedSize(fixedSize)
-                                .initialValues(initialValues)
+                        return Span.<T>make()
+                                .initialValues(base)
                                 .initialValues(ts)
+                                .fixedSize(fixedSize == API.RESULT_FIXED_SIZE)
                                 .span();
                     }
                 };
-
-                public SpanCollector(
-                        Collection<T> initialValues, ModifyPolicy nullPolicy, boolean fixedSize
-                ) {
-                    this.initialValues = initialValues;
-                    this.nullPolicy = nullPolicy;
-                    this.fixedSize = fixedSize;
-                }
 
                 @Override
                 public Supplier<Span<T>> supplier() {
@@ -448,11 +433,11 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
                 }
             }
 
-            return new SpanCollector(initialValues, modifyPolicy, fixedSize);
+            return new SpanCollector();
         }
 
         public Span<T> span() {
-            if (fixedSize) {
+            if (fixedSize != UNFIXED_SIZE) {
                 if (base.isFixedSize())
                     throw new IllegalArgumentException("Base is of fixed size!");
 
@@ -462,14 +447,39 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
         @Contract(value = "_ -> this", mutates = "this")
         public API<T> initialValues(Collection<T> values) {
-            initialValues.addAll(values);
+            System.out.println("what the fuck");
+
+            if (extraValues == null) {
+                System.out.println("extraValues == null");
+            } else {
+                System.out.println("extraValues == " + extraValues);
+                extraValues.addAll(values);
+            }
+
+            return this;
+        }
+
+        @Deprecated
+        public API<T> initialSize(int initialSize) {
+            return fixedSize(initialSize);
+        }
+
+        @Contract(value = "_ -> this", mutates = "this")
+        public API<T> fixedSize(int fixedSize) {
+            if (base.isFixedSize())
+                throw new UnsupportedOperationException("Underlying Span has fixed size");
+
+            this.fixedSize = fixedSize;
 
             return this;
         }
 
         @Contract(value = "_ -> this", mutates = "this")
         public API<T> fixedSize(boolean fixedSize) {
-            this.fixedSize = fixedSize;
+            if (base.isFixedSize())
+                throw new UnsupportedOperationException("Underlying Span has fixed size");
+
+            this.fixedSize = API.RESULT_FIXED_SIZE;
 
             return this;
         }
