@@ -19,11 +19,10 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.lang.annotation.ElementType;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
@@ -33,9 +32,9 @@ import static org.comroid.common.Polyfill.uncheckedCast;
 @SuppressWarnings("unchecked")
 public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private final GroupBind<? extends DataContainer<DEP>, DEP> rootBind;
-    private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = TrieMap.ofString();
-    private final Map<String, Reference.Settable<Span<Object>>> vars = TrieMap.ofString();
-    private final Map<String, OutdateableReference<Object>> computed = TrieMap.ofString();
+    private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = new ConcurrentHashMap<>();
+    private final Map<String, Reference.Settable<Span<Object>>> vars = new ConcurrentHashMap<>();
+    private final Map<String, OutdateableReference<Object>> computed = new ConcurrentHashMap<>();
     private final DEP dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
     private final Class<? extends DataContainer<DEP>> myType;
@@ -186,8 +185,23 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         binds.keySet().forEach(key -> {
             final @NotNull Span<Object> them = getExtractionReference(key).requireNonNull("Span is null");
 
-            if (them.isEmpty())
+            if (them.isEmpty()) {
+                final OutdateableReference<Object> ref = computed.get(key);
+                final Object it = ref.get();
+
+                // support array binds
+                if (it instanceof Collection) {
+                    //noinspection rawtypes
+                    ((Collection) it).forEach(each -> applyValueToNode(applyTo, key, each));
+
+                    return;
+                }
+
+                if (it instanceof DataContainer || it instanceof Serializable)
+                    applyValueToNode(applyTo, key, it);
+
                 return;
+            }
 
             if (them.isSingle())
                 applyValueToNode(applyTo, key, them.requireNonNull("AssertionFailure"));
@@ -200,7 +214,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private void applyValueToNode(UniObjectNode applyTo, String key, Object it) {
         if (it instanceof DataContainer)
             ((DataContainer<DEP>) it).toObjectNode(applyTo.putObject(key));
-        else applyTo.put(key, ValueType.STRING, it.toString());
+        else applyTo.put(key, ValueType.STRING, String.valueOf(it));
     }
 
     @Override
