@@ -14,10 +14,6 @@ import java.util.function.Function;
 public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
     String getFieldName();
 
-    default boolean isOptional() {
-        return false;
-    }
-
     default FINAL getFrom(UniObjectNode node) {
         return getFrom(null, node);
     }
@@ -41,10 +37,6 @@ public interface VarBind<EXTR, DPND, REMAP, FINAL> extends GroupedBind<DPND> {
     }
 
     REMAP remap(EXTR from, DPND dependency);
-
-    default Reprocessed.Optional<FINAL> optional() {
-        return new Reprocessed.Optional<>(Polyfill.uncheckedCast(this));
-    }
 
     default <R> ReBind.TwoStage<FINAL, R> rebindSimple(Function<FINAL, R> remapper) {
         return rebindSimple(getGroup(), remapper);
