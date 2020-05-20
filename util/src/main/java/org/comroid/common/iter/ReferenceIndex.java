@@ -6,10 +6,7 @@ import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public interface ReferenceIndex<T> extends Pipeable<T> {
     static <T> ReferenceIndex<T> create() {
@@ -63,8 +60,7 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
 
     @Nullable
     default T get(int index) {
-        final Reference<T> reference = getReference(index);
-        return reference.get();
+        return Objects.requireNonNull(getReference(index), "AssertionFailure: Reference is null").get();
     }
 
     default Optional<T> wrap(int index) {
@@ -110,10 +106,11 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
             }
 
             @Override
-            public Reference<T> getReference(int index) {
-                return (index < 0 || underlying.size() >= index)
-                        ? Reference.constant(underlying.get(index))
-                        : Reference.empty();
+            public Reference<T> getReference(final int index) {
+                return Reference.conditional(
+                        () -> index < 0 || underlying.size() >= index,
+                        () -> underlying.get(index)
+                );
             }
 
             @Override

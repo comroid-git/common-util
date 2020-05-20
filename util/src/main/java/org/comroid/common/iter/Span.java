@@ -191,7 +191,7 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
 
     @Override
     public Reference<T> getReference(int index) {
-        return null;
+        return storage.getReference(index);
     }
 
     private <R> R[] toArray(R[] dummy, Function<Object, R> castOP) {

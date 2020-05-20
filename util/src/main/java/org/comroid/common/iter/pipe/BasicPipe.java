@@ -1,12 +1,13 @@
 package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.ref.Reference;
 import org.comroid.common.iter.ReferenceIndex;
-import org.comroid.common.ref.StaticCache;
+import org.comroid.common.map.TrieStringMap;
+import org.comroid.common.ref.Reference;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 public class BasicPipe<O, T> implements Pipe<O, T> {
     public static final int AUTOEMPTY_DISABLED = -1;
@@ -14,6 +15,7 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     private final Collection<Pipe<T, ?>> subs = new ArrayList<>();
     private final StageAdapter<O, T> adapter;
     private final int autoEmptyLimit;
+    private final Map<Integer, Reference<T>> accessors = new TrieStringMap<>(String::valueOf, Integer::parseInt);
 
     @Override
     public StageAdapter<O, T> getAdapter() {
@@ -75,7 +77,7 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
 
     @Override
     public Reference<T> getReference(int index) {
-        return StaticCache.access(this, "pipe-access-reference", () -> Reference.conditional(
+        return accessors.computeIfAbsent(index, key -> Reference.conditional(
                 () -> (index >= 0 || refs.size() >= index)
                         && adapter.test(refs.get(index)),
                 () -> adapter.apply(refs.get(index))
