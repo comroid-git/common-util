@@ -89,6 +89,18 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("PUT_KEY", Type.OBJECT);
     }
 
+    public @NotNull UniNode addNull() throws UnsupportedOperationException {
+        return putNull(size());
+    }
+
+    public @NotNull UniNode putNull(int index) throws UnsupportedOperationException {
+        return unsupported("PUT_NULL_INDEX", Type.ARRAY);
+    }
+
+    public @NotNull UniNode putNull(String key) throws UnsupportedOperationException {
+        return unsupported("PUT_NULL_KEY", Type.OBJECT);
+    }
+
     public @NotNull UniObjectNode addObject() throws UnsupportedOperationException {
         return putObject(size());
     }

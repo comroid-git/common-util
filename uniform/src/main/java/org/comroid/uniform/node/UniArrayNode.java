@@ -21,41 +21,6 @@ public final class UniArrayNode extends UniNode {
         this.adapter = adapter;
     }
 
-    public static UniArrayNode ofList(SerializationAdapter<?, ?, ?> adapter, List<?> list) {
-        class MergedAdapter extends Adapter<List<?>> {
-            protected MergedAdapter(List<?> underlying) {
-                super(underlying);
-            }
-
-            @Override
-            public int size() {
-                return getBaseNode().size();
-            }
-
-            @Override
-            public Object get(int index) {
-                return getBaseNode().get(index);
-            }
-
-            @Override
-            public Object set(int index, Object element) {
-                return getBaseNode().set(index, uncheckedCast(element));
-            }
-
-            @Override
-            public void add(int index, Object element) {
-                getBaseNode().add(index, uncheckedCast(element));
-            }
-
-            @Override
-            public Object remove(int index) {
-                return getBaseNode().remove(index);
-            }
-        }
-
-        return new UniArrayNode(adapter, new MergedAdapter(list));
-    }
-
     @Override
     public final Object getBaseNode() {
         return adapter.getBaseNode();

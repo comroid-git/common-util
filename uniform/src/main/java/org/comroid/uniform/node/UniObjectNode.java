@@ -1,6 +1,5 @@
 package org.comroid.uniform.node;
 
-import org.comroid.common.ref.Reference;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -83,6 +82,14 @@ public final class UniObjectNode extends UniNode {
 
         adapter.put(key, valueNode.getBaseNode());
         return valueNode;
+    }
+
+    @Override
+    public UniNode putNull(String key) throws UnsupportedOperationException {
+        final UniNode nullNode = serializationAdapter.createUniNode(null);
+
+        adapter.put(key, nullNode);
+        return nullNode;
     }
 
     @Override

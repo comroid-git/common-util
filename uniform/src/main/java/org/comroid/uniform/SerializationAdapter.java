@@ -3,6 +3,7 @@ package org.comroid.uniform;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.uniform.node.UniValueNode;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
@@ -57,7 +58,10 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     }
 
     public final UniNode createUniNode(Object node) {
-        if (node == null || node instanceof CharSequence) {
+        if (node == null)
+            UniValueNode.nullNode();
+
+        if (node instanceof CharSequence) {
             return parse(node == null ? null : node.toString());
         }
 

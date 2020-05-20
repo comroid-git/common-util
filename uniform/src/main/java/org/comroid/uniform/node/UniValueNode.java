@@ -11,7 +11,7 @@ public class UniValueNode<T> extends UniNode {
 
     @Override
     public final Object getBaseNode() {
-        return adapter.getBaseNode();
+        return asRaw(null);
     }
 
     public UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
