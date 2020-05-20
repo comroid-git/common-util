@@ -77,7 +77,8 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     }
 
     public static <T> Span<T> immutable(Collection<T> of) {
-        return Span.<T>make().initialValues(of)
+        return Span.<T>make()
+                .initialValues(of)
                 .fixedSize(true)
                 .modifyPolicy(ModifyPolicy.IMMUTABLE)
                 .span();
@@ -437,24 +438,19 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
         }
 
         public Span<T> span() {
-            if (fixedSize != UNFIXED_SIZE) {
-                if (base.isFixedSize())
-                    throw new IllegalArgumentException("Base is of fixed size!");
+            final ReferenceIndex<T> subset = base.subset();
+            extraValues.forEach(subset::add);
 
-                return new Span<>(base, base.size(), modifyPolicy);
-            } else return new Span<>(base, modifyPolicy);
+            if (fixedSize == UNFIXED_SIZE)
+                return new Span<>(subset, modifyPolicy);
+            else if (fixedSize == API.RESULT_FIXED_SIZE)
+                return new Span<>(subset, subset.size(), modifyPolicy);
+            else return new Span<>(subset, fixedSize, modifyPolicy);
         }
 
         @Contract(value = "_ -> this", mutates = "this")
         public API<T> initialValues(Collection<T> values) {
-            System.out.println("what the fuck");
-
-            if (extraValues == null) {
-                System.out.println("extraValues == null");
-            } else {
-                System.out.println("extraValues == " + extraValues);
-                extraValues.addAll(values);
-            }
+            extraValues.addAll(values);
 
             return this;
         }

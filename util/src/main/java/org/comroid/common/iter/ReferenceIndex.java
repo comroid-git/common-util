@@ -25,6 +25,10 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
         return (ReferenceIndex<T>) Support.EMPTY;
     }
 
+    default ReferenceIndex<T> subset() {
+        return subset(0,  size());
+    }
+
     default ReferenceIndex<T> subset(int startIncl, int endExcl) {
         final ReferenceIndex<T> subset = create();
 
