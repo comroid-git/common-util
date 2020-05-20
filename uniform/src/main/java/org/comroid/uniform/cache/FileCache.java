@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V> implements FileProcessor, Disposable.Container {
+public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V> implements Cache<K, V>, FileProcessor, Disposable.Container {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final Disposable disposable = new Disposable.Basic();
     private final SerializationAdapter<?, ?, ?> seriLib;
