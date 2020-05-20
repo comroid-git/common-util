@@ -125,7 +125,8 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                     extrRef(bind).set(extract);
                     compRef(bind).update(bind.finish(extract));
                     changed.add(bind);
-                    get(bind);
+                    //get(bind);
+                    //bind is already computed to the end when the compRef is updated
                 });
 
         return unmodifiableSet(changed);
