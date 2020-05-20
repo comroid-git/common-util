@@ -10,6 +10,7 @@ import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
+import org.comroid.varbind.bind.ArrayBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.model.Reprocessed;
@@ -206,10 +207,18 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     @Override
     public <R, T> @Nullable R put(VarBind<T, ? super DEP, ?, R> bind, Function<R, T> parser, R value) {
         final T apply = parser.apply(value);
-
         final R prev = compRef(bind).get();
-        extrRef(bind).set(Span.singleton(apply));
-        compRef(bind).update(value);
+
+        if (bind instanceof ArrayBind) {
+            extrRef(bind).updateAndGet(span -> {
+                span.add(apply);
+                return span;
+            });
+            compRef(bind).update(value);
+        } else {
+            extrRef(bind).set(Span.singleton(apply));
+            compRef(bind).update(value);
+        }
 
         return prev;
     }
