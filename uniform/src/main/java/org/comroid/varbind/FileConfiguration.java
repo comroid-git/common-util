@@ -47,7 +47,7 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
 
     @Override
     public final void storeData() throws IOException {
-        final UniObjectNode data = toObjectNode(null);
+        final UniObjectNode data = toObjectNode(serializationAdapter);
 
         try (FileWriter fw = new FileWriter(file, false)) {
             fw.append(data.toString());

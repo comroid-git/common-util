@@ -53,7 +53,11 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         return getComputedReference(bind).process();
     }
 
-    UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter);
+    default UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter) {
+        return toObjectNode(serializationAdapter.createUniObjectNode(null));
+    }
+
+    UniObjectNode toObjectNode(UniObjectNode node);
 
     default<T> @Nullable T put(VarBind<T, ? super DEP, ?, T> bind, T value) {
         return put(bind, Function.identity(), value);
@@ -111,8 +115,8 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         }
 
         @Override
-        default UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter) {
-            return getUnderlyingVarCarrier().toObjectNode(null);
+        default UniObjectNode toObjectNode(UniObjectNode node) {
+            return getUnderlyingVarCarrier().toObjectNode(node);
         }
 
         @Override

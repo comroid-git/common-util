@@ -7,7 +7,7 @@ import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
-import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
@@ -182,24 +182,25 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     @Override
-    public UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter) {
-        final UniObjectNode data = serializationAdapter.createUniObjectNode(null);
-
+    public UniObjectNode toObjectNode(UniObjectNode applyTo) {
         binds.keySet().forEach(key -> {
             final @NotNull Span<Object> them = getExtractionReference(key).requireNonNull("Span is null");
 
             if (them.isEmpty())
                 return;
 
-            if (them.isSingle()) {
-                final Object it = them.requireNonNull("AssertionFailure");
-
-                if (it instanceof DataContainer)
-                    data.putObject()
-            }
+            if (them.isSingle())
+                applyValueToNode(applyTo, key, them.requireNonNull("AssertionFailure"));
+            else them.forEach(it -> applyValueToNode(applyTo, key, it));
         });
 
-        return data;
+        return applyTo;
+    }
+
+    private void applyValueToNode(UniObjectNode applyTo, String key, Object it) {
+        if (it instanceof DataContainer)
+            ((DataContainer<DEP>) it).toObjectNode(applyTo.putObject(key));
+        else applyTo.put(key, ValueType.STRING, it.toString());
     }
 
     @Override

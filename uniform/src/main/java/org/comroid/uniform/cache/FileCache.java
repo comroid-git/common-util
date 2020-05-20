@@ -102,7 +102,7 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
         final UniArrayNode data = UniArrayNode.ofList(seriLib, stream()
                 .filter(ref -> !ref.isNull())
                 .map(Reference::requireNonNull)
-                .map(v -> v.toObjectNode(null))
+                .map(v -> v.toObjectNode(seriLib))
                 .collect(Collectors.toList()));
         final FileWriter writer = new FileWriter(file, false);
         writer.write(data.toString());
