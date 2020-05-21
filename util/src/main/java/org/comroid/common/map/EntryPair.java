@@ -4,7 +4,7 @@ import org.comroid.common.ref.Pair;
 
 import java.util.Map;
 
-public final class EntryPair<K, V> extends Pair<K, V> implements Map.Entry<K, V> {
+public class EntryPair<K, V> extends Pair<K, V> implements Map.Entry<K, V> {
     @Override
     public K getKey() {
         return getFirst();

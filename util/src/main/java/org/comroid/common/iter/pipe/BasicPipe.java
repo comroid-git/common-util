@@ -2,7 +2,6 @@ package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.iter.ReferenceIndex;
-import org.comroid.common.map.TrieStringMap;
 import org.comroid.common.ref.Reference;
 
 import java.util.ArrayList;
