@@ -1,10 +1,11 @@
 package org.comroid.common.os;
 
-import org.comroid.common.io.FileGroup;
 import org.comroid.common.io.FileHandle;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 public enum OSBasedFileMover implements OSBasedFileProvider {
     WINDOWS(OS.WINDOWS, (file, into) -> {
@@ -55,18 +56,22 @@ public enum OSBasedFileMover implements OSBasedFileProvider {
         return os;
     }
 
+    @Override
+    public FileHandle getBaseDirectory() {
+        return new FileHandle(".");
+    }
+
     OSBasedFileMover(OS os, BiFileProcessor fileMover, BiFileProcessor directoryMover) {
         this.os = os;
         this.fileMover = fileMover;
         this.directoryMover = directoryMover;
     }
 
-    @Override
-    public FileHandle getFile(FileGroup group, String name) {
-        return new FileHandle(group.getBasePathExtension() + name);
+    public CompletableFuture<FileHandle> moveFile(FileHandle from, FileHandle into) {
+        return moveFile(from, into, ForkJoinPool.commonPool());
     }
 
-    public CompletableFuture<FileHandle> moveFile(FileHandle from, FileHandle into) {
+    public CompletableFuture<FileHandle> moveFile(FileHandle from, FileHandle into, Executor executor) {
         into.validateDir();
 
         return CompletableFuture.supplyAsync(() -> {
@@ -75,10 +80,14 @@ public enum OSBasedFileMover implements OSBasedFileProvider {
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException("Could not move file", e);
             }
-        });
+        }, executor);
     }
 
     public CompletableFuture<FileHandle> moveDirectory(FileHandle from, FileHandle into) {
+        return moveDirectory(from, into, ForkJoinPool.commonPool());
+    }
+
+    public CompletableFuture<FileHandle> moveDirectory(FileHandle from, FileHandle into, Executor executor) {
         into.validateDir();
 
         return CompletableFuture.supplyAsync(() -> {
@@ -87,7 +96,7 @@ public enum OSBasedFileMover implements OSBasedFileProvider {
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException("Could not move directory", e);
             }
-        });
+        }, executor);
     }
 
     @FunctionalInterface

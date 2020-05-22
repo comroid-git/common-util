@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface OSBasedFileProvider {
     OS getOperatingSystem();
 
+    FileHandle getBaseDirectory();
+
     static <E extends Enum<E> & OSBasedFileProvider> Optional<E> autoDetect(Class<E> fromEnum) {
         for (E enumConstant : fromEnum.getEnumConstants()) {
             if (enumConstant.getOperatingSystem().equals(OS.current))
@@ -17,5 +19,7 @@ public interface OSBasedFileProvider {
         return Optional.empty();
     }
 
-    FileHandle getFile(FileGroup group, String name);
+    default FileHandle getFile(FileGroup group, String name) {
+        return new FileHandle(getBaseDirectory().getAbsolutePath() + group.getBasePathExtension() + name);
+    }
 }

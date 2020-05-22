@@ -74,9 +74,9 @@ public final class FileHandle extends File implements Named {
 
     public CompletableFuture<FileHandle> move(FileHandle target) {
         if (isDirectory())
-            return OSBasedFileMover.current.moveDirectory(this, target);
+            return OSBasedFileMover.current.moveDirectory(this, target, executor);
         else if (isFile())
-            return OSBasedFileMover.current.moveFile(this, target);
+            return OSBasedFileMover.current.moveFile(this, target, executor);
 
         throw new AssertionError("Unknown File Category");
     }
