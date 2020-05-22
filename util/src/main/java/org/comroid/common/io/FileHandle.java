@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 public final class FileHandle extends File implements Named {
@@ -73,6 +75,10 @@ public final class FileHandle extends File implements Named {
     }
 
     public CompletableFuture<FileHandle> move(FileHandle target) {
+        return move(target, ForkJoinPool.commonPool());
+    }
+
+    public CompletableFuture<FileHandle> move(FileHandle target, Executor executor) {
         if (isDirectory())
             return OSBasedFileMover.current.moveDirectory(this, target, executor);
         else if (isFile())
