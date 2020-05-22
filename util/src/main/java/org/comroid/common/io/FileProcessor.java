@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 
 public interface FileProcessor extends Disposable {
-    File getFile();
+    FileHandle getFile();
 
     void storeData() throws IOException;
 

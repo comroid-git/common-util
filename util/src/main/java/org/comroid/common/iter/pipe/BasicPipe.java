@@ -1,7 +1,9 @@
 package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.func.bi.Junction;
 import org.comroid.common.iter.ReferenceIndex;
+import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.Reference;
 
 import java.util.ArrayList;
@@ -14,7 +16,8 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     private final Collection<Pipe<T, ?>> subs = new ArrayList<>();
     private final StageAdapter<O, T> adapter;
     private final int autoEmptyLimit;
-    private final Map<Integer, Reference<T>> accessors = new TrieStringMap<>(String::valueOf, Integer::parseInt);
+    private final Map<Integer, Reference<T>> accessors = new TrieMap.Basic<>(Junction
+            .of(String::valueOf, Integer::parseInt), false);
 
     @Override
     public StageAdapter<O, T> getAdapter() {

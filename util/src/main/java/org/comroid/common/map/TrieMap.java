@@ -131,7 +131,7 @@ public interface TrieMap<K, V> extends Map<K, V> {
             return keyConverter;
         }
 
-        protected Basic(Junction<K, String> keyConverter, boolean useKeyCache) {
+        public Basic(Junction<K, String> keyConverter, boolean useKeyCache) {
             this.keyConverter = keyConverter;
             this.useKeyCache = useKeyCache;
         }
