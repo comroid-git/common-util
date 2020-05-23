@@ -4,7 +4,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    projectDescription = "Efficient & simple REST solutions"
+    projectDescription = "Java Uniform Adapters"
 }
 
 configurations {
@@ -14,8 +14,8 @@ configurations {
 }
 
 sourceSets {
-    java8.java.srcDirs = [file("$rootDir/uniform/src/main/jdk8")]
-    java11.java.srcDirs = [file("$rootDir/uniform/src/main/jdk11")]
+    java8.java.srcDirs = [file("$rootDir/restless/src/main/jdk8")]
+    java11.java.srcDirs = [file("$rootDir/restless/src/main/jdk11")]
 }
 
 compileJava8Java {

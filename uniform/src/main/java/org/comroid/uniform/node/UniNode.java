@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -78,15 +79,15 @@ public abstract class UniNode implements Specifiable<UniNode> {
     public abstract @NotNull UniNode get(String fieldName);
 
     // todo: add helper methods
-    public <T> @NotNull UniValueNode<T> add(ValueType<T> type, T value) throws UnsupportedOperationException {
+    public <T extends Serializable> @NotNull UniValueNode<T> add(ValueType<T> type, T value) throws UnsupportedOperationException {
         return put(size(), type, value);
     }
 
-    public <T> @NotNull UniValueNode<T> put(int index, ValueType<T> type, T value) throws UnsupportedOperationException {
+    public <T extends Serializable> @NotNull UniValueNode<T> put(int index, ValueType<T> type, T value) throws UnsupportedOperationException {
         return unsupported("PUT_INDEX", Type.ARRAY);
     }
 
-    public <T> @NotNull UniValueNode<T> put(String key, ValueType<T> type, T value) throws UnsupportedOperationException {
+    public <T extends Serializable> @NotNull UniValueNode<T> put(String key, ValueType<T> type, T value) throws UnsupportedOperationException {
         return unsupported("PUT_KEY", Type.OBJECT);
     }
 
@@ -145,7 +146,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
         ));
     }
 
-    public <R> R as(ValueType<R> type) {
+    public <R extends Serializable> R as(ValueType<R> type) {
         return unsupported("GET_AS", Type.VALUE);
     }
 

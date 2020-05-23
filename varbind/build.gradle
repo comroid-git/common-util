@@ -7,6 +7,11 @@ ext {
     projectDescription = "Databinding Solution for Java 8"
 }
 
+compileTestJava {
+    sourceCompatibility = 11
+    targetCompatibility = 11
+}
+
 dependencies {
     api project(":util")
     api project(":uniform")

@@ -5,6 +5,7 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.func.Disposable;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.func.Processor;
+import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.BasicCache;
@@ -28,11 +29,11 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
     private final Disposable disposable = new Disposable.Basic();
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final VarBind<?, D, ?, K> idBind;
-    private final File file;
+    private final FileHandle file;
     private final D dependencyObject;
 
     @Override
-    public File getFile() {
+    public FileHandle getFile() {
         return file;
     }
 
@@ -44,7 +45,7 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
     public FileCache(
             SerializationAdapter<?, ?, ?> seriLib,
             VarBind<?, ? super D, ?, K> idBind,
-            File file,
+            FileHandle file,
             int largeThreshold,
             D dependencyObject
     ) {

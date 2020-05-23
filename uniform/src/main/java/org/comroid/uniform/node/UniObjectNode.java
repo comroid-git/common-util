@@ -5,6 +5,7 @@ import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
@@ -77,7 +78,7 @@ public final class UniObjectNode extends UniNode {
     }
 
     @Override
-    public @NotNull <T> UniValueNode<T> put(String key, ValueType<T> type, T value) {
+    public @NotNull <T extends Serializable> UniValueNode<T> put(String key, ValueType<T> type, T value) {
         final UniValueNode<T> valueNode = generateValueNode(type.convert(value, ValueType.STRING));
 
         adapter.put(key, valueNode.getBaseNode());

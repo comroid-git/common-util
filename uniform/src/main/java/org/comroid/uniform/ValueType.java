@@ -23,7 +23,7 @@ public final class ValueType<R extends Serializable> implements Function<String,
         this.mapper = mapper;
     }
 
-    public <T> T convert(R value, ValueType<T> toType) {
+    public <T extends Serializable> T convert(R value, ValueType<T> toType) {
         return toType.apply(value.toString());
     }
 

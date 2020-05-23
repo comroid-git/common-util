@@ -7,6 +7,7 @@ include(':commandline')
 // uniform framework
 include(':uniform')
 include(':varbind')
+include(':restless')
 
 // JVM enhancements
 include(':matrix')

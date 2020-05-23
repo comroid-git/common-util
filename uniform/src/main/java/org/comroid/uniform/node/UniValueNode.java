@@ -6,6 +6,8 @@ import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
+
 public class UniValueNode<T> extends UniNode {
     private final Adapter<T> adapter;
 
@@ -89,7 +91,7 @@ public class UniValueNode<T> extends UniNode {
     }
 
     @Override
-    public <R> R as(ValueType<R> type) {
+    public <R extends Serializable> R as(ValueType<R> type) {
         return adapter.get(type);
     }
 
@@ -166,15 +168,15 @@ public class UniValueNode<T> extends UniNode {
     }
 
     public interface Adapter<T> extends UniNode.Adapter {
-        @Nullable <R> R get(ValueType<R> as);
+        @Nullable <R extends Serializable> R get(ValueType<R> as);
 
         @Nullable String set(String value);
 
-        final class ViaString<T> implements Adapter<T> {
+        final class ViaString<T> implements Adapter<String> {
             private final Reference.Settable<String> sub;
 
             @Override
-            public Object getBaseNode() {
+            public String getBaseNode() {
                 return null;
             }
 
@@ -183,7 +185,7 @@ public class UniValueNode<T> extends UniNode {
             }
 
             @Override
-            public <R> @Nullable R get(ValueType<R> as) {
+            public <R extends Serializable> @Nullable R get(ValueType<R> as) {
                 return as.apply(sub.get());
             }
 
@@ -205,7 +207,7 @@ public class UniValueNode<T> extends UniNode {
                 }
 
                 @Override
-                public <R> @Nullable R get(ValueType<R> as) {
+                public <R extends Serializable> @Nullable R get(ValueType<R> as) {
                     return null;
                 }
 
