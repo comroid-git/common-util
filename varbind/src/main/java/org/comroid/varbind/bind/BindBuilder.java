@@ -48,6 +48,8 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     @Contract(value = "_ -> this", mutates = "this")
     public BindBuilder<EXTR, DPND, REMAP, FINAL> setRequired(boolean required) {
         this.required = required;
+
+        return this;
     }
 
     @Contract(value = "_ -> this", mutates = "this")
