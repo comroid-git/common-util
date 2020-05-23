@@ -6,6 +6,7 @@ import org.comroid.common.iter.Span;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
+import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
 import java.io.Serializable;
@@ -33,7 +34,7 @@ public final class ExtractingBind {
         }
 
         @Override
-        public Span<E> extract(UniObjectNode from) {
+        public Span<E> extract(UniNode from) {
             final String fieldName = as(PartialBind.Base.class)
                     .map(PartialBind.Base::getFieldName)
                     .orElseThrow(() -> new AssertionError("Missing Base attribute"));
@@ -55,7 +56,7 @@ public final class ExtractingBind {
         private static final Invocable<? super ToUniObject> constructor = Invocable.ofConstructor(ToUniObject.class);
 
         @Override
-        public Span<UniObjectNode> extract(UniObjectNode from) {
+        public Span<UniObjectNode> extract(UniNode from) {
             return as(PartialBind.Base.class)
                     .map(PartialBind.Base::getFieldName)
                     .map(str -> from.get(str).asObjectNode())
@@ -68,7 +69,7 @@ public final class ExtractingBind {
         private static final Invocable<? super ToUniArray> constructor = Invocable.ofConstructor(ToUniArray.class);
 
         @Override
-        public Span<UniArrayNode> extract(UniObjectNode from) {
+        public Span<UniArrayNode> extract(UniNode from) {
             return as(PartialBind.Base.class)
                     .map(PartialBind.Base::getFieldName)
                     .map(str -> from.get(str).asArrayNode())
