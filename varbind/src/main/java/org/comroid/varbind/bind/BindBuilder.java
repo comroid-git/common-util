@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Contract;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -24,7 +25,7 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     private final TypeFragmentProvider<PartialBind.Base> baseProvider = BasicMultipart.baseProvider();
     private final TypeFragmentProvider<PartialBind.Grouped<DPND>> groupedProvider = BasicMultipart.groupedProvider();
     private TypeFragmentProvider<PartialBind.Extractor<EXTR>> extractorProvider = null;
-    private TypeFragmentProvider<PartialBind.Remapper<EXTR, DPND, REMAP>> remapperProvider = uncheckedCast(StagedBind.oneStageProvider());
+    private TypeFragmentProvider<PartialBind.Remapper<EXTR, DPND, REMAP>> remapperProvider = null;
     private TypeFragmentProvider<PartialBind.Finisher<REMAP, FINAL>> finisherProvider = null;
     private boolean required = false;
     private ValueType<? extends EXTR> valueType = null;
@@ -88,6 +89,14 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
         return uncheckedCast(this);
     }
 
+    public BindBuilder<EXTR, DPND, EXTR, FINAL> asIdentities() {
+        this.remapper = null;
+        this.resolver = null;
+        this.remapperProvider = uncheckedCast(StagedBind.oneStageProvider());
+
+        return uncheckedCast(this);
+    }
+
     @Contract(value = "_ -> this", mutates = "this")
     public <R> BindBuilder<EXTR, DPND, R, FINAL> andRemap(Function<EXTR, R> remapper) {
         this.remapper = uncheckedCast(remapper);
@@ -132,9 +141,9 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
 
         builder.coreObject(core);
         groupedProvider.accept(builder, groupBind);
-        extractorProvider.accept(builder, valueType);
-        remapperProvider.accept(builder, remapper, resolver);
-        finisherProvider.accept(builder, collectionProvider);
+        Objects.requireNonNull(extractorProvider, "No extractor definition provided").accept(builder, valueType);
+        Objects.requireNonNull(remapperProvider, "No remapper defintion provided").accept(builder, remapper, resolver);
+        Objects.requireNonNull(finisherProvider, "No finisher definition provided").accept(builder, collectionProvider);
 
         return builder.build();
     }

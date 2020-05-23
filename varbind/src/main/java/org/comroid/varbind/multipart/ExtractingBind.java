@@ -1,5 +1,6 @@
 package org.comroid.varbind.multipart;
 
+import com.sun.tools.javac.util.List;
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.iter.Span;
@@ -10,6 +11,7 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
 import java.io.Serializable;
+import java.util.stream.Collectors;
 
 public final class ExtractingBind {
     public static <E extends Serializable> TypeFragmentProvider<PartialBind.Extractor<E>> valueTypeExtractingProvider() {
@@ -59,7 +61,16 @@ public final class ExtractingBind {
         public Span<UniObjectNode> extract(UniNode from) {
             return as(PartialBind.Base.class)
                     .map(PartialBind.Base::getFieldName)
-                    .map(str -> from.get(str).asObjectNode())
+                    .map(str -> {
+                        final UniNode node = from.get(str);
+
+                        if (node.isArrayNode())
+                            return node.asNodeList()
+                                    .stream()
+                                    .map(UniNode::asObjectNode)
+                                    .collect(Collectors.toList());
+                        else return List.of(node.asObjectNode());
+                    })
                     .map(Span::immutable)
                     .orElseThrow(() -> new AssertionError("Missing Base attribute"));
         }
@@ -72,7 +83,16 @@ public final class ExtractingBind {
         public Span<UniArrayNode> extract(UniNode from) {
             return as(PartialBind.Base.class)
                     .map(PartialBind.Base::getFieldName)
-                    .map(str -> from.get(str).asArrayNode())
+                    .map(str -> {
+                        final UniNode node = from.get(str);
+
+                        if (node.isArrayNode())
+                            return node.asNodeList()
+                                    .stream()
+                                    .map(UniNode::asArrayNode)
+                                    .collect(Collectors.toList());
+                        else return List.of(node.asArrayNode());
+                    })
                     .map(Span::immutable)
                     .orElseThrow(() -> new AssertionError("Missing Base attribute"));
         }
