@@ -3,7 +3,6 @@ rootProject.name = 'common-util'
 include(':commandline')
 include(':util')
 include(':iclog')
-include(':trie')
 include(':uniform')
 include(':dreadpool')
 include(':spellbind')
