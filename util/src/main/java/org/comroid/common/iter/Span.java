@@ -21,7 +21,7 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     private final Object dataLock = Polyfill.selfawareLock();
     private final ReferenceIndex<T> storage;
     private final int fixedCapacity;
-    private final DefaultModifyPolicy modifyPolicy;
+    private final ModifyPolicy modifyPolicy;
 
     public final boolean isSingle() {
         return size() == 1;
@@ -43,15 +43,15 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
         this(ReferenceIndex.create(), fixedCapacity, DEFAULT_MODIFY_POLICY);
     }
 
-    public Span(ReferenceIndex<T> referenceIndex, DefaultModifyPolicy modifyPolicy) {
+    public Span(ReferenceIndex<T> referenceIndex, ModifyPolicy modifyPolicy) {
         this(referenceIndex, UNFIXED_SIZE, modifyPolicy);
     }
 
-    public Span(ReferenceIndex<? extends T> data, DefaultModifyPolicy modifyPolicy, boolean fixedSize) {
+    public Span(ReferenceIndex<? extends T> data, ModifyPolicy modifyPolicy, boolean fixedSize) {
         this(data, fixedSize ? data.size() : UNFIXED_SIZE, modifyPolicy);
     }
 
-    protected Span(ReferenceIndex<? extends T> data, int fixedCapacity, DefaultModifyPolicy modifyPolicy) {
+    protected Span(ReferenceIndex<? extends T> data, int fixedCapacity, ModifyPolicy modifyPolicy) {
         //noinspection unchecked
         this.storage = (ReferenceIndex<T>) data;
         this.fixedCapacity = fixedCapacity;

@@ -4,14 +4,12 @@ import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Closeable;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * Cloneable through {@link #process()}.
@@ -76,8 +74,8 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         });
     }
 
-    default <R> Processor<R> flatMap(Function<? super T, ? extends Optional<R>> mapper) {
-        return new Support.Remapped<>(this, it -> mapper.apply(it).orElse(null));
+    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<R>> mapper) {
+        return new Support.ReferenceFlatMapped<>(this, mapper);
     }
 
     @Internal
@@ -114,7 +112,7 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        public static class Filtered<T> implements Processor<T> {
+        private static final class Filtered<T> implements Processor<T> {
             private final Processor<T> underlying;
             private final Predicate<? super T> predicate;
 
@@ -132,6 +130,22 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
                     return result;
 
                 return null;
+            }
+        }
+
+        private static final class ReferenceFlatMapped<T, R> implements Processor<R> {
+            private final Reference<T> base;
+            private final Function<? super T, ? extends Reference<R>> mapper;
+
+            public ReferenceFlatMapped(Reference<T> base, Function<? super T, ? extends Reference<R>> mapper) {
+                this.base = base;
+                this.mapper = mapper;
+            }
+
+            @Nullable
+            @Override
+            public R get() {
+                return mapper.apply(base.get()).get();
             }
         }
     }

@@ -1,7 +1,6 @@
 package org.comroid.varbind;
 
 import org.comroid.common.io.FileProcessor;
-import org.comroid.common.io.IOHelper;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
