@@ -105,9 +105,13 @@ public final class Spellbind {
             if (internal)
                 return it;
 
-            final Builder<X> wrapperBuilder = Polyfill.uncheckedCast(new Builder<>(true, mainInterface));
-            wrapperBuilder.coreObject(it).subImplement(reproxy, Polyfill.uncheckedCast(SelfDeclared.class));
-            return wrapperBuilder.build();
+            if (internal) return it;
+
+            //noinspection unchecked
+            return (X) new Builder<>(true, mainInterface)
+                    .coreObject(it)
+                    .subImplement(reproxy, Polyfill.uncheckedCast(SelfDeclared.class))
+                    .build();
         }
 
         private void populateBinds(
