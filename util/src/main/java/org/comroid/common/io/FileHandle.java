@@ -92,4 +92,8 @@ public final class FileHandle extends File implements Named {
             throw new UnsupportedOperationException(String
                     .format("File { %s } is not a directory", getAbsolutePath()));
     }
+
+    public String getLinesContent() {
+        return String.join("", getLines());
+    }
 }

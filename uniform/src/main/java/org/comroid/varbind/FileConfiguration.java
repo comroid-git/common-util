@@ -1,6 +1,5 @@
 package org.comroid.varbind;
 
-import jdk.internal.joptsimple.internal.Strings;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.uniform.SerializationAdapter;
@@ -59,7 +58,7 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
 
     @Override
     public final void reloadData() throws IOException {
-        final UniNode data = serializationAdapter.createUniNode(Strings.join(file.getLines(), ""));
+        final UniNode data = serializationAdapter.createUniNode(file.getLinesContent());
 
         updateFrom(data.asObjectNode());
     }
