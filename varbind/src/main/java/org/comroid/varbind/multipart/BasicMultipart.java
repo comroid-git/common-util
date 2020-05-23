@@ -3,7 +3,7 @@ package org.comroid.varbind.multipart;
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.spellbind.model.TypeFragmentProvider;
-import org.comroid.varbind.bind.old.GroupBind;
+import org.comroid.varbind.bind.GroupBind;
 
 public final class BasicMultipart {
     private static final TypeFragmentProvider<PartialBind.Base> BASE_PROVIDER = new FragmentProviders.Base();

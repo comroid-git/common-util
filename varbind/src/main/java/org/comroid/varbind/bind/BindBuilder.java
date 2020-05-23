@@ -4,7 +4,6 @@ import org.comroid.common.func.Builder;
 import org.comroid.spellbind.Spellbind;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.uniform.ValueType;
-import org.comroid.varbind.bind.old.GroupBind;
 import org.comroid.varbind.multipart.*;
 
 import java.util.Collection;

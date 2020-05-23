@@ -1,4 +1,4 @@
-package org.comroid.varbind.bind.old;
+package org.comroid.varbind.bind;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
@@ -8,7 +8,7 @@ import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
-import org.comroid.varbind.bind.VarBind;
+import org.comroid.varbind.bind.old.ArrayBind;
 import org.comroid.varbind.container.DataContainer;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;

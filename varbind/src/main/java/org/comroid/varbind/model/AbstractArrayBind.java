@@ -9,7 +9,7 @@ import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.old.ArrayBind;
-import org.comroid.varbind.bind.old.GroupBind;
+import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.container.DataContainerBase;
 

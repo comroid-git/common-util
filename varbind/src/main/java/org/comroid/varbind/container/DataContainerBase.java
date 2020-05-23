@@ -13,7 +13,7 @@ import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.old.ArrayBind;
-import org.comroid.varbind.bind.old.GroupBind;
+import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.model.Reprocessed;
 import org.jetbrains.annotations.ApiStatus.Internal;

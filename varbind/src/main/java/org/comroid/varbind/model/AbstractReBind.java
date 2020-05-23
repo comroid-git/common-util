@@ -1,6 +1,6 @@
 package org.comroid.varbind.model;
 
-import org.comroid.varbind.bind.old.GroupBind;
+import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.old.ReBind;
 import org.comroid.varbind.bind.VarBind;
 

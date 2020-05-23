@@ -4,7 +4,7 @@ import org.comroid.common.iter.Span;
 import org.comroid.common.ref.Specifiable;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.uniform.node.UniObjectNode;
-import org.comroid.varbind.bind.old.GroupBind;
+import org.comroid.varbind.bind.GroupBind;
 
 public final class PartialBind {
     public interface BindFragment extends TypeFragment, Specifiable<BindFragment> {
