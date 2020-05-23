@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.comroid</groupId>
   <artifactId>upd8r</artifactId>
@@ -8,7 +13,7 @@
   <name>common-util</name>
   <description>Update Handler using NGinX file hosts</description>
   <url>https://github.com/comroid-git/common-util</url>
-  <inceptionYear>2019</inceptionYear>
+  <inceptionYear>2020</inceptionYear>
   <licenses>
     <license>
       <name>The Apache License, Version 2.0</name>
@@ -17,9 +22,9 @@
   </licenses>
   <developers>
     <developer>
-      <id>burdoto</id>
+      <id>kaleidox</id>
       <name>Tobias Burdow</name>
-      <email>burdoto@outlook.com</email>
+      <email>contact@comroid.org</email>
     </developer>
   </developers>
   <scm>
@@ -31,31 +36,31 @@
     <dependency>
       <groupId>org.comroid</groupId>
       <artifactId>common-util</artifactId>
-      <version>1.2.0-SNAPSHOT</version>
+      <version>1.5.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger</artifactId>
-      <version>0.4</version>
+      <version>0.5.1</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>fastjson</artifactId>
-      <version>1.2.66</version>
+      <version>1.2.68</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
-      <version>4.4.0</version>
+      <version>4.5.0</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger-system-backend</artifactId>
-      <version>0.4</version>
+      <version>0.5.1</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

@@ -1,15 +1,12 @@
 rootProject.name = 'common-util'
 
+include(':commandline')
 include(':util')
-
 include(':iclog')
-
 include(':trie')
-
-include(':spellbind')
-
-include(':upd8r')
-
 include(':uniform')
-
-include(':varbind')
+include(':dreadpool')
+include(':spellbind')
+include(':listnr')
+include(':matrix')
+include(':upd8r')

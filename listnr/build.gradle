@@ -1,0 +1,13 @@
+version = '1.0.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Event Handling solution"
+}
+
+dependencies {
+    api project(":util")
+    api project(":spellbind")
+}

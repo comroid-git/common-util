@@ -7,7 +7,7 @@ allprojects {
 }
 
 tasks.findByName('wrapper').configure {
-    gradleVersion = '5.6'
+    gradleVersion = '6.2'
     distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
@@ -26,22 +26,16 @@ allprojects {
     }
 }
 
-dependencies {
-    testImplementation 'junit:junit:4.12'
-}
-
 task allJavadoc(type: Javadoc) {
-    source = files(exportedProjects.stream()
-            .map { rootProject.findProject(it.toString()) }
+    source = files(rootProject.allprojects.stream()
             .filter { !Objects.isNull(it) }
             .filter { it.hasProperty("sourceSet") }
-            .map { it.sourceSets.main.allJava }
+            .map { it.sourceSets.allSource }
             .collect(Collectors.toList()))
-    classpath = files(exportedProjects.stream()
-            .map { rootProject.findProject(it.toString()) }
+    source = files(rootProject.allprojects.stream()
             .filter { !Objects.isNull(it) }
             .filter { it.hasProperty("sourceSet") }
-            .map { it.sourceSets.main.compileClasspath }
+            .map { it.sourceSets.allJava }
             .collect(Collectors.toList()))
     options {
         destinationDirectory(file("$rootDir/docs/"))

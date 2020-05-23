@@ -20,6 +20,10 @@ public interface Junction<A, B> {
         };
     }
 
+    static <T> Junction<T, T> identity() {
+        return of(Function.identity(), Function.identity());
+    }
+
     B forward(A a);
 
     A backward(B b);

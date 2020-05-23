@@ -1,4 +1,4 @@
-version = '0.1.0-SNAPSHOT'
+version = '1.0.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -45,27 +45,38 @@ dependencies {
     java11Implementation project(':util')
 
     implementation project(':util')
-    implementation project(':trie')
-    implementation 'com.google.flogger:flogger:0.4'
+    implementation project(':spellbind')
 
+    // websocket dependencies
+    api project(':listnr')
+    java8CompileOnly project(':listnr')
+    java11CompileOnly project(':listnr')
+    api project(':dreadpool')
+    java8CompileOnly project(':dreadpool')
+    java11CompileOnly project(':dreadpool')
+
+    java8CompileOnly project(':spellbind')
     java8CompileOnly sourceSets.main.output.classesDirs
     java11CompileOnly sourceSets.main.output.classesDirs
 
     // json adapter dependencies
-    java8CompileOnly 'com.alibaba:fastjson:1.2.62'
+    java8CompileOnly 'com.alibaba:fastjson:1.2.68'
     java8CompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
     java8CompileOnly 'org.json:json:20190722'
 
     // http adapter dependencies
-    java8CompileOnly 'com.squareup.okhttp3:okhttp:3.14.7'
+    java8CompileOnly 'com.squareup.okhttp3:okhttp:4.5.0'
 
-    java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
-    java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.4'
+    implementation 'com.google.flogger:flogger:0.5.1'
+    java8Implementation 'com.google.flogger:flogger:0.5.1'
+    java11Implementation 'com.google.flogger:flogger:0.5.1'
+    java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
+    java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
 
     testImplementation project(':util')
     testImplementation sourceSets.java8.output.classesDirs
     testImplementation sourceSets.java11.output.classesDirs
-    testImplementation 'com.alibaba:fastjson:1.2.62'
-    testImplementation 'com.squareup.okhttp3:okhttp:3.14.7'
+    testImplementation 'com.alibaba:fastjson:1.2.68'
+    testImplementation 'com.squareup.okhttp3:okhttp:4.5.0'
 }
 

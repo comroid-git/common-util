@@ -4,17 +4,6 @@ import com.alibaba.fastjson.annotation.JSONCreator;
 import com.alibaba.fastjson.annotation.JSONField;
 
 public class JsonFileInfo {
-    public String getFileName() {
-        return fileName;
-    }
-
-    public String getMyTime() {
-        return myTime;
-    }
-
-    public int getSize() {
-        return size;
-    }
     private final String fileName;
     private final String myTime;
     private final int    size;
@@ -28,5 +17,17 @@ public class JsonFileInfo {
         this.fileName = fileName;
         this.myTime   = myTime;
         this.size     = size;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getMyTime() {
+        return myTime;
+    }
+
+    public int getSize() {
+        return size;
     }
 }

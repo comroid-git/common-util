@@ -1,33 +1,43 @@
 package org.comroid.common;
 
+import org.comroid.common.func.Provider;
+import org.comroid.common.func.ThrowingRunnable;
+import org.comroid.common.iter.Span;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
-import org.comroid.common.annotation.OptionalVararg;
-import org.comroid.common.func.ThrowingRunnable;
-import org.comroid.common.iter.Span;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import static java.util.Objects.isNull;
 
 public final class Polyfill {
+    public static <T> T supplyOnce(Provider<T> provider, Function<T, T> writer, Supplier<T> accessor) {
+        final T accessed = accessor.get();
+        return accessed == null ? (writer.apply(provider.now())) : accessed;
+    }
+
     public static String regexGroupOrDefault(
             Matcher matcher, String groupName, @Nullable String orDefault
     ) {
         String cont;
 
-        if (matcher.matches() && (cont = matcher.group(groupName)) != null) return cont;
-        else if (orDefault != null) return orDefault;
-        else throw new NullPointerException("Group cannot be matched!");
+        if (matcher.matches() && (cont = matcher.group(groupName)) != null) {
+            return cont;
+        } else if (orDefault != null) {
+            return orDefault;
+        } else {
+            throw new NullPointerException("Group cannot be matched!");
+        }
     }
 
     public static <R, T extends Throwable> Function<T, R> exceptionLogger() {
@@ -39,40 +49,52 @@ public final class Polyfill {
     }
 
     public static <T extends Throwable> URL url(
-            String spec,
-            @OptionalVararg Function<MalformedURLException, T>... throwableReconfigurator
+            String spec
     ) throws T {
-        if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
-                cause -> (T) new AssertionError(cause)
-        };
+        return url(spec, null);
+    }
+
+    public static <T extends Throwable> URL url(
+            String spec, @Nullable Function<MalformedURLException, T> throwableReconfigurator
+    ) throws T {
+        if (throwableReconfigurator == null) {
+            //noinspection unchecked
+            throwableReconfigurator = cause -> (T) new AssertionError(cause);
+        }
 
         try {
             return new URL(spec);
         } catch (MalformedURLException e) {
-            throw throwableReconfigurator[0].apply(e);
+            throw throwableReconfigurator.apply(e);
         }
     }
 
     public static <T extends Throwable> URI uri(
-            String spec, @OptionalVararg Function<URISyntaxException, T>... throwableReconfigurator
+            String spec
     ) throws T {
-        if (throwableReconfigurator.length == 0) throwableReconfigurator = new Function[]{
-                cause -> (T) new AssertionError(cause)
-        };
+        return uri(spec, null);
+    }
+
+    public static <T extends Throwable> URI uri(
+            String spec, Function<URISyntaxException, T> throwableReconfigurator
+    ) throws T {
+        if (throwableReconfigurator == null) {
+            throwableReconfigurator = cause -> (T) new AssertionError(cause);
+        }
 
         try {
             return new URI(spec);
         } catch (URISyntaxException e) {
-            throw throwableReconfigurator[0].apply(e);
+            throw throwableReconfigurator.apply(e);
         }
     }
 
     public static <R, T extends Throwable> Runnable handlingRunnable(
-            ThrowingRunnable<R, T> throwingRunnable,
-            @Nullable Function<T, ? extends RuntimeException> remapper
+            ThrowingRunnable<R, T> throwingRunnable, @Nullable Function<T, ? extends RuntimeException> remapper
     ) {
-        final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(
-                remapper, (Function<T, ? extends RuntimeException>) RuntimeException::new);
+        final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(remapper,
+                (Function<T, ? extends RuntimeException>) RuntimeException::new
+        );
 
         return () -> {
             try {
@@ -84,12 +106,16 @@ public final class Polyfill {
     }
 
     public static <T> T notnullOr(@Nullable T value, @NotNull T def) {
-        if (isNull(value)) return def;
+        if (isNull(value)) {
+            return def;
+        }
 
         return value;
     }
 
-    public static <R> R deadCast(Object instance) {
+    @Contract("_ -> param1")
+    public static <R> R uncheckedCast(Object instance) {
+        //noinspection unchecked
         return (R) instance;
     }
 
@@ -117,18 +143,51 @@ public final class Polyfill {
 
     public static <T> Stream<T> recursiveStream(Object... vars) {
         Collection<T> yields = Span.<T>make().initialSize(vars.length)
-                                             .span();
+                .span();
 
         for (Object each : vars)
             if (each instanceof Collection) {
                 recursiveStream(((Collection) each).toArray()).map(it -> (T) it)
-                                                              .forEachOrdered(yields::add);
+                        .forEachOrdered(yields::add);
             } else if (each.getClass()
-                           .isArray()) {
+                    .isArray()) {
                 recursiveStream((Object[]) each).map(it -> (T) it)
-                                                .forEachOrdered(yields::add);
+                        .forEachOrdered(yields::add);
             } else yields.add((T) each);
 
         return yields.stream();
+    }
+
+    public static Object selfawareLock() {
+        class Lock {
+            private volatile Object selfaware_keepalive;
+
+            @Override
+            public String toString() {
+                return String.format("SelfAwareLock@%s", Integer.toHexString(hashCode()));
+            }
+        }
+
+        final Lock lock = new Lock();
+        lock.selfaware_keepalive = lock;
+
+        return lock;
+    }
+
+    public static <T> CompletableFuture<T> failedFuture(Throwable throwable) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        future.completeExceptionally(throwable);
+        return future;
+    }
+
+    public static <T> Supplier<T> constantSupplier(T it) {
+        return new Supplier<T>() {
+            private final T value = it;
+
+            @Override
+            public T get() {
+                return value;
+            }
+        };
     }
 }
