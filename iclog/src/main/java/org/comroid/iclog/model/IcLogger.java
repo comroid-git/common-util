@@ -1,10 +1,10 @@
 package org.comroid.iclog.model;
 
+import org.comroid.iclog.Logger;
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.logging.Level;
-
-import org.comroid.iclog.Logger;
 
 public final class IcLogger extends Logger {
     private final PrintStream out;

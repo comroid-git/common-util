@@ -1,16 +1,14 @@
 package org.comroid.iclog;
 
-import java.time.format.DateTimeFormatter;
+import org.comroid.iclog.util.StackTraceUtils;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
-
-import org.comroid.iclog.util.StackTraceUtils;
-
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.Nullable;
 
 import static java.time.Instant.now;
 
@@ -26,7 +24,7 @@ public abstract class Logger {
     public final <T extends Throwable, R> Function<T, R> exceptionLogger() {
         return throwable -> {
             at(Level.SEVERE).withMessage("A concurrent Exception occurred")
-                            .log(throwable);
+                    .log(throwable);
 
             return null;
         };
@@ -41,21 +39,21 @@ public abstract class Logger {
     }
 
     public final class API {
-        private final Level        level;
+        private final Level level;
         private final List<String> additionalMessages;
 
         private TracePolicy omitPolicy = TracePolicy.OMIT_SECONDARY;
-        private int         omitLimit  = 3;
+        private int omitLimit = 3;
 
         private API(Level level) {
-            this.level              = level;
+            this.level = level;
             this.additionalMessages = new ArrayList<>();
         }
 
         @Contract(mutates = "this")
         public final API withTracePolicy(TracePolicy policy, int limit) {
             this.omitPolicy = policy;
-            this.omitLimit  = limit;
+            this.omitLimit = limit;
 
             return this;
         }
@@ -71,7 +69,7 @@ public abstract class Logger {
             return log(
                     "Logger Ping from %s",
                     StackTraceUtils.callerClass(1)
-                                   .getName()
+                            .getName()
             );
         }
 
@@ -90,16 +88,16 @@ public abstract class Logger {
                     Optional.ofNullable(mainMessage)
                             .map(msg -> ": " + msg)
                             .orElseGet(() -> Optional.ofNullable(throwable)
-                                                     .map(Throwable::getMessage)
-                                                     .map(msg -> ": " + msg)
-                                                     .orElse(""))
+                                    .map(Throwable::getMessage)
+                                    .map(msg -> ": " + msg)
+                                    .orElse(""))
             ));
 
             if (!additionalMessages.isEmpty()) {
                 lines.add("\tAdditional Information:");
                 additionalMessages.stream()
-                                  .map(msg -> "\t-\t" + msg)
-                                  .forEachOrdered(lines::add);
+                        .map(msg -> "\t-\t" + msg)
+                        .forEachOrdered(lines::add);
             }
 
             appendThrowable(lines, throwable);

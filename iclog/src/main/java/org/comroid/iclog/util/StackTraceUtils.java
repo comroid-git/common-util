@@ -24,9 +24,9 @@ public final class StackTraceUtils {
         if (throwable == null) return;
 
         lines.add(String.format("%s: %s",
-                                throwable.getClass()
-                                         .getName(),
-                                throwable.getMessage()
+                throwable.getClass()
+                        .getName(),
+                throwable.getMessage()
         ));
 
         final StackTraceElement[] stackTrace = throwable.getStackTrace();
