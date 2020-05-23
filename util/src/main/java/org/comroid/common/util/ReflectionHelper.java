@@ -1,5 +1,9 @@
 package org.comroid.common.util;
 
+import org.comroid.common.annotation.Instance;
+import org.comroid.common.iter.Span;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.reflect.*;
@@ -8,15 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.comroid.common.annotation.Instance;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.iter.Span;
-
-import org.jetbrains.annotations.Nullable;
-
-import static java.lang.reflect.Modifier.isFinal;
-import static java.lang.reflect.Modifier.isPublic;
-import static java.lang.reflect.Modifier.isStatic;
+import static java.lang.reflect.Modifier.*;
 
 public final class ReflectionHelper {
     public static <T> T instance(Class<T> type, Object... args) throws RuntimeException, AssertionError {
@@ -30,9 +26,9 @@ public final class ReflectionHelper {
         Constructor<T> constructor =
                 findConstructor(type, types).orElseThrow(() -> new AssertionError(String.format("Could " + "not" + " find " +
                                 "constructor for class %s with types %s",
-                type.getName(),
-                Arrays.toString(types)
-        )));
+                        type.getName(),
+                        Arrays.toString(types)
+                )));
 
         return instance(constructor, args);
     }
@@ -116,7 +112,7 @@ public final class ReflectionHelper {
             boolean forceAccess,
             @Nullable Class<? extends Annotation> withAnnotation
     ) {
-        final Field[] fields    = inClass.getFields();
+        final Field[] fields = inClass.getFields();
         final HashSet<T> values = new HashSet<>(fields.length);
 
         for (Field field : fields) {
@@ -144,13 +140,29 @@ public final class ReflectionHelper {
         for (int i = 0; i < typesOrdered.length; i++) {
             int finalli = i;
             yields[i] = Stream.of(args)
-                    .filter(it -> typesOrdered[finalli].isInstance(it))
+                    .filter(it -> {
+                        if (typesOrdered[finalli].isInstance(it))
+                            return true;
+                        if (typesOrdered[finalli].isPrimitive())
+                            return ReflectionHelper.isTypePrimitively(typesOrdered[finalli], it);
+                        return false;
+                    })
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
                             "No instance of " + typesOrdered[finalli].getName() + " found in array"));
         }
 
         return yields;
+    }
+
+    private static boolean isTypePrimitively(Class<?> aClass, Object instance) {
+        if (aClass.isPrimitive()) {
+            try {
+                return aClass.equals(instance.getClass().getField("TYPE").get(null));
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                return false;
+            }
+        } else return aClass.isInstance(instance);
     }
 
     public static <T> Class<? super T> canonicalClass(Class<T> of) {

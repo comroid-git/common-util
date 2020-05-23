@@ -3,7 +3,6 @@ package org.comroid.common.map;
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.bi.Junction;
 import org.comroid.common.ref.OutdateableReference;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.jvm.hotspot.utilities.AssertionFailure;
@@ -27,12 +26,6 @@ public interface TrieMap<K, V> extends Map<K, V> {
     }
 
     Stage<V> getStage(char[] chars, int cIndex);
-
-    @Override
-    @Contract
-    default boolean containsKey(Object key) {
-        return get(key) != null;
-    }
 
     @Override
     default void putAll(@NotNull Map<? extends K, ? extends V> map) {
@@ -118,10 +111,22 @@ public interface TrieMap<K, V> extends Map<K, V> {
                 return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null));
             else return Optional.empty();
         }
+
+        private boolean containsKey(char[] chars, int cIndex) {
+            if (cIndex >= chars.length)
+                return false;
+
+            if (cIndex == chars.length - 1)
+                return storage.containsKey(chars[cIndex]);
+
+            return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
+                    .map(stage -> stage.containsKey(chars, cIndex + 1))
+                    .orElse(false);
+        }
     }
 
     class Basic<K, V> implements TrieMap<K, V> {
-        private final TrieMap.Stage<V> baseStage = new Stage<>(null);
+        private final TrieMap.Stage<V> baseStage = new Stage<>("");
         private final Map<K, String> cachedKeys = new ConcurrentHashMap<>();
         private final Junction<K, String> keyConverter;
         private final boolean useKeyCache;
@@ -138,12 +143,20 @@ public interface TrieMap<K, V> extends Map<K, V> {
 
         @Override
         public Stage<V> getStage(char[] chars, int cIndex) {
+            if (chars.length == 0)
+                return baseStage;
+
             return baseStage.getStage(chars, cIndex).orElse(null);
         }
 
         @Override
         public int size() {
             return (int) baseStage.streamPresentStages().count();
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            return baseStage.containsKey(convertKey(key), 0);
         }
 
         @Override
@@ -209,28 +222,22 @@ public interface TrieMap<K, V> extends Map<K, V> {
             if (containsKey(atKey))
                 return true;
 
-            //noinspection unchecked
-            final K key = (K) atKey;
             final char[] converted = cacheKey(atKey).toCharArray();
-            final char baseKey = converted[0];
 
-            IntStream.range(0, converted.length)
+            IntStream.range(1, converted.length + 1)
                     .mapToObj(end -> Arrays.copyOfRange(converted, 0, end))
-                    .forEachOrdered(stageKey -> putStageInto(getStage(stageKey, 0), stageKey, 0));
+                    .filter(chars -> !containsKey(new String(chars)))
+                    .forEachOrdered(stageKey -> {
+                        Stage<V> last = baseStage;
+
+                        for (char c : stageKey) {
+                            final Stage<V> finalLast = last;
+                            last = last.storage.computeIfAbsent(c,
+                                    key -> new Stage<>(finalLast.getKey() + key));
+                        }
+                    });
 
             return containsKey(atKey);
-        }
-
-        private void putStageInto(Stage<V> into, char[] target, int cIndex) {
-            if (into.getKey().equals(new String(target)))
-                throw new IllegalArgumentException("Target stage key and target key are equal");
-
-            if (cIndex == target.length - 1 || !into.storage.containsKey(target[cIndex])) {
-                into.storage.put(target[cIndex], new Stage<>(new String(Arrays.copyOfRange(target, 0, cIndex))));
-                return;
-            }
-
-            putStageInto(into.storage.get(target[cIndex]), target, cIndex + 1);
         }
 
         private char[] convertKey(Object key) {
@@ -238,6 +245,9 @@ public interface TrieMap<K, V> extends Map<K, V> {
         }
 
         private String cacheKey(Object key) {
+            if (key instanceof String)
+                return (String) key;
+
             final K keyCast = Polyfill.uncheckedCast(key);
 
             return useKeyCache

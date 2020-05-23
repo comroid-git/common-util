@@ -12,10 +12,8 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
-import org.comroid.varbind.bind.old.ArrayBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
-import org.comroid.varbind.model.Reprocessed;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,7 +118,6 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
         getRootBind().streamAllChildren()
-                .filter(bind -> !(bind instanceof Reprocessed))
                 .map(it -> (VarBind<Object, ? super DEP, ?, Object>) it)
                 .filter(bind -> data.has(bind.getFieldName()))
                 .map(it -> (VarBind<Object, Object, Object, Object>) it)
@@ -226,7 +223,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         final T apply = parser.apply(value);
         final R prev = getComputedReference(bind).get();
 
-        if (bind instanceof ArrayBind) {
+        if (bind.isListing()) {
             getExtractionReference(bind).compute(span -> {
                 span.add(apply);
                 return span;

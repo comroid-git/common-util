@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
@@ -235,14 +234,16 @@ public abstract class UniNode implements Specifiable<UniNode> {
     }
 
     protected <T> UniValueNode.Adapter<T> makeValueAdapter(String stringSupplier) {
-        return new UniValueNode.Adapter.ViaString<>(Reference.Settable.create(stringSupplier));
+        //noinspection unchecked
+        return (UniValueNode.Adapter<T>) new UniValueNode.Adapter.ViaString<T>(Reference.Settable.create(stringSupplier));
     }
 
     @NotNull
     protected <T> UniValueNode<T> generateValueNode(String ofString) {
         final UniValueNode.Adapter.ViaString<T> valueAdapter
                 = new UniValueNode.Adapter.ViaString<>(Reference.Settable.create(ofString));
-        return new UniValueNode<>(serializationAdapter, valueAdapter);
+        //noinspection unchecked
+        return new UniValueNode<T>(serializationAdapter, (UniValueNode.Adapter<T>) valueAdapter);
     }
 
     public enum Type {
