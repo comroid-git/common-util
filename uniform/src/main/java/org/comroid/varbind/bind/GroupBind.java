@@ -150,7 +150,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         if (!parents.isEmpty())
             return false;
 
-        return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()) || bind.isOptional());
+        return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()));
     }
 
     public Stream<? extends VarBind<?, D, ?, ?>> streamAllChildren() {
