@@ -45,10 +45,6 @@ public final class FinishedBind {
             return true;
         }
 
-        public IntoCollection() {
-            this(null);
-        }
-
         public IntoCollection(Supplier<C> collectionSupplier) {
             this.collectionSupplier = collectionSupplier;
         }

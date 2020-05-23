@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @FunctionalInterface
-public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
+public interface Reference<T> extends Supplier<T> {
     default boolean isNull() {
         return Objects.isNull(get());
     }

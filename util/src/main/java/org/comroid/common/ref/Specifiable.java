@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.comroid.common.info.MessageSupplier;
 
-public interface Specifiable<B> {
+public interface Specifiable<B extends Specifiable<? super B>> extends SelfDeclared<B> {
     default <R extends B, T extends Throwable> R as(Class<R> type, MessageSupplier message) throws T {
         return as(type).orElseThrow(() -> new AssertionError(message));
     }
@@ -14,10 +14,10 @@ public interface Specifiable<B> {
             return Optional.empty();
         }
 
-        return Optional.of(type.cast(this));
+        return Optional.of(type.cast(self()));
     }
 
     default boolean isType(Class<? extends B> type) {
-        return type.isInstance(this);
+        return type.isInstance(self());
     }
 }

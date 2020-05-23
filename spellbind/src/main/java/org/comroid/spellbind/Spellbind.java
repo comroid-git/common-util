@@ -1,16 +1,18 @@
 package org.comroid.spellbind;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.map.TrieMap;
+import org.comroid.common.ref.SelfDeclared;
 import org.comroid.spellbind.annotation.Partial;
-import org.comroid.spellbind.model.TypeFragmentProvider;
+import org.comroid.spellbind.model.TypeFragment;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.*;
-import java.util.function.Function;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static org.comroid.spellbind.SpellCore.methodString;
@@ -20,18 +22,34 @@ public final class Spellbind {
         throw new UnsupportedOperationException("Cannot instantiate " + Spellbind.class.getName());
     }
 
-    public static <T> Builder<T> builder(Class<T> mainInterface) {
+    public static <T extends TypeFragment<? super T>> Builder<T> builder(Class<T> mainInterface) {
         return new Builder<>(mainInterface);
     }
 
-    public static class Builder<T> implements org.comroid.common.func.Builder<T> {
+    static final class ReproxyFragment<S extends TypeFragment<? super S>> implements TypeFragment<S> {
+        final CompletableFuture<S> future = new CompletableFuture<>();
+
+        @Override
+        public S self() {
+            return future.join();
+        }
+    }
+
+    public static class Builder<T extends TypeFragment<? super T>> implements org.comroid.common.func.Builder<T> {
+        private final ReproxyFragment<T> reproxy = new ReproxyFragment<>();
+        private final boolean internal;
         private final Class<T> mainInterface;
         private final Map<String, Invocable<Object>> methodBinds;
         private final Collection<Class<?>> interfaces;
         private Object coreObject;
         private ClassLoader classLoader;
 
-        public Builder(Class<T> mainInterface) {
+        private Builder(Class<T> mainInterface) {
+            this(false, mainInterface);
+        }
+
+        private Builder(boolean internal, Class<T> mainInterface) {
+            this.internal = internal;
             this.mainInterface = mainInterface;
             this.methodBinds = TrieMap.ofString();
             this.interfaces = new ArrayList<>(1);
@@ -63,30 +81,39 @@ public final class Spellbind {
             final ClassLoader classLoader = Optional.ofNullable(this.classLoader)
                     .orElseGet(Spellbind.class::getClassLoader);
 
-            final SpellCore spellCore = new SpellCore(coreObject, methodBinds);
+            final SpellCore<T> spellCore = new SpellCore<>(reproxy, methodBinds);
 
             //noinspection unchecked
-            return (T) Proxy.newProxyInstance(
-                    classLoader,
-                    interfaces.stream()
-                            .distinct()
-                            .toArray(Class[]::new),
-                    spellCore
-            );
+            final T it = (T) Proxy.newProxyInstance(classLoader,
+                    interfaces.stream().distinct().toArray(Class[]::new), spellCore);
+            reproxy.future.complete(it);
+
+            return it;
         }
 
-        public Builder<T> coreObject(Object coreObject) {
+        public Builder<T> coreObject(@SuppressWarnings("rawtypes") TypeFragment coreObject) {
             this.coreObject = coreObject;
 
             final Class<?> coreObjectClass = coreObject.getClass();
 
-            populateBinds(mainInterface.getMethods(), coreObject, methodBinds);
+            populateBinds(mainInterface.getMethods(), deepWrap(coreObject), methodBinds);
 
             return this;
         }
 
+        private <X extends TypeFragment<? super X>> X deepWrap(final X it) {
+            if (internal)
+                return it;
+
+            final Builder<X> wrapperBuilder = Polyfill.uncheckedCast(new Builder<>(true, mainInterface));
+            wrapperBuilder.coreObject(it).subImplement(reproxy, Polyfill.uncheckedCast(SelfDeclared.class));
+            return wrapperBuilder.build();
+        }
+
         private void populateBinds(
-                Method[] methods, Object implementationSource, Map<String, Invocable<Object>> map
+                Method[] methods,
+                @SuppressWarnings("rawtypes") TypeFragment implementationSource,
+                Map<String, Invocable<Object>> map
         ) {
             for (Method method : methods) {
                 final int mod = method.getModifiers();
@@ -95,22 +122,20 @@ public final class Spellbind {
                 if ((
                         implMethod = findMatchingMethod(method, implementationSource.getClass())
                 ) != null) {
-                    map.put(methodString(method), Invocable.ofMethodCall(implMethod, implementationSource));
+                    map.put(methodString(method), Invocable.ofMethodCall(implMethod, deepWrap(implementationSource)));
                 }
             }
         }
 
-        public Builder<T> subImplement(Object sub) {
+        public Builder<T> subImplement(@SuppressWarnings("rawtypes") TypeFragment sub) {
             return Partial.Support.findPartialClass(sub.getClass())
-                    .map(partialInterface -> subImplement(sub, partialInterface))
-                    .orElseThrow(() -> new IllegalArgumentException(String.format(
-                            "Class %s implements no @Partial annotated class",
-                            sub.getClass()
-                                    .getName()
-                    )));
+                    .map(partialInterface -> subImplement(sub, Polyfill.uncheckedCast(partialInterface)))
+                    .orElseThrow(() -> new IllegalArgumentException(String
+                            .format("Class %s implements no @Partial annotated class", sub.getClass().getName())));
         }
 
-        public Builder<T> subImplement(Object sub, Class<?> asInterface) {
+        @SuppressWarnings("rawtypes")
+        public Builder<T> subImplement(TypeFragment sub, Class<? extends TypeFragment> asInterface) {
             if (!Modifier.isInterface(asInterface.getModifiers())) {
                 throw new IllegalArgumentException(String.format("Class %s is not an interface!", asInterface.getName()));
             }

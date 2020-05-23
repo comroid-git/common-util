@@ -1,12 +1,11 @@
 package org.comroid.listnr.model;
 
-import org.comroid.common.ref.SelfDeclared;
 import org.comroid.spellbind.model.TypeFragment;
 
 public interface EventPayload<D,
         ET extends EventType<?, D, ET, EP>,
         EP extends EventPayload<D, ET, EP>>
-        extends TypeFragment, SelfDeclared<EP> {
+        extends TypeFragment<EP> {
     ET getMasterEventType();
 
     class Basic<D,

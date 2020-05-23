@@ -1,9 +1,14 @@
 package org.comroid.spellbind;
 
+import org.comroid.common.Polyfill;
+import org.comroid.common.func.Invocable;
+import org.comroid.common.ref.SelfDeclared;
+import org.comroid.common.util.ArrayUtil;
+import org.comroid.spellbind.model.TypeFragment;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -11,32 +16,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.comroid.common.func.Invocable;
-
-import org.jetbrains.annotations.Nullable;
-
-public class SpellCore implements InvocationHandler {
-    private final Object                         coreObject;
+public class SpellCore<T extends TypeFragment<? super T>> implements InvocationHandler {
+    private final Spellbind.ReproxyFragment<T> reproxy;
     private final Map<String, Invocable<Object>> methodBinds;
 
-    SpellCore(Object coreObject, Map<String, Invocable<Object>> methodBinds) {
-        this.coreObject  = coreObject;
+    SpellCore(
+            Spellbind.ReproxyFragment<T> reproxy,
+            Map<String, Invocable<Object>> methodBinds
+    ) {
+        this.reproxy = reproxy;
         this.methodBinds = methodBinds;
-    }
-
-    @Override
-    public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        final String            methodString = methodString(method);
-        final Invocable<Object> invoc        = methodBinds.get(methodString);
-
-        if (invoc == null)
-            throw$unimplemented(methodString, new NoSuchElementException("Bound Invocable"));
-
-        try {
-            return invoc.invoke(args);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static String methodString(@Nullable Method method) {
@@ -55,14 +44,6 @@ public class SpellCore implements InvocationHandler {
         );
     }
 
-    private void throw$unimplemented(Object methodString, @Nullable Throwable e) throws UnsupportedOperationException {
-        throw e == null ? new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy",
-                methodString
-        )) : new UnsupportedOperationException(String.format("Method %s has no " + "implementation in this proxy", methodString),
-                e
-        );
-    }
-
     private static String paramString(Method method) {
         return Stream.of(method.getParameterTypes())
                 .map(Class::getName)
@@ -75,13 +56,42 @@ public class SpellCore implements InvocationHandler {
         return exceptionTypes.length == 0
                 ? ""
                 : Stream.of(exceptionTypes)
-                        .map(Class::getSimpleName)
-                        .collect(Collectors.joining(", ", " throws ", ""));
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(", ", " throws ", ""));
     }
 
-    private static Optional<SpellCore> getInstance(Object ofProxy) {
+    private static <T extends TypeFragment<? super T>> Optional<SpellCore<T>> getInstance(T ofProxy) {
         final InvocationHandler invocationHandler = Proxy.getInvocationHandler(ofProxy);
 
-        return invocationHandler instanceof SpellCore ? Optional.of((SpellCore) invocationHandler) : Optional.empty();
+        return invocationHandler instanceof SpellCore
+                ? Optional.of(Polyfill.uncheckedCast(invocationHandler))
+                : Optional.empty();
+    }
+
+    @Override
+    public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        final String methodString = methodString(method);
+        final Invocable<Object> invoc = methodBinds.get(methodString);
+
+        if (method.getDeclaringClass().equals(SelfDeclared.class) && method.getName().equals("self")) {
+            return reproxy.self();
+        }
+
+        if (invoc == null)
+            throw$unimplemented(methodString, new NoSuchElementException("Bound Invocable"));
+
+        try {
+            return invoc.autoInvoke(ArrayUtil.insert(args, args.length, this));
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void throw$unimplemented(Object methodString, @Nullable Throwable e) throws UnsupportedOperationException {
+        throw e == null ? new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy",
+                methodString
+        )) : new UnsupportedOperationException(String.format("Method %s has no " + "implementation in this proxy", methodString),
+                e
+        );
     }
 }

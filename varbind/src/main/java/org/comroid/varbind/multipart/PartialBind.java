@@ -7,7 +7,7 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.varbind.bind.GroupBind;
 
 public final class PartialBind {
-    public interface BindFragment extends TypeFragment, Specifiable<BindFragment> {
+    public interface BindFragment extends TypeFragment<BindFragment> {
     }
 
     public interface Base extends BindFragment {

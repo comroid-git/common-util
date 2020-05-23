@@ -5,6 +5,7 @@ import org.comroid.common.info.Dependent;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.spellbind.Spellbind;
+import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +15,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public final class InstanceFactory<T, D> implements Invocable.TypeMap<T>, Dependent<D> {
+public final class InstanceFactory<T extends TypeFragment<? super T>, D> implements Invocable.TypeMap<T>, Dependent<D> {
     private final OutdateableReference<Class<?>[]> requiredTypes = new OutdateableReference<>();
     private final Class<T> mainInterface;
     private final Reference<? extends T> coreObject;
