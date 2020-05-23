@@ -59,8 +59,12 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     }
 
     public static <T> Collector<T, ?, Span<T>> collector() {
+        return collector(true);
+    }
+
+    public static <T> Collector<T, ?, Span<T>> collector(boolean fixedSize) {
         return Span.<T>make()
-                .fixedSize(true)
+                .fixedSize(fixedSize)
                 .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
                 .collector();
     }

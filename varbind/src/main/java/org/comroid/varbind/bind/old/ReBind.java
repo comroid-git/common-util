@@ -1,5 +1,6 @@
-package org.comroid.varbind.bind;
+package org.comroid.varbind.bind.old;
 
+import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.model.AbstractReBind;
 import org.comroid.varbind.model.Reprocessed;
 

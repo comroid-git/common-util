@@ -1,11 +1,9 @@
-package org.comroid.varbind.bind;
+package org.comroid.varbind.bind.old;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.iter.Span;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.model.AbstractObjectBind;
-import org.comroid.varbind.model.Reprocessed;
-import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 import java.util.Objects;
 import java.util.function.BiFunction;

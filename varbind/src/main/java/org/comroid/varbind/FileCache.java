@@ -1,4 +1,4 @@
-package org.comroid.uniform.cache;
+package org.comroid.varbind;
 
 import com.google.common.flogger.FluentLogger;
 import org.comroid.common.Polyfill;
@@ -7,10 +7,12 @@ import org.comroid.common.func.Invocable;
 import org.comroid.common.func.Processor;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.cache.BasicCache;
+import org.comroid.uniform.cache.Cache;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
-import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.bind.old.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.container.DataContainer;
 import org.comroid.varbind.container.DataContainerBase;

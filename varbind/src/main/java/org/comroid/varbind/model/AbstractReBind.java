@@ -1,7 +1,7 @@
 package org.comroid.varbind.model;
 
-import org.comroid.varbind.bind.GroupBind;
-import org.comroid.varbind.bind.ReBind;
+import org.comroid.varbind.bind.old.GroupBind;
+import org.comroid.varbind.bind.old.ReBind;
 import org.comroid.varbind.bind.VarBind;
 
 public abstract class AbstractReBind<EXTR, DPND, REMAP> implements ReBind<EXTR, DPND, REMAP> {

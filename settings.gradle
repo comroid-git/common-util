@@ -1,10 +1,18 @@
 rootProject.name = 'common-util'
 
-include(':commandline')
+// basic tools
 include(':util')
+include(':commandline')
+
+// uniform framework
 include(':uniform')
-include(':dreadpool')
-include(':spellbind')
-include(':listnr')
+include(':varbind')
+
+// JVM enhancements
 include(':matrix')
+include(':listnr')
+include(':dreadpool')
+
+// other tools
+include(':spellbind')
 include(':upd8r')
