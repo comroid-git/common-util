@@ -6,7 +6,6 @@ import org.comroid.common.ref.OutdateableReference;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.jvm.hotspot.utilities.AssertionFailure;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -200,7 +199,7 @@ public interface TrieMap<K, V> extends Map<K, V> {
                         return new AbstractMap.SimpleImmutableEntry<>(
                                 entry.getKey(),
                                 baseStage.getValue(converted.toCharArray(), 0)
-                                        .orElseThrow(() -> new AssertionFailure("Inexistent stage: " + converted))
+                                        .orElseThrow(() -> new AssertionError("Inexistent stage: " + converted))
                         );
                     }).collect(Collectors.toSet());
         }
