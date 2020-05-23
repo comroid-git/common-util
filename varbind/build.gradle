@@ -11,4 +11,7 @@ dependencies {
     api project(":util")
     api project(":uniform")
     api project(":spellbind")
+
+    testImplementation 'com.alibaba:fastjson:1.2.68'
+    testImplementation project(":uniform").sourceSets.java8.output.classesDirs
 }
