@@ -4,6 +4,7 @@ import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.SelfDeclared;
+import org.comroid.common.ref.Specifiable;
 import org.comroid.spellbind.annotation.Partial;
 import org.comroid.spellbind.model.TypeFragment;
 import org.jetbrains.annotations.Nullable;
@@ -102,10 +103,8 @@ public final class Spellbind {
         }
 
         private <X extends TypeFragment<? super X>> X deepWrap(final X it) {
-            if (internal)
+            if (internal || Proxy.isProxyClass(it.getClass()))
                 return it;
-
-            if (internal) return it;
 
             //noinspection unchecked
             return (X) new Builder<>(true, mainInterface)
@@ -122,11 +121,14 @@ public final class Spellbind {
             for (Method method : methods) {
                 final int mod = method.getModifiers();
 
-                Method implMethod;
-                if ((
-                        implMethod = findMatchingMethod(method, implementationSource.getClass())
-                ) != null) {
-                    map.put(methodString(method), Invocable.ofMethodCall(implMethod, deepWrap(implementationSource)));
+                if (internal || (!method.getDeclaringClass().equals(Specifiable.class)
+                        && !method.getDeclaringClass().equals(SelfDeclared.class))) {
+                    Method implMethod;
+                    if ((
+                            implMethod = findMatchingMethod(method, implementationSource.getClass())
+                    ) != null) {
+                        map.put(methodString(method), Invocable.ofMethodCall(implMethod, deepWrap(implementationSource)));
+                    }
                 }
             }
         }
@@ -149,6 +151,8 @@ public final class Spellbind {
                     .filter(method -> method.getDeclaringClass()
                             .equals(subClass))
                     .forEach(method -> Stream.of(asInterface.getMethods())
+                            .filter(mtd -> internal || (!mtd.getDeclaringClass().equals(Specifiable.class)
+                                    && !mtd.getDeclaringClass().equals(SelfDeclared.class)))
                             .filter(other -> matchFootprint(other, method))
                             .findAny()
                             .ifPresent(value -> methodBinds.put(methodString(value), Invocable.ofMethodCall(method, sub))));

@@ -3,7 +3,9 @@ package org.comroid.spellbind;
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.ref.SelfDeclared;
+import org.comroid.common.ref.Specifiable;
 import org.comroid.common.util.ArrayUtil;
+import org.comroid.common.util.ReflectionHelper;
 import org.comroid.spellbind.model.TypeFragment;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,18 +75,23 @@ public class SpellCore<T extends TypeFragment<? super T>> implements InvocationH
         final String methodString = methodString(method);
         final Invocable<Object> invoc = methodBinds.get(methodString);
 
-        if (method.getDeclaringClass().equals(SelfDeclared.class) && method.getName().equals("self")) {
-            return reproxy.self();
+        if ((method.getDeclaringClass().equals(Specifiable.class)
+                || method.getDeclaringClass().equals(SelfDeclared.class))
+                && invoc == null) {
+            switch (method.getName()) {
+                case "as":
+                    if (args.length != 1) break;
+
+
+                    break;
+            }
+            return method.invoke(reproxy.self(), ReflectionHelper.arrange(args, method.getParameterTypes()));
         }
 
         if (invoc == null)
             throw$unimplemented(methodString, new NoSuchElementException("Bound Invocable"));
 
-        try {
-            return invoc.autoInvoke(ArrayUtil.insert(args, args.length, this));
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        return invoc.autoInvoke(ArrayUtil.insert(args, args.length, this));
     }
 
     private void throw$unimplemented(Object methodString, @Nullable Throwable e) throws UnsupportedOperationException {
