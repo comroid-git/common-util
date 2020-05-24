@@ -222,7 +222,7 @@ public final class ReflectionHelper {
         }, Spliterator.DISTINCT);
     }
 
-    private static boolean classExists(String name) {
+    public static boolean classExists(String name) {
         try {
             Class.forName(name);
         } catch (ClassNotFoundException e) {

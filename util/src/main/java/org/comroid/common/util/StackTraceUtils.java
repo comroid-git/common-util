@@ -1,18 +1,25 @@
 package org.comroid.common.util;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 public final class StackTraceUtils {
     public static Class<?> callerClass(int skip) {
-        final String className = new Throwable().getStackTrace()[1 + skip].getClassName();
-
-        try {
-            return Class.forName(className);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException(String.format("Cannot skip %d classes", skip), e);
-        } catch (ClassNotFoundException e) {
-            throw new AssertionError(String.format("Class not found: %s", className), e);
-        }
+        return Stream.of(new Throwable().getStackTrace())
+                .filter(ste -> ReflectionHelper.classExists(ste.getClassName()))
+                .skip(1 + skip)
+                .map(StackTraceElement::getClassName)
+                .flatMap(className -> {
+                    try {
+                        return Stream.of(Class.forName(className));
+                    } catch (ClassNotFoundException e) {
+                        return Stream.empty();
+                    }
+                })
+                .filter(it -> !it.isAnonymousClass() && !it.isSynthetic())
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException(String.format("Could not skip %d classes", skip)));
     }
 
     public static void putStackTrace(
