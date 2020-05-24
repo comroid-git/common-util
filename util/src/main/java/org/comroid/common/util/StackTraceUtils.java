@@ -8,7 +8,6 @@ public final class StackTraceUtils {
     public static Class<?> callerClass(int skip) {
         return Stream.of(new Throwable().getStackTrace())
                 .filter(ste -> ReflectionHelper.classExists(ste.getClassName()))
-                .skip(1 + skip)
                 .map(StackTraceElement::getClassName)
                 .flatMap(className -> {
                     try {
@@ -18,6 +17,7 @@ public final class StackTraceUtils {
                     }
                 })
                 .filter(it -> !it.isAnonymousClass() && !it.isSynthetic())
+                .skip(1 + skip)
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException(String.format("Could not skip %d classes", skip)));
     }
@@ -31,8 +31,7 @@ public final class StackTraceUtils {
 
         lines.add(String.format(
                 "%s: %s",
-                throwable.getClass()
-                        .getName(),
+                throwable.getClass().getName(),
                 throwable.getMessage()
         ));
 

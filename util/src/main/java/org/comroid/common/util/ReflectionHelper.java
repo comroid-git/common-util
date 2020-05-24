@@ -155,7 +155,7 @@ public final class ReflectionHelper {
         return yields;
     }
 
-    private static boolean isTypePrimitively(Class<?> aClass, Object instance) {
+    public static boolean isTypePrimitively(Class<?> aClass, Object instance) {
         if (aClass.isPrimitive()) {
             try {
                 return aClass.equals(instance.getClass().getField("TYPE").get(null));
@@ -192,7 +192,7 @@ public final class ReflectionHelper {
         }
     }
 
-    private static Spliterator<Class<?>> recursiveClassGenerator(Class<?> from) {
+    public static Spliterator<Class<?>> recursiveClassGenerator(Class<?> from) {
         return Spliterators.spliteratorUnknownSize(new Iterator<Class<?>>() {
             private final Queue<Class<?>> queue = new LinkedBlockingQueue<>();
 
@@ -232,7 +232,7 @@ public final class ReflectionHelper {
         return true;
     }
 
-    private static <T extends Annotation> Optional<T> annotation(
+    public static <T extends Annotation> Optional<T> annotation(
             Class<?> type, Class<T> annotationType
     ) {
         if (type.isAnnotationPresent(annotationType)) {
