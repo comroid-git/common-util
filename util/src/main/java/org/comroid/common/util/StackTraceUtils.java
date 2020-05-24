@@ -6,6 +6,10 @@ import java.util.stream.Stream;
 
 public final class StackTraceUtils {
     public static Class<?> callerClass(int skip) {
+        return callerClass(false, skip);
+    }
+
+    public static Class<?> callerClass(boolean filtered, int skip) {
         return Stream.of(new Throwable().getStackTrace())
                 .filter(ste -> ReflectionHelper.classExists(ste.getClassName()))
                 .map(StackTraceElement::getClassName)
@@ -16,7 +20,7 @@ public final class StackTraceUtils {
                         return Stream.empty();
                     }
                 })
-                .filter(it -> !it.isAnonymousClass() && !it.isSynthetic())
+                .filter(it -> !filtered || (!it.isAnonymousClass() && !it.isSynthetic()))
                 .skip(1 + skip)
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException(String.format("Could not skip %d classes", skip)));
