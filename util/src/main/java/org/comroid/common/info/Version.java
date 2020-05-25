@@ -1,4 +1,4 @@
-package org.comroid.common;
+package org.comroid.common.info;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
