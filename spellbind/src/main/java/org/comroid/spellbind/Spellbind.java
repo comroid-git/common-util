@@ -14,6 +14,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static org.comroid.spellbind.SpellCore.methodString;
@@ -38,6 +39,7 @@ public final class Spellbind {
 
     public static class Builder<T extends TypeFragment<? super T>> implements org.comroid.common.func.Builder<T> {
         private final ReproxyFragment<T> reproxy = new ReproxyFragment<>();
+        private final Map<Class<?>, Object> members = new ConcurrentHashMap<>();
         private final boolean internal;
         private final Class<T> mainInterface;
         private final Map<String, Invocable<Object>> methodBinds;
@@ -82,7 +84,7 @@ public final class Spellbind {
             final ClassLoader classLoader = Optional.ofNullable(this.classLoader)
                     .orElseGet(Spellbind.class::getClassLoader);
 
-            final SpellCore<T> spellCore = new SpellCore<>(reproxy, methodBinds);
+            final SpellCore<T> spellCore = new SpellCore<>(reproxy, methodBinds, members);
 
             //noinspection unchecked
             final T it = (T) Proxy.newProxyInstance(classLoader,
@@ -97,20 +99,10 @@ public final class Spellbind {
 
             final Class<?> coreObjectClass = coreObject.getClass();
 
-            populateBinds(mainInterface.getMethods(), deepWrap(coreObject), methodBinds);
+            populateBinds(mainInterface.getMethods(), coreObject, methodBinds);
+            addMember(coreObject);
 
             return this;
-        }
-
-        private <X extends TypeFragment<? super X>> X deepWrap(final X it) {
-            if (internal || Proxy.isProxyClass(it.getClass()))
-                return it;
-
-            //noinspection unchecked
-            return (X) new Builder<>(true, mainInterface)
-                    .coreObject(it)
-                    .subImplement(reproxy, Polyfill.uncheckedCast(SelfDeclared.class))
-                    .build();
         }
 
         private void populateBinds(
@@ -118,19 +110,18 @@ public final class Spellbind {
                 @SuppressWarnings("rawtypes") TypeFragment implementationSource,
                 Map<String, Invocable<Object>> map
         ) {
+            Method implMethod = null;
             for (Method method : methods) {
                 final int mod = method.getModifiers();
 
-                if (internal || (!method.getDeclaringClass().equals(Specifiable.class)
-                        && !method.getDeclaringClass().equals(SelfDeclared.class))) {
-                    Method implMethod;
-                    if ((
-                            implMethod = findMatchingMethod(method, implementationSource.getClass())
-                    ) != null) {
-                        map.put(methodString(method), Invocable.ofMethodCall(implMethod, deepWrap(implementationSource)));
+                if (internal || (!method.getDeclaringClass().equals(Specifiable.class))) {
+                    if ((implMethod = findMatchingMethod(method, implementationSource.getClass())) != null) {
+                        map.put(methodString(method), Invocable.ofMethodCall(implementationSource, implMethod));
                     }
                 }
             }
+
+            if (implMethod != null) addMember(implementationSource);
         }
 
         public Builder<T> subImplement(@SuppressWarnings("rawtypes") TypeFragment sub) {
@@ -158,8 +149,14 @@ public final class Spellbind {
                             .ifPresent(value -> methodBinds.put(methodString(value), Invocable.ofMethodCall(method, sub))));
 
             interfaces.add(asInterface);
+            addMember(sub);
 
             return this;
+        }
+
+        private void addMember(TypeFragment sub) {
+            SpellCore.findPartialClass(sub.getClass())
+                    .ifPresent(it -> members.put(it, sub));
         }
 
         public Builder<T> classloader(ClassLoader classLoader) {
