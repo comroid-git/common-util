@@ -4,7 +4,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
-import org.comroid.common.Version;
+import org.comroid.common.info.Version;
 
 public interface UpdateChannel {
     String getBaseURL();

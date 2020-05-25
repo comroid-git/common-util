@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-import org.comroid.common.Version;
+import org.comroid.common.info.Version;
 import org.comroid.common.upd8r.model.UpdateChannel;
 import org.comroid.common.upd8r.nginx.model.JsonFileInfo;
 

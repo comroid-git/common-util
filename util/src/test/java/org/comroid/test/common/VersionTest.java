@@ -1,6 +1,6 @@
 package org.comroid.test.common;
 
-import org.comroid.common.Version;
+import org.comroid.common.info.Version;
 
 import org.junit.Assert;
 import org.junit.Test;

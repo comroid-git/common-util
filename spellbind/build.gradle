@@ -8,5 +8,5 @@ ext {
 }
 
 dependencies {
-    implementation project(":util")
+    api project(":util")
 }
