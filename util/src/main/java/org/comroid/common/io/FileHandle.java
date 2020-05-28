@@ -1,5 +1,6 @@
 package org.comroid.common.io;
 
+import org.comroid.common.func.Disposable;
 import org.comroid.common.os.OSBasedFileMover;
 import org.comroid.common.ref.Named;
 import org.jetbrains.annotations.NotNull;
@@ -14,12 +15,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class FileHandle extends File implements Named {
     @NotNull
     @Override
     public final String getName() {
-        return super.getName();
+        return super.getAbsolutePath();
     }
 
     public List<String> getLines() {
