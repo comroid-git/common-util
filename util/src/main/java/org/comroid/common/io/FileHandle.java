@@ -73,7 +73,7 @@ public final class FileHandle extends File implements Named {
         if (name.endsWith(File.separator))
             throw new IllegalArgumentException("File name cannot end with " + File.separator);
 
-        return createSub(name);
+        return createSub(File.separator + name);
     }
 
     public CompletableFuture<FileHandle> move(FileHandle target) {
