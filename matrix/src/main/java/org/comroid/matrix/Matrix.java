@@ -3,6 +3,7 @@ package org.comroid.matrix;
 import org.comroid.common.info.Valued;
 import org.comroid.common.ref.Named;
 import org.comroid.common.ref.Reference;
+import org.comroid.spellbind.model.TypeFragment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,7 +11,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E> {
+public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeFragment {
     boolean containsCoordinate(String coordinate);
 
     @Nullable
