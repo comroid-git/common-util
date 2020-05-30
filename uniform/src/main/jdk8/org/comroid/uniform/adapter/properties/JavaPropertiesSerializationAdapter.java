@@ -1,5 +1,6 @@
 package org.comroid.uniform.adapter.properties;
 
+import org.comroid.common.annotation.Instance;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -11,7 +12,10 @@ import java.io.StringReader;
 import java.util.Properties;
 
 public class JavaPropertiesSerializationAdapter extends SerializationAdapter<Properties, Properties, Properties> {
-    protected JavaPropertiesSerializationAdapter() {
+    public static final @Instance JavaPropertiesSerializationAdapter JavaPropertiesAdapter
+            = new JavaPropertiesSerializationAdapter();
+
+    private JavaPropertiesSerializationAdapter() {
         super("text/x-java-propertie", Properties.class, Properties.class);
     }
 
