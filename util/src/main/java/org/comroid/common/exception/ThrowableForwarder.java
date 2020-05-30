@@ -13,6 +13,10 @@ public final class ThrowableForwarder<T extends Throwable, O extends RuntimeExce
         this.acceptor = acceptor;
     }
 
+    public static <T extends Throwable> ThrowableForwarder<T, RuntimeException> rethrowing() {
+        return new ThrowableForwarder<>(RuntimeException::new);
+    }
+
     public void handle(T throwable) {
         final O result = acceptor.apply(throwable);
 
@@ -20,7 +24,7 @@ public final class ThrowableForwarder<T extends Throwable, O extends RuntimeExce
             throw result;
     }
 
-    public <R> @NotNull R execute(ThrowingSupplier<? extends R, T> supplier) throws O {
+    public <R> @NotNull R request(ThrowingSupplier<? extends R, T> supplier) throws O {
         try {
             return supplier.get();
         } catch (Throwable throwable) {
@@ -31,18 +35,12 @@ public final class ThrowableForwarder<T extends Throwable, O extends RuntimeExce
         throw new AssertionException("Could not handle throwable");
     }
 
-    public <R> @NotNull R execute(ThrowingRunnable<? extends R, T> supplier) throws O {
+    public void execute(ThrowingRunnable<T> supplier) throws O {
         try {
-            return supplier.run();
+            supplier.run();
         } catch (Throwable throwable) {
             //noinspection unchecked
             handle((T) throwable);
         }
-
-        throw new AssertionException("Could not handle throwable");
-    }
-
-    public static <T extends Throwable> ThrowableForwarder<T, RuntimeException> rethrowing() {
-        return new ThrowableForwarder<>(RuntimeException::new);
     }
 }

@@ -83,7 +83,7 @@ public final class FileHandle extends File implements Named {
      * @return Whether the file existed before
      */
     public boolean createIfAbsent(ThrowableForwarder<IOException, RuntimeException> forwarder) {
-        return forwarder.execute(() -> exists() || createNewFile());
+        return forwarder.request(() -> exists() || createNewFile());
     }
 
     public CompletableFuture<FileHandle> move(FileHandle target) {

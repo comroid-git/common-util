@@ -1,5 +1,5 @@
 package org.comroid.common.func;
 
-public interface ThrowingRunnable<R, T extends Throwable> {
-    R run() throws T;
+public interface ThrowingRunnable<T extends Throwable> {
+    void run() throws T;
 }
