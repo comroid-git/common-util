@@ -1,5 +1,6 @@
 package org.comroid.uniform;
 
+import org.comroid.common.io.FileHandle;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
@@ -10,6 +11,10 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     public final DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
     public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
     private final String mimeType;
+
+    public final String getMimeType() {
+        return mimeType;
+    }
 
     protected SerializationAdapter(
             String mimeType, Class<OBJ> objClass, Class<ARR> arrClass
@@ -22,13 +27,17 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType,
             DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType
     ) {
-        this.mimeType   = mimeType;
+        this.mimeType = mimeType;
         this.objectType = objectType;
-        this.arrayType  = arrayType;
+        this.arrayType = arrayType;
     }
 
-    public final String getMimeType() {
-        return mimeType;
+    public static SerializationAdapter<?, ?, ?> autodetect() {
+        throw new UnsupportedOperationException();
+    }
+
+    public final UniNode readFile(FileHandle file) {
+        return createUniNode(file.getLinesContent());
     }
 
     @Override
@@ -86,9 +95,5 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     public abstract UniObjectNode createUniObjectNode(OBJ node);
 
     public abstract UniArrayNode createUniArrayNode(ARR node);
-
-    public static SerializationAdapter<?, ?, ?> autodetect() {
-        throw new UnsupportedOperationException();
-    }
 
 }
