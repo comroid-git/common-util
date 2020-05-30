@@ -1,6 +1,6 @@
 package org.comroid.common.io;
 
-import org.comroid.common.func.Disposable;
+import org.comroid.common.exception.ThrowableForwarder;
 import org.comroid.common.os.OSBasedFileMover;
 import org.comroid.common.ref.Named;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +15,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class FileHandle extends File implements Named {
     @NotNull
@@ -42,6 +41,10 @@ public final class FileHandle extends File implements Named {
     @Override
     public boolean isFile() {
         return getAbsolutePath().endsWith(File.separator);
+    }
+
+    public String getLinesContent() {
+        return String.join("", getLines());
     }
 
     public FileHandle(File file) {
@@ -76,6 +79,13 @@ public final class FileHandle extends File implements Named {
         return createSub(File.separator + name);
     }
 
+    /**
+     * @return Whether the file existed before
+     */
+    public boolean createIfAbsent(ThrowableForwarder<IOException, RuntimeException> forwarder) {
+        return forwarder.execute(() -> exists() || createNewFile());
+    }
+
     public CompletableFuture<FileHandle> move(FileHandle target) {
         return move(target, ForkJoinPool.commonPool());
     }
@@ -93,9 +103,5 @@ public final class FileHandle extends File implements Named {
         if (!isDirectory())
             throw new UnsupportedOperationException(String
                     .format("File { %s } is not a directory", getAbsolutePath()));
-    }
-
-    public String getLinesContent() {
-        return String.join("", getLines());
     }
 }
