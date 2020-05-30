@@ -16,7 +16,7 @@ public class JavaPropertiesSerializationAdapter extends SerializationAdapter<Pro
             = new JavaPropertiesSerializationAdapter();
 
     private JavaPropertiesSerializationAdapter() {
-        super("text/x-java-propertie", Properties.class, Properties.class);
+        super("text/x-java-propertie", Properties.class, null);
     }
 
     @Override
