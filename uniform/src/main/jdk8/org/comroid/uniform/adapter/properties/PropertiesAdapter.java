@@ -1,4 +1,4 @@
-package org.comroid.uniform.adapter.properties.jdk;
+package org.comroid.uniform.adapter.properties;
 
 import org.comroid.uniform.node.UniObjectNode;
 import org.jetbrains.annotations.NotNull;

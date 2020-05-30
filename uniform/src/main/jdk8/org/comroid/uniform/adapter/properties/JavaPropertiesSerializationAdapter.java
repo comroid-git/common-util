@@ -1,4 +1,4 @@
-package org.comroid.uniform.adapter.properties.jdk;
+package org.comroid.uniform.adapter.properties;
 
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
