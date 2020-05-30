@@ -7,6 +7,8 @@ import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.uniform.node.UniValueNode;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
     public final DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
     public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
@@ -20,6 +22,8 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
             String mimeType, Class<OBJ> objClass, Class<ARR> arrClass
     ) {
         this(mimeType, new DataStructureType.Obj<>(objClass), new DataStructureType.Arr<>(arrClass));
+
+        Objects.requireNonNull(objClass, "Object class cannot be null");
     }
 
     protected SerializationAdapter(
