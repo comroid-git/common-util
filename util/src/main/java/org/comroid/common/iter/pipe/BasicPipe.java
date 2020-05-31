@@ -1,7 +1,7 @@
 package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.func.bi.Junction;
+import org.comroid.common.func.Junction;
 import org.comroid.common.iter.ReferenceIndex;
 import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.Reference;

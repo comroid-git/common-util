@@ -1,4 +1,4 @@
-package org.comroid.common.func.bi;
+package org.comroid.common.func;
 
 import java.util.function.Function;
 

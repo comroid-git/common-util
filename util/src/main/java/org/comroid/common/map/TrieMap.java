@@ -1,7 +1,7 @@
 package org.comroid.common.map;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.func.bi.Junction;
+import org.comroid.common.func.Junction;
 import org.comroid.common.ref.OutdateableReference;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
