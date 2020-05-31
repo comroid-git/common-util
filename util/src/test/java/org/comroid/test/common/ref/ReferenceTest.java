@@ -57,8 +57,8 @@ public class ReferenceTest {
 
     @Test
     public void testComplexProcessor() {
-        final Reference.Settable<String> ref = Reference.Settable.create("abc");
-        final Processor<String> processor = ref.process()
+        Reference.Settable<String> ref = Reference.Settable.create("abc");
+        Processor<String> processor = ref.process()
                 .flatMap(Reference::constant)
                 .map(str -> str.chars()
                         .mapToObj(String::valueOf)
