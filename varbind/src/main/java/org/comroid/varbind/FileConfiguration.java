@@ -10,11 +10,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class FileConfiguration extends DataContainerBase<Object> implements FileProcessor {
-    private final Collection<AutoCloseable> children = new ArrayList<>();
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final FileHandle file;
 
@@ -29,11 +26,6 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
     @Override
     public final FileHandle getFile() {
         return file;
-    }
-
-    @Override
-    public final Collection<AutoCloseable> getChildren() {
-        return children;
     }
 
     public FileConfiguration(
@@ -68,10 +60,5 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
         final UniNode data = serializationAdapter.createUniNode(file.getLinesContent());
 
         updateFrom(data.asObjectNode());
-    }
-
-    @Override
-    public final void addChildren(AutoCloseable child) {
-        children.add(child);
     }
 }
