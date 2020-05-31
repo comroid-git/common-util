@@ -241,6 +241,10 @@ public interface Invocable<T> {
         protected Magic() {
             this.underlying = Invocable.ofMethodCall(ReflectionHelper.externalMethodsAbove(Magic.class, getClass())
                     .findAny()
+                    .map(it -> {
+                        it.setAccessible(true);
+                        return it;
+                    })
                     .orElseThrow(() -> new NoSuchElementException("Could not find matching method")), this);
         }
 
