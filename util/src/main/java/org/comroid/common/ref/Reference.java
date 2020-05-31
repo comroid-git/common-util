@@ -113,6 +113,10 @@ public interface Reference<T> extends Supplier<T> {
 
             return get();
         }
+
+        default T setFrom(Reference<T> reference) {
+            return set(reference.get());
+        }
     }
 
     @Internal
