@@ -243,7 +243,7 @@ public final class ReflectionHelper {
     }
 
     public static Stream<Method> externalMethodsAbove(Class<?> above, Class<?> startingFrom) {
-        return Arrays.stream(above.getMethods())
+        return Arrays.stream(startingFrom.getMethods())
                 .filter(mtd -> !mtd.getDeclaringClass().isAssignableFrom(above));
     }
 }
