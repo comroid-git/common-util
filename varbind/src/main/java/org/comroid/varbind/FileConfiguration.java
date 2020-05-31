@@ -38,6 +38,13 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
 
     public FileConfiguration(
             SerializationAdapter<?, ?, ?> serializationAdapter,
+            FileHandle file
+    ) {
+        this(serializationAdapter, null, file);
+    }
+
+    public FileConfiguration(
+            SerializationAdapter<?, ?, ?> serializationAdapter,
             @Nullable Class<? extends FileConfiguration> containingClass,
             FileHandle file
     ) {
