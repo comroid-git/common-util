@@ -67,7 +67,7 @@
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger</artifactId>
       <version>0.5.1</version>
-      <scope>runtime</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.google.flogger</groupId>
