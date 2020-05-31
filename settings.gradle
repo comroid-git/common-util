@@ -17,3 +17,6 @@ include(':dreadpool')
 // other tools
 include(':spellbind')
 include(':upd8r')
+
+// apitools combination package
+include('apitools')

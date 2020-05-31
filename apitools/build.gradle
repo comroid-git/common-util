@@ -1,0 +1,13 @@
+version '0.10.0-SNAPSHOT'
+
+ext {
+    projectDescription = "Common Tools for Libaries"
+}
+
+dependencies {
+    api project(':util')
+    api project(':uniform')
+    api project(':varbind')
+    api project(':restless')
+    api project(':listnr')
+}

@@ -8,10 +8,10 @@
   <!-- do_not_remove: published-with-gradle-metadata -->
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.comroid</groupId>
-  <artifactId>commandline</artifactId>
-  <version>0.10.1-SNAPSHOT</version>
+  <artifactId>restless</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
   <name>common-util</name>
-  <description>Command Line Tools</description>
+  <description>Efficient &amp; simple REST solutions</description>
   <url>https://github.com/comroid-git/common-util</url>
   <inceptionYear>2020</inceptionYear>
   <licenses>
@@ -35,14 +35,32 @@
   <dependencies>
     <dependency>
       <groupId>org.comroid</groupId>
-      <artifactId>common-util</artifactId>
-      <version>1.5.0-SNAPSHOT</version>
+      <artifactId>listnr</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>dreadpool</artifactId>
+      <version>0.10.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.google.flogger</groupId>
       <artifactId>flogger</artifactId>
       <version>0.5.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>common-util</artifactId>
+      <version>1.5.0-SNAPSHOT</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>spellbind</artifactId>
+      <version>0.20.0-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

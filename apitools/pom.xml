@@ -8,10 +8,10 @@
   <!-- do_not_remove: published-with-gradle-metadata -->
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.comroid</groupId>
-  <artifactId>commandline</artifactId>
-  <version>0.10.1-SNAPSHOT</version>
+  <artifactId>apitools</artifactId>
+  <version>0.10.0-SNAPSHOT</version>
   <name>common-util</name>
-  <description>Command Line Tools</description>
+  <description>Common Tools for Libaries</description>
   <url>https://github.com/comroid-git/common-util</url>
   <inceptionYear>2020</inceptionYear>
   <licenses>
@@ -37,6 +37,30 @@
       <groupId>org.comroid</groupId>
       <artifactId>common-util</artifactId>
       <version>1.5.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>uniform</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>varbind</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>restless</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.comroid</groupId>
+      <artifactId>listnr</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
