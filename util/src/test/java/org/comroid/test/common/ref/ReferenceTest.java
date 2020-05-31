@@ -9,6 +9,22 @@ import java.util.stream.Collectors;
 
 public class ReferenceTest {
     @Test
+    public void testWrap() {
+        Assert.assertTrue(Reference.constant("anything").wrap().isPresent());
+        Assert.assertFalse(Reference.empty().wrap().isPresent());
+    }
+
+    @Test
+    public void testRequireNonNull() {
+        Reference.constant("anything").requireNonNull();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testRequireNonNullThrows() {
+        Reference.empty().requireNonNull();
+    }
+
+    @Test
     public void testProcessorMap() {
         Reference.Settable<String> ref = Reference.Settable.create("abc");
         Processor<String> charCodes = ref.process()
