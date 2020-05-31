@@ -10,4 +10,5 @@ dependencies {
     api project(':varbind')
     api project(':restless')
     api project(':listnr')
+    api 'com.google.flogger:flogger:0.5.1'
 }
