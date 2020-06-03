@@ -25,14 +25,6 @@ public interface TrieMap<K, V> extends Map<K, V> {
         return new Basic<>(Junction.identity(), false);
     }
 
-    Stage<V> getStage(char[] chars, int cIndex);
-
-    @Override
-    @Contract
-    default boolean containsKey(Object key) {
-        return get(key) != null;
-    }
-
     @Override
     default void putAll(@NotNull Map<? extends K, ? extends V> map) {
         map.forEach(this::put);
@@ -113,9 +105,20 @@ public interface TrieMap<K, V> extends Map<K, V> {
         }
 
         private Optional<Stage<V>> getStage(char[] chars, int cIndex) {
-            if (cIndex <= chars.length)
+            if (cIndex < chars.length)
                 return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null));
             else return Optional.empty();
+        }
+
+        public boolean containsKey(char[] chars, int cIndex) {
+            if (cIndex >= chars.length)
+                return false;
+            if (cIndex == chars.length - 1)
+                return storage.containsKey(chars[cIndex]);
+
+            return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
+                    .map(stage -> stage.containsKey(chars, cIndex + 1))
+                    .orElse(false);
         }
     }
 
@@ -135,9 +138,17 @@ public interface TrieMap<K, V> extends Map<K, V> {
             this.useKeyCache = useKeyCache;
         }
 
+        public Stage<V> getStage(String converted, char[] chars, int cIndex) {
+            return baseStage.getStage(chars, cIndex).orElseGet(() -> {
+                final Stage<V> newStage = new Stage<>(converted);
+                baseStage.storage.put(chars[0], newStage);
+                return newStage.getStage(chars, 1).orElseThrow(AssertionError::new);
+            });
+        }
+
         @Override
-        public Stage<V> getStage(char[] chars, int cIndex) {
-            return baseStage.getStage(chars, cIndex).orElse(null);
+        public boolean containsKey(Object key) {
+            return baseStage.containsKey(convertKey(key), 0);
         }
 
         @Override
@@ -152,7 +163,12 @@ public interface TrieMap<K, V> extends Map<K, V> {
 
         @Override
         public V get(Object key) {
-            return baseStage.getValue(convertKey(key), 0).orElse(null);
+            final char[] convertKey = convertKey(key);
+
+            if (convertKey.length == 0)
+                return null;
+
+            return baseStage.getValue(convertKey, 0).orElse(null);
         }
 
         @Nullable
@@ -210,14 +226,20 @@ public interface TrieMap<K, V> extends Map<K, V> {
 
             //noinspection unchecked
             final K key = (K) atKey;
-            final char[] converted = cacheKey(atKey).toCharArray();
+            final char[] converted = convertKey(atKey);
             final char baseKey = converted[0];
+            final String convertedKey = new String(converted);
 
             IntStream.range(0, converted.length)
                     .mapToObj(end -> Arrays.copyOfRange(converted, 0, end))
-                    .forEachOrdered(stageKey -> putStageInto(getStage(stageKey, 0), stageKey, 0));
+                    .filter(chars -> !containsKey(new String(chars)))
+                    .forEachOrdered(stageKey -> {
+                        if (stageKey.length == 0)
+                            baseStage.storage.put(converted[0], new Stage<>(convertedKey));
+                        else putStageInto(getStage(new String(stageKey), stageKey, 0), stageKey, 0);
+                    });
 
-            return containsKey(atKey);
+            return containsKey(convertedKey);
         }
 
         private void putStageInto(Stage<V> into, char[] target, int cIndex) {
@@ -237,6 +259,9 @@ public interface TrieMap<K, V> extends Map<K, V> {
         }
 
         private String cacheKey(Object key) {
+            if (key instanceof String)
+                return (String) key;
+
             final K keyCast = Polyfill.uncheckedCast(key);
 
             return useKeyCache
