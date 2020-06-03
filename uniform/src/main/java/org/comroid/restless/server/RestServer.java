@@ -55,7 +55,7 @@ public class RestServer {
             ) {
                 String data = br.lines().collect(Collectors.joining());
                 node = data.isEmpty()
-                        ? rest.getSerializationAdapter().createUniArrayNode()
+                        ? rest.getSerializationAdapter().createUniObjectNode()
                         : rest.getSerializationAdapter().createUniNode(data);
             }
 
