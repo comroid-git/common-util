@@ -89,6 +89,9 @@ public final class FileHandle extends File implements Named {
     }
 
     public boolean validateDir() {
+        final FileHandle parent = getParentFile();
+        if (!parent.exists() && !parent.mkdirs())
+            throw new UnsupportedOperationException("Could not create parent directory: " + parent.getAbsolutePath());
         if (exists() && !super.isDirectory())
             throw new UnsupportedOperationException("File is not a directory");
         if (isDirectory() && !exists() && !mkdirs())
