@@ -93,7 +93,7 @@ public final class FileHandle extends File implements Named {
         if (!parent.exists() && !parent.mkdirs())
             throw new UnsupportedOperationException("Could not create parent directory: " + parent.getAbsolutePath());
         if (exists() && !super.isDirectory())
-            throw new UnsupportedOperationException("File is not a directory");
+            throw new UnsupportedOperationException("File is not a directory: " + getAbsolutePath());
         if (isDirectory() && !exists() && !mkdirs())
             throw new UnsupportedOperationException("Could not create directory: " + getAbsolutePath());
 
