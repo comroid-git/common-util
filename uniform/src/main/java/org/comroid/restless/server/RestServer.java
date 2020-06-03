@@ -48,32 +48,45 @@ public class RestServer {
 
             logger.at(Level.INFO).log("Handling %s Request @ %s", exchange.getRequestMethod(), requestURI);
 
-            UniNode node;
+            UniNode node = null;
             try (
                     InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
                     BufferedReader br = new BufferedReader(isr)
             ) {
+
                 String data = br.lines().collect(Collectors.joining());
-                node = data.isEmpty()
-                        ? rest.getSerializationAdapter().createUniObjectNode()
-                        : rest.getSerializationAdapter().createUniNode(data);
+                System.out.println("data.isEmpty() = " + data.isEmpty());
+
+                if (data.isEmpty())
+                    node = rest.getSerializationAdapter().createUniObjectNode();
+                else node = rest.getSerializationAdapter().createUniNode(data);
+
+                System.out.println("end of if");
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
 
+            logger.at(Level.INFO).log("Looking for matching endpoint...");
             Optional<ServerEndpoint> handler = endpoints.stream()
                     .filter(endpoint -> endpoint.test(requestURI))
                     .findFirst();
 
             if (handler.isPresent()) {
                 final ServerEndpoint sep = handler.get();
+                logger.at(Level.INFO).log("Endpoint found: %s", sep);
 
                 if (Arrays.binarySearch(sep.allowedMethods(), REST.Method.valueOf(exchange.getRequestMethod())) == -1) {
+                    logger.at(Level.INFO).log("Method not allowed for endpoint: %s", exchange.getRequestMethod());
                     exchange.sendResponseHeaders(METHOD_NOT_ALLOWED, 0);
                     return;
                 }
 
                 final String[] args = sep.extractArgs(requestURI);
+                logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
 
+                logger.at(Level.INFO).log("Executing Handler...");
                 sep.getHandler().handle(node, args);
+                logger.at(Level.INFO).log("Handler Finished!");
             } else {
                 exchange.sendResponseHeaders(NOT_FOUND, 0);
             }

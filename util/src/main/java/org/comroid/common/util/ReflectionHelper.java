@@ -1,5 +1,10 @@
 package org.comroid.common.util;
 
+import org.comroid.common.Polyfill;
+import org.comroid.common.annotation.Instance;
+import org.comroid.common.iter.Span;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.reflect.*;
@@ -8,15 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.comroid.common.annotation.Instance;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.iter.Span;
-
-import org.jetbrains.annotations.Nullable;
-
-import static java.lang.reflect.Modifier.isFinal;
-import static java.lang.reflect.Modifier.isPublic;
-import static java.lang.reflect.Modifier.isStatic;
+import static java.lang.reflect.Modifier.*;
 
 public final class ReflectionHelper {
     public static <T> T instance(Class<T> type, Object... args) throws RuntimeException, AssertionError {
@@ -27,14 +24,22 @@ public final class ReflectionHelper {
         }
 
         final Class<?>[] types = types(args);
-        Constructor<T> constructor =
-                findConstructor(type, types).orElseThrow(() -> new AssertionError(String.format("Could " + "not" + " find " +
-                                "constructor for class %s with types %s",
-                type.getName(),
-                Arrays.toString(types)
-        )));
 
-        return instance(constructor, args);
+        return Arrays.stream(type.getConstructors())
+                .filter(constr -> constr.getParameterCount() == types.length)
+                .filter(constr -> {
+                    final Class<?>[] params = constr.getParameterTypes();
+
+                    for (int i = 0; i < types.length; i++)
+                        if (!params[i].isAssignableFrom(types[i]))
+                            return false;
+
+                    return true;
+                })
+                .findAny()
+                .map(constr -> instance(constr, args))
+                .map(Polyfill::<T>uncheckedCast)
+                .orElseThrow(() -> new NoSuchElementException("No suitable constructor found in class: " + type));
     }
 
     public static <T> Optional<T> instanceField(Class<T> type) {
@@ -116,7 +121,7 @@ public final class ReflectionHelper {
             boolean forceAccess,
             @Nullable Class<? extends Annotation> withAnnotation
     ) {
-        final Field[] fields    = inClass.getFields();
+        final Field[] fields = inClass.getFields();
         final HashSet<T> values = new HashSet<>(fields.length);
 
         for (Field field : fields) {
