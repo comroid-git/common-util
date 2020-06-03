@@ -121,7 +121,7 @@ public final class REST<D> {
     }
 
     public Request<UniObjectNode> request() {
-        return new Request<>(this, Invocable.paramReturning(UniObjectNode.class));
+        return new Request<>(Invocable.paramReturning(UniObjectNode.class));
     }
 
     public <T extends DataContainer<? extends D>> Request<T> request(Class<T> type) {
@@ -135,7 +135,7 @@ public final class REST<D> {
     }
 
     public <T> Request<T> request(Invocable<T> creator) {
-        return new Request<>(this, creator);
+        return new Request<>(creator);
     }
 
     public enum Method {
@@ -215,7 +215,6 @@ public final class REST<D> {
     }
 
     public final class Request<T> {
-        private final REST rest;
         private final Header.List headers;
         private final Invocable<T> tProducer;
         private final CompletableFuture<REST.Response> execution = new CompletableFuture<>();
@@ -223,10 +222,6 @@ public final class REST<D> {
         private Method method;
         private String body;
         private int expectedCode = HTTPStatusCodes.OK;
-
-        public final REST getREST() {
-            return rest;
-        }
 
         public final CompleteEndpoint getEndpoint() {
             return endpoint;
@@ -244,8 +239,7 @@ public final class REST<D> {
             return headers;
         }
 
-        public Request(REST rest, Invocable<T> tProducer) {
-            this.rest = rest;
+        public Request(Invocable<T> tProducer) {
             this.tProducer = tProducer;
             this.headers = new Header.List();
         }
@@ -297,7 +291,7 @@ public final class REST<D> {
             if (!execution.isDone()) {
                 logger.at(Level.FINE)
                         .log("Executing request %s @ %s");
-                rest.ratelimiter.apply(endpoint.getEndpoint(), this)
+                getREST().ratelimiter.apply(endpoint.getEndpoint(), this)
                         .thenCompose(request -> httpAdapter.call(request, serializationAdapter.getMimeType()))
                         .thenAcceptAsync(response -> {
                             if (response.statusCode != expectedCode) {
