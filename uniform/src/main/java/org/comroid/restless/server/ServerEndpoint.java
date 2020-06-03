@@ -17,5 +17,15 @@ public interface ServerEndpoint extends RestEndpoint {
         default Pattern getPattern() {
             return getUnderlyingEndpoint().getPattern();
         }
+
+        @Override
+        default String getUrlBase() {
+            return getUnderlyingEndpoint().getUrlBase();
+        }
+
+        @Override
+        default String getUrlExtension() {
+            return getUnderlyingEndpoint().getUrlExtension();
+        }
     }
 }
