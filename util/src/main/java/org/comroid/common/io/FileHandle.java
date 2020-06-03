@@ -1,7 +1,6 @@
 package org.comroid.common.io;
 
-import org.comroid.common.exception.ThrowableForwarder;
-import org.comroid.common.os.OSBasedFileMover;
+import jdk.internal.joptsimple.internal.Strings;
 import org.comroid.common.ref.Named;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,99 +8,90 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
 
 public final class FileHandle extends File implements Named {
+    private final boolean dir;
+
     @NotNull
     @Override
-    public final String getName() {
-        return super.getAbsolutePath();
+    public String getName() {
+        return getAbsolutePath();
+    }
+
+    @Override
+    public boolean isDirectory() {
+        return dir || super.isDirectory();
+    }
+
+    @Override
+    public FileHandle getParentFile() {
+        return new FileHandle(super.getParentFile());
     }
 
     public List<String> getLines() {
-        List<String> yields;
+        final List<String> yields = new ArrayList<>();
 
         try (
-                FileReader reader = new FileReader(this);
-                BufferedReader bufferedReader = new BufferedReader(reader)
+                FileReader fr = new FileReader(this);
+                BufferedReader br = new BufferedReader(fr)
         ) {
-            yields = bufferedReader.lines().collect(Collectors.toList());
+            br.lines().forEachOrdered(yields::add);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        return Collections.unmodifiableList(yields);
+        return yields;
     }
 
-    @Override
-    public boolean isFile() {
-        return getAbsolutePath().endsWith(File.separator);
-    }
-
-    public String getLinesContent() {
-        return String.join("", getLines());
+    public String getContent() {
+        return Strings.join(getLines(), "");
     }
 
     public FileHandle(File file) {
-        this(file.getAbsolutePath());
+        this(file.getAbsolutePath(), file.isDirectory());
     }
 
-    public FileHandle(String path) {
-        super(path);
+    public FileHandle(String absolutePath) {
+        this(absolutePath, absolutePath.endsWith(File.separator));
+    }
+
+    public FileHandle(String absolutePath, boolean dir) {
+        super(absolutePath);
+
+        this.dir = dir;
+    }
+
+    public FileHandle createSub(String name, boolean dir) {
+        if (!validateDir())
+            return null;
+
+        FileHandle created = new FileHandle(getAbsolutePath() + name, dir);
+        if (dir && !created.validateDir())
+            throw new UnsupportedOperationException("Could not validate directory: " + created.getAbsolutePath());
+
+        return created;
+    }
+
+    public boolean validateDir() {
+        if (exists() && !super.isDirectory())
+            throw new UnsupportedOperationException("File is not a directory!");
+        if (isDirectory() && !exists() && !mkdirs())
+            throw new UnsupportedOperationException("Could not create directory: " + getAbsolutePath());
+
+        return isDirectory();
+    }
+
+    @Override
+    public boolean mkdir() {
+        return mkdirs();
     }
 
     @Override
     public boolean mkdirs() {
-        if (isFile())
-            return new FileHandle(getParent()).mkdirs();
-        else return super.mkdirs();
-    }
-
-    public FileHandle createSub(String name) {
-        validateDir();
-
-        return new FileHandle(getAbsolutePath() + name);
-    }
-
-    public FileHandle createSubDir(String name) throws UnsupportedOperationException {
-        return createSub(name.endsWith(File.separator) ? name : name + File.separator);
-    }
-
-    public FileHandle createSubFile(String name) throws UnsupportedOperationException {
-        if (name.endsWith(File.separator))
-            throw new IllegalArgumentException("File name cannot end with " + File.separator);
-
-        return createSub(File.separator + name);
-    }
-
-    /**
-     * @return Whether the file existed before
-     */
-    public boolean createIfAbsent(ThrowableForwarder<IOException, RuntimeException> forwarder) {
-        return forwarder.request(() -> exists() || createNewFile());
-    }
-
-    public CompletableFuture<FileHandle> move(FileHandle target) {
-        return move(target, ForkJoinPool.commonPool());
-    }
-
-    public CompletableFuture<FileHandle> move(FileHandle target, Executor executor) {
         if (isDirectory())
-            return OSBasedFileMover.current.moveDirectory(this, target, executor);
-        else if (isFile())
-            return OSBasedFileMover.current.moveFile(this, target, executor);
-
-        throw new AssertionError("Unknown File Category");
-    }
-
-    public void validateDir() throws UnsupportedOperationException {
-        if (!isDirectory())
-            throw new UnsupportedOperationException(String
-                    .format("File { %s } is not a directory", getAbsolutePath()));
+            return super.mkdirs();
+        else return getParentFile().mkdirs();
     }
 }
