@@ -54,8 +54,11 @@ public class RestServer {
                     BufferedReader br = new BufferedReader(isr)
             ) {
                 String data = br.lines().collect(Collectors.joining());
-                node = rest.getSerializationAdapter().createUniNode(data);
+                node = data.isEmpty()
+                        ? rest.getSerializationAdapter().createUniArrayNode()
+                        : rest.getSerializationAdapter().createUniNode(data);
             }
+
             Optional<ServerEndpoint> handler = endpoints.stream()
                     .filter(endpoint -> endpoint.test(requestURI))
                     .findFirst();
