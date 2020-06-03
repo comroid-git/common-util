@@ -101,11 +101,6 @@ public final class FileHandle extends File implements Named {
     }
 
     @Override
-    public boolean mkdir() {
-        return validateDir() && mkdirs();
-    }
-
-    @Override
     public boolean mkdirs() {
         if (isDirectory())
             return super.mkdirs();
