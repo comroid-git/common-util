@@ -101,7 +101,8 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
 
     @Override
     public synchronized void storeData() throws IOException {
-        final UniArrayNode array = seriLib.createUniArrayNode(null);
+        logger.at(Level.INFO).log("Storing data in file %s", file);
+        final UniArrayNode array = seriLib.createUniArrayNode();
 
         stream().filter(ref -> !ref.isNull())
                 .forEach(ref -> {
@@ -122,6 +123,8 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
 
     @Override
     public synchronized void reloadData() throws IOException {
+        logger.at(Level.INFO).log("Reading File %s...", file);
+
         if (!file.validateExists())
             throw new UnsupportedOperationException("Cannot create file: " + file);
 

@@ -54,7 +54,7 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
     }
 
     default UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter) {
-        return toObjectNode(serializationAdapter.createUniObjectNode(null));
+        return toObjectNode(serializationAdapter.createUniObjectNode());
     }
 
     UniObjectNode toObjectNode(UniObjectNode node);

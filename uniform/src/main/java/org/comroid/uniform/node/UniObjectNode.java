@@ -1,5 +1,7 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.Polyfill;
+import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -94,7 +96,7 @@ public final class UniObjectNode extends UniNode {
 
     @Override
     public @NotNull UniObjectNode putObject(String key) {
-        final UniObjectNode objectNode = serializationAdapter.createUniObjectNode(null);
+        final UniObjectNode objectNode = serializationAdapter.createUniObjectNode();
 
         adapter.put(key, objectNode.getBaseNode());
         return objectNode;
@@ -102,7 +104,7 @@ public final class UniObjectNode extends UniNode {
 
     @Override
     public @NotNull UniArrayNode putArray(String key) {
-        final UniArrayNode arrayNode = serializationAdapter.createUniArrayNode(null);
+        final UniArrayNode arrayNode = serializationAdapter.createUniArrayNode();
 
         adapter.put(key, arrayNode.getBaseNode());
         return arrayNode;

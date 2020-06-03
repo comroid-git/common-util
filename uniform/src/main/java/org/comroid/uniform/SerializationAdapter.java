@@ -1,6 +1,8 @@
 package org.comroid.uniform;
 
+import org.comroid.common.Polyfill;
 import org.comroid.common.io.FileHandle;
+import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
@@ -96,7 +98,15 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
 
     public abstract UniNode parse(@Nullable String data);
 
+    public UniObjectNode createUniObjectNode() {
+        return createUniObjectNode(Polyfill.uncheckedCast(ReflectionHelper.instance(objectType.typeClass())));
+    }
+
     public abstract UniObjectNode createUniObjectNode(OBJ node);
+
+    public UniArrayNode createUniArrayNode() {
+        return createUniArrayNode(Polyfill.uncheckedCast(ReflectionHelper.instance(arrayType.typeClass())));
+    }
 
     public abstract UniArrayNode createUniArrayNode(ARR node);
 

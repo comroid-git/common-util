@@ -82,7 +82,7 @@ public final class UniArrayNode extends UniNode {
 
     @Override
     public @NotNull UniObjectNode putObject(int index) {
-        final UniObjectNode objectNode = serializationAdapter.createUniObjectNode(null);
+        final UniObjectNode objectNode = serializationAdapter.createUniObjectNode();
 
         adapter.add(index, objectNode.getBaseNode());
         return objectNode;
@@ -90,7 +90,7 @@ public final class UniArrayNode extends UniNode {
 
     @Override
     public @NotNull UniArrayNode putArray(int index) {
-        final UniArrayNode arrayNode = serializationAdapter.createUniArrayNode(null);
+        final UniArrayNode arrayNode = serializationAdapter.createUniArrayNode();
 
         adapter.add(index, arrayNode.getBaseNode());
         return arrayNode;
