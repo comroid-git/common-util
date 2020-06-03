@@ -58,7 +58,7 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
 
     @Override
     public final void reloadData() throws IOException {
-        final UniNode data = serializationAdapter.createUniNode(file.getLinesContent());
+        final UniNode data = serializationAdapter.createUniNode(file.getContent());
 
         updateFrom(data.asObjectNode());
     }

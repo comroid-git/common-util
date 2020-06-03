@@ -41,7 +41,7 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     }
 
     public final UniNode readFile(FileHandle file) {
-        return createUniNode(file.getLinesContent());
+        return createUniNode(file.getContent());
     }
 
     @Override
