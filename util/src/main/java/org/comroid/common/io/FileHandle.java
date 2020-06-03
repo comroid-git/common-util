@@ -81,7 +81,7 @@ public final class FileHandle extends File implements Named {
         if (dir && !name.endsWith(File.separator))
             name += File.separator;
 
-        FileHandle created = new FileHandle(getAbsolutePath() + name, dir);
+        FileHandle created = new FileHandle(getAbsolutePath() + File.separator + name, dir);
         if (dir && !created.validateDir())
             throw new UnsupportedOperationException("Could not validate directory: " + created.getAbsolutePath());
 
