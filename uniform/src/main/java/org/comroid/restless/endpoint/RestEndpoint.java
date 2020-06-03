@@ -20,10 +20,11 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
 
     String getUrlExtension();
 
+    String[] getRegExpGroups();
+
     default Pattern getPattern() {
         // todo: Inspect overhead
-        return StaticCache.access(this, "pattern",
-                () -> Pattern.compile(getFullUrl().replace("%s", ".*")));
+        return StaticCache.access(this, "pattern", this::buildUrlPattern);
     }
 
     default List<? extends NamedGroup> getGroups() {
@@ -34,6 +35,9 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
         return getUrlExtension().split("%s").length - 1;
     }
 
+    /**
+     * @return The complete, unformatted URL.
+     */
     default String getFullUrl() {
         return getUrlBase() + getUrlExtension();
     }
@@ -131,5 +135,14 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
 
             return yield;
         });
+    }
+
+    default Pattern buildUrlPattern() {
+        final String[] regExpGroups = getRegExpGroups();
+
+        if (regExpGroups != null && regExpGroups.length > 0)
+            //noinspection RedundantCast -> false positive
+            return Pattern.compile(String.format(getFullUrl(), (Object[]) regExpGroups));
+        return Pattern.compile(getFullUrl().replace("%s", ".*"));
     }
 }
