@@ -399,5 +399,9 @@ public final class REST<D> {
             //noinspection unchecked
             return (T) cache.requireNonNull(id, "Assert failed: Cache is still missing key " + id);
         }
+
+        public REST<D> getREST() {
+            return REST.this;
+        }
     }
 }
