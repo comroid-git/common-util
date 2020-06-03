@@ -90,11 +90,11 @@ public class RestServer {
                 final String data = response.getBody().toString();
 
                 try (
-                    OutputStreamWriter osw = new OutputStreamWriter(exchange.getResponseBody());
+                        OutputStreamWriter osw = new OutputStreamWriter(exchange.getResponseBody())
                 ) {
                     osw.append(data);
                 } finally {
-                    logger.at(Level.INFO).log("Sending Response...");
+                    logger.at(Level.INFO).log("Sending Response code %d with length %d...", response.getStatusCode(), data.length());
                     exchange.sendResponseHeaders(response.getStatusCode(), data.length());
                 }
             } else {
