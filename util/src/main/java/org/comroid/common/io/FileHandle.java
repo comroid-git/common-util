@@ -1,6 +1,6 @@
 package org.comroid.common.io;
 
-import jdk.internal.joptsimple.internal.Strings;
+import org.comroid.common.os.OSBasedFileMover;
 import org.comroid.common.ref.Named;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,6 +10,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 public final class FileHandle extends File implements Named {
     private final boolean dir;
@@ -46,7 +49,7 @@ public final class FileHandle extends File implements Named {
     }
 
     public String getContent() {
-        return Strings.join(getLines(), "");
+        return String.join("", getLines());
     }
 
     public FileHandle(File file) {
@@ -73,7 +76,7 @@ public final class FileHandle extends File implements Named {
 
     public FileHandle createSub(String name, boolean dir) {
         if (!validateDir())
-            return null;
+            throw new UnsupportedOperationException("Could not validate directory: " + getAbsolutePath());
 
         if (dir && !name.endsWith(File.separator))
             name += File.separator;
@@ -104,5 +107,15 @@ public final class FileHandle extends File implements Named {
         if (isDirectory())
             return super.mkdirs();
         else return getParentFile().mkdirs();
+    }
+
+    public CompletableFuture<FileHandle> move(FileHandle target) {
+        return move(target, ForkJoinPool.commonPool());
+    }
+
+    public CompletableFuture<FileHandle> move(FileHandle target, Executor executor) {
+        if (isDirectory())
+            return OSBasedFileMover.current.moveDirectory(this, target, executor);
+        else return OSBasedFileMover.current.moveFile(this, target, executor);
     }
 }
