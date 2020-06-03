@@ -90,7 +90,7 @@ public final class FileHandle extends File implements Named {
 
     public boolean validateDir() {
         if (exists() && !super.isDirectory())
-            throw new UnsupportedOperationException("File is not a directory!");
+            throw new UnsupportedOperationException("File is not a directory");
         if (isDirectory() && !exists() && !mkdirs())
             throw new UnsupportedOperationException("Could not create directory: " + getAbsolutePath());
 
@@ -99,7 +99,7 @@ public final class FileHandle extends File implements Named {
 
     @Override
     public boolean mkdir() {
-        return mkdirs();
+        return validateDir() && mkdirs();
     }
 
     @Override
