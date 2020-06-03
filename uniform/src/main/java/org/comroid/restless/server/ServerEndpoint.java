@@ -1,5 +1,6 @@
 package org.comroid.restless.server;
 
+import org.comroid.restless.REST;
 import org.comroid.restless.endpoint.RestEndpoint;
 
 import java.util.regex.Pattern;
@@ -9,6 +10,8 @@ public interface ServerEndpoint extends RestEndpoint {
     Pattern getPattern();
 
     EndpointHandler getHandler();
+
+    REST.Method[] allowedMethods();
 
     interface Underlying extends ServerEndpoint {
         RestEndpoint getUnderlyingEndpoint();

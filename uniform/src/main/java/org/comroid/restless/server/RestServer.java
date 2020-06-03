@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.comroid.restless.HTTPStatusCodes.METHOD_NOT_ALLOWED;
 import static org.comroid.restless.HTTPStatusCodes.NOT_FOUND;
 
 public class RestServer {
@@ -49,6 +50,12 @@ public class RestServer {
 
             if (handler.isPresent()) {
                 final ServerEndpoint sep = handler.get();
+
+                if (Arrays.binarySearch(sep.allowedMethods(), REST.Method.valueOf(exchange.getRequestMethod())) == -1) {
+                    exchange.sendResponseHeaders(METHOD_NOT_ALLOWED, 0);
+                    return;
+                }
+
                 final String[] args = sep.extractArgs(requestURI);
 
                 sep.getHandler().handle(node, args);
