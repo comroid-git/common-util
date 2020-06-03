@@ -30,5 +30,10 @@ public interface ServerEndpoint extends RestEndpoint {
         default String getUrlExtension() {
             return getUnderlyingEndpoint().getUrlExtension();
         }
+
+        @Override
+        default String[] getRegExpGroups() {
+            return getUnderlyingEndpoint().getRegExpGroups();
+        }
     }
 }

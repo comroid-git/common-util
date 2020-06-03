@@ -27,10 +27,6 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
         return StaticCache.access(this, "pattern", this::buildUrlPattern);
     }
 
-    default List<? extends NamedGroup> getGroups() {
-        return Collections.emptyList();
-    }
-
     default int getParameterCount() {
         return getUrlExtension().split("%s").length - 1;
     }
@@ -88,7 +84,7 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
     @Override
     default boolean test(String url) {
         return getPattern().matcher(url)
-                .replaceAll(replacer(getGroups()))
+                .replaceAll(replacer(getRegExpGroups()))
                 .equals(url);
     }
 
@@ -102,14 +98,14 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
 
     default String[] extractArgs(String requestUrl) {
         final Matcher matcher = getPattern().matcher(requestUrl);
-        final List<? extends NamedGroup> groups = getGroups();
+        final String[] groups = getRegExpGroups();
 
         if (matcher.matches() && test(requestUrl)) {
             List<String> yields = new ArrayList<>();
 
             int i = 0;
-            while (groups.size() > i && matcher.matches())
-                yields.add(matcher.group(groups.get(i++).getName()));
+            while (groups.length > i && matcher.matches())
+                yields.add(matcher.group(i));
 
             return yields.toArray(new String[0]);
         }
@@ -118,17 +114,17 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
     }
 
     @Internal
-    default String replacer(List<? extends NamedGroup> groups) {
+    default String replacer(String[] groups) {
         // todo: Inspect overhead
         return StaticCache.access(this, "replacer", () -> {
             String yield = getFullUrl();
 
             int i = 0;
-            while (yield.contains("%s") && groups.size() > i) {
+            while (yield.contains("%s") && groups.length > i) {
                 int fi = yield.indexOf("%s");
                 yield = String.format("%s$%d%s",
                         yield.substring(0, fi),
-                        groups.get(i++).getValue(),
+                        i++,
                         yield.substring(fi + 2)
                 );
             }
