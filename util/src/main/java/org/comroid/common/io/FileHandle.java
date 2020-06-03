@@ -63,6 +63,14 @@ public final class FileHandle extends File implements Named {
         this.dir = dir;
     }
 
+    public FileHandle createSubFile(String name) {
+        return createSub(name, false);
+    }
+
+    public FileHandle createSubDir(String name) {
+        return createSub(name, true);
+    }
+
     public FileHandle createSub(String name, boolean dir) {
         if (!validateDir())
             return null;
