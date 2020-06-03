@@ -10,6 +10,7 @@ import org.comroid.uniform.node.UniNode;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -53,17 +54,13 @@ public class RestServer {
                     InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
                     BufferedReader br = new BufferedReader(isr)
             ) {
-
                 String data = br.lines().collect(Collectors.joining());
-                System.out.println("data.isEmpty() = " + data.isEmpty());
 
                 if (data.isEmpty())
                     node = rest.getSerializationAdapter().createUniObjectNode();
                 else node = rest.getSerializationAdapter().createUniNode(data);
-
-                System.out.println("end of if");
             } catch (Throwable t) {
-                t.printStackTrace();
+                logger.at(Level.SEVERE).log("Could not deserialize response");
             }
 
             logger.at(Level.INFO).log("Looking for matching endpoint...");
@@ -85,11 +82,27 @@ public class RestServer {
                 logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
 
                 logger.at(Level.INFO).log("Executing Handler...");
-                sep.getHandler().handle(node, args);
-                logger.at(Level.INFO).log("Handler Finished!");
+                final REST.Response response = sep.getHandler().handle(node, args);
+                logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
+
+                response.getHeaders().forEach(exchange.getResponseHeaders()::add);
+
+                final String data = response.getBody().toString();
+
+                try (
+                    OutputStreamWriter osw = new OutputStreamWriter(exchange.getResponseBody());
+                ) {
+                    osw.append(data);
+                } finally {
+                    logger.at(Level.INFO).log("Sending Response...");
+                    exchange.sendResponseHeaders(response.getStatusCode(), data.length());
+                }
             } else {
+                logger.at(Level.INFO).log("Unknown endpoint; returning 404");
                 exchange.sendResponseHeaders(NOT_FOUND, 0);
             }
+
+            logger.at(Level.INFO).log("Finished!");
         }
     }
 }
