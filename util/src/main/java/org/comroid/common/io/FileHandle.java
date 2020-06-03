@@ -88,6 +88,14 @@ public final class FileHandle extends File implements Named {
         return created;
     }
 
+    public boolean validateExists() {
+        try {
+            return exists() || (isDirectory() ? mkdirs() : createNewFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public boolean validateDir() {
         final FileHandle parent = getParentFile();
         if (!parent.exists() && !parent.mkdirs())

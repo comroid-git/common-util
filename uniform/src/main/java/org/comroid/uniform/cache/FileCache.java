@@ -122,6 +122,9 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
 
     @Override
     public synchronized void reloadData() throws IOException {
+        if (!file.validateExists())
+            throw new UnsupportedOperationException("Cannot create file: " + file);
+
         final BufferedReader reader = new BufferedReader(new FileReader(file));
         final String str = reader.lines().collect(Collectors.joining());
 
