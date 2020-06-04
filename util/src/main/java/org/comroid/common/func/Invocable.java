@@ -1,6 +1,7 @@
 package org.comroid.common.func;
 
 import org.comroid.common.annotation.OptionalVararg;
+import org.comroid.common.exception.ThrowableForwarder;
 import org.comroid.common.util.ReflectionHelper;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -23,6 +26,18 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface Invocable<T> {
+    static <T, E extends Throwable> Invocable<T> ofCallable(
+            ThrowingSupplier<T, E> callable
+    ) {
+        return ofProvider((Provider.Now<T>) () -> {
+            try {
+                return callable.get();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     static <T> Invocable<T> ofProvider(Provider<T> provider) {
         return new Support.OfProvider<>(provider);
     }

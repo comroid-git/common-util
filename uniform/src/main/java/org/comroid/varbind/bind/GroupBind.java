@@ -23,11 +23,11 @@ import java.util.stream.Stream;
 public final class GroupBind<T extends DataContainer<? extends D>, D> {
     private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
             .asObjectNode();
-    final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final String groupName;
     private final Span<GroupBind<? super T, D>> parents;
     private final List<GroupBind<? extends T, D>> subgroups = new ArrayList<>();
+    private final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
     private final @Nullable Invocable<? super T> constructor;
 
     public List<? extends VarBind<?, D, ?, ?>> getDirectChildren() {
@@ -47,7 +47,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public Collection<GroupBind<? extends T, D>> getSubgroups() {
-        return subgroups;
+        return Collections.unmodifiableList(subgroups);
     }
 
     public GroupBind(
@@ -69,13 +69,13 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     private GroupBind(
-            GroupBind<? super T, D> parents,
+            GroupBind<? super T, D> parent,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             String groupName,
             @Nullable Invocable<? super T> invocable
     ) {
         this(
-                Span.singleton(Objects.requireNonNull(parents, "parents")),
+                Span.singleton(Objects.requireNonNull(parent, "parents")),
                 serializationAdapter,
                 groupName,
                 invocable
@@ -130,27 +130,25 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public Optional<GroupBind<? extends T, D>> findGroupForData(UniObjectNode data) {
-        if (isValidData(data)) {
-            if (subgroups.isEmpty())
-                return Optional.of(this);
-
-            //noinspection rawtypes
-            GroupBind[] fitting = subgroups.stream()
-                    .filter(group -> group.isValidData(data))
-                    .toArray(GroupBind[]::new);
-            if (fitting.length == 1)
-                //noinspection unchecked
-                return (Optional<GroupBind<? extends T, D>>) fitting[0].findGroupForData(data);
-
-            throw new UnsupportedOperationException("Too many fitting subgroups found: " + Arrays.toString(fitting));
-        } else return Optional.empty();
+        if (subgroups.isEmpty() && isValidData(data))
+            return Optional.of(this);
+        else return subgroups.stream()
+                .map(group -> group.findGroupForData(data))
+                .filter(Optional::isPresent)
+                .findAny()
+                .flatMap(Function.identity());
     }
 
     public boolean isValidData(UniObjectNode data) {
-        if (!parents.isEmpty())
+        final long childrenCount = streamAllChildren().count();
+
+        if (childrenCount == 0)
             return false;
 
-        return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()));
+        // todo: REWORK THIS, holy fuck
+        return streamAllChildren()
+                .filter(bind -> data.has(bind.getFieldName()))
+                .count() > (childrenCount / 2);
     }
 
     public Stream<? extends VarBind<?, D, ?, ?>> streamAllChildren() {
@@ -218,10 +216,10 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public final <R extends DataContainer<D>> VarBind.DependentTwoStage<UniObjectNode, D, R> bindDependent(
-        String fieldName,
-        GroupBind<R, D> group
+            String fieldName,
+            GroupBind<R, D> group
     ) {
-        return bindDependent(fieldName,group.getConstructor()
+        return bindDependent(fieldName, group.getConstructor()
                 .map(it -> Polyfill.<BiFunction<D, UniObjectNode, R>>uncheckedCast(it.<D, UniObjectNode>biFunction()))
                 .orElseThrow(() -> new NoSuchElementException("No Constructor available for GroupBind " + group)));
     }
@@ -279,11 +277,11 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public final <R extends DataContainer<D>, C extends Collection<R>> ArrayBind.DependentTwoStage<UniObjectNode, D, R, C> listDependent(
-        String fieldName, GroupBind<R, D> group, Supplier<C> collectionSupplier
-) {
+            String fieldName, GroupBind<R, D> group, Supplier<C> collectionSupplier
+    ) {
         return listDependent(fieldName, group.getConstructor()
-                .map(it -> Polyfill.<BiFunction<D, UniObjectNode, R>>uncheckedCast(it.<D, UniObjectNode>biFunction()))
-                .orElseThrow(() -> new NoSuchElementException("No Constructor available for GroupBind " + group)),
+                        .map(it -> Polyfill.<BiFunction<D, UniObjectNode, R>>uncheckedCast(it.<D, UniObjectNode>biFunction()))
+                        .orElseThrow(() -> new NoSuchElementException("No Constructor available for GroupBind " + group)),
                 collectionSupplier);
     }
 

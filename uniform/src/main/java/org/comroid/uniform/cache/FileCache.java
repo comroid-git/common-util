@@ -166,8 +166,9 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
 
     private Optional<? extends V> tryConstruct(UniObjectNode node) {
         //noinspection unchecked
-        return (Optional<? extends V>) idBind.getGroup().findGroupForData(node)
-                .flatMap(GroupBind::getConstructor)
+        return (Optional<? extends V>) idBind.getGroup()
+                .findGroupForData(node)
+                .flatMap(group -> group.getConstructor())
                 .map(constr -> constr.autoInvoke(dependencyObject, node));
     }
 }
