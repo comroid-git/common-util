@@ -1,7 +1,8 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.func.Junction;
+import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.OutdateableReference.SettableOfSupplier;
-import org.comroid.common.ref.Reference;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -10,9 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public final class UniArrayNode extends UniNode {
+    private final Map<Integer, UniValueNode<String>> valueAdapters
+            = new TrieMap.Basic<>(Junction.of(String::valueOf, Integer::parseInt), true);
     private final Adapter adapter;
 
     @Override
@@ -41,7 +45,10 @@ public final class UniArrayNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return generateValueNode(Reference.Settable.create());
+            return valueAdapters.computeIfAbsent(index, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
+                    .process()
+                    .map(String::valueOf)
+                    .snapshot()));
         } else {
             return serializationAdapter.createUniNode(value);
         }
@@ -83,12 +90,11 @@ public final class UniArrayNode extends UniNode {
             }
         }
 
-        UniValueNode<String> valueNode = generateValueNode(new SettableOfSupplier<>(() -> value)
+        adapter.set(index, value);
+        return valueAdapters.computeIfAbsent(index, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
                 .process()
                 .map(String::valueOf)
-                .snapshot());
-        adapter.set(index, valueNode);
-        return valueNode;
+                .snapshot()));
     }
 
     @Override

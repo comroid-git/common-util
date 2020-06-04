@@ -1,5 +1,6 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.OutdateableReference.SettableOfSupplier;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
@@ -12,6 +13,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {
+    private final Map<String, UniValueNode<String>> valueAdapters = TrieMap.ofString();
     private final Adapter adapter;
 
     @Override
@@ -71,10 +73,10 @@ public final class UniObjectNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return generateValueNode(new SettableOfSupplier<>(() -> adapter.get(fieldName))
+            return valueAdapters.computeIfAbsent(fieldName, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
                     .process()
                     .map(String::valueOf)
-                    .snapshot());
+                    .snapshot()));
         } else {
             return serializationAdapter.createUniNode(value);
         }
@@ -91,12 +93,11 @@ public final class UniObjectNode extends UniNode {
             }
         }
 
-        UniValueNode<String> valueNode = generateValueNode(new SettableOfSupplier<>(() -> value)
+        adapter.put(key, value);
+        return valueAdapters.computeIfAbsent(key, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
                 .process()
                 .map(String::valueOf)
-                .snapshot());
-        adapter.put(key, valueNode);
-        return valueNode;
+                .snapshot()));
     }
 
     @Override

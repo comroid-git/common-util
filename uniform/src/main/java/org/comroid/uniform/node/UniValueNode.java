@@ -1,10 +1,13 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.Reference;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 public class UniValueNode<T> extends UniNode {
     private final Adapter<T> adapter;
