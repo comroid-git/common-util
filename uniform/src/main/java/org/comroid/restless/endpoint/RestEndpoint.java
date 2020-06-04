@@ -9,6 +9,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -137,8 +138,9 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
         final String[] regExpGroups = getRegExpGroups();
 
         if (regExpGroups != null && regExpGroups.length > 0)
-            //noinspection RedundantCast -> false positive
-            return Pattern.compile(String.format(getFullUrl(), (Object[]) regExpGroups));
-        return Pattern.compile(getFullUrl().replace("%s", ".*"));
+            return Pattern.compile(String.format(getFullUrl(), Arrays.stream(regExpGroups)
+                    .map(str -> String.format("(%s)", str))
+                    .toArray()));
+        return Pattern.compile(getFullUrl().replace("%s", "(.*)"));
     }
 }
