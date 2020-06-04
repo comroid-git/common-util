@@ -60,6 +60,7 @@ public class OutdateableReference<T> implements Reference<T> {
 
         public SettableOfSupplier(Supplier<T> supplier) {
             this.supplier = supplier;
+            update(null);
         }
 
         @Override
