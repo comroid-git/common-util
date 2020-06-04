@@ -125,7 +125,7 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
                 int fi = yield.indexOf("%s");
                 yield = String.format("%s$%d%s",
                         yield.substring(0, fi),
-                        i++,
+                        ++i,
                         yield.substring(fi + 2)
                 );
             }
