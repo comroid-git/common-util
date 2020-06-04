@@ -16,10 +16,10 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import static com.google.common.flogger.LazyArgs.lazy;
 import static org.comroid.restless.HTTPStatusCodes.METHOD_NOT_ALLOWED;
 import static org.comroid.restless.HTTPStatusCodes.NOT_FOUND;
 
@@ -60,7 +60,17 @@ public class RestServer {
 
             commonHeaders.forEach(exchange.getResponseHeaders()::add);
 
-            logger.at(Level.INFO).log("Handling %s Request @ %s", exchange.getRequestMethod(), requestURI);
+            if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie")))
+                exchange.getResponseHeaders().add("Cookie", exchange.getRequestHeaders().getFirst("Cookie"));
+
+            logger.at(Level.INFO).log("Handling %s Request @ %s with Headers: %s Data: %s", exchange.getRequestMethod(), requestURI,
+                    lazy(() -> exchange.getRequestHeaders()
+                            .entrySet()
+                            .stream()
+                            .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
+                            .collect(Collectors.joining("\n- ", "\n- ", "\n"))
+                    )
+            );
 
             UniNode node = null;
             try (
@@ -107,7 +117,16 @@ public class RestServer {
                 ) {
                     osw.append(data);
                 } finally {
-                    logger.at(Level.INFO).log("Sending Response code %d with length %d...", response.getStatusCode(), data.length());
+                    logger.at(Level.INFO).log("Sending Response code %d with length %d and Headers: %s",
+                            response.getStatusCode(),
+                            data.length(),
+                            lazy(() -> exchange.getResponseHeaders()
+                                    .entrySet()
+                                    .stream()
+                                    .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
+                                    .collect(Collectors.joining("\n- ", "\n- ", "\n"))
+                            )
+                    );
                     exchange.sendResponseHeaders(response.getStatusCode(), data.length());
                 }
             } else {
