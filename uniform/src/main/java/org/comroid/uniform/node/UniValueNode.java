@@ -184,7 +184,10 @@ public class UniValueNode<T> extends UniNode {
 
             @Override
             public <R> @Nullable R get(ValueType<R> as) {
-                return as.apply(sub.get());
+                final String from = sub.get();
+                if (from != null)
+                    return as.apply(from);
+                return null;
             }
 
             @Override

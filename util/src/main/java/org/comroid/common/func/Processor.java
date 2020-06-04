@@ -112,7 +112,12 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             @Nullable
             @Override
             public R get() {
-                return remapper.apply(underlying.get());
+                final T get = underlying.get();
+                
+                if (get != null)
+                    return remapper.apply(get);
+
+                return null;
             }
         }
 
