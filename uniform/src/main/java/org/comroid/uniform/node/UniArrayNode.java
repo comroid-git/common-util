@@ -12,11 +12,12 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public final class UniArrayNode extends UniNode {
     private final Map<Integer, UniValueNode<String>> valueAdapters
-            = new TrieMap.Basic<>(Junction.of(String::valueOf, Integer::parseInt), true);
+            = new ConcurrentHashMap<>();
     private final Adapter adapter;
 
     @Override

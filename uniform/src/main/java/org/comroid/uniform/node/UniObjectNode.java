@@ -10,10 +10,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {
-    private final Map<String, UniValueNode<String>> valueAdapters = TrieMap.ofString();
+    private final Map<String, UniValueNode<String>> valueAdapters = new ConcurrentHashMap<>();
     private final Adapter adapter;
 
     @Override
