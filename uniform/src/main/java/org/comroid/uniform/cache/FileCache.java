@@ -148,6 +148,11 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
                 .forEach(node -> {
                     final K id = idBind.getFrom(node);
 
+                    if (id == null) {
+                        logger.at(Level.WARNING).log("Skipped generation; no ID could be found. Data: %s", node);
+                        return;
+                    }
+
                     if (containsKey(id)) {
                         getReference(id, false).requireNonNull().updateFrom(node);
                     } else {
