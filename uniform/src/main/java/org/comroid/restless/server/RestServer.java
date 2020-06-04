@@ -6,14 +6,13 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.comroid.restless.CommonHeaderNames;
-import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
 import org.comroid.uniform.node.UniNode;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -91,19 +90,7 @@ public class RestServer {
                 return;
             }
 
-            UniNode node = null;
-            try (
-                    InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
-                    BufferedReader br = new BufferedReader(isr)
-            ) {
-                String data = br.lines().collect(Collectors.joining());
-
-                if (data.isEmpty())
-                    node = rest.getSerializationAdapter().createUniObjectNode();
-                else node = rest.getSerializationAdapter().createUniNode(data);
-            } catch (Throwable t) {
-                logger.at(Level.SEVERE).log("Could not deserialize response");
-            }
+            UniNode node = consumeBody(exchange);
 
             logger.at(Level.INFO).log("Looking for matching endpoint...");
             Optional<ServerEndpoint> handler = endpoints.stream()
@@ -156,6 +143,23 @@ public class RestServer {
 
             exchange.close();
             logger.at(Level.INFO).log("Finished!");
+        }
+
+        private UniNode consumeBody(HttpExchange exchange) {
+            try (
+                    InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
+                    BufferedReader br = new BufferedReader(isr)
+            ) {
+                String data = br.lines().collect(Collectors.joining());
+
+                if (data.isEmpty())
+                    return rest.getSerializationAdapter().createUniObjectNode();
+                else return rest.getSerializationAdapter().createUniNode(data);
+            } catch (Throwable t) {
+                logger.at(Level.SEVERE).log("Could not deserialize response");
+            }
+
+            return null;
         }
 
         private boolean supportedMimeType(List<String> targetMimes) {
