@@ -1,6 +1,7 @@
 package org.comroid.uniform.node;
 
 import org.comroid.common.ref.OutdateableReference.SettableOfSupplier;
+import org.comroid.common.ref.Reference;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -40,7 +41,7 @@ public final class UniArrayNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(String.valueOf(adapter.get(index))));
+            return generateValueNode(Reference.Settable.create());
         } else {
             return serializationAdapter.createUniNode(value);
         }
