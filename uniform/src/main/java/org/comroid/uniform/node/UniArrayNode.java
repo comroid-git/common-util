@@ -1,5 +1,6 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.ref.OutdateableReference.SettableOfSupplier;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -13,15 +14,15 @@ import java.util.stream.Stream;
 public final class UniArrayNode extends UniNode {
     private final Adapter adapter;
 
+    @Override
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
+    }
+
     public UniArrayNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
         super(serializationAdapter, Type.ARRAY);
 
         this.adapter = adapter;
-    }
-
-    @Override
-    public final Object getBaseNode() {
-        return adapter.getBaseNode();
     }
 
     @Override
@@ -72,9 +73,20 @@ public final class UniArrayNode extends UniNode {
 
     @Override
     public @NotNull <T> UniValueNode<String> put(int index, ValueType<T> type, T value) {
-        final UniValueNode<T> valueNode = generateValueNode(type.convert(value, ValueType.STRING));
+        if (adapter.size() > index) {
+            Object at = adapter.get(index);
+            if (at instanceof UniValueNode) {
+                adapter.set(index, value);
+                //noinspection unchecked
+                return (UniValueNode<String>) at;
+            }
+        }
 
-        adapter.add(index, valueNode.getBaseNode());
+        UniValueNode<String> valueNode = generateValueNode(new SettableOfSupplier<>(() -> value)
+                .process()
+                .map(String::valueOf)
+                .snapshot());
+        adapter.set(index, valueNode);
         return valueNode;
     }
 
@@ -119,6 +131,11 @@ public final class UniArrayNode extends UniNode {
     public static abstract class Adapter<B> extends AbstractList<Object> implements UniNode.Adapter<B> {
         protected final B baseNode;
 
+        @Override
+        public B getBaseNode() {
+            return baseNode;
+        }
+
         protected Adapter(B baseNode) {
             this.baseNode = baseNode;
         }
@@ -134,10 +151,5 @@ public final class UniArrayNode extends UniNode {
 
         @Override
         public abstract Object remove(int index);
-
-        @Override
-        public B getBaseNode() {
-            return baseNode;
-        }
     }
 }

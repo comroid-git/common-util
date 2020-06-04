@@ -83,7 +83,7 @@ public final class UniObjectNode extends UniNode {
     @Override
     public @NotNull <T> UniValueNode<String> put(String key, ValueType<T> type, T value) {
         if (adapter.containsKey(key)) {
-            final Object at = adapter.get(key);
+            Object at = adapter.get(key);
             if (at instanceof UniValueNode) {
                 adapter.put(key, value);
                 //noinspection unchecked
