@@ -84,8 +84,14 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
 
     @Override
     default boolean test(String url) {
-        return getPattern().matcher(url)
-                .replaceAll(replacer(getRegExpGroups()))
+        final String[] regExpGroups = getRegExpGroups();
+        final String replacer = replacer(regExpGroups);
+        
+        if (regExpGroups.length == 0)
+            return replacer.equals(url);
+        else return getPattern()
+                .matcher(url)
+                .replaceAll(replacer)
                 .equals(url);
     }
 
