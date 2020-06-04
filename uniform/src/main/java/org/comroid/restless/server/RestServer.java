@@ -1,9 +1,12 @@
 package org.comroid.restless.server;
 
 import com.google.common.flogger.FluentLogger;
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.comroid.restless.CommonHeaderNames;
+import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
 import org.comroid.uniform.node.UniNode;
 
@@ -20,8 +23,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static com.google.common.flogger.LazyArgs.lazy;
-import static org.comroid.restless.HTTPStatusCodes.METHOD_NOT_ALLOWED;
-import static org.comroid.restless.HTTPStatusCodes.NOT_FOUND;
+import static org.comroid.restless.HTTPStatusCodes.*;
 
 public class RestServer {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -29,12 +31,14 @@ public class RestServer {
     private final HttpServer server;
     private final List<ServerEndpoint> endpoints;
     private final REST rest;
+    private final String mimeType;
     private final String baseUrl;
     private final REST.Header.List commonHeaders = new REST.Header.List();
 
     public RestServer(REST rest, String baseUrl, InetAddress address, int port, ServerEndpoint... endpoints) throws IOException {
         logger.at(Level.INFO).log("Starting REST Server with %d endpoints", endpoints.length);
         this.rest = rest;
+        this.mimeType = rest.getSerializationAdapter().getMimeType();
         this.baseUrl = baseUrl;
         this.server = HttpServer.create(new InetSocketAddress(address, port), port);
         this.endpoints = Arrays.asList(endpoints);
@@ -58,19 +62,34 @@ public class RestServer {
         public void handle(HttpExchange exchange) throws IOException {
             final String requestURI = baseUrl.substring(0, baseUrl.length() - 1) + exchange.getRequestURI().toString();
 
-            commonHeaders.forEach(exchange.getResponseHeaders()::add);
+            final Headers responseHeaders = exchange.getResponseHeaders();
+            commonHeaders.forEach(responseHeaders::add);
+            responseHeaders.add(CommonHeaderNames.ACCEPTED_CONTENT_TYPE, mimeType);
+            responseHeaders.add(CommonHeaderNames.REQUEST_CONTENT_TYPE, mimeType);
 
             if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie")))
-                exchange.getResponseHeaders().add("Cookie", exchange.getRequestHeaders().getFirst("Cookie"));
+                responseHeaders.add("Cookie", exchange.getRequestHeaders().getFirst("Cookie"));
 
-            logger.at(Level.INFO).log("Handling %s Request @ %s with Headers: %s Data: %s", exchange.getRequestMethod(), requestURI,
+            logger.at(Level.INFO).log("Handling %s Request @ %s with Headers: %s", exchange.getRequestMethod(), requestURI,
                     lazy(() -> exchange.getRequestHeaders()
                             .entrySet()
                             .stream()
                             .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
-                            .collect(Collectors.joining("\n- ", "\n- ", "\n"))
+                            .collect(Collectors.joining("\n- ", "\n- ", ""))
                     )
             );
+
+            final String mimeType = rest.getSerializationAdapter().getMimeType();
+            final List<String> targetMimes = exchange.getRequestHeaders().get("Accept");
+            if (!supportedMimeType(targetMimes)) {
+                logger.at(Level.INFO).log(
+                        "Content Type %s not supported, cancelling. Accept Header: %s",
+                        mimeType,
+                        targetMimes
+                );
+                exchange.sendResponseHeaders(UNSUPPORTED_MEDIA_TYPE, 0);
+                return;
+            }
 
             UniNode node = null;
             try (
@@ -108,7 +127,7 @@ public class RestServer {
                 final REST.Response response = sep.getHandler().handle(node, args);
                 logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
 
-                response.getHeaders().forEach(exchange.getResponseHeaders()::add);
+                response.getHeaders().forEach(responseHeaders::add);
 
                 final String data = response.getBody().toString();
 
@@ -120,11 +139,11 @@ public class RestServer {
                     logger.at(Level.INFO).log("Sending Response code %d with length %d and Headers: %s",
                             response.getStatusCode(),
                             data.length(),
-                            lazy(() -> exchange.getResponseHeaders()
+                            lazy(() -> responseHeaders
                                     .entrySet()
                                     .stream()
                                     .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
-                                    .collect(Collectors.joining("\n- ", "\n- ", "\n"))
+                                    .collect(Collectors.joining("\n- ", "\n- ", ""))
                             )
                     );
                     exchange.sendResponseHeaders(response.getStatusCode(), data.length());
@@ -135,6 +154,10 @@ public class RestServer {
             }
 
             logger.at(Level.INFO).log("Finished!");
+        }
+
+        private boolean supportedMimeType(List<String> targetMimes) {
+            return targetMimes.stream().anyMatch(type -> type.contains(mimeType) || type.contains("*/*"));
         }
     }
 }
