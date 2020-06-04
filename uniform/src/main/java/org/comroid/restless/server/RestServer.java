@@ -134,9 +134,11 @@ public class RestServer {
                 try (
                         OutputStreamWriter osw = new OutputStreamWriter(exchange.getResponseBody())
                 ) {
+                    exchange.sendResponseHeaders(response.getStatusCode(), data.length());
                     osw.append(data);
+                    osw.flush();
                 } finally {
-                    logger.at(Level.INFO).log("Sending Response code %d with length %d and Headers: %s",
+                    logger.at(Level.INFO).log("Sent Response code %d with length %d and Headers: %s",
                             response.getStatusCode(),
                             data.length(),
                             lazy(() -> responseHeaders
@@ -146,13 +148,13 @@ public class RestServer {
                                     .collect(Collectors.joining("\n- ", "\n- ", ""))
                             )
                     );
-                    exchange.sendResponseHeaders(response.getStatusCode(), data.length());
                 }
             } else {
                 logger.at(Level.INFO).log("Unknown endpoint; returning 404");
                 exchange.sendResponseHeaders(NOT_FOUND, 0);
             }
 
+            exchange.close();
             logger.at(Level.INFO).log("Finished!");
         }
 
