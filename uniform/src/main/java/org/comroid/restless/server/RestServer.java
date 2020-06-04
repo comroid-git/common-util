@@ -58,73 +58,75 @@ public class RestServer {
 
     private class AutoContextHandler implements HttpHandler {
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
+        public void handle(HttpExchange exchange) {
             final String requestURI = baseUrl.substring(0, baseUrl.length() - 1) + exchange.getRequestURI().toString();
+            final String requestMethod = exchange.getRequestMethod();
+            final String requestString = String.format("%s @ %s", requestMethod, requestURI);
 
-            final Headers responseHeaders = exchange.getResponseHeaders();
-            commonHeaders.forEach(responseHeaders::add);
-            responseHeaders.add(CommonHeaderNames.ACCEPTED_CONTENT_TYPE, mimeType);
-            responseHeaders.add(CommonHeaderNames.REQUEST_CONTENT_TYPE, mimeType);
+            try {
+                final Headers responseHeaders = exchange.getResponseHeaders();
+                commonHeaders.forEach(responseHeaders::add);
+                responseHeaders.add(CommonHeaderNames.ACCEPTED_CONTENT_TYPE, mimeType);
+                responseHeaders.add(CommonHeaderNames.REQUEST_CONTENT_TYPE, mimeType);
 
-            if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie")))
-                responseHeaders.add("Cookie", exchange.getRequestHeaders().getFirst("Cookie"));
+                final Headers requestHeaders = exchange.getRequestHeaders();
+                if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie")))
+                    responseHeaders.add("Cookie", requestHeaders.getFirst("Cookie"));
 
-            logger.at(Level.INFO).log("Handling %s Request @ %s with Headers: %s", exchange.getRequestMethod(), requestURI,
-                    lazy(() -> exchange.getRequestHeaders()
-                            .entrySet()
-                            .stream()
-                            .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
-                            .collect(Collectors.joining("\n- ", "\n- ", ""))
-                    )
-            );
-
-            final String mimeType = rest.getSerializationAdapter().getMimeType();
-            final List<String> targetMimes = exchange.getRequestHeaders().get("Accept");
-            if (!supportedMimeType(targetMimes)) {
-                logger.at(Level.INFO).log(
-                        "Content Type %s not supported, cancelling. Accept Header: %s",
-                        mimeType,
-                        targetMimes
+                logger.at(Level.INFO).log("Handling %s Request @ %s with Headers: %s", requestMethod, requestURI,
+                        lazy(() -> requestHeaders
+                                .entrySet()
+                                .stream()
+                                .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
+                                .collect(Collectors.joining("\n- ", "\n- ", ""))
+                        )
                 );
-                exchange.sendResponseHeaders(UNSUPPORTED_MEDIA_TYPE, 0);
-                return;
-            }
 
-            UniNode node = consumeBody(exchange);
-
-            logger.at(Level.INFO).log("Looking for matching endpoint...");
-            Optional<ServerEndpoint> handler = endpoints.stream()
-                    .filter(endpoint -> endpoint.test(requestURI))
-                    .findFirst();
-
-            if (handler.isPresent()) {
-                final ServerEndpoint sep = handler.get();
-                logger.at(Level.INFO).log("Endpoint found: %s", sep);
-
-                if (Arrays.binarySearch(sep.allowedMethods(), REST.Method.valueOf(exchange.getRequestMethod())) == -1) {
-                    logger.at(Level.INFO).log("Method not allowed for endpoint: %s", exchange.getRequestMethod());
-                    exchange.sendResponseHeaders(METHOD_NOT_ALLOWED, 0);
+                final String mimeType = rest.getSerializationAdapter().getMimeType();
+                final List<String> targetMimes = requestHeaders.get("Accept");
+                if (!supportedMimeType(targetMimes)) {
+                    logger.at(Level.INFO).log(
+                            "Content Type %s not supported, cancelling. Accept Header: %s",
+                            mimeType,
+                            targetMimes
+                    );
+                    exchange.sendResponseHeaders(UNSUPPORTED_MEDIA_TYPE, 0);
                     return;
                 }
 
-                final String[] args = sep.extractArgs(requestURI);
-                logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
+                UniNode node = consumeBody(exchange);
 
-                logger.at(Level.INFO).log("Executing Handler...");
-                final REST.Response response = sep.getHandler().handle(node, args);
-                logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
+                logger.at(Level.INFO).log("Looking for matching endpoint...");
+                Optional<ServerEndpoint> handler = endpoints.stream()
+                        .filter(endpoint -> endpoint.test(requestURI))
+                        .findFirst();
 
-                response.getHeaders().forEach(responseHeaders::add);
+                if (handler.isPresent()) {
+                    final ServerEndpoint sep = handler.get();
+                    logger.at(Level.INFO).log("Endpoint found: %s", sep);
 
-                final String data = response.getBody().toString();
+                    if (Arrays.binarySearch(sep.allowedMethods(), REST.Method.valueOf(requestMethod)) == -1) {
+                        logger.at(Level.INFO).log("Method not allowed for endpoint: %s", requestMethod);
+                        exchange.sendResponseHeaders(METHOD_NOT_ALLOWED, 0);
+                        return;
+                    }
 
-                try (
-                        OutputStreamWriter osw = new OutputStreamWriter(exchange.getResponseBody())
-                ) {
+                    final String[] args = sep.extractArgs(requestURI);
+                    logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
+
+                    logger.at(Level.INFO).log("Executing Handler...");
+                    final REST.Response response = sep.getHandler().handle(node, args);
+                    logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
+
+                    response.getHeaders().forEach(responseHeaders::add);
+
+                    final String data = response.getBody().toString();
+
                     exchange.sendResponseHeaders(response.getStatusCode(), data.length());
-                    osw.append(data);
-                    osw.flush();
-                } finally {
+                    final OutputStream osr = exchange.getResponseBody();
+                    osr.write(data.getBytes());
+                    osr.flush();
+
                     logger.at(Level.INFO).log("Sent Response code %d with length %d and Headers: %s",
                             response.getStatusCode(),
                             data.length(),
@@ -135,14 +137,16 @@ public class RestServer {
                                     .collect(Collectors.joining("\n- ", "\n- ", ""))
                             )
                     );
+                } else {
+                    logger.at(Level.INFO).log("Unknown endpoint; returning 404");
+                    exchange.sendResponseHeaders(NOT_FOUND, 0);
                 }
-            } else {
-                logger.at(Level.INFO).log("Unknown endpoint; returning 404");
-                exchange.sendResponseHeaders(NOT_FOUND, 0);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            } finally {
+                exchange.close();
+                logger.at(Level.INFO).log("Finished handling %s", requestString);
             }
-
-            exchange.close();
-            logger.at(Level.INFO).log("Finished!");
         }
 
         private UniNode consumeBody(HttpExchange exchange) {
