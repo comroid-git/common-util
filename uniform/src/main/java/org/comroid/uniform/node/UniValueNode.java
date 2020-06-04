@@ -191,6 +191,11 @@ public class UniValueNode<T> extends UniNode {
             public @Nullable String set(String value) {
                 return sub.set(value);
             }
+
+            @Override
+            public String toString() {
+                return String.format("\"%s\"", sub.get());
+            }
         }
     }
 
@@ -212,6 +217,11 @@ public class UniValueNode<T> extends UniNode {
                 @Override
                 public @Nullable String set(String value) {
                     throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public String toString() {
+                    return "null";
                 }
             });
         }

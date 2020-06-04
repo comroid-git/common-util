@@ -118,11 +118,6 @@ public final class UniArrayNode extends UniNode {
         return yields;
     }
 
-    @Override
-    public String toString() {
-        return adapter.toString();
-    }
-
     public static abstract class Adapter<B> extends AbstractList<Object> implements UniNode.Adapter<B> {
         protected final B baseNode;
 

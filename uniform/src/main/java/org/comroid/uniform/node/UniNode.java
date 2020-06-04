@@ -237,6 +237,11 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return new UniValueNode.Adapter.ViaString<>(Reference.Settable.create(stringSupplier));
     }
 
+    @Override
+    public final String toString() {
+        return getBaseNode().toString();
+    }
+
     @NotNull
     protected <T> UniValueNode<T> generateValueNode(String ofString) {
         final UniValueNode.Adapter.ViaString<T> valueAdapter
