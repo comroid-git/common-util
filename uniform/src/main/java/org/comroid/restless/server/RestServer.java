@@ -29,6 +29,7 @@ public class RestServer {
     private final List<ServerEndpoint> endpoints;
     private final REST rest;
     private final String baseUrl;
+    private final REST.Header.List commonHeaders = new REST.Header.List();
 
     public RestServer(REST rest, String baseUrl, InetAddress address, int port, ServerEndpoint... endpoints) throws IOException {
         logger.at(Level.INFO).log("Starting REST Server with %d endpoints", endpoints.length);
@@ -40,6 +41,15 @@ public class RestServer {
         server.createContext("/", autoContextHandler);
         server.setExecutor(rest.getExecutor());
         server.start();
+    }
+
+    public RestServer addCommonHeader(String name, String value) {
+        this.commonHeaders.add(name, value);
+        return this;
+    }
+
+    public boolean removeCommonHeader(String name) {
+        return this.commonHeaders.removeIf(header -> header.getName().equals(name));
     }
 
     private class AutoContextHandler implements HttpHandler {
