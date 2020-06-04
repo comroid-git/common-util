@@ -1,6 +1,7 @@
 package org.comroid.common.ref;
 
 import org.comroid.common.Polyfill;
+import org.comroid.common.ref.Reference.Settable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
@@ -51,5 +52,40 @@ public class OutdateableReference<T> implements Reference<T> {
         if (isOutdated())
             return update(supplier.get());
         else return get();
+    }
+
+    public static class SettableOfSupplier<T> extends OutdateableReference<T> implements Settable<T> {
+        private final Settable<T> settable = Settable.create();
+        private Supplier<T> supplier;
+
+        public SettableOfSupplier(Supplier<T> supplier) {
+            this.supplier = supplier;
+        }
+
+        @Override
+        public @Nullable T get() {
+            if (!isOutdated())
+                return supplier.get();
+            return settable.get();
+        }
+
+        @Nullable
+        @Override
+        public T set(T newValue) {
+            if (!isOutdated()) {
+                outdate();
+                settable.set(newValue);
+                return supplier.get();
+            }
+
+            return settable.set(newValue);
+        }
+
+        @Override
+        public boolean outdate() {
+            final boolean outdate = super.outdate();
+            if (outdate) supplier = null;
+            return outdate;
+        }
     }
 }

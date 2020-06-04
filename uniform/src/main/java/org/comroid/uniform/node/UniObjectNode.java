@@ -1,7 +1,6 @@
 package org.comroid.uniform.node;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.util.ReflectionHelper;
+import org.comroid.common.ref.OutdateableReference.SettableOfSupplier;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -72,17 +71,31 @@ public final class UniObjectNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(String.valueOf(adapter.get(fieldName))));
+            return generateValueNode(new SettableOfSupplier<>(() -> adapter.get(fieldName))
+                    .process()
+                    .map(String::valueOf)
+                    .snapshot());
         } else {
             return serializationAdapter.createUniNode(value);
         }
     }
 
     @Override
-    public @NotNull <T> UniValueNode<T> put(String key, ValueType<T> type, T value) {
-        final UniValueNode<T> valueNode = generateValueNode(type.convert(value, ValueType.STRING));
+    public @NotNull <T> UniValueNode<String> put(String key, ValueType<T> type, T value) {
+        if (adapter.containsKey(key)) {
+            final Object at = adapter.get(key);
+            if (at instanceof UniValueNode) {
+                adapter.put(key, value);
+                //noinspection unchecked
+                return (UniValueNode<String>) at;
+            }
+        }
 
-        adapter.put(key, valueNode.getBaseNode());
+        UniValueNode<String> valueNode = generateValueNode(new SettableOfSupplier<>(() -> value)
+                .process()
+                .map(String::valueOf)
+                .snapshot());
+        adapter.put(key, valueNode);
         return valueNode;
     }
 

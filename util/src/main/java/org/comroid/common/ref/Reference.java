@@ -92,6 +92,10 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             return new Support.Settable<>(initialValue);
         }
 
+        /**
+         * @param newValue The new value
+         * @return The previous value
+         */
         @Nullable T set(T newValue);
 
         default T compute(Function<T, T> computor) {

@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.comroid.common.Polyfill.uncheckedCast;
-
 public final class UniArrayNode extends UniNode {
     private final Adapter adapter;
 
@@ -73,7 +71,7 @@ public final class UniArrayNode extends UniNode {
     }
 
     @Override
-    public @NotNull <T> UniValueNode<T> put(int index, ValueType<T> type, T value) {
+    public @NotNull <T> UniValueNode<String> put(int index, ValueType<T> type, T value) {
         final UniValueNode<T> valueNode = generateValueNode(type.convert(value, ValueType.STRING));
 
         adapter.add(index, valueNode.getBaseNode());

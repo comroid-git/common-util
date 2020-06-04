@@ -170,7 +170,7 @@ public class UniValueNode<T> extends UniNode {
 
         @Nullable String set(String value);
 
-        final class ViaString<T> implements Adapter<T> {
+        final class ViaString implements Adapter<String> {
             private final Reference.Settable<String> sub;
 
             @Override
@@ -194,7 +194,7 @@ public class UniValueNode<T> extends UniNode {
 
             @Override
             public String toString() {
-                return String.format("\"%s\"", sub.get());
+                return sub.get();
             }
         }
     }
