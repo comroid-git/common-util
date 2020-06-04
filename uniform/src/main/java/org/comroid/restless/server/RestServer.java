@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -56,6 +57,8 @@ public class RestServer {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             final String requestURI = baseUrl.substring(0, baseUrl.length() - 1) + exchange.getRequestURI().toString();
+
+            commonHeaders.forEach(exchange.getResponseHeaders()::add);
 
             logger.at(Level.INFO).log("Handling %s Request @ %s", exchange.getRequestMethod(), requestURI);
 
