@@ -70,7 +70,8 @@ public class RestServer {
                 responseHeaders.add(CommonHeaderNames.REQUEST_CONTENT_TYPE, mimeType);
 
                 final Headers requestHeaders = exchange.getRequestHeaders();
-                if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie")))
+                if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie"))
+                        && requestHeaders.containsKey("Cookie"))
                     responseHeaders.add("Cookie", requestHeaders.getFirst("Cookie"));
 
                 logger.at(Level.INFO).log("Handling %s Request @ %s with Headers: %s", requestMethod, requestURI,
