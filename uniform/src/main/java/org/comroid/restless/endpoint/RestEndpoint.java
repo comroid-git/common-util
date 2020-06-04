@@ -110,9 +110,9 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
         if (matcher.matches() && test(requestUrl)) {
             List<String> yields = new ArrayList<>();
 
-            int i = 0;
-            while (groups.length > i && matcher.matches())
-                yields.add(matcher.group(i));
+            int i = 1;
+            while (groups.length + 1 > i && matcher.matches())
+                yields.add(matcher.group(i++));
 
             return yields.toArray(new String[0]);
         }
