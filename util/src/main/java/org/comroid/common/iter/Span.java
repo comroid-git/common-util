@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
 
@@ -182,6 +183,11 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
         synchronized (dataLock) {
             storage.clear();
         }
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return Stream.of(toArray()).map(Polyfill::uncheckedCast);
     }
 
     @Override
