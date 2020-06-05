@@ -6,3 +6,5 @@ targetCompatibility = 1.8
 ext {
     projectDescription = "Event Handling solution"
 }
+
+apply from: "$rootDir/gradle/publishing.gradle"

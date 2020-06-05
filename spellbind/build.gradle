@@ -10,3 +10,5 @@ ext {
 dependencies {
     implementation project(":common-util")
 }
+
+apply from: "$rootDir/gradle/publishing.gradle"

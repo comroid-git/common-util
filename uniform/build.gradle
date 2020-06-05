@@ -80,3 +80,5 @@ dependencies {
     testImplementation 'com.squareup.okhttp3:okhttp:4.5.0'
 }
 
+apply from: "$rootDir/gradle/publishing.gradle"
+

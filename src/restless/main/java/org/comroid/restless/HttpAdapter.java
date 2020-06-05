@@ -8,7 +8,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import org.comroid.common.func.Provider;
-import org.comroid.uniform.SerializationAdapter;
 
 @SuppressWarnings("rawtypes")
 public interface HttpAdapter {

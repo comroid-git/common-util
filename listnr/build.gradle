@@ -11,3 +11,5 @@ dependencies {
     api project(":common-util")
     api project(":spellbind")
 }
+
+apply from: "$rootDir/gradle/publishing.gradle"
