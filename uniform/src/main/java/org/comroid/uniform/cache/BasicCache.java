@@ -94,7 +94,9 @@ public class BasicCache<K, V> implements Cache<K, V> {
 
     @Override
     public Pipe<?, Reference<K, V>> pipe(Predicate<K> filter) {
-        return Pipe.of(cache.entrySet()).map(Map.Entry::getValue);
+        return Pipe.of(cache.entrySet())
+                .filter(entry -> filter.test(entry.getKey()))
+                .map(Map.Entry::getValue);
     }
 
     @Override
