@@ -1,5 +1,6 @@
 package org.comroid.restless.adapter.okhttp.v3;
 
+import okhttp3.*;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
 

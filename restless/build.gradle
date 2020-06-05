@@ -14,8 +14,8 @@ configurations {
 }
 
 sourceSets {
-    java8compat.java.srcDirs = files("$rootDir/src/uniform/main/java8compat")
-    java11compat.java.srcDirs = files("$rootDir/src/uniform/main/java11compat")
+    java8compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java8compat")
+    java11compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java11compat")
 }
 
 compileJava8compatJava {
@@ -41,9 +41,19 @@ jar {
 }
 
 dependencies {
+    java8compatCompileOnly 'org.jetbrains:annotations:19.0.0'
+    java11compatCompileOnly 'org.jetbrains:annotations:19.0.0'
+
     api project(':common-util')
     java8compatCompileOnly project(':restless')
     java11compatCompileOnly project(':restless')
+
+    implementation project(':uniform')
+    java8compatImplementation project(':uniform')
+    java11compatImplementation project(':uniform')
+    implementation project(':varbind')
+    java8compatImplementation project(':varbind')
+    java11compatImplementation project(':varbind')
 
     // websocket dependencies
     compileOnly project(':listnr')
