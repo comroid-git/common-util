@@ -23,7 +23,7 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
     }
 
     default ReferenceIndex<T> subset() {
-        return subset(0,  size());
+        return subset(0, size());
     }
 
     default ReferenceIndex<T> subset(int startIncl, int endExcl) {
@@ -36,11 +36,7 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
     }
 
     //todo: returns empty list
-    default List<T> unwrap() {
-        final ArrayList<T> list = new ArrayList<>();
-        pipe().forEach(list::add);
-        return list;
-    }
+    List<T> unwrap();
 
     int size();
 
@@ -111,6 +107,11 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
                         () -> index < 0 || underlying.size() >= index,
                         () -> underlying.get(index)
                 );
+            }
+
+            @Override
+            public List<T> unwrap() {
+                return underlying;
             }
 
             @Override

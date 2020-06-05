@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -22,6 +23,11 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
 
     static <T> Pipe<T, T> create() {
         return new BasicPipe<>(ReferenceIndex.create());
+    }
+
+    @Override
+    default List<T> unwrap() {
+        return span().unwrap();
     }
 
     static <T> Pipe<T, T> of(Collection<T> collection) {
@@ -84,10 +90,8 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
 
     @NotNull
     default Processor<T> findAny() {
-        return Processor.ofReference(Reference.conditional(
-                () -> get(0) != null,
-                () -> get(0)
-        ));
+        final Span<T> span = span();
+        return span.process();
     }
 
     @Override

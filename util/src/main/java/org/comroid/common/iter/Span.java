@@ -75,6 +75,13 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
         return (Span<T>) EMPTY;
     }
 
+    @Override
+    public List<T> unwrap() {
+        List<T> yields = new ArrayList<>();
+        forEach(yields::add);
+        return yields;
+    }
+
     public static <T> Span<T> singleton(T it) {
         return Span.<T>make().initialValues(it)
                 .fixedSize(true)
