@@ -17,17 +17,6 @@ subprojects {
     group 'org.comroid'
     apply plugin: 'java-library'
     apply from: "$rootDir/gradle/vars.gradle"
+    apply from: "$rootDir/gradle/javadoc.gradle"
     apply from: "$rootDir/gradle/global.gradle"
-}
-
-task allJavadoc(type: Javadoc) {
-    source = files(rootProject.allprojects.stream()
-            .filter { !Objects.isNull(it) }
-            .filter { it.hasProperty("sourceSet") }
-            .map { it.sourceSets.allJava }
-            .collect(Collectors.toList()))
-    options {
-        destinationDirectory(file("$rootDir/docs/"))
-        encoding = 'UTF-8'
-    }
 }
