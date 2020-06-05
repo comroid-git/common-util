@@ -22,7 +22,7 @@ allprojects {
 }
 
 task allJavadoc(type: Javadoc) {
-    source = files(rootProject.allprojects.stream()
+    source = files(rootProject.subprojects.stream()
             .filter { !Objects.isNull(it) }
             .filter { it.hasProperty("sourceSet") }
             .map { it.sourceSets.allSource }

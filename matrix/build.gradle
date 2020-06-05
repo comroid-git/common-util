@@ -8,6 +8,6 @@ ext {
 }
 
 dependencies {
-    implementation project(":util")
+    implementation project(":common-util")
     implementation project(":spellbind")
 }

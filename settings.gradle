@@ -2,7 +2,7 @@ rootProject.name = 'common-util'
 
 // generic tools
 include(':trie')
-include(':util')
+include(':common-util')
 include(':commandline')
 
 // uniform framework

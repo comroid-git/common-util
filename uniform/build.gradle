@@ -41,10 +41,10 @@ jar {
 }
 
 dependencies {
-    java8Implementation project(':util')
-    java11Implementation project(':util')
+    java8Implementation project(':common-util')
+    java11Implementation project(':common-util')
 
-    implementation project(':util')
+    implementation project(':common-util')
     implementation project(':spellbind')
 
     // websocket dependencies
@@ -73,7 +73,7 @@ dependencies {
     java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
     java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
 
-    testImplementation project(':util')
+    testImplementation project(':common-util')
     testImplementation sourceSets.java8.output.classesDirs
     testImplementation sourceSets.java11.output.classesDirs
     testImplementation 'com.alibaba:fastjson:1.2.68'
