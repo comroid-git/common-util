@@ -9,29 +9,29 @@ ext {
 
 configurations {
     main
-    java8.extendsFrom main
-    java11.extendsFrom main
+    java8compat.extendsFrom main
+    java11compat.extendsFrom main
 }
 
 sourceSets {
-    java8.java.srcDirs = [file("$rootDir/uniform/src/main/jdk8")]
-    java11.java.srcDirs = [file("$rootDir/uniform/src/main/jdk11")]
+    java8compat.java.srcDirs = files("$rootDir/src/uniform/main/java8compat")
+    java11compat.java.srcDirs = files("$rootDir/src/uniform/main/java11compat")
 }
 
-compileJava8Java {
+compileJava8CompatJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 }
 
-compileJava11Java {
+compileJava11CompatJava {
     sourceCompatibility = 11
     targetCompatibility = 11
 }
 
 jar {
-    dependsOn = ['compileJava8Java', 'compileJava11Java']
-    tasks.findByName('compileJava8Java').mustRunAfter('compileJava')
-    tasks.findByName('compileJava11Java').mustRunAfter('compileJava')
+    dependsOn = ['compileJava8CompatJava', 'compileJava11CompatJava']
+    tasks.findByName('compileJava8CompatJava').mustRunAfter('compileJava')
+    tasks.findByName('compileJava11CompatJava').mustRunAfter('compileJava')
 
     from files(tasks.findByName('compileJava').destinationDir,
             tasks.findByName('compileJava8Java').destinationDir,
