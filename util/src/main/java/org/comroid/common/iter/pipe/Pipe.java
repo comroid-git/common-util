@@ -2,15 +2,20 @@ package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Disposable;
+import org.comroid.common.func.Processor;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.iter.ReferenceIndex;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
     StageAdapter<O, T> getAdapter();
@@ -58,6 +63,28 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
 
     default void forEach(Consumer<? super T> action) {
         addStage(StageAdapter.peek(action));
+    }
+
+    default boolean isSorted() {
+        return false;
+    }
+
+    default Pipe<T, T> sorted() {
+        return sorted(Polyfill.uncheckedCast(Comparator.naturalOrder()));
+    }
+
+    default Pipe<T, T> sorted(Comparator<? super T> comparator) {
+        return new SortedResultingPipe<>(this, comparator);
+    }
+
+    @NotNull
+    default Processor<T> findFirst() {
+        return sorted().findAny();
+    }
+
+    @NotNull
+    default Processor<T> findAny() {
+        return Processor.ofReference(Reference.conditional(() -> get(0) != null, () -> get(0)));
     }
 
     @Override

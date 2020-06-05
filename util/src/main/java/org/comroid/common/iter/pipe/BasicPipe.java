@@ -8,6 +8,7 @@ import org.comroid.common.ref.Reference;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 
 public class BasicPipe<O, T> implements Pipe<O, T> {
