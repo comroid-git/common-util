@@ -64,7 +64,7 @@ dependencies {
     java11compatCompileOnly project(':dreadpool')
 
     // http adapter dependencies
-    java8compatCompileOnly 'com.squareup.okhttp3:okhttp:4.5.0'
+    java8compatCompileOnly 'com.squareup.okhttp3:okhttp:4.7.2'
 
     implementation 'com.google.flogger:flogger:0.5.1'
     java8compatImplementation 'com.google.flogger:flogger:0.5.1'
