@@ -1,8 +1,6 @@
 import java.util.stream.Collectors
 
 allprojects {
-    apply plugin: 'java-library'
-
     group 'org.comroid'
 }
 
@@ -18,6 +16,7 @@ configurations {
 }
 
 allprojects {
+    apply plugin: 'java-library'
     apply from: "$rootDir/gradle/vars.gradle"
     apply from: "$rootDir/gradle/global.gradle"
 }

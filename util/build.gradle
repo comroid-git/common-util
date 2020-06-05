@@ -6,3 +6,7 @@ targetCompatibility = 1.8
 ext {
     projectDescription = "Commonly used Interfaces and Classes"
 }
+
+dependencies {
+    api project(':trie')
+}

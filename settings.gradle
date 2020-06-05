@@ -1,8 +1,16 @@
 rootProject.name = 'common-util'
 
-include(':commandline')
+// generic tools
+include(':trie')
 include(':util')
+include(':commandline')
+
+// uniform framework
 include(':uniform')
+include(':restless')
+include(':varbind')
+
+// jvm tools
 include(':dreadpool')
 include(':spellbind')
 include(':listnr')

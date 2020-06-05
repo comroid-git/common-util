@@ -1,0 +1,82 @@
+version = '0.15.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Java Uniform Adapters"
+}
+
+configurations {
+    main
+    java8.extendsFrom main
+    java11.extendsFrom main
+}
+
+sourceSets {
+    java8.java.srcDirs = [file("$rootDir/uniform/src/main/jdk8")]
+    java11.java.srcDirs = [file("$rootDir/uniform/src/main/jdk11")]
+}
+
+compileJava8Java {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+compileJava11Java {
+    sourceCompatibility = 11
+    targetCompatibility = 11
+}
+
+jar {
+    dependsOn = ['compileJava8Java', 'compileJava11Java']
+    tasks.findByName('compileJava8Java').mustRunAfter('compileJava')
+    tasks.findByName('compileJava11Java').mustRunAfter('compileJava')
+
+    from files(tasks.findByName('compileJava').destinationDir,
+            tasks.findByName('compileJava8Java').destinationDir,
+            tasks.findByName('compileJava11Java').destinationDir)
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+dependencies {
+    java8Implementation project(':util')
+    java11Implementation project(':util')
+
+    implementation project(':util')
+    implementation project(':spellbind')
+
+    // websocket dependencies
+    api project(':listnr')
+    java8CompileOnly project(':listnr')
+    java11CompileOnly project(':listnr')
+    api project(':dreadpool')
+    java8CompileOnly project(':dreadpool')
+    java11CompileOnly project(':dreadpool')
+
+    java8CompileOnly project(':spellbind')
+    java8CompileOnly sourceSets.main.output.classesDirs
+    java11CompileOnly sourceSets.main.output.classesDirs
+
+    // json adapter dependencies
+    java8CompileOnly 'com.alibaba:fastjson:1.2.68'
+    java8CompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
+    java8CompileOnly 'org.json:json:20190722'
+
+    // http adapter dependencies
+    java8CompileOnly 'com.squareup.okhttp3:okhttp:4.5.0'
+
+    implementation 'com.google.flogger:flogger:0.5.1'
+    java8Implementation 'com.google.flogger:flogger:0.5.1'
+    java11Implementation 'com.google.flogger:flogger:0.5.1'
+    java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
+    java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
+
+    testImplementation project(':util')
+    testImplementation sourceSets.java8.output.classesDirs
+    testImplementation sourceSets.java11.output.classesDirs
+    testImplementation 'com.alibaba:fastjson:1.2.68'
+    testImplementation 'com.squareup.okhttp3:okhttp:4.5.0'
+}
+

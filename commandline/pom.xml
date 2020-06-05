@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.comroid</groupId>
   <artifactId>commandline</artifactId>
-  <version>0.10.0</version>
+  <version>0.10.1-SNAPSHOT</version>
   <name>common-util</name>
   <description>Command Line Tools</description>
   <url>https://github.com/comroid-git/common-util</url>
@@ -36,7 +36,7 @@
     <dependency>
       <groupId>org.comroid</groupId>
       <artifactId>common-util</artifactId>
-      <version>1.5.0-SNAPSHOT</version>
+      <version>1.5.2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
