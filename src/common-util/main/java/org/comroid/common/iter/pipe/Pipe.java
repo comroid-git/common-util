@@ -2,11 +2,15 @@ package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Disposable;
+import org.comroid.common.func.Processor;
 import org.comroid.common.iter.ReferenceIndex;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.Reference;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -14,6 +18,10 @@ import java.util.function.Predicate;
 
 public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
     StageAdapter<O, T> getAdapter();
+
+    default boolean isSorted() {
+        return false;
+    }
 
     static <T> Pipe<T, T> create() {
         return new BasicPipe<>(ReferenceIndex.create());
@@ -24,6 +32,11 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
         collection.forEach(pipe);
 
         return pipe;
+    }
+
+    @Override
+    default List<T> unwrap() {
+        return span().unwrap();
     }
 
     <R> Pipe<T, R> addStage(StageAdapter<T, R> stage);
@@ -58,6 +71,24 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
 
     default void forEach(Consumer<? super T> action) {
         addStage(StageAdapter.peek(action));
+    }
+
+    default Pipe<T, T> sorted() {
+        return sorted(Polyfill.uncheckedCast(Comparator.naturalOrder()));
+    }
+
+    default Pipe<T, T> sorted(Comparator<? super T> comparator) {
+        return new SortedResultingPipe<>(this, comparator);
+    }
+
+    @NotNull
+    default Processor<T> findFirst() {
+        return sorted().findAny();
+    }
+
+    @NotNull
+    default Processor<T> findAny() {
+        return span().process();
     }
 
     @Override

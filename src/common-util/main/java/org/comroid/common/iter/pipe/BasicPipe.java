@@ -6,9 +6,7 @@ import org.comroid.common.iter.ReferenceIndex;
 import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.Reference;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 public class BasicPipe<O, T> implements Pipe<O, T> {
     public static final int AUTOEMPTY_DISABLED = -1;

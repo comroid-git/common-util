@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,15 +78,15 @@ public abstract class UniNode implements Specifiable<UniNode> {
     public abstract @NotNull UniNode get(String fieldName);
 
     // todo: add helper methods
-    public <T> @NotNull UniValueNode<T> add(ValueType<T> type, T value) throws UnsupportedOperationException {
+    public @NotNull <T> UniValueNode<String> add(ValueType<T> type, T value) throws UnsupportedOperationException {
         return put(size(), type, value);
     }
 
-    public <T> @NotNull UniValueNode<T> put(int index, ValueType<T> type, T value) throws UnsupportedOperationException {
+    public @NotNull <T> UniValueNode<String> put(int index, ValueType<T> type, T value) throws UnsupportedOperationException {
         return unsupported("PUT_INDEX", Type.ARRAY);
     }
 
-    public <T> @NotNull UniValueNode<T> put(String key, ValueType<T> type, T value) throws UnsupportedOperationException {
+    public @NotNull <T> UniValueNode<String> put(String key, ValueType<T> type, T value) throws UnsupportedOperationException {
         return unsupported("PUT_KEY", Type.OBJECT);
     }
 
@@ -232,14 +233,14 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return as(UniValueNode.class, MessageSupplier.format("Node is of %s type; expected %s", getType(), Type.VALUE));
     }
 
-    protected <T> UniValueNode.Adapter<T> makeValueAdapter(String stringSupplier) {
-        return new UniValueNode.Adapter.ViaString<>(Reference.Settable.create(stringSupplier));
+    @Override
+    public final String toString() {
+        return getBaseNode().toString();
     }
 
     @NotNull
-    protected <T> UniValueNode<T> generateValueNode(String ofString) {
-        final UniValueNode.Adapter.ViaString<T> valueAdapter
-                = new UniValueNode.Adapter.ViaString<>(Reference.Settable.create(ofString));
+    protected UniValueNode<String> generateValueNode(Reference.Settable<String> stringReference) {
+        final UniValueNode.Adapter.ViaString valueAdapter = new UniValueNode.Adapter.ViaString(stringReference);
         return new UniValueNode<>(serializationAdapter, valueAdapter);
     }
 

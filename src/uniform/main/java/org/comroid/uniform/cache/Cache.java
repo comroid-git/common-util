@@ -2,6 +2,7 @@ package org.comroid.uniform.cache;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Provider;
+import org.comroid.common.iter.pipe.Pipe;
 import org.comroid.common.map.ReferenceMap;
 import org.comroid.common.ref.OutdateableReference;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,12 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
     }
 
     Stream<Reference<K, V>> stream(Predicate<K> filter);
+
+    default Pipe<?, Reference<K, V>> pipe() {
+        return pipe(any -> true);
+    }
+
+    Pipe<?, Reference<K, V>> pipe(Predicate<K> filter);
 
     @NotNull Reference<K, V> getReference(K key, boolean createIfAbsent);
 

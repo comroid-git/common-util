@@ -193,8 +193,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     private <A> BiFunction<UniObjectNode, String, A> extractor(final ValueType<A> type) {
-        return (root, fieldName) -> root.get(fieldName)
-                .as(type);
+        return (root, fieldName) -> root.get(fieldName).as(type);
     }
 
     public final <R> VarBind.TwoStage<UniObjectNode, R> bind2stage(

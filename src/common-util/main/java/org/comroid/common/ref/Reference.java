@@ -17,6 +17,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
@@ -55,12 +56,30 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         return Optional.ofNullable(get());
     }
 
+    default Stream<T> stream() {
+        if (isNull())
+            return Stream.empty();
+        return Stream.of(get());
+    }
+
     default @NotNull T requireNonNull() throws NullPointerException {
         return Objects.requireNonNull(get());
     }
 
     default @NotNull T requireNonNull(String message) throws NullPointerException {
         return Objects.requireNonNull(get(), message);
+    }
+
+    default @NotNull T orElse(T other) {
+        if (isNull())
+            return other;
+        return requireNonNull("Assertion Failure");
+    }
+
+    default @NotNull T orElseGet(Supplier<T> otherProvider) {
+        if (isNull())
+            return otherProvider.get();
+        return requireNonNull("Assertion Failure");
     }
 
     default Provider<T> provider() {
@@ -92,6 +111,10 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             return new Support.Settable<>(initialValue);
         }
 
+        /**
+         * @param newValue The new value
+         * @return The previous value
+         */
         @Nullable T set(T newValue);
 
         default T compute(Function<T, T> computor) {

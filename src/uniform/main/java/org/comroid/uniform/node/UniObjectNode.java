@@ -1,5 +1,6 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.ref.OutdateableReference.SettableOfSupplier;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -8,9 +9,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {
+    private final Map<String, UniValueNode<String>> valueAdapters = new ConcurrentHashMap<>();
     private final Adapter adapter;
 
     @Override
@@ -70,18 +73,31 @@ public final class UniObjectNode extends UniNode {
         if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
                 .map(DataStructureType::typeClass)
                 .noneMatch(type -> type.isInstance(value))) {
-            return new UniValueNode<>(serializationAdapter, makeValueAdapter(String.valueOf(adapter.get(fieldName))));
+            return valueAdapters.computeIfAbsent(fieldName, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
+                    .process()
+                    .map(String::valueOf)
+                    .snapshot()));
         } else {
             return serializationAdapter.createUniNode(value);
         }
     }
 
     @Override
-    public @NotNull <T> UniValueNode<T> put(String key, ValueType<T> type, T value) {
-        final UniValueNode<T> valueNode = generateValueNode(type.convert(value, ValueType.STRING));
+    public @NotNull <T> UniValueNode<String> put(String key, ValueType<T> type, T value) {
+        if (adapter.containsKey(key)) {
+            Object at = adapter.get(key);
+            if (at instanceof UniValueNode) {
+                adapter.put(key, value);
+                //noinspection unchecked
+                return (UniValueNode<String>) at;
+            }
+        }
 
-        adapter.put(key, valueNode.getBaseNode());
-        return valueNode;
+        adapter.put(key, value);
+        return valueAdapters.computeIfAbsent(key, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
+                .process()
+                .map(String::valueOf)
+                .snapshot()));
     }
 
     @Override
@@ -116,11 +132,6 @@ public final class UniObjectNode extends UniNode {
             return this;
         }
         return unsupported("COPY_FROM", Type.OBJECT);
-    }
-
-    @Override
-    public String toString() {
-        return adapter.toString();
     }
 
     public static abstract class Adapter<B> extends AbstractMap<String, Object> implements UniNode.Adapter<B> {

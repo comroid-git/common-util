@@ -78,6 +78,10 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return new Support.ReferenceFlatMapped<>(this, mapper);
     }
 
+    default Settable<T> snapshot() {
+        return Settable.create(get());
+    }
+
     @Internal
     final class Support {
         private static final Processor<?> EMPTY = new OfReference<>(Reference.empty());
@@ -108,7 +112,12 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             @Nullable
             @Override
             public R get() {
-                return remapper.apply(underlying.get());
+                final T get = underlying.get();
+                
+                if (get != null)
+                    return remapper.apply(get);
+
+                return null;
             }
         }
 

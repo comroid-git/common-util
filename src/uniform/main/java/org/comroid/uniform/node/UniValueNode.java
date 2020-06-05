@@ -1,10 +1,13 @@
 package org.comroid.uniform.node;
 
+import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.Reference;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 public class UniValueNode<T> extends UniNode {
     private final Adapter<T> adapter;
@@ -170,7 +173,7 @@ public class UniValueNode<T> extends UniNode {
 
         @Nullable String set(String value);
 
-        final class ViaString<T> implements Adapter<T> {
+        final class ViaString implements Adapter<String> {
             private final Reference.Settable<String> sub;
 
             @Override
@@ -184,12 +187,20 @@ public class UniValueNode<T> extends UniNode {
 
             @Override
             public <R> @Nullable R get(ValueType<R> as) {
-                return as.apply(sub.get());
+                final String from = sub.get();
+                if (from != null)
+                    return as.apply(from);
+                return null;
             }
 
             @Override
             public @Nullable String set(String value) {
                 return sub.set(value);
+            }
+
+            @Override
+            public String toString() {
+                return sub.get();
             }
         }
     }
@@ -212,6 +223,11 @@ public class UniValueNode<T> extends UniNode {
                 @Override
                 public @Nullable String set(String value) {
                     throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public String toString() {
+                    return null;
                 }
             });
         }

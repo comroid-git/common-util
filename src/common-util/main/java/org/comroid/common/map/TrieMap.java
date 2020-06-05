@@ -174,7 +174,7 @@ public interface TrieMap<K, V> extends Map<K, V> {
         @Override
         public V put(K key, V value) {
             if (!assertStageExists(key))
-                throw new UnsupportedOperationException("Could not generate Stage for key " + key);
+                throw new UnsupportedOperationException("Could not generate Stage for key: " + key);
 
             return baseStage.putValue(convertKey(key), 0, value).orElse(null);
         }
