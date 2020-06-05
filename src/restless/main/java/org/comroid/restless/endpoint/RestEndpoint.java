@@ -1,7 +1,6 @@
 package org.comroid.restless.endpoint;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.info.NamedGroup;
 import org.comroid.common.ref.StaticCache;
 import org.comroid.common.util.ArrayUtil;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -10,7 +9,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -86,7 +84,7 @@ public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
     default boolean test(String url) {
         final String[] regExpGroups = getRegExpGroups();
         final String replacer = replacer(regExpGroups);
-        
+
         if (regExpGroups.length == 0)
             return replacer.equals(url);
         else return getPattern()

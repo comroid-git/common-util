@@ -1,23 +1,21 @@
 package org.comroid.test.uniform;
 
-import java.net.URL;
-import java.util.concurrent.TimeUnit;
-
 import org.comroid.restless.REST;
 import org.comroid.restless.adapter.okhttp.v3.OkHttp3Adapter;
 import org.comroid.test.model.NGinXFSNode;
 import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
-
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
+
 import static org.comroid.common.Polyfill.url;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class TestRestJava8 {
     public final static URL testUrl = url("https://api.cdn.comroid.org/app/SymBLink/");
+    private REST rest;
 
     @Before
     public void setup() {
@@ -56,6 +54,4 @@ public class TestRestJava8 {
             t.printStackTrace(System.out);
         }
     }
-
-    private REST rest;
 }

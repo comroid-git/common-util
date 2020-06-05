@@ -23,7 +23,7 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
     }
 
     default ReferenceIndex<T> subset() {
-        return subset(0,  size());
+        return subset(0, size());
     }
 
     default ReferenceIndex<T> subset(int startIncl, int endExcl) {

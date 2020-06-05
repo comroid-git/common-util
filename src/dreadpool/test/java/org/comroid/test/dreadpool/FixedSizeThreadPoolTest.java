@@ -1,22 +1,20 @@
 package org.comroid.test.dreadpool;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import org.comroid.dreadpool.ThreadPool;
+import org.junit.Before;
+
+import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.comroid.dreadpool.ThreadPool;
-
-import org.junit.Before;
-
 import static org.junit.Assert.assertEquals;
 
 public class FixedSizeThreadPoolTest {
+    private ThreadPool threadPool;
+    private List<SomeTask> someTasks;
+    private List<UUID> yields;
+
     @Before
     public void setup() {
         threadPool = ThreadPool.fixedSize(null, 1);
@@ -138,8 +136,4 @@ public class FixedSizeThreadPoolTest {
             yields.add(uuid);
         }
     }
-
-    private ThreadPool     threadPool;
-    private List<SomeTask> someTasks;
-    private List<UUID>     yields;
 }

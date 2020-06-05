@@ -5,7 +5,6 @@ import org.comroid.test.model.AnotherPartialAbstract;
 import org.comroid.test.model.FullAbstract;
 import org.comroid.test.model.NonAbstract;
 import org.comroid.test.model.PartialAbstract;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -61,26 +60,14 @@ public class SpellbindTest {
         Assert.assertEquals(-6d, proxy.sub(0.2d), 0.0d);
     }
 
-    public static class ImplementingClass implements MainInterface {
-        @Override
-        public boolean invert(boolean val) {
-            return !val;
-        }
-
-        @Override
-        public String name() {
-            return "some class";
-        }
-
-        @Override
-        public int getValue() {
-            return 42;
-        }
-    }
-
     public interface HyperInterface extends MainInterface, CharSequence, AnotherPartialAbstract {
         @SuppressWarnings("NullableProblems")
         class SubImpl extends ImplementingClass implements HyperInterface {
+            @Override
+            public double getAnother() {
+                return 6.2d;
+            }
+
             @Override
             public int length() {
                 return 5;
@@ -95,13 +82,26 @@ public class SpellbindTest {
             public CharSequence subSequence(int start, int end) {
                 return "hello".subSequence(start, end);
             }
-
-            @Override
-            public double getAnother() {
-                return 6.2d;
-            }
         }
     }
 
-    public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {}
+    public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {
+    }
+
+    public static class ImplementingClass implements MainInterface {
+        @Override
+        public int getValue() {
+            return 42;
+        }
+
+        @Override
+        public boolean invert(boolean val) {
+            return !val;
+        }
+
+        @Override
+        public String name() {
+            return "some class";
+        }
+    }
 }

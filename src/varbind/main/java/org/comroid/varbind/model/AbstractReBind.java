@@ -8,13 +8,6 @@ public abstract class AbstractReBind<EXTR, DPND, REMAP> implements ReBind<EXTR, 
     private final VarBind<?, DPND, ?, EXTR> underlying;
     private final GroupBind<?, DPND> group;
 
-    public AbstractReBind(VarBind<?, DPND, ?, EXTR> underlying, GroupBind<?, DPND> group) {
-        this.underlying = underlying;
-        this.group = group;
-
-        group.addChild(this);
-    }
-
     @Override
     public VarBind<?, DPND, ?, EXTR> getUnderlying() {
         return underlying;
@@ -23,5 +16,12 @@ public abstract class AbstractReBind<EXTR, DPND, REMAP> implements ReBind<EXTR, 
     @Override
     public GroupBind<?, DPND> getGroup() {
         return group;
+    }
+
+    public AbstractReBind(VarBind<?, DPND, ?, EXTR> underlying, GroupBind<?, DPND> group) {
+        this.underlying = underlying;
+        this.group = group;
+
+        group.addChild(this);
     }
 }

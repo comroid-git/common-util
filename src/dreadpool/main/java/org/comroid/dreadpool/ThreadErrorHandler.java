@@ -1,12 +1,14 @@
 package org.comroid.dreadpool;
 
+import com.google.common.flogger.FluentLogger;
+
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 
-import com.google.common.flogger.FluentLogger;
-
 public class ThreadErrorHandler implements RejectedExecutionHandler {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
     @Override
     public void rejectedExecution(Runnable task, ThreadPoolExecutor executor) {
         if (executor instanceof ThreadPool) {
@@ -24,6 +26,4 @@ public class ThreadErrorHandler implements RejectedExecutionHandler {
                 .withCause(IEx)
                 .log();
     }
-
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 }

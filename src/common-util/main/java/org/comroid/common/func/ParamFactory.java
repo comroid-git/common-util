@@ -1,8 +1,8 @@
 package org.comroid.common.func;
 
-import java.util.function.Function;
-
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Function;
 
 public interface ParamFactory<P, T> extends Provider.Now<T> {
     @Override
@@ -22,6 +22,7 @@ public interface ParamFactory<P, T> extends Provider.Now<T> {
 
     class Abstract<P, T> implements ParamFactory<P, T> {
         private final Function<P, T> factory;
+        protected int counter = 0;
 
         public Abstract(Function<P, T> factory) {
             this.factory = factory;
@@ -49,6 +50,5 @@ public interface ParamFactory<P, T> extends Provider.Now<T> {
         public final int peekCounter() {
             return counter;
         }
-        protected     int            counter = 0;
     }
 }

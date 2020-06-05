@@ -1,29 +1,21 @@
 package org.comroid.common.func;
 
+import org.comroid.common.Polyfill;
+import org.comroid.common.annotation.Blocking;
+import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.Contract;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.annotation.Blocking;
-
-import org.jetbrains.annotations.ApiStatus.Internal;
-import org.jetbrains.annotations.Contract;
-
 @FunctionalInterface
 public interface Provider<T> extends Supplier<CompletableFuture<T>> {
     default boolean isInstant() {
         return this instanceof Now;
     }
-
-    @Blocking
-    default T now() {
-        return get().join();
-    }
-
-    CompletableFuture<T> get();
 
     static <T> Provider<T> of(CompletableFuture<T> future) {
         return Polyfill.constantSupplier(future)::get;
@@ -45,37 +37,12 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
         return new Support.Once<>(from);
     }
 
-    @Internal
-    final class Support {
-        private static final class Constant<T> implements Provider.Now<T> {
-            private final        T                             value;
-
-            private Constant(T value) {
-                this.value = value;
-            }
-
-            @Override
-            public T now() {
-                return value;
-            }
-            private static final Map<Object, Constant<Object>> cache = new ConcurrentHashMap<>();
-        }
-
-        private static final class Once<T> implements Provider<T> {
-            private final CompletableFuture<T> future;
-
-            public Once(CompletableFuture<T> from) {
-                this.future = from;
-            }
-
-            @Override
-            public CompletableFuture<T> get() {
-                return future;
-            }
-        }
-
-        private static final Provider<?> EMPTY = constant(null);
+    @Blocking
+    default T now() {
+        return get().join();
     }
+
+    CompletableFuture<T> get();
 
     @FunctionalInterface
     interface Now<T> extends Provider<T> {
@@ -91,6 +58,38 @@ public interface Provider<T> extends Supplier<CompletableFuture<T>> {
         @Contract("-> new")
         default CompletableFuture<T> get() {
             return CompletableFuture.completedFuture(now());
+        }
+    }
+
+    @Internal
+    final class Support {
+        private static final Provider<?> EMPTY = constant(null);
+
+        private static final class Constant<T> implements Provider.Now<T> {
+            private static final Map<Object, Constant<Object>> cache = new ConcurrentHashMap<>();
+            private final T value;
+
+            private Constant(T value) {
+                this.value = value;
+            }
+
+            @Override
+            public T now() {
+                return value;
+            }
+        }
+
+        private static final class Once<T> implements Provider<T> {
+            private final CompletableFuture<T> future;
+
+            public Once(CompletableFuture<T> from) {
+                this.future = from;
+            }
+
+            @Override
+            public CompletableFuture<T> get() {
+                return future;
+            }
         }
     }
 }

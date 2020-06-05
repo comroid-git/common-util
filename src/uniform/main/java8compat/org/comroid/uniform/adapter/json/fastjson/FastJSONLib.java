@@ -1,24 +1,24 @@
 package org.comroid.uniform.adapter.json.fastjson;
 
-import java.io.IOException;
-import java.util.Objects;
-import java.util.Set;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONValidator;
 import org.comroid.common.annotation.Instance;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONValidator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.util.Objects;
+import java.util.Set;
+
 public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JSONArray> {
-    public static @Instance final FastJSONLib fastJsonLib = new FastJSONLib();
+    public static @Instance
+    final FastJSONLib fastJsonLib = new FastJSONLib();
 
     private FastJSONLib() {
         super("application/json", JSONObject.class, JSONArray.class);

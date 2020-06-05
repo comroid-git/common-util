@@ -1,8 +1,8 @@
 package org.comroid.uniform;
 
-import java.util.Arrays;
-
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 
 public class StructureTypeMismatchException extends IllegalArgumentException {
     public StructureTypeMismatchException(DataStructureType<?, ?, ?> errorType) {

@@ -1,7 +1,5 @@
 package org.comroid.uniform.node;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;

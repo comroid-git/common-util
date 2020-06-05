@@ -11,10 +11,6 @@ import org.comroid.varbind.container.DataContainerBase;
 
 @Location(NGinXFSNode.Bind.class)
 public final class NGinXFSNode extends DataContainerBase<Void> {
-    protected NGinXFSNode(UniObjectNode initialData) {
-        super(, FastJSONLib.fastJsonLib, initialData, null);
-    }
-
     public String getName() {
         return get(Bind.Name);
     }
@@ -27,11 +23,15 @@ public final class NGinXFSNode extends DataContainerBase<Void> {
         return get(Bind.MTime);
     }
 
+    protected NGinXFSNode(UniObjectNode initialData) {
+        super(, FastJSONLib.fastJsonLib, initialData, null);
+    }
+
     interface Bind {
         @RootBind
         GroupBind root = new GroupBind(FastJSONLib.fastJsonLib, "fsnode", invocable);
-        VarBind.OneStage<String> Name  = root.bind1stage("name", ValueType.STRING);
-        VarBind.OneStage<String> Type  = root.bind1stage("type", ValueType.STRING);
+        VarBind.OneStage<String> Name = root.bind1stage("name", ValueType.STRING);
+        VarBind.OneStage<String> Type = root.bind1stage("type", ValueType.STRING);
         VarBind.OneStage<String> MTime = root.bind1stage("mtime", ValueType.STRING);
     }
 }

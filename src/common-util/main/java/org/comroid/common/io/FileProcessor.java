@@ -3,7 +3,6 @@ package org.comroid.common.io;
 import org.comroid.common.exception.MultipleExceptions;
 import org.comroid.common.func.Disposable;
 
-import java.io.File;
 import java.io.IOException;
 
 public interface FileProcessor extends Disposable {

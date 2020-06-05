@@ -1,17 +1,18 @@
 package org.comroid.dreadpool.loop.manager;
 
+import com.google.common.flogger.FluentLogger;
+import org.comroid.dreadpool.Worker;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
-import org.comroid.dreadpool.Worker;
-
-import com.google.common.flogger.FluentLogger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 public final class LoopWorker extends Worker {
-    private final        LoopManager  manager;
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private final LoopManager manager;
+    private Loop<?> current;
 
     public LoopWorker(
             @NotNull LoopManager manager, @Nullable ThreadGroup group, @NotNull String name
@@ -60,6 +61,4 @@ public final class LoopWorker extends Worker {
 
         current = loop;
     }
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private              Loop<?>      current;
 }

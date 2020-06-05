@@ -1,8 +1,7 @@
 package org.comroid.test.model;
 
-import org.comroid.uniform.node.UniObjectNode;
-
 import com.alibaba.fastjson.JSONObject;
+import org.comroid.uniform.node.UniObjectNode;
 
 public class DiscordAPI {
     public Channel getChannelById(long val) {

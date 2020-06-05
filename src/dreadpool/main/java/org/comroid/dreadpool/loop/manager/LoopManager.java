@@ -1,27 +1,40 @@
 package org.comroid.dreadpool.loop.manager;
 
+import org.comroid.common.Polyfill;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Closeable;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.comroid.common.Polyfill;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 public final class LoopManager implements Closeable {
     public static final ThreadGroup THREAD_GROUP = new ThreadGroup("LoopManager");
-    final         Object          lock  = Polyfill.selfawareLock();
-    private final Queue<Loop<?>>  queue = new PriorityQueue<>();
+    final Object lock = Polyfill.selfawareLock();
+    private final Queue<Loop<?>> queue = new PriorityQueue<>();
+    private Set<LoopWorker> workers;
 
     private LoopManager() {
+    }
+
+    public static LoopManager start(int parallelism) {
+        return start(parallelism, THREAD_GROUP);
+    }
+
+    public static LoopManager start(int parallelism, @Nullable ThreadGroup group) {
+        final LoopManager manager = new LoopManager();
+
+        manager.workers = Collections.unmodifiableSet(IntStream.range(1, parallelism + 1)
+                .mapToObj(iter -> new LoopWorker(manager,
+                        group,
+                        String.format("LoopWorker @" + " " + "%s#%4d", manager.toString(), iter)
+                ))
+                .collect(Collectors.toSet()));
+        manager.workers.forEach(Thread::start);
+
+        return manager;
     }
 
     @Override
@@ -72,27 +85,8 @@ public final class LoopManager implements Closeable {
         }
     }
 
-    public static LoopManager start(int parallelism) {
-        return start(parallelism, THREAD_GROUP);
-    }
-
-    public static LoopManager start(int parallelism, @Nullable ThreadGroup group) {
-        final LoopManager manager = new LoopManager();
-
-        manager.workers = Collections.unmodifiableSet(IntStream.range(1, parallelism + 1)
-                .mapToObj(iter -> new LoopWorker(manager,
-                        group,
-                        String.format("LoopWorker @" + " " + "%s#%4d", manager.toString(), iter)
-                ))
-                .collect(Collectors.toSet()));
-        manager.workers.forEach(Thread::start);
-
-        return manager;
-    }
-
     @Override
     public String toString() {
         return String.format("LoopManager{lock=%s}", queue);
     }
-    private       Set<LoopWorker> workers;
 }

@@ -1,9 +1,9 @@
 package org.comroid.dreadpool.loop;
 
+import org.comroid.dreadpool.loop.manager.Loop;
+
 import java.util.function.BooleanSupplier;
 import java.util.function.IntFunction;
-
-import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class WhileDo<T> extends Loop<T> {
     private final IntFunction<T> producer;
@@ -27,12 +27,13 @@ public abstract class WhileDo<T> extends Loop<T> {
 
     public static final class Func extends WhileDo<Integer> {
         private final BooleanSupplier predicate;
-        private final Runnable        action;
+        private final Runnable action;
+
         public Func(int priority, BooleanSupplier predicate, Runnable action) {
             super(priority, val -> val + 1);
 
             this.predicate = predicate;
-            this.action    = action;
+            this.action = action;
         }
 
         @Override

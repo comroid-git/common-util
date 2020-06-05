@@ -21,13 +21,6 @@ public interface Reprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPN
         V getUnderlying();
 
         @Override
-        default I remap(EXTR from, DPND dependency) {
-            return getUnderlying()
-                    .finish(Span.singleton(getUnderlying()
-                    .remap(from, dependency)));
-        }
-
-        @Override
         default String getFieldName() {
             return getUnderlying().getFieldName();
         }
@@ -37,16 +30,23 @@ public interface Reprocessed<EXTR, DPND, REMAP, FINAL> extends VarBind<EXTR, DPN
             return getUnderlying().getGroup();
         }
 
+        @Override
+        default I remap(EXTR from, DPND dependency) {
+            return getUnderlying()
+                    .finish(Span.singleton(getUnderlying()
+                            .remap(from, dependency)));
+        }
+
         class Base<EXTR, DPND, REMAP, FINAL> implements Underlying<VarBind<EXTR, DPND, REMAP, FINAL>, EXTR, DPND, REMAP, FINAL, FINAL> {
             private final VarBind<EXTR, DPND, REMAP, FINAL> underlying;
-
-            public Base(VarBind<EXTR, DPND, REMAP, FINAL> underlying) {
-                this.underlying = underlying;
-            }
 
             @Override
             public VarBind<EXTR, DPND, REMAP, FINAL> getUnderlying() {
                 return underlying;
+            }
+
+            public Base(VarBind<EXTR, DPND, REMAP, FINAL> underlying) {
+                this.underlying = underlying;
             }
         }
     }

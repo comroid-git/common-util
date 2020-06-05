@@ -1,7 +1,6 @@
 package org.comroid.common.func;
 
 import org.comroid.common.annotation.OptionalVararg;
-import org.comroid.common.exception.ThrowableForwarder;
 import org.comroid.common.util.ReflectionHelper;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +15,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;

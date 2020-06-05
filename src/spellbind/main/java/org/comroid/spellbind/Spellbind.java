@@ -3,14 +3,12 @@ package org.comroid.spellbind;
 import org.comroid.common.func.Invocable;
 import org.comroid.common.map.TrieMap;
 import org.comroid.spellbind.annotation.Partial;
-import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.comroid.spellbind.SpellCore.methodString;

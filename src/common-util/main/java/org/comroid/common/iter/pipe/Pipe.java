@@ -2,9 +2,9 @@ package org.comroid.common.iter.pipe;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Disposable;
+import org.comroid.common.iter.ReferenceIndex;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.Reference;
-import org.comroid.common.iter.ReferenceIndex;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;

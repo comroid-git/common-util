@@ -1,11 +1,11 @@
 package org.comroid.uniform.adapter.json.jackson;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+
+import java.util.Objects;
 
 import static org.comroid.common.Polyfill.uncheckedCast;
 

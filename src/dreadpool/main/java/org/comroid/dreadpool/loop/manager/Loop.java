@@ -1,21 +1,26 @@
 package org.comroid.dreadpool.loop.manager;
 
-import java.util.Comparator;
-import java.util.concurrent.CompletableFuture;
-
 import org.comroid.common.ref.OutdateableReference;
-
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
+import java.util.concurrent.CompletableFuture;
+
 public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoCloseable {
-    public static final int                  HIGH_PRIO       = 200;
-    public static final Comparator<Loop<?>>  LOOP_COMPARATOR = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
-    public static final int                  LOW_PRIO        = 0;
-    public static final int                  MEDIUM_PRIO     = 100;
-    public final        CompletableFuture<L> result          = new CompletableFuture<>();
+    public static final int HIGH_PRIO = 200;
+    public static final Comparator<Loop<?>> LOOP_COMPARATOR = Comparator.<Loop<?>>comparingInt(Loop::priority).reversed();
+    public static final int LOW_PRIO = 0;
+    public static final int MEDIUM_PRIO = 100;
+    public final CompletableFuture<L> result = new CompletableFuture<>();
     private final OutdateableReference<Boolean> canContinue = new OutdateableReference<>();
-    private final int                           priority;
+    private final int priority;
+    protected int counter = 0;
+    private boolean closed;
+
+    public final boolean isClosed() {
+        return closed;
+    }
 
     protected Loop(int priority) {
         this.priority = priority;
@@ -76,10 +81,6 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
         }
     }
 
-    public final boolean isClosed() {
-        return closed;
-    }
-
     @Internal
     protected abstract boolean continueLoop();
 
@@ -102,7 +103,6 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
 
     /**
      * @param each The current loop variable.
-     *
      * @return Whether or not the loop should be closed after this invocation.
      */
     @Internal
@@ -120,6 +120,4 @@ public abstract class Loop<L> implements Comparable<Loop<?>>, Runnable, AutoClos
     protected int peekNextInt() {
         return counter + 1;
     }
-    protected     int                           counter     = 0;
-    private       boolean                       closed;
 }

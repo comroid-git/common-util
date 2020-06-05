@@ -1,22 +1,22 @@
 package org.comroid.test.common.iter;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.Pair;
-
 import org.junit.Test;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SpanTest {
+    private static final Random rng = new Random();
+    private static int bound = rng.nextInt(100) + 50;
+    private Span<String> span;
+    private List<Pair<String, Integer>> generated;
+
     @Test
     public void baseTest() {
         this.span = Span.<String>make().span();
@@ -67,7 +67,7 @@ public class SpanTest {
         System.out.println("span before      = " + span);
 
         final int size_beforeBulk = span.size();
-        final int remove          = (size_beforeBulk / 4) + (size_beforeBulk / 2);
+        final int remove = (size_beforeBulk / 4) + (size_beforeBulk / 2);
         System.out.printf("removing values  = [%d]{", remove);
         final long successful = IntStream.range(0, remove)
                 .sequential()
@@ -99,9 +99,4 @@ public class SpanTest {
         return generated.remove(Math.abs((rng.nextInt() + 1) % generated.size()))
                 .getFirst();
     }
-
-    private static final Random                      rng = new Random();
-    private static       int                         bound = rng.nextInt(100) + 50;
-    private              Span<String>                span;
-    private              List<Pair<String, Integer>> generated;
 }

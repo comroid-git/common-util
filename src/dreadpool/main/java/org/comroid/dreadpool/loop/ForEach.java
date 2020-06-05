@@ -1,9 +1,9 @@
 package org.comroid.dreadpool.loop;
 
+import org.comroid.dreadpool.loop.manager.Loop;
+
 import java.util.Iterator;
 import java.util.function.Consumer;
-
-import org.comroid.dreadpool.loop.manager.Loop;
 
 public abstract class ForEach<T> extends Loop<T> {
     private final Iterator<T> iterator;

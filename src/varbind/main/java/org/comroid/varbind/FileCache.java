@@ -18,7 +18,10 @@ import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.container.DataContainer;
 import org.comroid.varbind.container.DataContainerBase;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Level;

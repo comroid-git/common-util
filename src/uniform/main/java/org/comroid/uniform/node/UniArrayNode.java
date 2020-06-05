@@ -10,20 +10,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.comroid.common.Polyfill.uncheckedCast;
-
 public final class UniArrayNode extends UniNode {
     private final Adapter adapter;
+
+    @Override
+    public final Object getBaseNode() {
+        return adapter.getBaseNode();
+    }
 
     public UniArrayNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter adapter) {
         super(serializationAdapter, Type.ARRAY);
 
         this.adapter = adapter;
-    }
-
-    @Override
-    public final Object getBaseNode() {
-        return adapter.getBaseNode();
     }
 
     @Override
@@ -126,6 +124,11 @@ public final class UniArrayNode extends UniNode {
     public static abstract class Adapter<B> extends AbstractList<Object> implements UniNode.Adapter<B> {
         protected final B baseNode;
 
+        @Override
+        public B getBaseNode() {
+            return baseNode;
+        }
+
         protected Adapter(B baseNode) {
             this.baseNode = baseNode;
         }
@@ -141,10 +144,5 @@ public final class UniArrayNode extends UniNode {
 
         @Override
         public abstract Object remove(int index);
-
-        @Override
-        public B getBaseNode() {
-            return baseNode;
-        }
     }
 }

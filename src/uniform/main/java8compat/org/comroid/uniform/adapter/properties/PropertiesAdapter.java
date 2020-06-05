@@ -19,7 +19,8 @@ public class PropertiesAdapter extends UniObjectNode.Adapter<Properties> {
     }
 
     @Override
-    public @NotNull Set<Entry<String, Object>> entrySet() {
+    public @NotNull
+    Set<Entry<String, Object>> entrySet() {
         return getBaseNode().entrySet()
                 .stream()
                 .map(entry -> new AbstractMap.SimpleImmutableEntry<>(String.valueOf(entry.getKey()), entry.getValue()))

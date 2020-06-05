@@ -239,6 +239,10 @@ public final class REST<D> {
             return headers;
         }
 
+        public REST<D> getREST() {
+            return REST.this;
+        }
+
         public Request(Invocable<T> tProducer) {
             this.tProducer = tProducer;
             this.headers = new Header.List();
@@ -392,10 +396,6 @@ public final class REST<D> {
 
             //noinspection unchecked
             return (T) cache.requireNonNull(id, "Assert failed: Cache is still missing key " + id);
-        }
-
-        public REST<D> getREST() {
-            return REST.this;
         }
     }
 }

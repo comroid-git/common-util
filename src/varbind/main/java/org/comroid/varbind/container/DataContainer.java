@@ -59,7 +59,7 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
 
     UniObjectNode toObjectNode(UniObjectNode node);
 
-    default<T> @Nullable T put(VarBind<T, ? super DEP, ?, T> bind, T value) {
+    default <T> @Nullable T put(VarBind<T, ? super DEP, ?, T> bind, T value) {
         return put(bind, Function.identity(), value);
     }
 

@@ -1,8 +1,8 @@
 package org.comroid.common.ref;
 
-import java.util.Optional;
-
 import org.comroid.common.info.MessageSupplier;
+
+import java.util.Optional;
 
 public interface Specifiable<B> {
     default <R extends B, T extends Throwable> R as(Class<R> type, MessageSupplier message) throws T {

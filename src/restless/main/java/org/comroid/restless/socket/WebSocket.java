@@ -38,6 +38,15 @@ public abstract class WebSocket implements WebSocketEventHub.Attachable {
         return threadGroup;
     }
 
+    @Blocking
+    public final long getPing() {
+        final long started = System.currentTimeMillis();
+        completePing().join();
+        final long finished = System.currentTimeMillis();
+
+        return finished - started;
+    }
+
     protected WebSocket(SerializationAdapter<?, ?, ?> seriLib, ThreadGroup threadGroup) {
         this.seriLib = seriLib;
         this.threadGroup = new ThreadGroup(threadGroup, "websocket");
@@ -64,15 +73,6 @@ public abstract class WebSocket implements WebSocketEventHub.Attachable {
 
             return CompletableFuture.allOf(futures);
         }
-    }
-
-    @Blocking
-    public final long getPing() {
-        final long started = System.currentTimeMillis();
-        completePing().join();
-        final long finished = System.currentTimeMillis();
-
-        return finished - started;
     }
 
     public CompletableFuture<PongEvent.Payload> completePing() {

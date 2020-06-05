@@ -1,5 +1,7 @@
 package org.comroid.dreadpool;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -7,11 +9,19 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.jetbrains.annotations.NotNull;
-
 public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor implements ThreadPool {
-    private final Lock                   lock      = new ReentrantLock();
+    private final Lock lock = new ReentrantLock();
     private final Queue<ThreadPool.Task> taskQueue = new PriorityQueue<>();
+
+    @Override
+    public final WorkerFactory getThreadFactory() {
+        return (WorkerFactory) super.getThreadFactory();
+    }
+
+    @Override
+    public final ThreadErrorHandler getThreadErrorHandler() {
+        return (ThreadErrorHandler) super.getRejectedExecutionHandler();
+    }
 
     public FixedSizeThreadPool(
             int corePoolSize, WorkerFactory threadFactory, ThreadErrorHandler handler
@@ -19,11 +29,6 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
         super(corePoolSize, threadFactory, handler);
 
         threadFactory.threadPool = this;
-    }
-
-    @Override
-    public final WorkerFactory getThreadFactory() {
-        return (WorkerFactory) super.getThreadFactory();
     }
 
     @Override
@@ -35,11 +40,6 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
     public void execute(@NotNull Runnable task) {
         queue(task);
         flush();
-    }
-
-    @Override
-    public final ThreadErrorHandler getThreadErrorHandler() {
-        return (ThreadErrorHandler) super.getRejectedExecutionHandler();
     }
 
     @Override

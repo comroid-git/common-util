@@ -1,61 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <!-- This module was also published with a richer model, Gradle metadata,  -->
-  <!-- which should be used instead. Do not delete the following line which  -->
-  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
-  <!-- that they should prefer consuming it instead. -->
-  <!-- do_not_remove: published-with-gradle-metadata -->
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.comroid</groupId>
-  <artifactId>matrix</artifactId>
-  <version>0.10.0-SNAPSHOT</version>
-  <name>common-util</name>
-  <description>Lightning-fast matrix-like structures in Java 8</description>
-  <url>https://github.com/comroid-git/common-util</url>
-  <inceptionYear>2020</inceptionYear>
-  <licenses>
-    <license>
-      <name>The Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
-  </licenses>
-  <developers>
-    <developer>
-      <id>kaleidox</id>
-      <name>Tobias Burdow</name>
-      <email>contact@comroid.org</email>
-    </developer>
-  </developers>
-  <scm>
-    <connection>scm:git:git://github.com/comroid-git/common-util.git</connection>
-    <developerConnection>scm:git:ssh://github.com/comroid-git/common-util.git</developerConnection>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0">
+    <!-- This module was also published with a richer model, Gradle metadata,  -->
+    <!-- which should be used instead. Do not delete the following line which  -->
+    <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+    <!-- that they should prefer consuming it instead. -->
+    <!-- do_not_remove: published-with-gradle-metadata -->
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.comroid</groupId>
+    <artifactId>matrix</artifactId>
+    <version>0.10.0-SNAPSHOT</version>
+    <name>common-util</name>
+    <description>Lightning-fast matrix-like structures in Java 8</description>
     <url>https://github.com/comroid-git/common-util</url>
-  </scm>
-  <dependencies>
-    <dependency>
-      <groupId>com.google.flogger</groupId>
-      <artifactId>flogger</artifactId>
-      <version>0.5.1</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.comroid</groupId>
-      <artifactId>common-util</artifactId>
-      <version>1.5.2</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.comroid</groupId>
-      <artifactId>spellbind</artifactId>
-      <version>0.20.0-SNAPSHOT</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.flogger</groupId>
-      <artifactId>flogger-system-backend</artifactId>
-      <version>0.5.1</version>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencies>
+    <inceptionYear>2020</inceptionYear>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>kaleidox</id>
+            <name>Tobias Burdow</name>
+            <email>contact@comroid.org</email>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git://github.com/comroid-git/common-util.git</connection>
+        <developerConnection>scm:git:ssh://github.com/comroid-git/common-util.git</developerConnection>
+        <url>https://github.com/comroid-git/common-util</url>
+    </scm>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.flogger</groupId>
+            <artifactId>flogger</artifactId>
+            <version>0.5.1</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.comroid</groupId>
+            <artifactId>common-util</artifactId>
+            <version>1.5.2</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.comroid</groupId>
+            <artifactId>spellbind</artifactId>
+            <version>0.20.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.flogger</groupId>
+            <artifactId>flogger-system-backend</artifactId>
+            <version>0.5.1</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
 </project>

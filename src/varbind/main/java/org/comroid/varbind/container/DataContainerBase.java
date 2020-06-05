@@ -3,7 +3,6 @@ package org.comroid.varbind.container;
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Processor;
 import org.comroid.common.iter.Span;
-import org.comroid.common.map.TrieMap;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;
@@ -21,7 +20,6 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.lang.annotation.ElementType;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

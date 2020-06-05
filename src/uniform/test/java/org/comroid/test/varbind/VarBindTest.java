@@ -1,22 +1,21 @@
 package org.comroid.test.varbind;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import org.comroid.test.model.DiscordAPI;
+import org.comroid.test.model.Message;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-import org.comroid.test.model.DiscordAPI;
-import org.comroid.test.model.Message;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class VarBindTest {
+    Message message;
+
     @Before
     public void setup() {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(
@@ -68,6 +67,4 @@ public class VarBindTest {
         );
         assertEquals(0, message.get(Message.Binds.TYPE).value);
     }
-
-    Message message;
 }

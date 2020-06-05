@@ -1,10 +1,10 @@
 package org.comroid.common.ref;
 
+import org.comroid.common.util.StackTraceUtils;
+
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.comroid.common.util.StackTraceUtils;
 
 public abstract class CloseableReference<T> implements Reference<T>, Closeable {
     private final Collection<ClosedEvent.Listener<T>> listeners = new ArrayList<>();
@@ -30,12 +30,7 @@ public abstract class CloseableReference<T> implements Reference<T>, Closeable {
 
     public static class ClosedEvent<T> {
         private final CloseableReference<T> ref;
-        private final Class<?>              closing;
-
-        private ClosedEvent(CloseableReference<T> ref, Class<?> closing) {
-            this.ref     = ref;
-            this.closing = closing;
-        }
+        private final Class<?> closing;
 
         public CloseableReference<T> getReference() {
             return ref;
@@ -44,6 +39,12 @@ public abstract class CloseableReference<T> implements Reference<T>, Closeable {
         public Class<?> getClosingClass() {
             return closing;
         }
+
+        private ClosedEvent(CloseableReference<T> ref, Class<?> closing) {
+            this.ref = ref;
+            this.closing = closing;
+        }
+
         @FunctionalInterface
         interface Listener<T> {
             void onReferenceClosed(ClosedEvent<T> closedEvent);

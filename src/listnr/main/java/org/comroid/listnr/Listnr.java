@@ -15,7 +15,7 @@ import static org.comroid.common.Polyfill.uncheckedCast;
 public @interface Listnr {
     interface Attachable<IN, D,
             MT extends EventType<IN, D, ? extends MT, ? extends MP>,
-            MP extends EventPayload<D,? extends MT, ? extends MP>> {
+            MP extends EventPayload<D, ? extends MT, ? extends MP>> {
         ListnrCore<IN, D, ? super MT, ? super MP> getListnrCore();
 
         default <ET extends MT, EP extends MP> Listnr.API<IN, D, MT, MP, ET, EP> listenTo(ET eventType)

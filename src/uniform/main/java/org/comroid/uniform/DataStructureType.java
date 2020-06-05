@@ -6,7 +6,7 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
 
     protected DataStructureType(Class<TAR> tarClass, Primitive typ) {
         this.tarClass = tarClass;
-        this.typ      = typ;
+        this.typ = typ;
     }
 
     @Override
@@ -54,6 +54,11 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
         ));
     }
 
+    public enum Primitive {
+        OBJECT,
+        ARRAY
+    }
+
     public static class Obj<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
             extends DataStructureType<SERI, BAS, OBJ> {
         public Obj(Class<OBJ> objClass) {
@@ -69,10 +74,5 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
         ) {
             super(arrClass, Primitive.ARRAY);
         }
-    }
-
-    public enum Primitive {
-        OBJECT,
-        ARRAY
     }
 }

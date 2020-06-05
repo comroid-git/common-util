@@ -6,6 +6,7 @@ public final class Operator {
     public static IntUnaryOperator intOrder(int... values) {
         class Ordered implements IntUnaryOperator {
             private final int[] arr = values;
+            private int i = 0;
 
             @Override
             public int applyAsInt(int operand) {
@@ -15,8 +16,6 @@ public final class Operator {
 
                 return -1;
             }
-
-            private int i = 0;
         }
 
         return new Ordered();

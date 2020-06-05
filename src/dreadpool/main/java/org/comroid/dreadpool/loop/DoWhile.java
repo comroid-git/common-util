@@ -1,8 +1,8 @@
 package org.comroid.dreadpool.loop;
 
-import java.util.function.BooleanSupplier;
-
 import org.comroid.dreadpool.loop.manager.Loop;
+
+import java.util.function.BooleanSupplier;
 
 public abstract class DoWhile extends Loop<Integer> {
     public DoWhile(int priority) {
@@ -30,13 +30,13 @@ public abstract class DoWhile extends Loop<Integer> {
 
     public static final class Func extends DoWhile {
         private final BooleanSupplier continueTester;
-        private final Runnable        action;
+        private final Runnable action;
 
         public Func(int priority, BooleanSupplier continueTester, Runnable action) {
             super(priority, action);
 
             this.continueTester = continueTester;
-            this.action         = action;
+            this.action = action;
         }
 
         @Override

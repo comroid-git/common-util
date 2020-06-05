@@ -1,19 +1,11 @@
 package org.comroid.restless.adapter.okhttp.v3;
 
-import okhttp3.*;
-import org.comroid.common.func.Provider;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
-import org.comroid.uniform.SerializationAdapter;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
 
 public class OkHttp3Adapter implements HttpAdapter {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();

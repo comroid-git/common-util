@@ -1,7 +1,6 @@
 package org.comroid.test.common.ref;
 
 import org.comroid.common.ref.Named;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

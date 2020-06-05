@@ -1,9 +1,8 @@
 package org.comroid.common.iter.pipe;
 
-import org.comroid.common.func.Disposable;
 import org.comroid.common.info.ExecutorBound;
-import org.comroid.common.ref.Reference;
 import org.comroid.common.iter.ReferenceIndex;
+import org.comroid.common.ref.Reference;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;

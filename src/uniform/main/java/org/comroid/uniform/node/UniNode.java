@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;

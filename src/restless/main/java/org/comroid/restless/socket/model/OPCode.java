@@ -22,7 +22,7 @@ public interface OPCode extends IntEnum {
         private final boolean receive;
 
         Usage(boolean send, boolean receive) {
-            this.send    = send;
+            this.send = send;
             this.receive = receive;
         }
 

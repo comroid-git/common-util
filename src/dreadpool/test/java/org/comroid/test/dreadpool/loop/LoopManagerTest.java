@@ -1,21 +1,20 @@
 package org.comroid.test.dreadpool.loop;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import org.comroid.dreadpool.loop.WhileDo;
 import org.comroid.dreadpool.loop.manager.Loop;
 import org.comroid.dreadpool.loop.manager.LoopManager;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LoopManagerTest {
-    private final List<String>  results      = new ArrayList<>();
+    private final List<String> results = new ArrayList<>();
     private final Loop<Integer> lowPrioLoop1 = new WhileDo<Integer>(Loop.LOW_PRIO, val -> val + 1) {
         @Override
         protected boolean continueLoop() {
@@ -82,6 +81,7 @@ public class LoopManagerTest {
             return results.add("hig-while2-#" + each);
         }
     };
+    private LoopManager loopManager;
 
     @Before
     public void setup() {
@@ -124,5 +124,4 @@ public class LoopManagerTest {
                 .limit(4)
                 .allMatch(str -> str.startsWith("low")));
     }
-    private       LoopManager   loopManager;
 }
