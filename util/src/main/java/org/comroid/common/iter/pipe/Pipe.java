@@ -90,8 +90,7 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
 
     @NotNull
     default Processor<T> findAny() {
-        final Span<T> span = span();
-        return span.process();
+        return span().process();
     }
 
     @Override
