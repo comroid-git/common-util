@@ -51,7 +51,7 @@ dependencies {
     // json adapter dependencies
     java8compatCompileOnly 'com.alibaba:fastjson:1.2.68'
     java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
-    java8compatCompileOnly 'org.json:json:20190722'
+    java8compatCompileOnly 'org.json:json:20200518'
 
     implementation 'com.google.flogger:flogger:0.5.1'
     java8compatImplementation 'com.google.flogger:flogger:0.5.1'
@@ -59,7 +59,7 @@ dependencies {
 
     java8compatCompileOnly 'com.alibaba:fastjson:1.2.68'
     java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
-    java8compatCompileOnly 'org.json:json:20190722'
+    java8compatCompileOnly 'org.json:json:20200518'
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"
