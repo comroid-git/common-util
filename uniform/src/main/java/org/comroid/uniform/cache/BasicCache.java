@@ -2,6 +2,7 @@ package org.comroid.uniform.cache;
 
 import org.comroid.common.func.Provider;
 import org.comroid.common.iter.Span;
+import org.comroid.common.iter.pipe.Pipe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,14 +85,16 @@ public class BasicCache<K, V> implements Cache<K, V> {
 
     @Override
     public final Stream<Reference<K, V>> stream(Predicate<K> filter) {
-        return (
-                large()
-                        ? cache.entrySet()
-                        .parallelStream()
-                        : cache.entrySet()
-                        .stream()
+        return (large()
+                        ? cache.entrySet().parallelStream()
+                        : cache.entrySet().stream()
         ).filter(entry -> filter.test(entry.getKey()))
                 .map(Map.Entry::getValue);
+    }
+
+    @Override
+    public Pipe<?, Reference<K, V>> pipe(Predicate<K> filter) {
+        return Pipe.of(cache.entrySet()).map(Map.Entry::getValue);
     }
 
     @Override
