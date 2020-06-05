@@ -84,7 +84,10 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
 
     @NotNull
     default Processor<T> findAny() {
-        return Processor.ofReference(Reference.conditional(() -> get(0) != null, () -> get(0)));
+        return Processor.ofReference(Reference.conditional(
+                () -> get(0) != null,
+                () -> get(0)
+        ));
     }
 
     @Override
