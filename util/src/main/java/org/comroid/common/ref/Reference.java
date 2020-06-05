@@ -70,6 +70,18 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         return Objects.requireNonNull(get(), message);
     }
 
+    default @NotNull T orElse(T other) {
+        if (isNull())
+            return other;
+        return requireNonNull("Assertion Failure");
+    }
+
+    default @NotNull T orElseGet(Supplier<T> otherProvider) {
+        if (isNull())
+            return otherProvider.get();
+        return requireNonNull("Assertion Failure");
+    }
+
     default Provider<T> provider() {
         return Provider.of(this);
     }
