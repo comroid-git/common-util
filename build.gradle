@@ -1,10 +1,6 @@
 import java.util.stream.Collectors
 
-allprojects {
-    apply plugin: 'java-library'
-
-    group 'org.comroid'
-}
+group 'org.comroid.util'
 
 tasks.findByName('wrapper').configure {
     gradleVersion = '6.2'
@@ -17,17 +13,14 @@ configurations {
     }
 }
 
-allprojects {
+subprojects {
+    group 'org.comroid'
+    apply plugin: 'java-library'
     apply from: "$rootDir/gradle/vars.gradle"
     apply from: "$rootDir/gradle/global.gradle"
 }
 
 task allJavadoc(type: Javadoc) {
-    source = files(rootProject.allprojects.stream()
-            .filter { !Objects.isNull(it) }
-            .filter { it.hasProperty("sourceSet") }
-            .map { it.sourceSets.allSource }
-            .collect(Collectors.toList()))
     source = files(rootProject.allprojects.stream()
             .filter { !Objects.isNull(it) }
             .filter { it.hasProperty("sourceSet") }
@@ -37,16 +30,4 @@ task allJavadoc(type: Javadoc) {
         destinationDirectory(file("$rootDir/docs/"))
         encoding = 'UTF-8'
     }
-}
-
-assemble {
-    dependsOn = getTasksByName('assemble', true)
-            .stream()
-            .filter { (it as Task).project.parent.equals(rootProject) }
-            .collect()
-
-    exportedProjects.stream()
-            .map { rootProject.findProject(it.toString()) }
-            .filter { !Objects.isNull(it) }
-            .forEach { it.apply from: "$rootDir/gradle/publishing.gradle" }
 }

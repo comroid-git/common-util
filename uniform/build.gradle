@@ -9,74 +9,58 @@ ext {
 
 configurations {
     main
-    java8.extendsFrom main
-    java11.extendsFrom main
+    java8compat.extendsFrom main
+    java11compat.extendsFrom main
 }
 
 sourceSets {
-    java8.java.srcDirs = [file("$rootDir/uniform/src/main/jdk8")]
-    java11.java.srcDirs = [file("$rootDir/uniform/src/main/jdk11")]
+    java8compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java8compat")
+    java11compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java11compat")
 }
 
-compileJava8Java {
+compileJava8compatJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 }
 
-compileJava11Java {
+compileJava11compatJava {
     sourceCompatibility = 11
     targetCompatibility = 11
 }
 
 jar {
-    dependsOn = ['compileJava8Java', 'compileJava11Java']
-    tasks.findByName('compileJava8Java').mustRunAfter('compileJava')
-    tasks.findByName('compileJava11Java').mustRunAfter('compileJava')
+    dependsOn = ['compileJava8compatJava', 'compileJava11compatJava']
+    tasks.findByName('compileJava8compatJava').mustRunAfter('compileJava')
+    tasks.findByName('compileJava11compatJava').mustRunAfter('compileJava')
 
     from files(tasks.findByName('compileJava').destinationDir,
-            tasks.findByName('compileJava8Java').destinationDir,
-            tasks.findByName('compileJava11Java').destinationDir)
+            tasks.findByName('compileJava8compatJava').destinationDir,
+            tasks.findByName('compileJava11compatJava').destinationDir)
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 dependencies {
-    java8Implementation project(':util')
-    java11Implementation project(':util')
+    java8compatCompileOnly 'org.jetbrains:annotations:19.0.0'
+    java11compatCompileOnly 'org.jetbrains:annotations:19.0.0'
 
-    implementation project(':util')
-    implementation project(':spellbind')
-
-    // websocket dependencies
-    api project(':listnr')
-    java8CompileOnly project(':listnr')
-    java11CompileOnly project(':listnr')
-    api project(':dreadpool')
-    java8CompileOnly project(':dreadpool')
-    java11CompileOnly project(':dreadpool')
-
-    java8CompileOnly project(':spellbind')
-    java8CompileOnly sourceSets.main.output.classesDirs
-    java11CompileOnly sourceSets.main.output.classesDirs
+    api project(':common-util')
+    java8compatCompileOnly project(':uniform')
+    java11compatCompileOnly project(':uniform')
 
     // json adapter dependencies
-    java8CompileOnly 'com.alibaba:fastjson:1.2.68'
-    java8CompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
-    java8CompileOnly 'org.json:json:20190722'
-
-    // http adapter dependencies
-    java8CompileOnly 'com.squareup.okhttp3:okhttp:4.5.0'
+    java8compatCompileOnly 'com.alibaba:fastjson:1.2.68'
+    java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
+    java8compatCompileOnly 'org.json:json:20190722'
 
     implementation 'com.google.flogger:flogger:0.5.1'
-    java8Implementation 'com.google.flogger:flogger:0.5.1'
-    java11Implementation 'com.google.flogger:flogger:0.5.1'
-    java8RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
-    java11RuntimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
+    java8compatImplementation 'com.google.flogger:flogger:0.5.1'
+    java11compatImplementation 'com.google.flogger:flogger:0.5.1'
 
-    testImplementation project(':util')
-    testImplementation sourceSets.java8.output.classesDirs
-    testImplementation sourceSets.java11.output.classesDirs
-    testImplementation 'com.alibaba:fastjson:1.2.68'
-    testImplementation 'com.squareup.okhttp3:okhttp:4.5.0'
+    java8compatCompileOnly 'com.alibaba:fastjson:1.2.68'
+    java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
+    java8compatCompileOnly 'org.json:json:20190722'
 }
+
+apply from: "$rootDir/gradle/publishing.gradle"
 

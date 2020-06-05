@@ -8,6 +8,8 @@ ext {
 }
 
 dependencies {
-    implementation project(":util")
+    implementation project(":common-util")
     implementation project(":spellbind")
 }
+
+apply from: "$rootDir/gradle/publishing.gradle"
