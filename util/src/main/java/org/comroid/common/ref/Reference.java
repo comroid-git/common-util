@@ -56,7 +56,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         return Optional.ofNullable(get());
     }
 
-    default Stream<T> stream() {
+    default Stream<T> wrapInStream() {
         if (isNull())
             return Stream.empty();
         return Stream.of(get());
