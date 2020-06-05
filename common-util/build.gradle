@@ -1,0 +1,14 @@
+version '1.5.3-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Commonly used Interfaces and Classes"
+}
+
+dependencies {
+    api project(':trie')
+}
+
+apply from: "$rootDir/gradle/publishing.gradle"
