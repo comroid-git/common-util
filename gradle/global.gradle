@@ -12,6 +12,13 @@ tasks.withType(Javadoc) {
     }
 }
 
+sourceSets {
+    main.java.srcDirs = files("$rootDir/src/$artifactName/main/java")
+    main.resources.srcDirs = files("$rootDir/src/$artifactName/main/resources")
+    test.java.srcDirs = files("$rootDir/src/$artifactName/test/java")
+    test.resources.srcDirs = files("$rootDir/src/$artifactName/test/resources")
+}
+
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
 

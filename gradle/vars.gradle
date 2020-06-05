@@ -1,5 +1,6 @@
 ext {
     artifactName = project.name.equals('util') ? 'common-util' : project.name
+    projectDescription = ''
     userbase = 'comroid-git'
 
     exportedProjects = rootProject.subprojects.collect { it.name }

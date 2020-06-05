@@ -8,8 +8,10 @@ ext {
 }
 
 dependencies {
-    api project(":util")
+    api project(":common-util")
 
     implementation 'com.alibaba:fastjson:1.2.68'
     implementation 'com.squareup.okhttp3:okhttp:4.5.0'
 }
+
+apply from: "$rootDir/gradle/publishing.gradle"
