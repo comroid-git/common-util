@@ -6,7 +6,7 @@ import org.comroid.common.func.Invocable;
 import org.comroid.common.iter.Span;
 import org.comroid.restless.endpoint.CompleteEndpoint;
 import org.comroid.restless.endpoint.RatelimitedEndpoint;
-import org.comroid.restless.endpoint.RestEndpoint;
+import org.comroid.restless.endpoint.AccessibleEndpoint;
 import org.comroid.restless.server.Ratelimiter;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.Cache;
@@ -267,7 +267,7 @@ public final class REST<D> {
             return this;
         }
 
-        public final Request<T> endpoint(RestEndpoint endpoint, Object... args) {
+        public final Request<T> endpoint(AccessibleEndpoint endpoint, Object... args) {
             return endpoint(endpoint.complete(args));
         }
 
