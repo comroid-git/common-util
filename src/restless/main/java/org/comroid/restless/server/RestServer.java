@@ -93,7 +93,7 @@ public class RestServer {
                             mimeType,
                             targetMimes
                     );
-                    exchange.sendResponseHeaders(UNSUPPORTED_MEDIA_TYPE, 0);
+                    writeResponse(exchange, UNSUPPORTED_MEDIA_TYPE);
                     return;
                 }
 
@@ -112,7 +112,7 @@ public class RestServer {
                     logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
 
                     logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
-                    REST.Response response = null;
+                    REST.Response response;
                     try {
                         response = sep.executeMethod(requestMethod, requestHeaders, args, node);
                     } catch (RestEndpointException reex) {
@@ -127,7 +127,7 @@ public class RestServer {
                     logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
 
                     if (response == null) {
-                        writeResponse(exchange, OK, "");
+                        writeResponse(exchange, OK);
                         return;
                     }
 
@@ -148,7 +148,7 @@ public class RestServer {
                     );
                 } else {
                     logger.at(Level.INFO).log("Unknown endpoint; returning 404");
-                    exchange.sendResponseHeaders(NOT_FOUND, 0);
+                    writeResponse(exchange, NOT_FOUND);
                 }
             } catch (Throwable t) {
                 t.printStackTrace();
