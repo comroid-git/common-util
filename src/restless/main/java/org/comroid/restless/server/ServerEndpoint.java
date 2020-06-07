@@ -56,7 +56,7 @@ public interface ServerEndpoint extends AccessibleEndpoint {
     }
 
     default REST.Response executeGET(
-            REST.Header.List headers,
+            Headers headers,
             String[] urlParams,
             UniNode body
     ) throws RestEndpointException {
@@ -64,7 +64,7 @@ public interface ServerEndpoint extends AccessibleEndpoint {
     }
 
     default REST.Response executePUT(
-            REST.Header.List headers,
+            Headers headers,
             String[] urlParams,
             UniNode body
     ) throws RestEndpointException {
@@ -72,7 +72,7 @@ public interface ServerEndpoint extends AccessibleEndpoint {
     }
 
     default REST.Response executePOST(
-            REST.Header.List headers,
+            Headers headers,
             String[] urlParams,
             UniNode body
     ) throws RestEndpointException {
@@ -80,7 +80,7 @@ public interface ServerEndpoint extends AccessibleEndpoint {
     }
 
     default REST.Response executePATCH(
-            REST.Header.List headers,
+            Headers headers,
             String[] urlParams,
             UniNode body
     ) throws RestEndpointException {
@@ -88,7 +88,7 @@ public interface ServerEndpoint extends AccessibleEndpoint {
     }
 
     default REST.Response executeDELETE(
-            REST.Header.List headers,
+            Headers headers,
             String[] urlParams,
             UniNode body
     ) throws RestEndpointException {
@@ -96,7 +96,7 @@ public interface ServerEndpoint extends AccessibleEndpoint {
     }
 
     default REST.Response executeHEAD(
-            REST.Header.List headers,
+            Headers headers,
             String[] urlParams,
             UniNode body
     ) throws RestEndpointException {
