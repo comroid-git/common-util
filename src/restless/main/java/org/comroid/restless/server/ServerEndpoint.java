@@ -1,5 +1,6 @@
 package org.comroid.restless.server;
 
+import com.sun.net.httpserver.Headers;
 import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
 import org.comroid.restless.endpoint.AccessibleEndpoint;
@@ -28,6 +29,30 @@ public interface ServerEndpoint extends AccessibleEndpoint {
     @Override
     default String[] getRegExpGroups() {
         return getEndpointBase().getRegExpGroups();
+    }
+
+    default REST.Response executeMethod(
+            REST.Method method,
+            Headers headers,
+            String[] urlParams,
+            UniNode body
+    ) {
+        switch (method) {
+            case GET:
+                return executeGET(headers, urlParams, body);
+            case PUT:
+                return executePUT(headers, urlParams, body);
+            case POST:
+                return executePOST(headers, urlParams, body);
+            case PATCH:
+                return executePATCH(headers, urlParams, body);
+            case DELETE:
+                return executeDELETE(headers, urlParams, body);
+            case HEAD:
+                return executeHEAD(headers, urlParams, body);
+        }
+
+        throw new AssertionError("No such method: " + method);
     }
 
     default REST.Response executeGET(
