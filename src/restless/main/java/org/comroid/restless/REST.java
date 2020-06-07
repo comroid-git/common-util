@@ -147,7 +147,9 @@ public final class REST<D> {
 
         PATCH,
 
-        DELETE;
+        DELETE,
+
+        HEAD;
 
         @Override
         public String toString() {
