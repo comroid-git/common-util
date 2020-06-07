@@ -158,6 +158,12 @@ public class RestServer {
             }
         }
 
+        private void writeResponse(HttpExchange exchange, int statusCode) throws IOException {
+            writeResponse(exchange, statusCode, rest.getSerializationAdapter()
+                    .createUniObjectNode()
+                    .toString());
+        }
+
         private void writeResponse(HttpExchange exchange, int statusCode, String data) throws IOException {
             exchange.sendResponseHeaders(statusCode, data.length());
             final OutputStream osr = exchange.getResponseBody();
