@@ -1,54 +1,80 @@
 package org.comroid.restless.server;
 
+import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
 import org.comroid.restless.endpoint.AccessibleEndpoint;
+import org.comroid.uniform.node.UniNode;
 
 import java.util.regex.Pattern;
 
 public interface ServerEndpoint extends AccessibleEndpoint {
-    AccessibleEndpoint getUnderlyingEndpoint();
+    AccessibleEndpoint getEndpointBase();
 
     @Override
     default Pattern getPattern() {
-        return getUnderlyingEndpoint().getPattern();
+        return getEndpointBase().getPattern();
     }
 
     @Override
     default String getUrlBase() {
-        return getUnderlyingEndpoint().getUrlBase();
+        return getEndpointBase().getUrlBase();
     }
 
     @Override
     default String getUrlExtension() {
-        return getUnderlyingEndpoint().getUrlExtension();
+        return getEndpointBase().getUrlExtension();
     }
 
     @Override
     default String[] getRegExpGroups() {
-        return getUnderlyingEndpoint().getRegExpGroups();
+        return getEndpointBase().getRegExpGroups();
     }
 
-    default REST.Response executeGET() throws RestEndpointException {
-        throw new UnsupportedOperationException();
+    default REST.Response executeGET(
+            REST.Header.List headers,
+            String[] urlParams,
+            UniNode body
+    ) throws RestEndpointException {
+        throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: GET");
     }
 
-    default REST.Response executePUT() throws RestEndpointException {
-        throw new UnsupportedOperationException();
+    default REST.Response executePUT(
+            REST.Header.List headers,
+            String[] urlParams,
+            UniNode body
+    ) throws RestEndpointException {
+        throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: PUT");
     }
 
-    default REST.Response executePOST() throws RestEndpointException {
-        throw new UnsupportedOperationException();
+    default REST.Response executePOST(
+            REST.Header.List headers,
+            String[] urlParams,
+            UniNode body
+    ) throws RestEndpointException {
+        throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: POST");
     }
 
-    default REST.Response executePATCH() throws RestEndpointException {
-        throw new UnsupportedOperationException();
+    default REST.Response executePATCH(
+            REST.Header.List headers,
+            String[] urlParams,
+            UniNode body
+    ) throws RestEndpointException {
+        throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: PATCH");
     }
 
-    default REST.Response executeDELETE() throws RestEndpointException {
-        throw new UnsupportedOperationException();
+    default REST.Response executeDELETE(
+            REST.Header.List headers,
+            String[] urlParams,
+            UniNode body
+    ) throws RestEndpointException {
+        throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: DELETE");
     }
 
-    default REST.Response executeHEAD() throws RestEndpointException {
-        throw new UnsupportedOperationException();
+    default REST.Response executeHEAD(
+            REST.Header.List headers,
+            String[] urlParams,
+            UniNode body
+    ) throws RestEndpointException {
+        throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: HEAD");
     }
 }
