@@ -1,39 +1,54 @@
 package org.comroid.restless.server;
 
 import org.comroid.restless.REST;
-import org.comroid.restless.endpoint.RestEndpoint;
+import org.comroid.restless.endpoint.AccessibleEndpoint;
 
 import java.util.regex.Pattern;
 
-public interface ServerEndpoint extends RestEndpoint {
+public interface ServerEndpoint extends AccessibleEndpoint {
+    AccessibleEndpoint getUnderlyingEndpoint();
+
     @Override
-    Pattern getPattern();
+    default Pattern getPattern() {
+        return getUnderlyingEndpoint().getPattern();
+    }
 
-    EndpointHandler getHandler();
+    @Override
+    default String getUrlBase() {
+        return getUnderlyingEndpoint().getUrlBase();
+    }
 
-    REST.Method[] allowedMethods();
+    @Override
+    default String getUrlExtension() {
+        return getUnderlyingEndpoint().getUrlExtension();
+    }
 
-    interface Underlying extends ServerEndpoint {
-        RestEndpoint getUnderlyingEndpoint();
+    @Override
+    default String[] getRegExpGroups() {
+        return getUnderlyingEndpoint().getRegExpGroups();
+    }
 
-        @Override
-        default Pattern getPattern() {
-            return getUnderlyingEndpoint().getPattern();
-        }
+    default REST.Response executeGET() throws RestEndpointException {
+        throw new UnsupportedOperationException();
+    }
 
-        @Override
-        default String getUrlBase() {
-            return getUnderlyingEndpoint().getUrlBase();
-        }
+    default REST.Response executePUT() throws RestEndpointException {
+        throw new UnsupportedOperationException();
+    }
 
-        @Override
-        default String getUrlExtension() {
-            return getUnderlyingEndpoint().getUrlExtension();
-        }
+    default REST.Response executePOST() throws RestEndpointException {
+        throw new UnsupportedOperationException();
+    }
 
-        @Override
-        default String[] getRegExpGroups() {
-            return getUnderlyingEndpoint().getRegExpGroups();
-        }
+    default REST.Response executePATCH() throws RestEndpointException {
+        throw new UnsupportedOperationException();
+    }
+
+    default REST.Response executeDELETE() throws RestEndpointException {
+        throw new UnsupportedOperationException();
+    }
+
+    default REST.Response executeHEAD() throws RestEndpointException {
+        throw new UnsupportedOperationException();
     }
 }
