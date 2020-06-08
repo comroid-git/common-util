@@ -5,7 +5,7 @@ import org.comroid.api.Invocable;
 import org.comroid.common.info.Dependent;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.ref.SelfDeclared;
-import org.comroid.common.util.ArrayUtil;
+import org.comroid.util.ArrayUtil;
 import org.comroid.spellbind.factory.InstanceFactory;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.ApiStatus.Internal;

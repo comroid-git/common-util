@@ -1,4 +1,4 @@
-package org.comroid.common.util;
+package org.comroid.util;
 
 import java.util.List;
 

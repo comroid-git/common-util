@@ -1,7 +1,6 @@
 package org.comroid.api;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.annotation.Blocking;
+import org.comroid.annotations.Blocking;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 

@@ -1,4 +1,4 @@
-package org.comroid.common.util;
+package org.comroid.util;
 
 import org.comroid.api.Polyfill;
 

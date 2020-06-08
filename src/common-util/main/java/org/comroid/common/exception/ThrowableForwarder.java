@@ -1,7 +1,7 @@
 package org.comroid.common.exception;
 
-import org.comroid.common.func.ThrowingRunnable;
-import org.comroid.common.func.ThrowingSupplier;
+import org.comroid.api.ThrowingRunnable;
+import org.comroid.api.ThrowingSupplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;

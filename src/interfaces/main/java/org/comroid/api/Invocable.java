@@ -1,7 +1,7 @@
 package org.comroid.api;
 
-import org.comroid.common.annotation.OptionalVararg;
-import org.comroid.common.util.ReflectionHelper;
+import org.comroid.annotations.OptionalVararg;
+import org.comroid.util.ReflectionHelper;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

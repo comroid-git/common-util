@@ -1,7 +1,7 @@
 package org.comroid.mutatio.pipe;
 
 import org.comroid.common.info.ExecutorBound;
-import org.comroid.common.util.FunctionUtil;
+import org.comroid.util.FunctionUtil;
 import org.comroid.mutatio.pump.Pump;
 
 import java.util.Collection;

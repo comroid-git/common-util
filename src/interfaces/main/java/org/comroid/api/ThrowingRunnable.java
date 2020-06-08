@@ -1,6 +1,5 @@
-package org.comroid.common.func;
+package org.comroid.api;
 
-import org.comroid.api.Polyfill;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;

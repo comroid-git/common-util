@@ -2,7 +2,7 @@ package org.comroid.restless.endpoint;
 
 import org.comroid.api.Polyfill;
 import org.comroid.common.ref.StaticCache;
-import org.comroid.common.util.ArrayUtil;
+import org.comroid.util.ArrayUtil;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.net.URI;

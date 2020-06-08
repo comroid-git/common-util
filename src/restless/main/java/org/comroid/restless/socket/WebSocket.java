@@ -1,7 +1,7 @@
 package org.comroid.restless.socket;
 
 import org.comroid.api.Polyfill;
-import org.comroid.common.annotation.Blocking;
+import org.comroid.annotations.Blocking;
 import org.comroid.restless.socket.event.PongEvent;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniNode;

@@ -5,7 +5,7 @@ import org.comroid.common.func.Processor;
 import org.comroid.mutatio.Span;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
-import org.comroid.common.util.ReflectionHelper;
+import org.comroid.util.ReflectionHelper;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;

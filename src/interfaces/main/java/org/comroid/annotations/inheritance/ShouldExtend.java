@@ -1,4 +1,4 @@
-package org.comroid.common.annotation.vanity.inheritance;
+package org.comroid.annotations.inheritance;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
