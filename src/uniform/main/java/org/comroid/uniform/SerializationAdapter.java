@@ -99,13 +99,13 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     public abstract UniNode parse(@Nullable String data);
 
     public UniObjectNode createUniObjectNode() {
-        return createUniObjectNode(Polyfill.uncheckedCast(ReflectionHelper.instance(objectType.typeClass())));
+        return createUniObjectNode(objectType.get());
     }
 
     public abstract UniObjectNode createUniObjectNode(OBJ node);
 
     public UniArrayNode createUniArrayNode() {
-        return createUniArrayNode(Polyfill.uncheckedCast(ReflectionHelper.instance(arrayType.typeClass())));
+        return createUniArrayNode(arrayType.get());
     }
 
     public abstract UniArrayNode createUniArrayNode(ARR node);
