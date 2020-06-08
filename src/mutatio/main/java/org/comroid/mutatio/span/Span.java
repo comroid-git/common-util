@@ -606,6 +606,9 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
             next = dataSnapshot[nextIndex];
 
             while (!modifyPolicy.canIterate(next)) {
+                if (nextIndex + 1 >= dataSnapshot.length)
+                    return false;
+
                 tryAcquireNext();
             }
 

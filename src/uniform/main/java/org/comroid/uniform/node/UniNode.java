@@ -2,6 +2,7 @@ package org.comroid.uniform.node;
 
 import org.comroid.common.info.MessageSupplier;
 import org.comroid.api.Specifiable;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -51,16 +52,6 @@ public abstract class UniNode implements Specifiable<UniNode> {
         this.type = type;
     }
 
-    public @NotNull Optional<UniNode> wrap(int index) {
-        return has(index) ? Optional.of(get(index)) : Optional.empty();
-    }
-
-    public boolean has(int index) {
-        return size() < index;
-    }
-
-    public abstract @NotNull UniNode get(int index);
-
     public abstract int size();
 
     public boolean isNull(String fieldName) {
@@ -68,13 +59,31 @@ public abstract class UniNode implements Specifiable<UniNode> {
                 .orElse(true);
     }
 
+    public abstract @NotNull UniNode get(int index);
+
+    public abstract @NotNull UniNode get(String fieldName);
+
+    public @NotNull Optional<UniNode> wrap(int index) {
+        return has(index) ? Optional.of(get(index)) : Optional.empty();
+    }
+
     public @NotNull Optional<UniNode> wrap(String fieldName) {
         return has(fieldName) ? Optional.of(get(fieldName)) : Optional.empty();
     }
 
-    public abstract boolean has(String fieldName);
+    public @NotNull Processor<UniNode> process(int index) {
+        return Processor.ofConstant(get(index));
+    }
 
-    public abstract @NotNull UniNode get(String fieldName);
+    public @NotNull Processor<UniNode> process(String fieldName) {
+        return Processor.ofConstant(get(fieldName));
+    }
+
+    public boolean has(int index) {
+        return size() < index;
+    }
+
+    public abstract boolean has(String fieldName);
 
     // todo: add helper methods
     public @NotNull <T> UniValueNode<String> add(ValueType<T> type, T value) throws UnsupportedOperationException {
@@ -148,12 +157,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS", Type.VALUE);
     }
 
+    public String asString() {
+        return asString(null);
+    }
+
     public String asString(@Nullable String fallback) {
         if (isNull() && fallback != null) {
             return fallback;
         }
 
         return unsupported("GET_AS_STRING", Type.VALUE);
+    }
+
+    public boolean asBoolean() {
+        return asBoolean(false);
     }
 
     public boolean asBoolean(boolean fallback) {
@@ -164,12 +181,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS_BOOLEAN", Type.VALUE);
     }
 
+    public int asInt() {
+        return asInt(0);
+    }
+
     public int asInt(int fallback) {
         if (isNull()) {
             return fallback;
         }
 
         return unsupported("GET_AS_INT", Type.VALUE);
+    }
+
+    public long asLong() {
+        return asLong(0);
     }
 
     public long asLong(long fallback) {
@@ -180,12 +205,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS_LONG", Type.VALUE);
     }
 
+    public double asDouble() {
+        return asDouble(0);
+    }
+
     public double asDouble(double fallback) {
         if (isNull()) {
             return fallback;
         }
 
         return unsupported("GET_AS_DOUBLE", Type.VALUE);
+    }
+
+    public float asFloat() {
+        return asFloat(0);
     }
 
     public float asFloat(float fallback) {
@@ -196,12 +229,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS_FLOAT", Type.VALUE);
     }
 
+    public short asShort() {
+        return asShort((short) 0);
+    }
+
     public short asShort(short fallback) {
         if (isNull()) {
             return fallback;
         }
 
         return unsupported("GET_AS_SHORT", Type.VALUE);
+    }
+
+    public char asChar() {
+        return asChar((char) 0);
     }
 
     public char asChar(char fallback) {

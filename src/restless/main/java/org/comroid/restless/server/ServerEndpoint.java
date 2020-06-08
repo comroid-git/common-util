@@ -41,12 +41,11 @@ public interface ServerEndpoint extends AccessibleEndpoint, EndpointHandler {
 
     @Override
     default ServerEndpoint attachHandler(EndpointHandler handler) {
-        // todo: implement a handler chain in Support.Combined to allow retrying with another handler if failed
         throw new UnsupportedOperationException("Cannot attach Handler to ServerEndpoint");
     }
 
     default boolean isMemberAccess(String url) {
-        return Stream.of(replacer(getRegExpGroups()), url)
+        return allowMemberAccess() && Stream.of(replacer(getRegExpGroups()), url)
                 .mapToLong(str -> str.chars()
                         .filter(x -> x == '/')
                         .count())

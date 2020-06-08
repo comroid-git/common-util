@@ -4,8 +4,28 @@ import com.sun.net.httpserver.Headers;
 import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
 import org.comroid.uniform.node.UniNode;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
 public interface EndpointHandler {
+    default boolean supports(REST.Method method) {
+        switch (method) {
+            case GET:
+                return isReimplemented("executeGET");
+            case PUT:
+                return isReimplemented("executePUT");
+            case POST:
+                return isReimplemented("executePOST");
+            case PATCH:
+                return isReimplemented("executePATCH");
+            case DELETE:
+                return isReimplemented("executeDELETE");
+            case HEAD:
+                return isReimplemented("executeHEAD");
+        }
+
+        throw new AssertionError("No such method: " + method);
+    }
+
     default REST.Response executeMethod(
             REST.Method method,
             Headers headers,
@@ -76,5 +96,16 @@ public interface EndpointHandler {
             UniNode body
     ) throws RestEndpointException {
         throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: HEAD");
+    }
+
+    @Internal
+    default boolean isReimplemented(String methodName) {
+        try {
+            return !getClass().getMethod(methodName, Headers.class, String[].class, UniNode.class)
+                    .getDeclaringClass()
+                    .equals(EndpointHandler.class);
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
+        }
     }
 }

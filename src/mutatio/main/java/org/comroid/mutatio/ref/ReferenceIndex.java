@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public interface ReferenceIndex<T> extends Pipeable<T> {
     static <T> ReferenceIndex<T> create() {
@@ -47,6 +48,10 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
      * Deletes all elements
      */
     void clear();
+
+    default Stream<T> stream() {
+        return unwrap().stream();
+    }
 
     @Override
     Pipe<?, T> pipe();
