@@ -1,12 +1,11 @@
-package org.comroid.common.ref;
-
-import org.comroid.common.info.MessageSupplier;
+package org.comroid.api;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public interface Specifiable<B> {
-    default <R extends B, T extends Throwable> R as(Class<R> type, MessageSupplier message) throws T {
-        return as(type).orElseThrow(() -> new AssertionError(message));
+    default <R extends B, T extends Throwable> R as(Class<R> type, Supplier<String> message) throws T {
+        return as(type).orElseThrow(() -> new AssertionError(message.get()));
     }
 
     default <R extends B> Optional<R> as(Class<R> type) {

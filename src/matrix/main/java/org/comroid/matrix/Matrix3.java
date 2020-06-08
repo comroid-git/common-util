@@ -1,6 +1,6 @@
 package org.comroid.matrix;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 import org.comroid.common.map.TrieMap;
 import org.comroid.matrix.impl.MatrixCapability;
 import org.comroid.matrix.impl.PartialMatrix;
@@ -56,7 +56,7 @@ public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>
         Z getZ();
     }
 
-    final class Builder<X, Y, Z, V> implements org.comroid.common.func.Builder<Matrix3<X, Y, Z, V>> {
+    final class Builder<X, Y, Z, V> implements org.comroid.api.Builder<Matrix3<X, Y, Z, V>> {
         private final Spellbind.Builder<Matrix3<X, Y, Z, V>> binder = Spellbind
                 .builder(Polyfill.uncheckedCast(Matrix3.class));
         private final Map<String, Entry<X, Y, Z, V>> initValues;

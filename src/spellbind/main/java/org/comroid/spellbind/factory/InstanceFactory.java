@@ -1,6 +1,6 @@
 package org.comroid.spellbind.factory;
 
-import org.comroid.common.func.Invocable;
+import org.comroid.api.Invocable;
 import org.comroid.common.info.Dependent;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;

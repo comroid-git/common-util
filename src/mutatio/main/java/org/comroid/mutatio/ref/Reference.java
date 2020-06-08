@@ -1,5 +1,10 @@
 package org.comroid.mutatio.ref;
 
+import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
+import org.comroid.api.Provider;
+import org.comroid.api.Specifiable;
+import org.comroid.mutatio.proc.Processor;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

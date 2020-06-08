@@ -1,6 +1,6 @@
 package org.comroid.listnr;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 import org.comroid.common.info.Dependent;
 import org.comroid.common.info.ExecutorBound;
 import org.comroid.listnr.model.EventPayload;

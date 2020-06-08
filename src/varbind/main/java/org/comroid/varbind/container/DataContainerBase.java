@@ -1,6 +1,6 @@
 package org.comroid.varbind.container;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 import org.comroid.common.func.Processor;
 import org.comroid.common.iter.Span;
 import org.comroid.common.ref.OutdateableReference;
@@ -27,7 +27,7 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
-import static org.comroid.common.Polyfill.uncheckedCast;
+import static org.comroid.api.Polyfill.uncheckedCast;
 
 @SuppressWarnings("unchecked")
 public class DataContainerBase<DEP> implements DataContainer<DEP> {

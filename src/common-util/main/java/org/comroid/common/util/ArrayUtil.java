@@ -1,6 +1,6 @@
 package org.comroid.common.util;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 
 import java.util.Arrays;
 

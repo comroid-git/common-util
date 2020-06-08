@@ -1,6 +1,6 @@
 package org.comroid.uniform.cache;
 
-import org.comroid.common.func.Provider;
+import org.comroid.api.Provider;
 import org.comroid.common.iter.Span;
 import org.comroid.mutatio.pipe.Pipe;
 import org.jetbrains.annotations.NotNull;

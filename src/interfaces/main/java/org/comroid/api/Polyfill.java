@@ -1,7 +1,5 @@
-package org.comroid.common;
+package org.comroid.api;
 
-import org.comroid.common.func.Provider;
-import org.comroid.common.func.ThrowingRunnable;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,23 +82,6 @@ public final class Polyfill {
         } catch (URISyntaxException e) {
             throw throwableReconfigurator.apply(e);
         }
-    }
-
-    public static <R, T extends Throwable> Runnable handlingRunnable(
-            ThrowingRunnable<T> throwingRunnable, @Nullable Function<T, ? extends RuntimeException> remapper
-    ) {
-        final Function<T, ? extends RuntimeException> finalRemapper = notnullOr(remapper,
-                (Function<T, ? extends RuntimeException>) RuntimeException::new
-        );
-
-        return () -> {
-            try {
-                throwingRunnable.run();
-            } catch (Throwable thr) {
-                //noinspection unchecked
-                throw finalRemapper.apply((T) thr);
-            }
-        };
     }
 
     public static <T> T notnullOr(@Nullable T value, @NotNull T def) {

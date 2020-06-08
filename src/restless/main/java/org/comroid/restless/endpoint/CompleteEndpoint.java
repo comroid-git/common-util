@@ -1,6 +1,6 @@
 package org.comroid.restless.endpoint;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 
 import java.net.URI;
 import java.net.URL;

@@ -1,6 +1,6 @@
 package org.comroid.common.ref;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,6 +1,6 @@
 package org.comroid.uniform;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.util.ReflectionHelper;
 import org.comroid.uniform.node.UniArrayNode;

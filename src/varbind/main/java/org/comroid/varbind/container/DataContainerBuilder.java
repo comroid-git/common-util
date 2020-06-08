@@ -1,7 +1,7 @@
 package org.comroid.varbind.container;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Builder;
+import org.comroid.api.Polyfill;
+import org.comroid.api.Builder;
 import org.comroid.common.ref.SelfDeclared;
 import org.comroid.varbind.bind.VarBind;
 import org.jetbrains.annotations.Nullable;

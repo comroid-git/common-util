@@ -1,5 +1,6 @@
 package org.comroid.common.func;
 
+import org.comroid.api.Provider;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;

@@ -1,4 +1,4 @@
-package org.comroid.common.func;
+package org.comroid.api;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.annotation.Blocking;

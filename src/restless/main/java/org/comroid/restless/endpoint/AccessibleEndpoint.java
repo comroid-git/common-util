@@ -1,6 +1,6 @@
 package org.comroid.restless.endpoint;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 import org.comroid.common.ref.StaticCache;
 import org.comroid.common.util.ArrayUtil;
 import org.jetbrains.annotations.ApiStatus.Internal;

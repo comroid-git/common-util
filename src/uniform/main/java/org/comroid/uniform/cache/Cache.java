@@ -1,7 +1,7 @@
 package org.comroid.uniform.cache;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Provider;
+import org.comroid.api.Polyfill;
+import org.comroid.api.Provider;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.common.map.ReferenceMap;
 import org.comroid.common.ref.OutdateableReference;

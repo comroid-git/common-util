@@ -1,6 +1,6 @@
 package org.comroid.common.iter;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 import org.comroid.mutatio.pipe.BasicPipe;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.common.ref.Reference;

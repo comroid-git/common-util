@@ -1,6 +1,6 @@
 package org.comroid.common.jvm;
 
-import org.comroid.common.func.Invocable;
+import org.comroid.api.Invocable;
 import org.comroid.common.util.ReflectionHelper;
 
 import java.lang.reflect.Modifier;

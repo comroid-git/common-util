@@ -1,7 +1,7 @@
 package org.comroid.listnr.model;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Invocable;
+import org.comroid.api.Polyfill;
+import org.comroid.api.Invocable;
 import org.comroid.common.info.Dependent;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.ref.SelfDeclared;

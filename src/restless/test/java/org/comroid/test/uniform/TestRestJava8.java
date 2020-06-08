@@ -10,7 +10,7 @@ import org.junit.Test;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import static org.comroid.common.Polyfill.url;
+import static org.comroid.api.Polyfill.url;
 import static org.junit.Assert.*;
 
 public class TestRestJava8 {

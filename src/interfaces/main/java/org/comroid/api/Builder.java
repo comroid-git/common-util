@@ -1,4 +1,4 @@
-package org.comroid.common.func;
+package org.comroid.api;
 
 public interface Builder<T> extends Provider.Now<T> {
     @Override
