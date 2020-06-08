@@ -197,7 +197,7 @@ public class UniValueNode<T> extends UniNode {
 
             @Override
             public String toString() {
-                return sub.get();
+                return String.format("\"%s\"", sub.get());
             }
         }
     }
