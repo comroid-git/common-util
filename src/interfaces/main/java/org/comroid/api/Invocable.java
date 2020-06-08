@@ -73,7 +73,7 @@ public interface Invocable<T> {
         return new Support.OfMethod<>(method, target);
     }
 
-    static <T> Invocable<? super T> ofConstructor(Class<T> type, @OptionalVararg Class<?>... params) {
+    static <T> Invocable<T> ofConstructor(Class<T> type, @OptionalVararg Class<?>... params) {
         Constructor<?>[] constructors = type.getConstructors();
 
         if (constructors.length > 1) {
@@ -88,7 +88,7 @@ public interface Invocable<T> {
         }
     }
 
-    static <T> Invocable<? super T> ofConstructor(Constructor<T> constructor) {
+    static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
         return new Support.OfConstructor<>(constructor);
     }
 
