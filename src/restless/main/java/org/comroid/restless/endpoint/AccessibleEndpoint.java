@@ -7,6 +7,7 @@ import org.comroid.restless.server.ServerEndpoint;
 import org.comroid.util.ArrayUtil;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -84,8 +85,9 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
 
     @Override
     default boolean test(String url) {
-        if (url.contains("#"))
-            url = url.substring(0, url.lastIndexOf('#'));
+        if (this instanceof ServerEndpoint && ((ServerEndpoint) this).allowMemberAccess()) {
+            url = url.substring(0, url.lastIndexOf(File.separator));
+        }
 
         final String[] regExpGroups = getRegExpGroups();
         final String replacer = replacer(regExpGroups);

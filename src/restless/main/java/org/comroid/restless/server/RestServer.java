@@ -118,7 +118,7 @@ public class RestServer implements Closeable {
                         final String[] args = sep.extractArgs(requestURI);
                         logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
 
-                        if (args.length != sep.getParameterCount())
+                        if (args.length != sep.getParameterCount() && !sep.allowMemberAccess())
                             throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
 
                         logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
