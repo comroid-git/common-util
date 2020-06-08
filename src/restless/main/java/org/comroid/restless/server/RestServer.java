@@ -93,8 +93,12 @@ public class RestServer {
                             mimeType,
                             targetMimes
                     );
-                    writeResponse(exchange, UNSUPPORTED_MEDIA_TYPE);
-                    return;
+
+                    throw new RestEndpointException(UNSUPPORTED_MEDIA_TYPE, String.format(
+                            "Content Type %s not supported, cancelling. Accept Header: %s",
+                            mimeType,
+                            targetMimes
+                    ));
                 }
 
                 UniNode node = consumeBody(exchange);
@@ -111,17 +115,14 @@ public class RestServer {
                     final String[] args = sep.extractArgs(requestURI);
                     logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
 
+                    if (args.length != sep.getParameterCount())
+                        throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
+
                     logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
                     REST.Response response;
                     try {
                         response = sep.executeMethod(requestMethod, requestHeaders, args, node);
                     } catch (RestEndpointException reex) {
-                        logger.at(Level.INFO).log("Handler threw exception: " + reex.getMessage());
-
-                        final String rsp = generateErrorNode(reex).toString();
-                        writeResponse(exchange, reex.getStatusCode(), rsp);
-
-                        return;
                     }
 
                     logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
@@ -148,7 +149,19 @@ public class RestServer {
                     );
                 } else {
                     logger.at(Level.INFO).log("Unknown endpoint; returning 404");
-                    writeResponse(exchange, NOT_FOUND);
+
+                    throw new RestEndpointException(NOT_FOUND, "No endpoint found at URL: " + requestURI);
+                }
+            } catch (RestEndpointException reex) {
+                logger.at(Level.SEVERE)
+                        .withCause(reex)
+                        .log("An exception occurred during handling: " + reex.getMessage());
+
+                final String rsp = generateErrorNode(reex).toString();
+                try {
+                    writeResponse(exchange, reex.getStatusCode(), rsp);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             } catch (Throwable t) {
                 t.printStackTrace();
