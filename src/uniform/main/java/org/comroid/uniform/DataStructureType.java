@@ -1,11 +1,17 @@
 package org.comroid.uniform;
 
-public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS, TAR extends BAS> {
+import org.comroid.api.Invocable;
+
+import java.util.function.Supplier;
+
+public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS, TAR extends BAS> implements Supplier<TAR> {
     public final Primitive typ;
     protected final Class<TAR> tarClass;
+    private final Invocable<TAR> constructor;
 
     protected DataStructureType(Class<TAR> tarClass, Primitive typ) {
         this.tarClass = tarClass;
+        this.constructor = Invocable.ofConstructor(tarClass);
         this.typ = typ;
     }
 
@@ -52,6 +58,11 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
                 typ.name(),
                 tarClass.getName()
         ));
+    }
+
+    @Override
+    public TAR get() {
+        return constructor.invokeRethrow();
     }
 
     public enum Primitive {
