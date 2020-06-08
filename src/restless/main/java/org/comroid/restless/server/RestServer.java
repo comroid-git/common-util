@@ -11,10 +11,7 @@ import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -26,7 +23,7 @@ import java.util.stream.Collectors;
 import static com.google.common.flogger.LazyArgs.lazy;
 import static org.comroid.restless.HTTPStatusCodes.*;
 
-public class RestServer {
+public class RestServer implements Closeable {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final AutoContextHandler autoContextHandler = new AutoContextHandler();
     private final HttpServer server;
@@ -56,6 +53,11 @@ public class RestServer {
 
     public boolean removeCommonHeader(String name) {
         return this.commonHeaders.removeIf(header -> header.getName().equals(name));
+    }
+
+    @Override
+    public void close() {
+        server.stop(5);
     }
 
     private class AutoContextHandler implements HttpHandler {
