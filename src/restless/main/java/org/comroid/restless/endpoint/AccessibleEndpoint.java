@@ -120,7 +120,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
             return yields.toArray(new String[0]);
         }
 
-        return ArrayUtil.empty();
+        return new String[0];
     }
 
     @Internal
