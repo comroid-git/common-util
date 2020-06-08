@@ -11,6 +11,10 @@ import java.util.regex.Pattern;
 public interface ServerEndpoint extends AccessibleEndpoint, EndpointHandler {
     AccessibleEndpoint getEndpointBase();
 
+    default boolean allowMemberAccess() {
+        return false;
+    }
+
     @Override
     default Pattern getPattern() {
         return getEndpointBase().getPattern();

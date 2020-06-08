@@ -32,19 +32,13 @@ public class RestServer implements Closeable {
     private final String mimeType;
     private final String baseUrl;
     private final REST.Header.List commonHeaders = new REST.Header.List();
-    private final boolean fractalFieldAccessor;
 
     public RestServer(REST rest, String baseUrl, InetAddress address, int port, ServerEndpoint... endpoints) throws IOException {
-        this(rest, baseUrl, address, port, true, endpoints);
-    }
-
-    public RestServer(REST rest, String baseUrl, InetAddress address, int port, boolean fractalFieldAccessor, ServerEndpoint... endpoints) throws IOException {
         logger.at(Level.INFO).log("Starting REST Server with %d endpoints", endpoints.length);
         this.rest = rest;
         this.mimeType = rest.getSerializationAdapter().getMimeType();
         this.baseUrl = baseUrl;
         this.server = HttpServer.create(new InetSocketAddress(address, port), port);
-        this.fractalFieldAccessor = fractalFieldAccessor;
         this.endpoints = Arrays.asList(endpoints);
 
         server.createContext("/", autoContextHandler);
@@ -138,7 +132,7 @@ public class RestServer implements Closeable {
 
                         response.getHeaders().forEach(responseHeaders::add);
                         final UniNode responseBody = response.getBody();
-                        final String data = unwrapFractal(requestURI, responseBody);
+                        final String data = unwrapFractal(sep, requestURI, responseBody);
 
                         writeResponse(exchange, response.getStatusCode(), data);
 
@@ -177,12 +171,14 @@ public class RestServer implements Closeable {
             }
         }
 
-        private String unwrapFractal(String requestURI, UniNode responseBody) {
+        private String unwrapFractal(ServerEndpoint sep, String requestURI, UniNode responseBody) {
             if (responseBody == null)
                 return "";
+            if (!sep.allowMemberAccess())
+                return responseBody.toString();
 
             String fractalName = null;
-            if (fractalFieldAccessor && requestURI.contains("#")) {
+            if (requestURI.contains("#")) {
                 fractalName = requestURI.substring(0, requestURI.lastIndexOf('#'));
             }
 
