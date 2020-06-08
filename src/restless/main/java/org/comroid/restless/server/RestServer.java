@@ -7,7 +7,9 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.comroid.restless.CommonHeaderNames;
 import org.comroid.restless.REST;
+import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniNode;
+import org.comroid.uniform.node.UniObjectNode;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,16 +62,16 @@ public class RestServer {
         @Override
         public void handle(HttpExchange exchange) {
             final String requestURI = baseUrl.substring(0, baseUrl.length() - 1) + exchange.getRequestURI().toString();
-            final String requestMethod = exchange.getRequestMethod();
+            final REST.Method requestMethod = REST.Method.valueOf(exchange.getRequestMethod());
             final String requestString = String.format("%s @ %s", requestMethod, requestURI);
 
             try {
                 final Headers responseHeaders = exchange.getResponseHeaders();
+                final Headers requestHeaders = exchange.getRequestHeaders();
                 commonHeaders.forEach(responseHeaders::add);
                 responseHeaders.add(CommonHeaderNames.ACCEPTED_CONTENT_TYPE, mimeType);
                 responseHeaders.add(CommonHeaderNames.REQUEST_CONTENT_TYPE, mimeType);
 
-                final Headers requestHeaders = exchange.getRequestHeaders();
                 if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie"))
                         && requestHeaders.containsKey("Cookie"))
                     responseHeaders.add("Cookie", requestHeaders.getFirst("Cookie"));
@@ -91,7 +93,7 @@ public class RestServer {
                             mimeType,
                             targetMimes
                     );
-                    exchange.sendResponseHeaders(UNSUPPORTED_MEDIA_TYPE, 0);
+                    writeResponse(exchange, UNSUPPORTED_MEDIA_TYPE);
                     return;
                 }
 
@@ -106,27 +108,33 @@ public class RestServer {
                     final ServerEndpoint sep = handler.get();
                     logger.at(Level.INFO).log("Endpoint found: %s", sep);
 
-                    if (Arrays.binarySearch(sep.allowedMethods(), REST.Method.valueOf(requestMethod)) == -1) {
-                        logger.at(Level.INFO).log("Method not allowed for endpoint: %s", requestMethod);
-                        exchange.sendResponseHeaders(METHOD_NOT_ALLOWED, 0);
-                        return;
-                    }
-
                     final String[] args = sep.extractArgs(requestURI);
                     logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
 
-                    logger.at(Level.INFO).log("Executing Handler...");
-                    final REST.Response response = sep.getHandler().handle(node, args);
+                    logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
+                    REST.Response response;
+                    try {
+                        response = sep.executeMethod(requestMethod, requestHeaders, args, node);
+                    } catch (RestEndpointException reex) {
+                        logger.at(Level.INFO).log("Handler threw exception: " + reex.getMessage());
+
+                        final String rsp = generateErrorNode(reex).toString();
+                        writeResponse(exchange, reex.getStatusCode(), rsp);
+
+                        return;
+                    }
+
                     logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
+
+                    if (response == null) {
+                        writeResponse(exchange, OK);
+                        return;
+                    }
 
                     response.getHeaders().forEach(responseHeaders::add);
 
                     final String data = response.getBody().toString();
-
-                    exchange.sendResponseHeaders(response.getStatusCode(), data.length());
-                    final OutputStream osr = exchange.getResponseBody();
-                    osr.write(data.getBytes());
-                    osr.flush();
+                    writeResponse(exchange, response.getStatusCode(), data);
 
                     logger.at(Level.INFO).log("Sent Response code %d with length %d and Headers: %s",
                             response.getStatusCode(),
@@ -140,7 +148,7 @@ public class RestServer {
                     );
                 } else {
                     logger.at(Level.INFO).log("Unknown endpoint; returning 404");
-                    exchange.sendResponseHeaders(NOT_FOUND, 0);
+                    writeResponse(exchange, NOT_FOUND);
                 }
             } catch (Throwable t) {
                 t.printStackTrace();
@@ -148,6 +156,26 @@ public class RestServer {
                 exchange.close();
                 logger.at(Level.INFO).log("Finished handling %s", requestString);
             }
+        }
+
+        private void writeResponse(HttpExchange exchange, int statusCode) throws IOException {
+            writeResponse(exchange, statusCode, "");
+        }
+
+        private void writeResponse(HttpExchange exchange, int statusCode, String data) throws IOException {
+            exchange.sendResponseHeaders(statusCode, data.length());
+            final OutputStream osr = exchange.getResponseBody();
+            osr.write(data.getBytes());
+            osr.flush();
+        }
+
+        private UniObjectNode generateErrorNode(RestEndpointException reex) {
+            final UniObjectNode rsp = rest.getSerializationAdapter().createUniObjectNode();
+
+            rsp.put("code", ValueType.INTEGER, reex.getStatusCode());
+            rsp.put("message", ValueType.STRING, reex.getSimpleMessage());
+
+            return rsp;
         }
 
         private UniNode consumeBody(HttpExchange exchange) {

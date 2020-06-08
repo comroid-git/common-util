@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public interface RestEndpoint extends RatelimitedEndpoint, Predicate<String> {
+public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<String> {
     String getUrlBase();
 
     String getUrlExtension();
