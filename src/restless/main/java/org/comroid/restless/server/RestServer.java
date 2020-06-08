@@ -32,19 +32,13 @@ public class RestServer implements Closeable {
     private final String mimeType;
     private final String baseUrl;
     private final REST.Header.List commonHeaders = new REST.Header.List();
-    private final boolean fractalFieldAccessor;
 
     public RestServer(REST rest, String baseUrl, InetAddress address, int port, ServerEndpoint... endpoints) throws IOException {
-        this(rest, baseUrl, address, port, true, endpoints);
-    }
-
-    public RestServer(REST rest, String baseUrl, InetAddress address, int port, boolean fractalFieldAccessor, ServerEndpoint... endpoints) throws IOException {
         logger.at(Level.INFO).log("Starting REST Server with %d endpoints", endpoints.length);
         this.rest = rest;
         this.mimeType = rest.getSerializationAdapter().getMimeType();
         this.baseUrl = baseUrl;
         this.server = HttpServer.create(new InetSocketAddress(address, port), port);
-        this.fractalFieldAccessor = fractalFieldAccessor;
         this.endpoints = Arrays.asList(endpoints);
 
         server.createContext("/", autoContextHandler);
@@ -138,30 +132,7 @@ public class RestServer implements Closeable {
 
                         response.getHeaders().forEach(responseHeaders::add);
                         final UniNode responseBody = response.getBody();
-
-                        String fractalName = null;
-                        if (fractalFieldAccessor && requestURI.contains("#")) {
-                            fractalName = requestURI.substring(0, requestURI.lastIndexOf('#'));
-                        }
-
-                        String data = "";
-                        if (fractalName != null && fractalName.matches("\\d+")) {
-                            // numeric fractal
-                            final int fractalNum = Integer.parseInt(fractalName);
-
-                            if (!responseBody.has(fractalNum))
-                                fractalName = null;
-
-                            if (fractalName != null)
-                                data = responseBody.get(fractalNum).toString();
-                        } else if (fractalName != null) {
-                            // string fractal
-                            if (!responseBody.has(fractalName))
-                                fractalName = null;
-
-                            if (fractalName != null)
-                                data = responseBody.get(fractalName).toString();
-                        } else data = responseBody.toString();
+                        final String data = responseBody.toString();
 
                         writeResponse(exchange, response.getStatusCode(), data);
 
