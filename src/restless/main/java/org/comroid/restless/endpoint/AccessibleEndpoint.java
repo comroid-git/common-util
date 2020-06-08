@@ -4,10 +4,8 @@ import org.comroid.api.Polyfill;
 import org.comroid.common.ref.StaticCache;
 import org.comroid.restless.server.EndpointHandler;
 import org.comroid.restless.server.ServerEndpoint;
-import org.comroid.util.ArrayUtil;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -86,7 +84,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
     @Override
     default boolean test(String url) {
         if (this instanceof ServerEndpoint && ((ServerEndpoint) this).allowMemberAccess()) {
-            url = url.substring(0, url.lastIndexOf(File.separator));
+            url = url.substring(0, url.lastIndexOf("/"));
         }
 
         final String[] regExpGroups = getRegExpGroups();

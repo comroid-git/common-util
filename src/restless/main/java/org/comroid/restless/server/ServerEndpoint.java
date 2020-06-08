@@ -5,7 +5,6 @@ import org.comroid.restless.REST;
 import org.comroid.restless.endpoint.AccessibleEndpoint;
 import org.comroid.uniform.node.UniNode;
 
-import java.io.File;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -49,7 +48,7 @@ public interface ServerEndpoint extends AccessibleEndpoint, EndpointHandler {
     default boolean isMemberAccess(String url) {
         return Stream.of(replacer(getRegExpGroups()), url)
                 .mapToLong(str -> str.chars()
-                        .filter(x -> x == File.separatorChar)
+                        .filter(x -> x == '/')
                         .count())
                 .distinct()
                 .count() > 1;
