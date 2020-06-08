@@ -45,7 +45,7 @@ public interface ServerEndpoint extends AccessibleEndpoint, EndpointHandler {
     }
 
     default boolean isMemberAccess(String url) {
-        return Stream.of(replacer(getRegExpGroups()), url)
+        return allowMemberAccess() && Stream.of(replacer(getRegExpGroups()), url)
                 .mapToLong(str -> str.chars()
                         .filter(x -> x == '/')
                         .count())
