@@ -77,11 +77,12 @@ public interface Invocable<T> {
         Constructor<?>[] constructors = type.getConstructors();
 
         if (constructors.length > 1) {
-            if (params.length == 0) {
-                throw new IllegalArgumentException("More than 1 constructor found!");
-            } else { //noinspection unchecked
-                return ofConstructor((Constructor<T>) constructors[0]);
-            }
+            return Arrays.stream(constructors)
+                    .filter(it -> it.getParameterCount() == params.length)
+                    .filter(it -> ReflectionHelper.matchingFootprint(it.getParameterTypes(), params))
+                    .findAny()
+                    .map(it -> Invocable.<T>ofConstructor(Polyfill.uncheckedCast(it)))
+                    .orElseThrow(() -> new NoSuchElementException("No Matching constructor could be found!"));
         } else {
             return ofConstructor(ReflectionHelper.findConstructor(type, params)
                     .orElseThrow(() -> new NoSuchElementException("No matching constructor found")));
