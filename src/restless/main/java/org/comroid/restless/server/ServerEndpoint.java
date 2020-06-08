@@ -1,19 +1,16 @@
 package org.comroid.restless.server;
 
 import com.sun.net.httpserver.Headers;
-import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
 import org.comroid.restless.endpoint.AccessibleEndpoint;
 import org.comroid.uniform.node.UniNode;
 
+import java.io.File;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public interface ServerEndpoint extends AccessibleEndpoint, EndpointHandler {
     AccessibleEndpoint getEndpointBase();
-
-    default boolean allowMemberAccess() {
-        return false;
-    }
 
     @Override
     default Pattern getPattern() {
@@ -35,14 +32,27 @@ public interface ServerEndpoint extends AccessibleEndpoint, EndpointHandler {
         return getEndpointBase().getRegExpGroups();
     }
 
+    static ServerEndpoint combined(AccessibleEndpoint accessibleEndpoint, EndpointHandler handler) {
+        return new Support.Combined(accessibleEndpoint, handler);
+    }
+
+    default boolean allowMemberAccess() {
+        return false;
+    }
+
     @Override
     default ServerEndpoint attachHandler(EndpointHandler handler) {
         // todo: implement a handler chain in Support.Combined to allow retrying with another handler if failed
         throw new UnsupportedOperationException("Cannot attach Handler to ServerEndpoint");
     }
 
-    static ServerEndpoint combined(AccessibleEndpoint accessibleEndpoint, EndpointHandler handler) {
-        return new Support.Combined(accessibleEndpoint, handler);
+    default boolean isMemberAccess(String url) {
+        return Stream.of(replacer(getRegExpGroups()), url)
+                .mapToLong(str -> str.chars()
+                        .filter(x -> x == File.separatorChar)
+                        .count())
+                .distinct()
+                .count() > 1;
     }
 
     final class Support {

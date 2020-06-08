@@ -132,7 +132,7 @@ public class RestServer implements Closeable {
 
                         response.getHeaders().forEach(responseHeaders::add);
                         final UniNode responseBody = response.getBody();
-                        final String data = unwrapFractal(sep, requestURI, responseBody);
+                        final String data = unwrapData(sep, requestURI, responseBody);
 
                         writeResponse(exchange, response.getStatusCode(), data);
 
@@ -171,18 +171,15 @@ public class RestServer implements Closeable {
             }
         }
 
-        private String unwrapFractal(ServerEndpoint sep, String requestURI, UniNode responseBody) {
+        private String unwrapData(ServerEndpoint sep, String requestURI, UniNode responseBody) {
             if (responseBody == null)
                 return "";
-            if (!sep.allowMemberAccess())
+            if (!sep.allowMemberAccess() || !sep.isMemberAccess(requestURI))
                 return responseBody.toString();
 
-            String fractalName = null;
-            if (requestURI.contains("#")) {
-                fractalName = requestURI.substring(0, requestURI.lastIndexOf('#'));
-            }
+            String fractalName = requestURI.substring(requestURI.lastIndexOf(File.separatorChar));
 
-            if (fractalName != null && fractalName.matches("\\d+")) {
+            if (fractalName.matches("\\d+")) {
                 // numeric fractal
                 final int fractalNum = Integer.parseInt(fractalName);
 
@@ -191,7 +188,7 @@ public class RestServer implements Closeable {
 
                 if (fractalName != null)
                     return responseBody.get(fractalNum).toString();
-            } else if (fractalName != null) {
+            } else {
                 // string fractal
                 if (!responseBody.has(fractalName))
                     fractalName = null;
