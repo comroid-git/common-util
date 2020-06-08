@@ -31,6 +31,12 @@ public interface ServerEndpoint extends AccessibleEndpoint, EndpointHandler {
         return getEndpointBase().getRegExpGroups();
     }
 
+    @Override
+    default ServerEndpoint attachHandler(EndpointHandler handler) {
+        // todo: implement a handler chain in Support.Combined to allow retrying with another handler if failed
+        throw new UnsupportedOperationException("Cannot attach Handler to ServerEndpoint");
+    }
+
     static ServerEndpoint combined(AccessibleEndpoint accessibleEndpoint, EndpointHandler handler) {
         return new Support.Combined(accessibleEndpoint, handler);
     }
