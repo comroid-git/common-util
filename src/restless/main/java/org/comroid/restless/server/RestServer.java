@@ -85,6 +85,7 @@ public class RestServer implements Closeable {
                             lazy(() -> requestHeaders
                                     .entrySet()
                                     .stream()
+                                    .filter(entry -> !entry.getKey().equals(CommonHeaderNames.AUTHORIZATION))
                                     .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
                                     .collect(Collectors.joining("\n- ", "\n- ", ""))
                             )
