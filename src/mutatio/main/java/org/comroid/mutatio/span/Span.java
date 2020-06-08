@@ -1,4 +1,4 @@
-package org.comroid.mutatio;
+package org.comroid.mutatio.span;
 
 import org.comroid.api.Polyfill;
 import org.comroid.mutatio.pipe.BasicPipe;

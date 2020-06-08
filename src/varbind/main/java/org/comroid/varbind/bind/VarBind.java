@@ -1,7 +1,7 @@
 package org.comroid.varbind.bind;
 
 import org.comroid.api.Polyfill;
-import org.comroid.mutatio.Span;
+import org.comroid.mutatio.span.Span;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.model.AbstractObjectBind;
 

@@ -1,7 +1,7 @@
 package org.comroid.uniform.cache;
 
 import org.comroid.api.Provider;
-import org.comroid.mutatio.Span;
+import org.comroid.mutatio.span.Span;
 import org.comroid.mutatio.pipe.Pipe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -2,7 +2,7 @@ package org.comroid.mutatio.pipe;
 
 import org.comroid.api.Disposable;
 import org.comroid.api.Polyfill;
-import org.comroid.mutatio.Span;
+import org.comroid.mutatio.span.Span;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.pump.BasicPump;
 import org.comroid.mutatio.pump.Pump;

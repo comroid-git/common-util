@@ -1,4 +1,4 @@
-package org.comroid.mutatio;
+package org.comroid.mutatio.span;
 
 public interface ModifyPolicy {
     boolean canInitialize(Object var);
