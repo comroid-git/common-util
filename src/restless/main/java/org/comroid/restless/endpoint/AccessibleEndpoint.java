@@ -29,7 +29,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
     }
 
     default int getParameterCount() {
-        return getUrlExtension().split("%s").length - 1;
+        return getRegExpGroups().length;
     }
 
     /**
