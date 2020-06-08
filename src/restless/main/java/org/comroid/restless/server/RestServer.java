@@ -260,6 +260,10 @@ public class RestServer implements Closeable {
             rsp.put("description", ValueType.STRING, HTTPStatusCodes.toString(reex.getStatusCode()));
             rsp.put("message", ValueType.STRING, reex.getSimpleMessage());
 
+            final Throwable cause = reex.getCause();
+            if (cause != null)
+                rsp.put("cause", ValueType.STRING, cause.toString());
+
             return rsp;
         }
 
