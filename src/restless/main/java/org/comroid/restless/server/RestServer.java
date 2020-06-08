@@ -5,11 +5,11 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.span.Span;
 import org.comroid.restless.CommonHeaderNames;
 import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
+import org.comroid.restless.REST.Response;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
@@ -18,9 +18,9 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -28,10 +28,11 @@ import static com.google.common.flogger.LazyArgs.lazy;
 import static org.comroid.restless.HTTPStatusCodes.*;
 
 public class RestServer implements Closeable {
+    private static final Response dummyResponse = new Response(0, null);
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final AutoContextHandler autoContextHandler = new AutoContextHandler();
     private final HttpServer server;
-    private final ReferenceIndex<ServerEndpoint> endpoints;
+    private final Span<ServerEndpoint> endpoints;
     private final REST rest;
     private final String mimeType;
     private final String baseUrl;
@@ -132,50 +133,66 @@ public class RestServer implements Closeable {
             }
         }
 
-        private boolean forwardToEndpoint(
+        private void forwardToEndpoint(
                 HttpExchange exchange,
                 String requestURI,
                 REST.Method requestMethod,
                 Headers responseHeaders,
                 Headers requestHeaders,
-                UniNode node) throws RestEndpointException, IOException {
-            final Iterator<ServerEndpoint> iter = endpoints.unwrap().iterator();
-
-            while (iter.hasNext()) {
-
-            }
-
-            // old code
-            Optional<ServerEndpoint> handler = endpoints.stream()
+                UniNode requestBody) throws RestEndpointException, IOException {
+            final Iterator<ServerEndpoint> iter = endpoints.pipe()
+                    // endpoints that accept the request uri
                     .filter(endpoint -> endpoint.test(requestURI))
-                    .findFirst();
+                    // handle member accessing endpoints with lower priority
+                    .sorted(Comparator.comparingInt(endpoint -> endpoint.isMemberAccess(requestURI) ? 1 : -1))
+                    .span()
+                    .iterator();
+            RestEndpointException lastException = null;
+            Response response = dummyResponse;
 
-            if (handler.isPresent()) {
-                final ServerEndpoint sep = handler.get();
-                logger.at(Level.INFO).log("Endpoint found: %s", sep);
-
-                final String[] args = sep.extractArgs(requestURI);
-                logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
-
-                if (args.length != sep.getParameterCount() && !sep.allowMemberAccess())
-                    throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
-
-                logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
-                REST.Response response = sep.executeMethod(requestMethod, requestHeaders, args, node);
-                logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
-
-                handleResponse(exchange, requestURI, responseHeaders, sep, response);
-            } else {
-                logger.at(Level.INFO).log("Unknown endpoint; returning 404");
+            if (!iter.hasNext()) {
+                logger.at(Level.INFO).log("No endpoints found; returning 404");
 
                 throw new RestEndpointException(NOT_FOUND, "No endpoint found at URL: " + requestURI);
             }
+
+            while (iter.hasNext()) {
+                final ServerEndpoint endpoint = iter.next();
+
+                if (endpoint.supports(requestMethod)) {
+                    final String[] args = endpoint.extractArgs(requestURI);
+                    logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
+
+                    if (args.length != endpoint.getParameterCount() && !endpoint.allowMemberAccess())
+                        throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
+
+                    try {
+                        logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
+                        response = endpoint.executeMethod(requestMethod, requestHeaders, args, requestBody);
+                    } catch (RestEndpointException reex) {
+                        lastException = reex;
+                    }
+
+                    if (response == dummyResponse) {
+                        logger.at(Level.INFO).log("Handler could not complete normally, attempting next handler...", response);
+                        continue;
+                    }
+
+                    logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
+                    handleResponse(exchange, requestURI, endpoint, responseHeaders, response);
+                    lastException = null;
+                    break;
+                }
+            }
+
+            if (lastException != null)
+                throw lastException;
         }
 
-        private void handleResponse(HttpExchange exchange, String requestURI, Headers responseHeaders, ServerEndpoint sep, REST.Response response) throws IOException {
+        private void handleResponse(HttpExchange exchange, String requestURI, ServerEndpoint sep, Headers responseHeaders, REST.Response response) throws IOException {
             if (response == null) {
                 writeResponse(exchange, OK);
-                return true;
+                return;
             }
 
             response.getHeaders().forEach(responseHeaders::add);
