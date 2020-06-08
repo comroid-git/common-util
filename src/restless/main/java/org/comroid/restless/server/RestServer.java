@@ -138,7 +138,30 @@ public class RestServer implements Closeable {
 
                         response.getHeaders().forEach(responseHeaders::add);
                         final UniNode responseBody = response.getBody();
-                        final String data = unwrapFractal(requestURI, responseBody);
+
+                        String fractalName = null;
+                        if (fractalFieldAccessor && requestURI.contains("#")) {
+                            fractalName = requestURI.substring(0, requestURI.lastIndexOf('#'));
+                        }
+
+                        String data = "";
+                        if (fractalName != null && fractalName.matches("\\d+")) {
+                            // numeric fractal
+                            final int fractalNum = Integer.parseInt(fractalName);
+
+                            if (!responseBody.has(fractalNum))
+                                fractalName = null;
+
+                            if (fractalName != null)
+                                data = responseBody.get(fractalNum).toString();
+                        } else if (fractalName != null) {
+                            // string fractal
+                            if (!responseBody.has(fractalName))
+                                fractalName = null;
+
+                            if (fractalName != null)
+                                data = responseBody.get(fractalName).toString();
+                        } else data = responseBody.toString();
 
                         writeResponse(exchange, response.getStatusCode(), data);
 
@@ -175,33 +198,6 @@ public class RestServer implements Closeable {
                 exchange.close();
                 logger.at(Level.INFO).log("Finished handling %s", requestString);
             }
-        }
-
-        private String unwrapFractal(String requestURI, UniNode responseBody) {
-            String fractalName = null;
-            if (fractalFieldAccessor && requestURI.contains("#")) {
-                fractalName = requestURI.substring(0, requestURI.lastIndexOf('#'));
-            }
-
-            String data = "";
-            if (fractalName != null && fractalName.matches("\\d+")) {
-                // numeric fractal
-                final int fractalNum = Integer.parseInt(fractalName);
-
-                if (!responseBody.has(fractalNum))
-                    fractalName = null;
-
-                if (fractalName != null)
-                    data = responseBody.get(fractalNum).toString();
-            } else if (fractalName != null) {
-                // string fractal
-                if (!responseBody.has(fractalName))
-                    fractalName = null;
-
-                if (fractalName != null)
-                    data = responseBody.get(fractalName).toString();
-            } else data = responseBody.toString();
-            return data;
         }
 
         private void writeResponse(HttpExchange exchange, int statusCode) throws IOException {
