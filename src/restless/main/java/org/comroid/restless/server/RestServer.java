@@ -116,9 +116,9 @@ public class RestServer implements Closeable {
                     throw new RestEndpointException(INTERNAL_SERVER_ERROR, t);
                 }
             } catch (RestEndpointException reex) {
-                logger.at(Level.SEVERE)
+                logger.at(Level.INFO)
                         .withCause(reex)
-                        .log("An exception occurred during handling: " + reex.getMessage());
+                        .log("An endpoint exception occurred: " + reex.getMessage());
 
                 final String rsp = generateErrorNode(reex).toString();
                 try {
