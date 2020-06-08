@@ -119,12 +119,7 @@ public class RestServer {
                         throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
 
                     logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
-                    REST.Response response;
-                    try {
-                        response = sep.executeMethod(requestMethod, requestHeaders, args, node);
-                    } catch (RestEndpointException reex) {
-                    }
-
+                    REST.Response response = sep.executeMethod(requestMethod, requestHeaders, args, node);
                     logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
 
                     if (response == null) {
