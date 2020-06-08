@@ -1,4 +1,4 @@
-package org.comroid.common.ref;
+package org.comroid.mutatio.ref;
 
 import org.comroid.common.util.StackTraceUtils;
 

@@ -1,8 +1,8 @@
 package org.comroid.listnr;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.iter.pipe.Pipeable;
-import org.comroid.common.iter.pipe.Pump;
+import org.comroid.mutatio.pipe.Pipeable;
+import org.comroid.mutatio.pipe.Pump;
 import org.comroid.listnr.model.EventPayload;
 import org.comroid.listnr.model.EventType;
 import org.jetbrains.annotations.ApiStatus.Internal;

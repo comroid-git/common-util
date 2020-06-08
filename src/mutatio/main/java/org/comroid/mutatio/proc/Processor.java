@@ -1,6 +1,6 @@
-package org.comroid.common.func;
+package org.comroid.mutatio.proc;
 
-import org.comroid.common.ref.Reference;
+import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 

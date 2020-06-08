@@ -1,8 +1,8 @@
 package org.comroid.common.iter;
 
 import org.comroid.common.Polyfill;
-import org.comroid.common.iter.pipe.BasicPipe;
-import org.comroid.common.iter.pipe.Pipe;
+import org.comroid.mutatio.pipe.BasicPipe;
+import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

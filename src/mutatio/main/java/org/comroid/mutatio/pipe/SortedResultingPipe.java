@@ -1,4 +1,4 @@
-package org.comroid.common.iter.pipe;
+package org.comroid.mutatio.pipe;
 
 import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.Nullable;

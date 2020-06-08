@@ -2,7 +2,7 @@ package org.comroid.uniform.cache;
 
 import org.comroid.common.Polyfill;
 import org.comroid.common.func.Provider;
-import org.comroid.common.iter.pipe.Pipe;
+import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.common.map.ReferenceMap;
 import org.comroid.common.ref.OutdateableReference;
 import org.jetbrains.annotations.NotNull;

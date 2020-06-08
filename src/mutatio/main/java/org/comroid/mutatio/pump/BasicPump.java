@@ -1,6 +1,8 @@
-package org.comroid.common.iter.pipe;
+package org.comroid.mutatio.pump;
 
 import org.comroid.common.iter.ReferenceIndex;
+import org.comroid.mutatio.pipe.BasicPipe;
+import org.comroid.mutatio.pipe.StageAdapter;
 
 import java.util.ArrayList;
 import java.util.Collection;
