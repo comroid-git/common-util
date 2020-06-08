@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.comroid.restless.CommonHeaderNames;
+import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniNode;
@@ -215,6 +216,7 @@ public class RestServer implements Closeable {
             final UniObjectNode rsp = rest.getSerializationAdapter().createUniObjectNode();
 
             rsp.put("code", ValueType.INTEGER, reex.getStatusCode());
+            rsp.put("description", ValueType.STRING, HTTPStatusCodes.toString(reex.getStatusCode()));
             rsp.put("message", ValueType.STRING, reex.getSimpleMessage());
 
             return rsp;
