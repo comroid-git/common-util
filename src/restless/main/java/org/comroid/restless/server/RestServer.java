@@ -17,10 +17,7 @@ import org.comroid.uniform.node.UniObjectNode;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -95,7 +92,7 @@ public class RestServer implements Closeable {
 
                     final String mimeType = rest.getSerializationAdapter().getMimeType();
                     final List<String> targetMimes = requestHeaders.get("Accept");
-                    if (!supportedMimeType(targetMimes)) {
+                    if (!supportedMimeType(targetMimes == null ? new ArrayList<>() : targetMimes)) {
                         logger.at(Level.INFO).log(
                                 "Content Type %s not supported, cancelling. Accept Header: %s",
                                 mimeType,
@@ -285,7 +282,8 @@ public class RestServer implements Closeable {
         }
 
         private boolean supportedMimeType(List<String> targetMimes) {
-            return targetMimes.stream().anyMatch(type -> type.contains(mimeType) || type.contains("*/*"));
+            return targetMimes.isEmpty() || targetMimes.stream()
+                    .anyMatch(type -> type.contains(mimeType) || type.contains("*/*"));
         }
     }
 }
