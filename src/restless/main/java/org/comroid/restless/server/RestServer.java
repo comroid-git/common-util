@@ -178,7 +178,7 @@ public class RestServer implements Closeable {
             if (!sep.allowMemberAccess() || !sep.isMemberAccess(requestURI))
                 return responseBody.toString();
 
-            String fractalName = requestURI.substring(requestURI.lastIndexOf("/"));
+            String fractalName = requestURI.substring(requestURI.lastIndexOf("/") + 1);
 
             if (fractalName.matches("\\d+")) {
                 // numeric fractal
