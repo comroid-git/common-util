@@ -1,5 +1,8 @@
 rootProject.name = 'common-util'
 
+// commonly repeated interfaces
+include(':interfaces')
+
 // generic tools
 include(':trie')
 include(':mutatio')

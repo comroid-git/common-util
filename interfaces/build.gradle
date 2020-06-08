@@ -4,11 +4,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    projectDescription = "JVM Mutation Tools"
-}
-
-dependencies {
-    api project(':interfaces')
+    projectDescription = "comroid Interfaces"
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

@@ -45,6 +45,8 @@ compileJava.options.encoding = 'UTF-8'
 repositories.jcenter()
 
 dependencies {
+    api project(':interfaces')
+
     implementation 'com.google.flogger:flogger:0.5.1'
     runtimeOnly 'com.google.flogger:flogger-system-backend:0.5.1'
 
