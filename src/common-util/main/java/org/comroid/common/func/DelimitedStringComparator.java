@@ -1,6 +1,6 @@
 package org.comroid.common.func;
 
-import org.comroid.common.map.TrieMap;
+import org.comroid.trie.TrieMap;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 

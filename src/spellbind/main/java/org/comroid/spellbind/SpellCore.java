@@ -1,6 +1,6 @@
 package org.comroid.spellbind;
 
-import org.comroid.common.func.Invocable;
+import org.comroid.api.Invocable;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;

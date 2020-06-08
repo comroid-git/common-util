@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.util.Objects;
 
-import static org.comroid.common.Polyfill.uncheckedCast;
+import static org.comroid.api.Polyfill.uncheckedCast;
 
 public class JacksonUtils {
     public static <T> T nodeAs(JsonNode jsonNode, Class<T> targetType) {

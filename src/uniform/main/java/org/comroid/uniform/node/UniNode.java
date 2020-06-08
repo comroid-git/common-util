@@ -1,15 +1,14 @@
 package org.comroid.uniform.node;
 
 import org.comroid.common.info.MessageSupplier;
-import org.comroid.common.ref.Reference;
-import org.comroid.common.ref.Specifiable;
+import org.comroid.api.Specifiable;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 

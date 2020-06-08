@@ -2,9 +2,9 @@ package org.comroid.restless;
 
 import com.google.common.flogger.FluentLogger;
 import com.sun.net.httpserver.Headers;
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.iter.Span;
+import org.comroid.api.Polyfill;
+import org.comroid.api.Invocable;
+import org.comroid.mutatio.Span;
 import org.comroid.restless.endpoint.AccessibleEndpoint;
 import org.comroid.restless.endpoint.CompleteEndpoint;
 import org.comroid.restless.endpoint.RatelimitedEndpoint;

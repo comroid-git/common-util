@@ -1,6 +1,6 @@
 package org.comroid.spellbind.model;
 
-import org.comroid.common.func.Invocable;
+import org.comroid.api.Invocable;
 import org.comroid.spellbind.Spellbind;
 
 import java.util.function.BiConsumer;

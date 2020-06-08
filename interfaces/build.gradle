@@ -1,0 +1,10 @@
+version = '0.10.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "comroid Interfaces"
+}
+
+apply from: "$rootDir/gradle/publishing.gradle"

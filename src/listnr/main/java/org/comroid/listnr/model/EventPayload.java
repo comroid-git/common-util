@@ -1,6 +1,6 @@
 package org.comroid.listnr.model;
 
-import org.comroid.common.ref.SelfDeclared;
+import org.comroid.api.SelfDeclared;
 import org.comroid.spellbind.model.TypeFragment;
 
 public interface EventPayload<D,

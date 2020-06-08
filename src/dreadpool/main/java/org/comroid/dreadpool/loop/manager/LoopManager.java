@@ -1,6 +1,6 @@
 package org.comroid.dreadpool.loop.manager;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

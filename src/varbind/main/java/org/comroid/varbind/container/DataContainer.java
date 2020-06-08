@@ -1,10 +1,10 @@
 package org.comroid.varbind.container;
 
-import org.comroid.common.func.Processor;
 import org.comroid.common.info.Dependent;
-import org.comroid.common.iter.Span;
-import org.comroid.common.ref.OutdateableReference;
-import org.comroid.common.ref.Reference;
+import org.comroid.mutatio.Span;
+import org.comroid.mutatio.proc.Processor;
+import org.comroid.mutatio.ref.OutdateableReference;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;

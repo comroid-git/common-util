@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
-import static org.comroid.common.Polyfill.regexGroupOrDefault;
+import static org.comroid.api.Polyfill.regexGroupOrDefault;
 
 public final class Version implements Comparable<Version> {
     public static final Pattern PATTERN = Pattern.compile(

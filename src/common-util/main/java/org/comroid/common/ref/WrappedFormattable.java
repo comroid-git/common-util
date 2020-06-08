@@ -1,6 +1,6 @@
 package org.comroid.common.ref;
 
-import org.comroid.common.util.Bitmask;
+import org.comroid.util.Bitmask;
 
 import java.io.IOException;
 import java.util.Formattable;
