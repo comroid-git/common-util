@@ -1,8 +1,7 @@
-package org.comroid.common.iter;
+package org.comroid.mutatio.ref;
 
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.Pipeable;
-import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

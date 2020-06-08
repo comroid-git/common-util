@@ -1,6 +1,6 @@
 package org.comroid.mutatio.pipe;
 
-import org.comroid.common.ref.Reference;
+import org.comroid.mutatio.ref.Reference;
 
 import java.util.HashSet;
 import java.util.Set;

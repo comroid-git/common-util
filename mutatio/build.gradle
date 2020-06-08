@@ -8,7 +8,6 @@ ext {
 }
 
 dependencies {
-    api project(':interfaces')
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

@@ -4,7 +4,11 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    projectDescription = "Event Handling solution"
+    projectDescription = "Lightning Fast Java Map implementation"
+}
+
+dependencies {
+    implementation project(':mutatio')
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

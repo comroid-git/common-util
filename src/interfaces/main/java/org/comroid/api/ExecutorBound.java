@@ -1,4 +1,4 @@
-package org.comroid.common.info;
+package org.comroid.api;
 
 import java.util.concurrent.Executor;
 

@@ -1,4 +1,4 @@
-package org.comroid.common.func;
+package org.comroid.api;
 
 import java.util.function.Function;
 

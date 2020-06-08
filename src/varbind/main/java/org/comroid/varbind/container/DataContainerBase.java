@@ -2,7 +2,7 @@ package org.comroid.varbind.container;
 
 import org.comroid.api.Polyfill;
 import org.comroid.common.func.Processor;
-import org.comroid.common.iter.Span;
+import org.comroid.mutatio.Span;
 import org.comroid.common.ref.OutdateableReference;
 import org.comroid.common.ref.Reference;
 import org.comroid.common.util.ReflectionHelper;

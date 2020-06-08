@@ -1,9 +1,10 @@
-package org.comroid.common.iter;
+package org.comroid.mutatio;
 
 import org.comroid.api.Polyfill;
 import org.comroid.mutatio.pipe.BasicPipe;
 import org.comroid.mutatio.pipe.Pipe;
-import org.comroid.common.ref.Reference;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +16,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
 
-public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Reference<T> {
+public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
     public static final int UNFIXED_SIZE = -1;
     public static final DefaultModifyPolicy DEFAULT_MODIFY_POLICY = DefaultModifyPolicy.SKIP_NULLS;
     private static final Span<?> EMPTY = new Span<>(ReferenceIndex.empty(), DefaultModifyPolicy.IMMUTABLE);
@@ -23,6 +24,80 @@ public class Span<T> implements AbstractCollection<T>, ReferenceIndex<T>, Refere
     private final ReferenceIndex<T> storage;
     private final int fixedCapacity;
     private final ModifyPolicy modifyPolicy;
+
+
+    @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        for (T it : this) {
+            if (o.equals(it)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean containsAll(@NotNull Collection<?> objects) {
+        return objects.stream()
+                .allMatch(this::contains);
+    }
+
+    @Override
+    public boolean addAll(@NotNull Collection<? extends T> objects) {
+        boolean added = false;
+
+        for (T object : objects) {
+            if (add(object) && !added) {
+                added = true;
+            }
+        }
+
+        return added;
+    }
+
+    @Override
+    public boolean removeAll(@NotNull Collection<?> objects) {
+        boolean removed = false;
+
+        for (Object object : objects) {
+            if (remove(object) && !removed) {
+                removed = true;
+            }
+        }
+
+        return removed;
+    }
+
+    @Override
+    public boolean retainAll(@NotNull Collection<?> keep) {
+        boolean removed = false;
+
+        if (keep.size() > size()) {
+            for (Object k : keep) {
+                for (T each : this) {
+                    if (!k.equals(each) && remove(each)) {
+                        removed = true;
+                    }
+                }
+            }
+        } else {
+            for (T each : this) {
+                for (Object k : keep) {
+                    if (!k.equals(each) && remove(each)) {
+                        removed = true;
+                    }
+                }
+            }
+        }
+
+        return removed;
+    }
 
     public final boolean isSingle() {
         return size() == 1;

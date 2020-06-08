@@ -1,8 +1,8 @@
-package org.comroid.common.map;
+package org.comroid.trie;
 
+import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
-import org.comroid.common.func.Junction;
-import org.comroid.common.ref.OutdateableReference;
+import org.comroid.mutatio.ref.OutdateableReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

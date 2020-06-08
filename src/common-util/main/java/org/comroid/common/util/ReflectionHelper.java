@@ -2,7 +2,7 @@ package org.comroid.common.util;
 
 import org.comroid.api.Polyfill;
 import org.comroid.common.annotation.Instance;
-import org.comroid.common.iter.Span;
+import org.comroid.mutatio.Span;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;

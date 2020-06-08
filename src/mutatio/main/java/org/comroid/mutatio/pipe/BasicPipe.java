@@ -1,12 +1,11 @@
 package org.comroid.mutatio.pipe;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Junction;
-import org.comroid.common.iter.ReferenceIndex;
-import org.comroid.common.map.TrieMap;
-import org.comroid.common.ref.Reference;
+import org.comroid.api.Polyfill;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BasicPipe<O, T> implements Pipe<O, T> {
     public static final int AUTOEMPTY_DISABLED = -1;
@@ -14,12 +13,22 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     private final Collection<Pipe<T, ?>> subs = new ArrayList<>();
     private final StageAdapter<O, T> adapter;
     private final int autoEmptyLimit;
-    private final Map<Integer, Reference<T>> accessors = new TrieMap.Basic<>(Junction
-            .of(String::valueOf, Integer::parseInt), false);
+    private final Map<Integer, Reference<T>> accessors = new ConcurrentHashMap<>();
+    private final List<AutoCloseable> children = new ArrayList<>();
 
     @Override
     public StageAdapter<O, T> getAdapter() {
         return adapter;
+    }
+
+    @Override
+    public final Collection<? extends AutoCloseable> getChildren() {
+        return Collections.unmodifiableList(children);
+    }
+
+    @Override
+    public final void addChildren(AutoCloseable child) {
+        children.add(child);
     }
 
     public BasicPipe(ReferenceIndex<O> old) {

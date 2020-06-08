@@ -1,4 +1,4 @@
-package org.comroid.common.iter;
+package org.comroid.mutatio;
 
 public interface ModifyPolicy {
     boolean canInitialize(Object var);

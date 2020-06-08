@@ -1,10 +1,10 @@
 package org.comroid.mutatio.pump;
 
-import org.comroid.common.info.ExecutorBound;
-import org.comroid.common.iter.ReferenceIndex;
-import org.comroid.common.ref.Reference;
+import org.comroid.api.ExecutorBound;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.StageAdapter;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;

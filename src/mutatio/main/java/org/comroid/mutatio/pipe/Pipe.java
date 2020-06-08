@@ -1,13 +1,13 @@
 package org.comroid.mutatio.pipe;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Disposable;
-import org.comroid.common.func.Processor;
-import org.comroid.common.iter.ReferenceIndex;
-import org.comroid.common.iter.Span;
-import org.comroid.common.ref.Reference;
+import org.comroid.api.Disposable;
+import org.comroid.api.Polyfill;
+import org.comroid.mutatio.Span;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.pump.BasicPump;
 import org.comroid.mutatio.pump.Pump;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;

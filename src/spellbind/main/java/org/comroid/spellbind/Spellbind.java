@@ -1,7 +1,7 @@
 package org.comroid.spellbind;
 
 import org.comroid.api.Invocable;
-import org.comroid.common.map.TrieMap;
+import org.comroid.trie.TrieMap;
 import org.comroid.spellbind.annotation.Partial;
 import org.jetbrains.annotations.Nullable;
 
