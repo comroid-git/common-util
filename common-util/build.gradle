@@ -9,6 +9,7 @@ ext {
 
 dependencies {
     api project(':trie')
+    api project(':mutatio')
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"
