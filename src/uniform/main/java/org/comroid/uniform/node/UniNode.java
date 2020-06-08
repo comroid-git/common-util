@@ -157,12 +157,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS", Type.VALUE);
     }
 
+    public String asString() {
+        return asString(null);
+    }
+
     public String asString(@Nullable String fallback) {
         if (isNull() && fallback != null) {
             return fallback;
         }
 
         return unsupported("GET_AS_STRING", Type.VALUE);
+    }
+
+    public boolean asBoolean() {
+        return asBoolean(false);
     }
 
     public boolean asBoolean(boolean fallback) {
@@ -173,12 +181,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS_BOOLEAN", Type.VALUE);
     }
 
+    public int asInt() {
+        return asInt(0);
+    }
+
     public int asInt(int fallback) {
         if (isNull()) {
             return fallback;
         }
 
         return unsupported("GET_AS_INT", Type.VALUE);
+    }
+
+    public long asLong() {
+        return asLong(0);
     }
 
     public long asLong(long fallback) {
@@ -189,12 +205,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS_LONG", Type.VALUE);
     }
 
+    public double asDouble() {
+        return asDouble(0);
+    }
+
     public double asDouble(double fallback) {
         if (isNull()) {
             return fallback;
         }
 
         return unsupported("GET_AS_DOUBLE", Type.VALUE);
+    }
+
+    public float asFloat() {
+        return asFloat(0);
     }
 
     public float asFloat(float fallback) {
@@ -205,12 +229,20 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("GET_AS_FLOAT", Type.VALUE);
     }
 
+    public short asShort() {
+        return asShort((short) 0);
+    }
+
     public short asShort(short fallback) {
         if (isNull()) {
             return fallback;
         }
 
         return unsupported("GET_AS_SHORT", Type.VALUE);
+    }
+
+    public char asChar() {
+        return asChar((char) 0);
     }
 
     public char asChar(char fallback) {
