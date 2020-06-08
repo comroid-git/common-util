@@ -107,6 +107,10 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
     }
 
     default String[] extractArgs(String requestUrl) {
+        if (this instanceof ServerEndpoint && ((ServerEndpoint) this).allowMemberAccess()) {
+            requestUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/"));
+        }
+        
         final Matcher matcher = getPattern().matcher(requestUrl);
         final String[] groups = getRegExpGroups();
 
