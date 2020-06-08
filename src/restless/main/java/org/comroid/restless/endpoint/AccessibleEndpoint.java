@@ -2,6 +2,8 @@ package org.comroid.restless.endpoint;
 
 import org.comroid.api.Polyfill;
 import org.comroid.common.ref.StaticCache;
+import org.comroid.restless.server.EndpointHandler;
+import org.comroid.restless.server.ServerEndpoint;
 import org.comroid.util.ArrayUtil;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
@@ -146,5 +148,9 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
                     .map(str -> String.format("(%s)", str))
                     .toArray()));
         return Pattern.compile(getFullUrl().replace("%s", "(.*)"));
+    }
+
+    default ServerEndpoint attachHandler(EndpointHandler handler) {
+        return ServerEndpoint.combined(this, handler);
     }
 }
