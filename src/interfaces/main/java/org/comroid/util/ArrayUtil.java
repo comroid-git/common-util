@@ -19,8 +19,4 @@ public final class ArrayUtil {
 
         return yield;
     }
-
-    public static <T> T[] empty() {
-        return Polyfill.uncheckedCast(new Object[0]);
-    }
 }
