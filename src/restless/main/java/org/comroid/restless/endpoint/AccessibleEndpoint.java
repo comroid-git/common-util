@@ -83,7 +83,9 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
 
     @Override
     default boolean test(String url) {
-        if (this instanceof ServerEndpoint && ((ServerEndpoint) this).allowMemberAccess()) {
+        if (this instanceof ServerEndpoint
+                && ((ServerEndpoint) this).allowMemberAccess()
+                && ((ServerEndpoint) this).isMemberAccess(url)) {
             url = url.substring(0, url.lastIndexOf("/"));
         }
 
@@ -107,10 +109,12 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
     }
 
     default String[] extractArgs(String requestUrl) {
-        if (this instanceof ServerEndpoint && ((ServerEndpoint) this).allowMemberAccess()) {
+        if (this instanceof ServerEndpoint
+                && ((ServerEndpoint) this).allowMemberAccess()
+                && ((ServerEndpoint) this).isMemberAccess(requestUrl)) {
             requestUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/"));
         }
-        
+
         final Matcher matcher = getPattern().matcher(requestUrl);
         final String[] groups = getRegExpGroups();
 
