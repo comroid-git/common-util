@@ -84,6 +84,9 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
 
     @Override
     default boolean test(String url) {
+        if (url.contains("#"))
+            url = url.substring(0, url.lastIndexOf('#'));
+
         final String[] regExpGroups = getRegExpGroups();
         final String replacer = replacer(regExpGroups);
 
