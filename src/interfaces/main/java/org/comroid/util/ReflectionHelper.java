@@ -1,8 +1,7 @@
 package org.comroid.util;
 
-import org.comroid.api.Polyfill;
 import org.comroid.annotations.Instance;
-import org.comroid.mutatio.Span;
+import org.comroid.api.Polyfill;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -115,7 +114,7 @@ public final class ReflectionHelper {
         return type.equals(other) || type.isAssignableFrom(other);
     }
 
-    public static <T> Span<T> collectStaticFields(
+    public static <T> Set<T> collectStaticFields(
             Class<? extends T> fieldType,
             Class<?> inClass,
             boolean forceAccess,
@@ -140,7 +139,9 @@ public final class ReflectionHelper {
             }
         }
 
-        return Span.immutable(values);
+        values.removeIf(Objects::isNull);
+
+        return Collections.unmodifiableSet(values);
     }
 
     public static Object[] arrange(Object[] args, Class<?>[] typesOrdered) {

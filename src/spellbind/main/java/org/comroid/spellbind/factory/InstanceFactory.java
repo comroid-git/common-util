@@ -2,8 +2,8 @@ package org.comroid.spellbind.factory;
 
 import org.comroid.api.Invocable;
 import org.comroid.common.info.Dependent;
-import org.comroid.common.ref.OutdateableReference;
-import org.comroid.common.ref.Reference;
+import org.comroid.mutatio.ref.OutdateableReference;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.spellbind.Spellbind;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.NotNull;

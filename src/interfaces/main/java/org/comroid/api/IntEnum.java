@@ -1,4 +1,4 @@
-package org.comroid.common.ref;
+package org.comroid.api;
 
 public interface IntEnum {
     int getValue();

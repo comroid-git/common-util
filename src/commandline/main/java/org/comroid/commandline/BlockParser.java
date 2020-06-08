@@ -1,7 +1,7 @@
 package org.comroid.commandline;
 
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.trie.TrieMap;
-import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

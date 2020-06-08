@@ -4,9 +4,9 @@ import com.google.common.flogger.FluentLogger;
 import org.comroid.api.Polyfill;
 import org.comroid.api.Disposable;
 import org.comroid.api.Invocable;
-import org.comroid.common.func.Processor;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.BasicCache;
 import org.comroid.uniform.cache.Cache;
@@ -180,7 +180,7 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
         //noinspection unchecked
         return (Optional<? extends V>) idBind.getGroup()
                 .findGroupForData(node)
-                .flatMap(group -> group.getConstructor())
+                .flatMap(GroupBind::getConstructor)
                 .map(constr -> constr.autoInvoke(dependencyObject, node));
     }
 }

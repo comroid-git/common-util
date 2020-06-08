@@ -1,6 +1,6 @@
 package org.comroid.common.info;
 
-import org.comroid.common.ref.IntEnum;
+import org.comroid.api.IntEnum;
 import org.comroid.common.ref.Named;
 import org.comroid.util.Bitmask;
 

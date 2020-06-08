@@ -1,6 +1,5 @@
-package org.comroid.common.map;
+package org.comroid.mutatio.ref;
 
-import org.comroid.common.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

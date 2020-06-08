@@ -1,6 +1,6 @@
 package org.comroid.restless.socket.model;
 
-import org.comroid.common.ref.IntEnum;
+import org.comroid.api.IntEnum;
 
 public interface OPCode extends IntEnum {
     Usage getUsage();

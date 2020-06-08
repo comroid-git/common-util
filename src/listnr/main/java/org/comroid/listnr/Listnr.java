@@ -3,9 +3,9 @@ package org.comroid.listnr;
 import org.comroid.api.Disposable;
 import org.comroid.api.Polyfill;
 import org.comroid.mutatio.pipe.Pipeable;
-import org.comroid.mutatio.pipe.Pump;
 import org.comroid.listnr.model.EventPayload;
 import org.comroid.listnr.model.EventType;
+import org.comroid.mutatio.pump.Pump;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.util.concurrent.CompletableFuture;

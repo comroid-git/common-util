@@ -1,6 +1,6 @@
 package org.comroid.uniform.node;
 
-import org.comroid.common.ref.Reference;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;

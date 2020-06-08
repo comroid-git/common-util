@@ -1,7 +1,7 @@
 package org.comroid.commandline;
 
-import org.comroid.common.map.ReferenceMap;
-import org.comroid.common.ref.Reference;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceMap;
 
 import java.util.Collections;
 import java.util.Map;

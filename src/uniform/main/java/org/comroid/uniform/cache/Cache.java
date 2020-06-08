@@ -3,8 +3,8 @@ package org.comroid.uniform.cache;
 import org.comroid.api.Polyfill;
 import org.comroid.api.Provider;
 import org.comroid.mutatio.pipe.Pipe;
-import org.comroid.common.map.ReferenceMap;
-import org.comroid.common.ref.OutdateableReference;
+import org.comroid.mutatio.ref.OutdateableReference;
+import org.comroid.mutatio.ref.ReferenceMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +51,7 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
         forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
     }
 
-    class Reference<K, V> implements org.comroid.common.ref.Reference.Settable<V> {
+    class Reference<K, V> implements org.comroid.mutatio.ref.Reference.Settable<V> {
         public final AtomicReference<V> reference = new AtomicReference<>(null);
         private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
         private final Object lock = Polyfill.selfawareLock();

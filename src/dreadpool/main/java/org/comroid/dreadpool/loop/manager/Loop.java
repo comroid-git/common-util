@@ -1,6 +1,6 @@
 package org.comroid.dreadpool.loop.manager;
 
-import org.comroid.common.ref.OutdateableReference;
+import org.comroid.mutatio.ref.OutdateableReference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 

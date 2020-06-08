@@ -1,15 +1,15 @@
 package org.comroid.varbind.container;
 
 import org.comroid.api.Polyfill;
-import org.comroid.common.func.Processor;
 import org.comroid.mutatio.Span;
-import org.comroid.common.ref.OutdateableReference;
-import org.comroid.common.ref.Reference;
-import org.comroid.util.ReflectionHelper;
+import org.comroid.mutatio.proc.Processor;
+import org.comroid.mutatio.ref.OutdateableReference;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.util.ReflectionHelper;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.ArrayBind;
@@ -104,7 +104,10 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                         location.value(),
                         true,
                         RootBind.class
-                ).requireNonNull(String.format("No @RootBind annotated field found in %s", location.value()));
+                ).stream()
+                .findAny()
+                .orElseThrow(() -> new NoSuchElementException(String
+                        .format("No @RootBind annotated field found in %s", location.value())));
     }
 
     private Set<VarBind<Object, ? super DEP, ?, Object>> updateVars(
