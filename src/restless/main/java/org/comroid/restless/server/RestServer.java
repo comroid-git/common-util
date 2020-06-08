@@ -74,110 +74,114 @@ public class RestServer implements Closeable {
             final String requestString = String.format("%s @ %s", requestMethod, requestURI);
 
             try {
-                final Headers responseHeaders = exchange.getResponseHeaders();
-                final Headers requestHeaders = exchange.getRequestHeaders();
-                commonHeaders.forEach(responseHeaders::add);
-                responseHeaders.add(CommonHeaderNames.ACCEPTED_CONTENT_TYPE, mimeType);
-                responseHeaders.add(CommonHeaderNames.REQUEST_CONTENT_TYPE, mimeType);
+                try {
+                    final Headers responseHeaders = exchange.getResponseHeaders();
+                    final Headers requestHeaders = exchange.getRequestHeaders();
+                    commonHeaders.forEach(responseHeaders::add);
+                    responseHeaders.add(CommonHeaderNames.ACCEPTED_CONTENT_TYPE, mimeType);
+                    responseHeaders.add(CommonHeaderNames.REQUEST_CONTENT_TYPE, mimeType);
 
-                if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie"))
-                        && requestHeaders.containsKey("Cookie"))
-                    responseHeaders.add("Cookie", requestHeaders.getFirst("Cookie"));
+                    if (commonHeaders.stream().noneMatch(header -> header.getName().equals("Cookie"))
+                            && requestHeaders.containsKey("Cookie"))
+                        responseHeaders.add("Cookie", requestHeaders.getFirst("Cookie"));
 
-                logger.at(Level.INFO).log("Handling %s Request @ %s with Headers: %s", requestMethod, requestURI,
-                        lazy(() -> requestHeaders
-                                .entrySet()
-                                .stream()
-                                .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
-                                .collect(Collectors.joining("\n- ", "\n- ", ""))
-                        )
-                );
-
-                final String mimeType = rest.getSerializationAdapter().getMimeType();
-                final List<String> targetMimes = requestHeaders.get("Accept");
-                if (!supportedMimeType(targetMimes)) {
-                    logger.at(Level.INFO).log(
-                            "Content Type %s not supported, cancelling. Accept Header: %s",
-                            mimeType,
-                            targetMimes
-                    );
-
-                    throw new RestEndpointException(UNSUPPORTED_MEDIA_TYPE, String.format(
-                            "Content Type %s not supported, cancelling. Accept Header: %s",
-                            mimeType,
-                            targetMimes
-                    ));
-                }
-
-                UniNode node = consumeBody(exchange);
-
-                logger.at(Level.INFO).log("Looking for matching endpoint...");
-                Optional<ServerEndpoint> handler = endpoints.stream()
-                        .filter(endpoint -> endpoint.test(requestURI))
-                        .findFirst();
-
-                if (handler.isPresent()) {
-                    final ServerEndpoint sep = handler.get();
-                    logger.at(Level.INFO).log("Endpoint found: %s", sep);
-
-                    final String[] args = sep.extractArgs(requestURI);
-                    logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
-
-                    if (args.length != sep.getParameterCount())
-                        throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
-
-                    logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
-                    REST.Response response = sep.executeMethod(requestMethod, requestHeaders, args, node);
-                    logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
-
-                    if (response == null) {
-                        writeResponse(exchange, OK);
-                        return;
-                    }
-
-                    response.getHeaders().forEach(responseHeaders::add);
-                    final UniNode responseBody = response.getBody();
-
-                    String fractalName = null;
-                    if (fractalFieldAccessor && requestURI.contains("#")) {
-                        fractalName = requestURI.substring(0, requestURI.lastIndexOf('#'));
-                    }
-
-                    String data = "";
-                    if (fractalName != null && fractalName.matches("\\d+")) {
-                        // numeric fractal
-                        final int fractalNum = Integer.parseInt(fractalName);
-
-                        if (!responseBody.has(fractalNum))
-                            fractalName = null;
-
-                        if (fractalName != null)
-                            data = responseBody.get(fractalNum).toString();
-                    } else if (fractalName != null) {
-                        // string fractal
-                        if (!responseBody.has(fractalName))
-                            fractalName = null;
-
-                        if (fractalName != null)
-                            data = responseBody.get(fractalName).toString();
-                    } else data = responseBody.toString();
-
-                    writeResponse(exchange, response.getStatusCode(), data);
-
-                    logger.at(Level.INFO).log("Sent Response code %d with length %d and Headers: %s",
-                            response.getStatusCode(),
-                            data.length(),
-                            lazy(() -> responseHeaders
+                    logger.at(Level.INFO).log("Handling %s Request @ %s with Headers: %s", requestMethod, requestURI,
+                            lazy(() -> requestHeaders
                                     .entrySet()
                                     .stream()
                                     .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
                                     .collect(Collectors.joining("\n- ", "\n- ", ""))
                             )
                     );
-                } else {
-                    logger.at(Level.INFO).log("Unknown endpoint; returning 404");
 
-                    throw new RestEndpointException(NOT_FOUND, "No endpoint found at URL: " + requestURI);
+                    final String mimeType = rest.getSerializationAdapter().getMimeType();
+                    final List<String> targetMimes = requestHeaders.get("Accept");
+                    if (!supportedMimeType(targetMimes)) {
+                        logger.at(Level.INFO).log(
+                                "Content Type %s not supported, cancelling. Accept Header: %s",
+                                mimeType,
+                                targetMimes
+                        );
+
+                        throw new RestEndpointException(UNSUPPORTED_MEDIA_TYPE, String.format(
+                                "Content Type %s not supported, cancelling. Accept Header: %s",
+                                mimeType,
+                                targetMimes
+                        ));
+                    }
+
+                    UniNode node = consumeBody(exchange);
+
+                    logger.at(Level.INFO).log("Looking for matching endpoint...");
+                    Optional<ServerEndpoint> handler = endpoints.stream()
+                            .filter(endpoint -> endpoint.test(requestURI))
+                            .findFirst();
+
+                    if (handler.isPresent()) {
+                        final ServerEndpoint sep = handler.get();
+                        logger.at(Level.INFO).log("Endpoint found: %s", sep);
+
+                        final String[] args = sep.extractArgs(requestURI);
+                        logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
+
+                        if (args.length != sep.getParameterCount())
+                            throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
+
+                        logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
+                        REST.Response response = sep.executeMethod(requestMethod, requestHeaders, args, node);
+                        logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
+
+                        if (response == null) {
+                            writeResponse(exchange, OK);
+                            return;
+                        }
+
+                        response.getHeaders().forEach(responseHeaders::add);
+                        final UniNode responseBody = response.getBody();
+
+                        String fractalName = null;
+                        if (fractalFieldAccessor && requestURI.contains("#")) {
+                            fractalName = requestURI.substring(0, requestURI.lastIndexOf('#'));
+                        }
+
+                        String data = "";
+                        if (fractalName != null && fractalName.matches("\\d+")) {
+                            // numeric fractal
+                            final int fractalNum = Integer.parseInt(fractalName);
+
+                            if (!responseBody.has(fractalNum))
+                                fractalName = null;
+
+                            if (fractalName != null)
+                                data = responseBody.get(fractalNum).toString();
+                        } else if (fractalName != null) {
+                            // string fractal
+                            if (!responseBody.has(fractalName))
+                                fractalName = null;
+
+                            if (fractalName != null)
+                                data = responseBody.get(fractalName).toString();
+                        } else data = responseBody.toString();
+
+                        writeResponse(exchange, response.getStatusCode(), data);
+
+                        logger.at(Level.INFO).log("Sent Response code %d with length %d and Headers: %s",
+                                response.getStatusCode(),
+                                data.length(),
+                                lazy(() -> responseHeaders
+                                        .entrySet()
+                                        .stream()
+                                        .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
+                                        .collect(Collectors.joining("\n- ", "\n- ", ""))
+                                )
+                        );
+                    } else {
+                        logger.at(Level.INFO).log("Unknown endpoint; returning 404");
+
+                        throw new RestEndpointException(NOT_FOUND, "No endpoint found at URL: " + requestURI);
+                    }
+                } catch (Throwable t) {
+                    throw new RestEndpointException(INTERNAL_SERVER_ERROR, t);
                 }
             } catch (RestEndpointException reex) {
                 logger.at(Level.SEVERE)
@@ -190,8 +194,6 @@ public class RestServer implements Closeable {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } catch (Throwable t) {
-                t.printStackTrace();
             } finally {
                 exchange.close();
                 logger.at(Level.INFO).log("Finished handling %s", requestString);

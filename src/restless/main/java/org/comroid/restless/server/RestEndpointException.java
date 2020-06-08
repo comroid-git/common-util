@@ -32,6 +32,13 @@ public class RestEndpointException extends RuntimeException {
     }
 
     public RestEndpointException(
+        @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int statusCode,
+        Throwable cause
+) {
+        this(statusCode, cause.getMessage(), cause);
+    }
+
+    public RestEndpointException(
             @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int statusCode,
             String message,
             Throwable cause
