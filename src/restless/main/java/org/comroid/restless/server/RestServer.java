@@ -5,6 +5,8 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.comroid.mutatio.ref.ReferenceIndex;
+import org.comroid.mutatio.span.Span;
 import org.comroid.restless.CommonHeaderNames;
 import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
@@ -16,6 +18,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -28,7 +31,7 @@ public class RestServer implements Closeable {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final AutoContextHandler autoContextHandler = new AutoContextHandler();
     private final HttpServer server;
-    private final List<ServerEndpoint> endpoints;
+    private final ReferenceIndex<ServerEndpoint> endpoints;
     private final REST rest;
     private final String mimeType;
     private final String baseUrl;
@@ -40,7 +43,7 @@ public class RestServer implements Closeable {
         this.mimeType = rest.getSerializationAdapter().getMimeType();
         this.baseUrl = baseUrl;
         this.server = HttpServer.create(new InetSocketAddress(address, port), port);
-        this.endpoints = Arrays.asList(endpoints);
+        this.endpoints = Span.immutable(endpoints);
 
         server.createContext("/", autoContextHandler);
         server.setExecutor(rest.getExecutor());
@@ -108,50 +111,7 @@ public class RestServer implements Closeable {
                     UniNode node = consumeBody(exchange);
 
                     logger.at(Level.INFO).log("Looking for matching endpoint...");
-                    Optional<ServerEndpoint> handler = endpoints.stream()
-                            .filter(endpoint -> endpoint.test(requestURI))
-                            .findFirst();
-
-                    if (handler.isPresent()) {
-                        final ServerEndpoint sep = handler.get();
-                        logger.at(Level.INFO).log("Endpoint found: %s", sep);
-
-                        final String[] args = sep.extractArgs(requestURI);
-                        logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
-
-                        if (args.length != sep.getParameterCount() && !sep.allowMemberAccess())
-                            throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
-
-                        logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
-                        REST.Response response = sep.executeMethod(requestMethod, requestHeaders, args, node);
-                        logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
-
-                        if (response == null) {
-                            writeResponse(exchange, OK);
-                            return;
-                        }
-
-                        response.getHeaders().forEach(responseHeaders::add);
-                        final UniNode responseBody = response.getBody();
-                        final String data = unwrapData(sep, requestURI, responseBody);
-
-                        writeResponse(exchange, response.getStatusCode(), data);
-
-                        logger.at(Level.INFO).log("Sent Response code %d with length %d and Headers: %s",
-                                response.getStatusCode(),
-                                data.length(),
-                                lazy(() -> responseHeaders
-                                        .entrySet()
-                                        .stream()
-                                        .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
-                                        .collect(Collectors.joining("\n- ", "\n- ", ""))
-                                )
-                        );
-                    } else {
-                        logger.at(Level.INFO).log("Unknown endpoint; returning 404");
-
-                        throw new RestEndpointException(NOT_FOUND, "No endpoint found at URL: " + requestURI);
-                    }
+                    forwardToEndpoint(exchange, requestURI, requestMethod, responseHeaders, requestHeaders, node);
                 } catch (Throwable t) {
                     throw new RestEndpointException(INTERNAL_SERVER_ERROR, t);
                 }
@@ -170,6 +130,70 @@ public class RestServer implements Closeable {
                 exchange.close();
                 logger.at(Level.INFO).log("Finished handling %s", requestString);
             }
+        }
+
+        private boolean forwardToEndpoint(
+                HttpExchange exchange,
+                String requestURI,
+                REST.Method requestMethod,
+                Headers responseHeaders,
+                Headers requestHeaders,
+                UniNode node) throws RestEndpointException, IOException {
+            final Iterator<ServerEndpoint> iter = endpoints.unwrap().iterator();
+
+            while (iter.hasNext()) {
+
+            }
+
+            // old code
+            Optional<ServerEndpoint> handler = endpoints.stream()
+                    .filter(endpoint -> endpoint.test(requestURI))
+                    .findFirst();
+
+            if (handler.isPresent()) {
+                final ServerEndpoint sep = handler.get();
+                logger.at(Level.INFO).log("Endpoint found: %s", sep);
+
+                final String[] args = sep.extractArgs(requestURI);
+                logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
+
+                if (args.length != sep.getParameterCount() && !sep.allowMemberAccess())
+                    throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
+
+                logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
+                REST.Response response = sep.executeMethod(requestMethod, requestHeaders, args, node);
+                logger.at(Level.INFO).log("Handler Finished! Response: %s", response);
+
+                handleResponse(exchange, requestURI, responseHeaders, sep, response);
+            } else {
+                logger.at(Level.INFO).log("Unknown endpoint; returning 404");
+
+                throw new RestEndpointException(NOT_FOUND, "No endpoint found at URL: " + requestURI);
+            }
+        }
+
+        private void handleResponse(HttpExchange exchange, String requestURI, Headers responseHeaders, ServerEndpoint sep, REST.Response response) throws IOException {
+            if (response == null) {
+                writeResponse(exchange, OK);
+                return true;
+            }
+
+            response.getHeaders().forEach(responseHeaders::add);
+            final UniNode responseBody = response.getBody();
+            final String data = unwrapData(sep, requestURI, responseBody);
+
+            writeResponse(exchange, response.getStatusCode(), data);
+
+            logger.at(Level.INFO).log("Sent Response code %d with length %d and Headers: %s",
+                    response.getStatusCode(),
+                    data.length(),
+                    lazy(() -> responseHeaders
+                            .entrySet()
+                            .stream()
+                            .map(entry -> String.format("%s: %s", entry.getKey(), Arrays.toString(entry.getValue().toArray())))
+                            .collect(Collectors.joining("\n- ", "\n- ", ""))
+                    )
+            );
         }
 
         private String unwrapData(ServerEndpoint sep, String requestURI, UniNode responseBody) {
