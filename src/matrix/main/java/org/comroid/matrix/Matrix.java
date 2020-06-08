@@ -2,7 +2,7 @@ package org.comroid.matrix;
 
 import org.comroid.common.info.Valued;
 import org.comroid.common.ref.Named;
-import org.comroid.common.ref.Reference;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.spellbind.model.TypeFragment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

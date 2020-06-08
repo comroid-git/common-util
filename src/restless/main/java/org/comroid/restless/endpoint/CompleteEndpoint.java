@@ -1,12 +1,12 @@
 package org.comroid.restless.endpoint;
 
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 
 import java.net.URI;
 import java.net.URL;
 
 public interface CompleteEndpoint {
-    RestEndpoint getEndpoint();
+    AccessibleEndpoint getEndpoint();
 
     String getSpec();
 
@@ -18,17 +18,17 @@ public interface CompleteEndpoint {
         return Polyfill.uri(getSpec());
     }
 
-    static CompleteEndpoint of(RestEndpoint endpoint, String spec) {
+    static CompleteEndpoint of(AccessibleEndpoint endpoint, String spec) {
         return new Support.OfSpec(endpoint, spec);
     }
 
     final class Support {
         private static final class OfSpec implements CompleteEndpoint {
-            private final RestEndpoint endpoint;
+            private final AccessibleEndpoint endpoint;
             private final String spec;
 
             @Override
-            public RestEndpoint getEndpoint() {
+            public AccessibleEndpoint getEndpoint() {
                 return endpoint;
             }
 
@@ -37,7 +37,7 @@ public interface CompleteEndpoint {
                 return spec;
             }
 
-            private OfSpec(RestEndpoint endpoint, String spec) {
+            private OfSpec(AccessibleEndpoint endpoint, String spec) {
                 this.endpoint = endpoint;
                 this.spec = spec;
             }

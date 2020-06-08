@@ -1,16 +1,17 @@
 package org.comroid.listnr;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.iter.pipe.Pipeable;
-import org.comroid.common.iter.pipe.Pump;
+import org.comroid.api.Disposable;
+import org.comroid.api.Polyfill;
+import org.comroid.mutatio.pipe.Pipeable;
 import org.comroid.listnr.model.EventPayload;
 import org.comroid.listnr.model.EventType;
+import org.comroid.mutatio.pump.Pump;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static org.comroid.common.Polyfill.uncheckedCast;
+import static org.comroid.api.Polyfill.uncheckedCast;
 
 public @interface Listnr {
     interface Attachable<IN, D,
@@ -70,7 +71,7 @@ public @interface Listnr {
         /**
          * Listens to data and publishes all of it to a {@link Pump}
          * <p>
-         * The returned {@linkplain org.comroid.common.func.Disposable Pump} can be
+         * The returned {@linkplain Disposable Pump} can be
          * {@linkplain AutoCloseable#close() closed} in order to detach it from this ListnrAttachable
          *
          * @return A pump that will be filled with payloads

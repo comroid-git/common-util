@@ -1,7 +1,7 @@
 package org.comroid.spellbind;
 
-import org.comroid.common.func.Invocable;
-import org.comroid.common.map.TrieMap;
+import org.comroid.api.Invocable;
+import org.comroid.trie.TrieMap;
 import org.comroid.spellbind.annotation.Partial;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +22,7 @@ public final class Spellbind {
         return new Builder<>(mainInterface);
     }
 
-    public static class Builder<T> implements org.comroid.common.func.Builder<T> {
+    public static class Builder<T> implements org.comroid.api.Builder<T> {
         private final Class<T> mainInterface;
         private final Map<String, Invocable<Object>> methodBinds;
         private final Collection<Class<?>> interfaces;

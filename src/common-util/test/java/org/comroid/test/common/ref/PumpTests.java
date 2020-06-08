@@ -1,6 +1,6 @@
 package org.comroid.test.common.ref;
 
-import org.comroid.common.iter.pipe.Pump;
+import org.comroid.mutatio.pipe.Pump;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

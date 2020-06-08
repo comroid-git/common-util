@@ -1,12 +1,13 @@
 package org.comroid.restless;
 
 import com.google.common.flogger.FluentLogger;
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.iter.Span;
+import com.sun.net.httpserver.Headers;
+import org.comroid.api.Polyfill;
+import org.comroid.api.Invocable;
+import org.comroid.mutatio.span.Span;
+import org.comroid.restless.endpoint.AccessibleEndpoint;
 import org.comroid.restless.endpoint.CompleteEndpoint;
 import org.comroid.restless.endpoint.RatelimitedEndpoint;
-import org.comroid.restless.endpoint.RestEndpoint;
 import org.comroid.restless.server.Ratelimiter;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.Cache;
@@ -19,10 +20,7 @@ import org.comroid.varbind.container.DataContainerBase;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -147,7 +145,9 @@ public final class REST<D> {
 
         PATCH,
 
-        DELETE;
+        DELETE,
+
+        HEAD;
 
         @Override
         public String toString() {
@@ -173,8 +173,31 @@ public final class REST<D> {
         }
 
         public static final class List extends ArrayList<Header> {
+            public static List of(Headers headers) {
+                final List list = new List();
+
+                headers.forEach((name, values) -> list
+                        .add(name, values.size() == 1
+                                ? values.get(0)
+                                : Arrays.toString(values.toArray())));
+
+                return list;
+            }
+
             public boolean add(String name, String value) {
                 return super.add(new Header(name, value));
+            }
+
+            public boolean contains(String name) {
+                return stream().anyMatch(it -> it.name.equals(name));
+            }
+
+            public String get(String key) {
+                return stream()
+                        .filter(it -> it.name.equals(key))
+                        .findAny()
+                        .map(Header::getValue)
+                        .orElse(null);
             }
 
             public void forEach(BiConsumer<String, String> action) {
@@ -265,7 +288,7 @@ public final class REST<D> {
             return this;
         }
 
-        public final Request<T> endpoint(RestEndpoint endpoint, Object... args) {
+        public final Request<T> endpoint(AccessibleEndpoint endpoint, Object... args) {
             return endpoint(endpoint.complete(args));
         }
 

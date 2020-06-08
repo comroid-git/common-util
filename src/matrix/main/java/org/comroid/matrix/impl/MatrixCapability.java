@@ -1,10 +1,10 @@
 package org.comroid.matrix.impl;
 
-import org.comroid.common.ref.FutureReference;
-import org.comroid.common.ref.Reference;
 import org.comroid.matrix.Matrix;
 import org.comroid.matrix.Matrix2;
 import org.comroid.matrix.Matrix3;
+import org.comroid.mutatio.ref.FutureReference;
+import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

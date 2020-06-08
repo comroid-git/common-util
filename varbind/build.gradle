@@ -9,6 +9,7 @@ ext {
 
 dependencies {
     api project(':uniform')
+    api project(':mutatio')
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

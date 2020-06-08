@@ -1,6 +1,6 @@
 package org.comroid.restless.socket.event.multipart;
 
-import org.comroid.common.func.Invocable;
+import org.comroid.api.Invocable;
 import org.comroid.listnr.model.EventType;
 import org.comroid.restless.socket.WebSocket;
 import org.comroid.restless.socket.model.WebSocketBound;

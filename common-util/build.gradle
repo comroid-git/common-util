@@ -4,11 +4,12 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    projectDescription = "Commonly used Interfaces and Classes"
+    projectDescription = "Extensions to org.comroid:interfaces"
 }
 
 dependencies {
     api project(':trie')
+    api project(':mutatio')
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

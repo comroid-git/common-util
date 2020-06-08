@@ -27,7 +27,7 @@ public interface OSBasedFileProvider {
         return new FileHandle(getBaseDirectory().getAbsolutePath() + group.getBasePathExtension() + name);
     }
 
-    final class Builder implements org.comroid.common.func.Builder<OSBasedFileProvider> {
+    final class Builder implements org.comroid.api.Builder<OSBasedFileProvider> {
         private String windowsBasePath = null;
         private String macBasePath = null;
         private String unixBasePath = null;

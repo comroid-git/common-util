@@ -1,7 +1,6 @@
 package org.comroid.common.io;
 
-import org.comroid.common.exception.MultipleExceptions;
-import org.comroid.common.func.Disposable;
+import org.comroid.api.Disposable;
 
 import java.io.IOException;
 

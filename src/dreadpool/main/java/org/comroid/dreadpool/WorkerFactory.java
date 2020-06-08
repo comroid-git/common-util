@@ -1,7 +1,7 @@
 package org.comroid.dreadpool;
 
-import org.comroid.common.func.Factory;
-import org.comroid.common.func.Provider;
+import org.comroid.api.Factory;
+import org.comroid.api.Provider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

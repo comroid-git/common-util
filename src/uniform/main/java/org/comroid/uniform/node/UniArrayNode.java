@@ -1,8 +1,7 @@
 package org.comroid.uniform.node;
 
-import org.comroid.common.func.Junction;
-import org.comroid.common.map.TrieMap;
-import org.comroid.common.ref.OutdateableReference.SettableOfSupplier;
+import org.comroid.mutatio.ref.OutdateableReference;
+import org.comroid.mutatio.ref.OutdateableReference.SettableOfSupplier;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;

@@ -1,15 +1,15 @@
 package org.comroid.varbind.container;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Processor;
-import org.comroid.common.iter.Span;
-import org.comroid.common.ref.OutdateableReference;
-import org.comroid.common.ref.Reference;
-import org.comroid.common.util.ReflectionHelper;
+import org.comroid.api.Polyfill;
+import org.comroid.mutatio.span.Span;
+import org.comroid.mutatio.proc.Processor;
+import org.comroid.mutatio.ref.OutdateableReference;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.util.ReflectionHelper;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.ArrayBind;
@@ -27,7 +27,7 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
-import static org.comroid.common.Polyfill.uncheckedCast;
+import static org.comroid.api.Polyfill.uncheckedCast;
 
 @SuppressWarnings("unchecked")
 public class DataContainerBase<DEP> implements DataContainer<DEP> {
@@ -104,7 +104,10 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                         location.value(),
                         true,
                         RootBind.class
-                ).requireNonNull(String.format("No @RootBind annotated field found in %s", location.value()));
+                ).stream()
+                .findAny()
+                .orElseThrow(() -> new NoSuchElementException(String
+                        .format("No @RootBind annotated field found in %s", location.value())));
     }
 
     private Set<VarBind<Object, ? super DEP, ?, Object>> updateVars(

@@ -1,7 +1,7 @@
 package org.comroid.test.model;
 
 import com.alibaba.fastjson.JSONObject;
-import org.comroid.common.Polyfill;
+import org.comroid.api.Polyfill;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;

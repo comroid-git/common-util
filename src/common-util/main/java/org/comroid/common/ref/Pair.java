@@ -1,5 +1,7 @@
 package org.comroid.common.ref;
 
+import org.comroid.mutatio.ref.Reference;
+
 public class Pair<A, B> {
     protected final Reference.Settable<A> first;
     protected final Reference.Settable<B> second;
