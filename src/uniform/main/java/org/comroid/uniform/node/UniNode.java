@@ -2,6 +2,7 @@ package org.comroid.uniform.node;
 
 import org.comroid.common.info.MessageSupplier;
 import org.comroid.api.Specifiable;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -51,16 +52,6 @@ public abstract class UniNode implements Specifiable<UniNode> {
         this.type = type;
     }
 
-    public @NotNull Optional<UniNode> wrap(int index) {
-        return has(index) ? Optional.of(get(index)) : Optional.empty();
-    }
-
-    public boolean has(int index) {
-        return size() < index;
-    }
-
-    public abstract @NotNull UniNode get(int index);
-
     public abstract int size();
 
     public boolean isNull(String fieldName) {
@@ -68,13 +59,31 @@ public abstract class UniNode implements Specifiable<UniNode> {
                 .orElse(true);
     }
 
+    public abstract @NotNull UniNode get(int index);
+
+    public abstract @NotNull UniNode get(String fieldName);
+
+    public @NotNull Optional<UniNode> wrap(int index) {
+        return has(index) ? Optional.of(get(index)) : Optional.empty();
+    }
+
     public @NotNull Optional<UniNode> wrap(String fieldName) {
         return has(fieldName) ? Optional.of(get(fieldName)) : Optional.empty();
     }
 
-    public abstract boolean has(String fieldName);
+    public @NotNull Processor<UniNode> process(int index) {
+        return Processor.ofConstant(get(index));
+    }
 
-    public abstract @NotNull UniNode get(String fieldName);
+    public @NotNull Processor<UniNode> process(String fieldName) {
+        return Processor.ofConstant(get(fieldName));
+    }
+
+    public boolean has(int index) {
+        return size() < index;
+    }
+
+    public abstract boolean has(String fieldName);
 
     // todo: add helper methods
     public @NotNull <T> UniValueNode<String> add(ValueType<T> type, T value) throws UnsupportedOperationException {
