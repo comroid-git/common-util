@@ -111,6 +111,8 @@ public class RestServer implements Closeable {
                     logger.at(Level.INFO).log("Looking for matching endpoint...");
                     forwardToEndpoint(exchange, requestURI, requestMethod, responseHeaders, requestHeaders, node);
                 } catch (Throwable t) {
+                    if (t instanceof RestEndpointException)
+                        throw (RestEndpointException) t;
                     throw new RestEndpointException(INTERNAL_SERVER_ERROR, t);
                 }
             } catch (RestEndpointException reex) {
