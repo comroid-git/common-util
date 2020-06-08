@@ -240,4 +240,13 @@ public final class ReflectionHelper {
         return Arrays.stream(above.getMethods())
                 .filter(mtd -> !mtd.getDeclaringClass().isAssignableFrom(above));
     }
+
+    public static boolean matchingFootprint(Class<?>[] param1, Class<?>[] param2) {
+        for (int i = 0; i < param1.length && i < param2.length; i++) {
+            if (!typeCompat(param1[i], param2[i]))
+                return false;
+        }
+
+        return true;
+    }
 }
