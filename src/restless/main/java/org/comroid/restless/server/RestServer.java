@@ -178,12 +178,14 @@ public class RestServer implements Closeable {
         }
 
         private String unwrapFractal(String requestURI, UniNode responseBody) {
+            if (responseBody == null)
+                return "";
+
             String fractalName = null;
             if (fractalFieldAccessor && requestURI.contains("#")) {
                 fractalName = requestURI.substring(0, requestURI.lastIndexOf('#'));
             }
 
-            String data = "";
             if (fractalName != null && fractalName.matches("\\d+")) {
                 // numeric fractal
                 final int fractalNum = Integer.parseInt(fractalName);
