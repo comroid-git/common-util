@@ -192,17 +192,16 @@ public class RestServer implements Closeable {
                     fractalName = null;
 
                 if (fractalName != null)
-                    return responseBody.get(fractalNum).toString();
+                    data = responseBody.get(fractalNum).toString();
             } else if (fractalName != null) {
                 // string fractal
                 if (!responseBody.has(fractalName))
                     fractalName = null;
 
                 if (fractalName != null)
-                    return responseBody.get(fractalName).toString();
-            }
-
-            return responseBody.toString();
+                    data = responseBody.get(fractalName).toString();
+            } else data = responseBody.toString();
+            return data;
         }
 
         private void writeResponse(HttpExchange exchange, int statusCode) throws IOException {
