@@ -32,39 +32,4 @@ public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
     <R> Pump<T, R> addStage(StageAdapter<T, R> stage);
 
     <R> Pump<T, R> addStage(Executor executor, StageAdapter<T, R> stage);
-
-    @Override
-    default Pump<T, T> filter(Predicate<? super T> predicate) {
-        return addStage(StageAdapter.filter(predicate));
-    }
-
-    @Override
-    default <R> Pump<T, R> map(Function<? super T, ? extends R> mapper) {
-        return addStage(StageAdapter.map(mapper));
-    }
-
-    @Override
-    default <R> Pump<T, R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper) {
-        return addStage(StageAdapter.flatMap(mapper));
-    }
-
-    @Override
-    default Pump<T, T> distinct() {
-        return addStage(StageAdapter.distinct());
-    }
-
-    @Override
-    default Pump<T, T> peek(Consumer<? super T> action) {
-        return addStage(StageAdapter.peek(action));
-    }
-
-    @Override
-    default Pump<T, T> limit(long maxSize) {
-        return addStage(StageAdapter.limit(maxSize));
-    }
-
-    @Override
-    default Pump<T, T> skip(long skip) {
-        return addStage(StageAdapter.skip(skip));
-    }
 }
