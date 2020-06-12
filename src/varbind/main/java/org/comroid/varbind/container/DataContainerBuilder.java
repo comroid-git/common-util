@@ -29,8 +29,13 @@ public abstract class DataContainerBuilder<S extends DataContainerBuilder<S, T, 
 
     @Override
     public final T build() {
-        return mergeVarCarrier(new DataContainerBase<>(values, dependencyObject, type));
+        return mergeWith(new DataContainerBase<>(values, dependencyObject, type));
     }
 
-    protected abstract T mergeVarCarrier(DataContainer<D> dataContainer);
+    @Deprecated
+    protected T mergeVarCarrier(DataContainer<D> dataContainer) {
+        return mergeWith(dataContainer);
+    }
+
+    protected abstract T mergeWith(DataContainer<D> container);
 }
