@@ -18,8 +18,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
-    StageAdapter<O, T> getAdapter();
+public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
+    StageAdapter<I, O> getAdapter();
 
     default boolean isSorted() {
         return false;
@@ -37,78 +37,78 @@ public interface Pipe<O, T> extends ReferenceIndex<T>, Consumer<O>, Disposable {
     }
 
     @Override
-    default List<T> unwrap() {
+    default List<O> unwrap() {
         return span().unwrap();
     }
 
-    <R> Pipe<T, R> addStage(StageAdapter<T, R> stage);
+    <R> Pipe<O, R> addStage(StageAdapter<O, R> stage);
 
-    default Pipe<T, T> filter(Predicate<? super T> predicate) {
+    default Pipe<O, O> filter(Predicate<? super O> predicate) {
         return addStage(StageAdapter.filter(predicate));
     }
 
-    default <R> Pipe<T, R> map(Function<? super T, ? extends R> mapper) {
+    default <R> Pipe<O, R> map(Function<? super O, ? extends R> mapper) {
         return addStage(StageAdapter.map(mapper));
     }
 
-    default <R> Pipe<T, R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper) {
+    default <R> Pipe<O, R> flatMap(Function<? super O, ? extends Reference<? extends R>> mapper) {
         return addStage(StageAdapter.flatMap(mapper));
     }
 
-    default Pipe<T, T> distinct() {
+    default Pipe<O, O> distinct() {
         return addStage(StageAdapter.distinct());
     }
 
-    default Pipe<T, T> peek(Consumer<? super T> action) {
+    default Pipe<O, O> peek(Consumer<? super O> action) {
         return addStage(StageAdapter.peek(action));
     }
 
-    default Pipe<T, T> limit(long maxSize) {
+    default Pipe<O, O> limit(long maxSize) {
         return addStage(StageAdapter.limit(maxSize));
     }
 
-    default Pipe<T, T> skip(long skip) {
+    default Pipe<O, O> skip(long skip) {
         return addStage(StageAdapter.skip(skip));
     }
 
-    default void forEach(Consumer<? super T> action) {
+    default void forEach(Consumer<? super O> action) {
         addStage(StageAdapter.peek(action));
     }
 
-    default Pipe<T, T> sorted() {
+    default Pipe<O, O> sorted() {
         return sorted(Polyfill.uncheckedCast(Comparator.naturalOrder()));
     }
 
-    default Pipe<T, T> sorted(Comparator<? super T> comparator) {
+    default Pipe<O, O> sorted(Comparator<? super O> comparator) {
         return new SortedResultingPipe<>(this, comparator);
     }
 
     @NotNull
-    default Processor<T> findFirst() {
+    default Processor<O> findFirst() {
         return sorted().findAny();
     }
 
     @NotNull
-    default Processor<T> findAny() {
+    default Processor<O> findAny() {
         return span().process();
     }
 
     @Override
-    default boolean remove(T item) throws UnsupportedOperationException {
+    default boolean remove(O item) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("remove() is not supported by pipe");
     }
 
     @Override
-    default Pump<O, T> pump(Executor executor) {
+    default Pump<I, O> pump(Executor executor) {
         return new BasicPump<>(executor, this.map(Polyfill::uncheckedCast));
     }
 
     @Override
-    default void accept(O o) {
-        add(getAdapter().apply(o));
+    default void accept(I input) {
+        add(getAdapter().apply(input));
     }
 
-    default Span<T> span() {
+    default Span<O> span() {
         return new Span<>(this, Span.DefaultModifyPolicy.SKIP_NULLS);
     }
 }
