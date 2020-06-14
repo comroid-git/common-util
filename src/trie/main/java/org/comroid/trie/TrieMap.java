@@ -3,6 +3,7 @@ package org.comroid.trie;
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
 import org.comroid.mutatio.ref.OutdateableReference;
+import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +34,7 @@ public interface TrieMap<K, V> extends Map<K, V> {
 
     final class Stage<V> implements Map.Entry<String, V> {
         private final Map<Character, Stage<V>> storage = new ConcurrentHashMap<>();
-        private final OutdateableReference<V> reference = new OutdateableReference<>();
+        private final Reference.Settable<V> reference = Reference.Settable.create();
         private final String keyConverted;
 
         @Override
@@ -48,18 +49,18 @@ public interface TrieMap<K, V> extends Map<K, V> {
 
         private Stage(String keyConverted) {
             this.keyConverted = keyConverted;
-            this.reference.outdate();
         }
 
         private Stage(String keyConverted, V containValue) {
             this(keyConverted);
 
-            this.reference.update(containValue);
+            this.reference.set(containValue);
         }
 
         public V remove() {
-            reference.outdate();
-            return reference.get();
+            V prev = reference.get();
+            reference.set(null);
+            return prev;
         }
 
         @Override
@@ -67,22 +68,24 @@ public interface TrieMap<K, V> extends Map<K, V> {
             if (value == null)
                 return remove();
 
-            return reference.update(value);
+            return reference.set(value);
         }
 
         private Stream<Stage<V>> streamPresentStages() {
+            if (reference.isNull())
+                return storage.values()
+                        .stream()
+                        .flatMap(Stage::streamPresentStages);
+
             return Stream.concat(
-                    reference.isOutdated() ? Stream.empty() : Stream.of(this),
+                    Stream.of(this),
                     storage.values().stream().flatMap(Stage::streamPresentStages)
             );
         }
 
         private Optional<V> getValue(char[] chars, int cIndex) {
-            if (cIndex >= chars.length) {
-                if (!reference.isOutdated())
-                    return reference.wrap();
-                else return Optional.empty();
-            }
+            if (cIndex >= chars.length)
+                return reference.wrap();
 
             return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
                     .flatMap(stage -> stage.getValue(chars, cIndex + 1));
