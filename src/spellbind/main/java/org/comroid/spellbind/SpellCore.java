@@ -3,6 +3,7 @@ package org.comroid.spellbind;
 import org.comroid.api.Invocable;
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
+import org.comroid.api.UUIDContainer;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.trie.TrieMap;
@@ -17,15 +18,12 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class SpellCore<T extends TypeFragment<? super T>> implements TypeFragment<T>, InvocationHandler {
+public class SpellCore<T extends TypeFragment<? super T>>
+        extends UUIDContainer
+        implements TypeFragment<T>, InvocationHandler {
     static final Map<UUID, SpellCore<?>> coreInstances = new TrieMap.Basic<>(Junction.of(UUID::toString, UUID::fromString), false);
     private final CompletableFuture<T> proxyFuture = new CompletableFuture<>();
     private final Map<String, Invocable<?>> methods;
-
-    @Override
-    public UUID getUUID() {
-        return null;
-    }
 
     private SpellCore(Map<String, Invocable<?>> methods) {
         this.methods = Collections.unmodifiableMap(methods);
@@ -35,7 +33,7 @@ public class SpellCore<T extends TypeFragment<? super T>> implements TypeFragmen
         return builder(mainInterface, Polyfill.uncheckedCast(new Object()));
     }
 
-    public static <T extends TypeFragment<? super T>> SpellCore.Builder<T> builder(Class<T> mainInterface, T base) {
+    public static <T extends TypeFragment<? super T>> SpellCore.Builder<T> builder(Class<T> mainInterface, Object base) {
         return new Builder<>(mainInterface, base);
     }
 
@@ -71,11 +69,11 @@ public class SpellCore<T extends TypeFragment<? super T>> implements TypeFragmen
     }
 
     public static final class Builder<T extends TypeFragment<? super T>> {
-        private final T base;
+        private final Object base;
         private final Collection<TypeFragmentProvider<? super T>> typeFragmentProviders = new ArrayList<>();
         private final Set<Class<? super T>> interfaces = new HashSet<>();
 
-        public Builder(Class<T> mainInterface, T base) {
+        public Builder(Class<T> mainInterface, Object base) {
             this.base = base;
             interfaces.add(mainInterface);
         }
@@ -87,10 +85,12 @@ public class SpellCore<T extends TypeFragment<? super T>> implements TypeFragmen
 
         public T build(Object... args) {
             final TrieMap<String, Invocable<?>> methods = TrieMap.ofString();
+
+            scanMethods(methods, base, base.getClass().getMethods());
+
             final Set<? extends TypeFragment<? super T>> fragments = typeFragmentProviders.stream()
                     .map(provider -> resolveTypeFragmentProvider(methods, provider, args))
                     .collect(Collectors.toSet());
-
             final SpellCore<T> spellCore = new SpellCore<>(methods);
             final T proxy = Polyfill.uncheckedCast(Proxy.newProxyInstance(
                     ClassLoader.getSystemClassLoader(),
@@ -98,7 +98,7 @@ public class SpellCore<T extends TypeFragment<? super T>> implements TypeFragmen
                     spellCore
             ));
             spellCore.proxyFuture.complete(proxy);
-            SpellCore.coreInstances.put(base.getUUID(), spellCore);
+            SpellCore.coreInstances.put(spellCore.getUUID(), spellCore);
             fragments.forEach(it -> SpellCore.coreInstances
                     .put(it.getUUID(), spellCore));
 
@@ -117,7 +117,13 @@ public class SpellCore<T extends TypeFragment<? super T>> implements TypeFragmen
                 throw new IllegalArgumentException("Can only implement interfaces as TypeFragments");
             interfaces.add(target);
 
-            Arrays.stream(target.getMethods())
+            scanMethods(intoMap, fragment, target.getMethods());
+
+            return fragment;
+        }
+
+        private void scanMethods(Map<String, Invocable<?>> intoMap, Object fragment, Method[] methods) {
+            Arrays.stream(methods)
                     .filter(method -> !method.getDeclaringClass().equals(Object.class))
                     .forEach(method -> {
                         final Invocable<?> invocable = buildInvocable(method, fragment);
@@ -125,8 +131,6 @@ public class SpellCore<T extends TypeFragment<? super T>> implements TypeFragmen
 
                         intoMap.put(methodString, invocable);
                     });
-
-            return fragment;
         }
 
         private Invocable<?> buildInvocable(Method method, @Nullable Object target) {

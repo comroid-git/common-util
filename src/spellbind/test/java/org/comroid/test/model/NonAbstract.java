@@ -1,8 +1,10 @@
 package org.comroid.test.model;
 
+import org.comroid.spellbind.model.TypeFragment;
+
 import java.util.Optional;
 
-public interface NonAbstract {
+public interface NonAbstract extends TypeFragment<NonAbstract> {
     default Optional<String> string() {
         return cast(String.class);
     }
