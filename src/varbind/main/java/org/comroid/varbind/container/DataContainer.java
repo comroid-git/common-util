@@ -59,11 +59,11 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
 
     UniObjectNode toObjectNode(UniObjectNode node);
 
-    default <T> @Nullable T put(VarBind<T, ? super DEP, ?, T> bind, T value) {
-        return put(bind, Function.identity(), value);
-    }
+    <T> @Nullable Span<T> put(VarBind<T, ? super DEP, ?, ?> bind, T value);
 
-    <T, S> @Nullable T put(VarBind<S, ? super DEP, ?, T> bind, Function<T, S> parser, T value);
+    default <T, X> @Nullable Span<T> put(VarBind<T, ? super DEP, ?, X> bind, Function<X, T> parser, X value) {
+        return put(bind, parser.apply(value));
+    }
 
     <E> Reference.Settable<Span<E>> getExtractionReference(String fieldName);
 
@@ -110,8 +110,9 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         }
 
         @Override
-        default <T, S> @Nullable T put(VarBind<S, ? super DEP, ?, T> bind, Function<T, S> parser, T value) {
-            return getUnderlyingVarCarrier().put(bind, parser, value);
+        @Nullable
+        default <T> Span<T> put(VarBind<T, ? super DEP, ?, ?> bind, T value) {
+            return getUnderlyingVarCarrier().put(bind, value);
         }
 
         @Override

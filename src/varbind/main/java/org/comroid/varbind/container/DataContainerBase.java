@@ -1,10 +1,10 @@
 package org.comroid.varbind.container;
 
 import org.comroid.api.Polyfill;
-import org.comroid.mutatio.span.Span;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.span.Span;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -12,7 +12,6 @@ import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.util.ReflectionHelper;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
-import org.comroid.varbind.bind.ArrayBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.model.Reprocessed;
@@ -23,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.annotation.ElementType;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
@@ -225,25 +223,15 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     @Override
-    public <R, T> @Nullable R put(VarBind<T, ? super DEP, ?, R> bind, Function<R, T> parser, R value) {
-        final T apply = parser.apply(value);
-        final R prev = getComputedReference(bind).get();
+    public <T> @Nullable Span<T> put(VarBind<T, ? super DEP, ?, ?> bind, T value) {
+        Reference.Settable<Span<T>> extractionReference = getExtractionReference(bind);
+        Span<T> previous = extractionReference.get();
+        final Span<T> next = Span.singleton(value);
 
-        if (bind instanceof ArrayBind) {
-            getExtractionReference(bind).compute(span -> {
-                span.add(apply);
-                return span;
-            });
+        getComputedReference(bind).outdate();
+        extractionReference.set(next);
 
-            if (prev != null)
-                ((Collection<R>) prev).addAll((Collection<R>) value);
-            else getComputedReference(bind).update((R) Span.singleton(value));
-        } else {
-            getExtractionReference(bind).set(Span.singleton(apply));
-            getComputedReference(bind).update(value);
-        }
-
-        return prev;
+        return previous;
     }
 
     @Override
