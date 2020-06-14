@@ -1,6 +1,5 @@
 package org.comroid.test.spellbind;
 
-import org.comroid.spellbind.Spellbind;
 import org.comroid.test.model.AnotherPartialAbstract;
 import org.comroid.test.model.FullAbstract;
 import org.comroid.test.model.NonAbstract;

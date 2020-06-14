@@ -4,7 +4,6 @@ import org.comroid.api.Invocable;
 import org.comroid.common.info.Dependent;
 import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
-import org.comroid.spellbind.Spellbind;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
