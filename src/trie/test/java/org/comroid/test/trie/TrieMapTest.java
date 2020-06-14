@@ -42,7 +42,7 @@ public class TrieMapTest {
     // 75 as the maximum average timeout
     @Test(timeout = (TEST_SIZE / 50) * 75)
     public void testPerformance() {
-        System.out.printf("Starting TrieMap performance test at %d nanoTime\n", nanoTime());
+        System.out.printf("Starting TrieMap performance test at %d with %d ms timeout\n", nanoTime(), (TEST_SIZE / 50) * 75);
 
         IntStream.range(0, TEST_SIZE / 50)
                 .sequential()
