@@ -37,7 +37,10 @@ public class TrieMapTest {
         assertions();
     }
 
-    @Test
+    // amount of calls made
+    // multiplied by
+    // 75 as the maximum average timeout
+    @Test(timeout = (TEST_SIZE / 50) * 75)
     public void testPerformance() {
         System.out.printf("Starting TrieMap performance test at %d nanoTime\n", nanoTime());
 
