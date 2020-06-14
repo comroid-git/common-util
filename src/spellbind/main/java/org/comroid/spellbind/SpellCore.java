@@ -1,6 +1,9 @@
 package org.comroid.spellbind;
 
 import org.comroid.api.Invocable;
+import org.comroid.api.Junction;
+import org.comroid.spellbind.model.TypeFragment;
+import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;
@@ -9,16 +12,41 @@ import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SpellCore implements InvocationHandler {
+    private static final Map<UUID, SpellCore> coreInstances = new TrieMap.Basic<>(Junction.of(UUID::toString, UUID::fromString), false);
     private final Object coreObject;
     private final Map<String, Invocable<Object>> methodBinds;
+
+    public static Optional<SpellCore> getCore(TypeFragment<?> ofFragment) {
+        final UUID uuid = ofFragment.getUUID();
+
+        if (!coreInstances.containsKey(uuid))
+            return Optional.empty();
+        return Optional.of(coreInstances.get(uuid));
+    }
 
     SpellCore(Object coreObject, Map<String, Invocable<Object>> methodBinds) {
         this.coreObject = coreObject;
         this.methodBinds = methodBinds;
+    }
+
+    @Override
+    public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        final String methodString = methodString(method);
+        final Invocable<Object> invoc = methodBinds.get(methodString);
+
+        if (invoc == null)
+            throw$unimplemented(methodString, new NoSuchElementException("Bound Invocable"));
+
+        try {
+            return invoc.invoke(args);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static String methodString(@Nullable Method method) {
@@ -57,21 +85,6 @@ public class SpellCore implements InvocationHandler {
         final InvocationHandler invocationHandler = Proxy.getInvocationHandler(ofProxy);
 
         return invocationHandler instanceof SpellCore ? Optional.of((SpellCore) invocationHandler) : Optional.empty();
-    }
-
-    @Override
-    public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        final String methodString = methodString(method);
-        final Invocable<Object> invoc = methodBinds.get(methodString);
-
-        if (invoc == null)
-            throw$unimplemented(methodString, new NoSuchElementException("Bound Invocable"));
-
-        try {
-            return invoc.invoke(args);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void throw$unimplemented(Object methodString, @Nullable Throwable e) throws UnsupportedOperationException {
