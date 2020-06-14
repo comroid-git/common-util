@@ -5,7 +5,7 @@ import org.comroid.spellbind.Spellbind;
 
 import java.util.function.BiConsumer;
 
-public interface TypeFragmentProvider<T extends TypeFragment> extends BiConsumer<Spellbind.Builder<?>, Object[]> {
+public interface TypeFragmentProvider<T extends TypeFragment<T>> extends BiConsumer<Spellbind.Builder<?>, Object[]> {
     Class<T> getInterface();
 
     Invocable.TypeMap<? extends T> getInstanceSupplier();
