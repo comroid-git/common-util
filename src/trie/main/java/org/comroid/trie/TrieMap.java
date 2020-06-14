@@ -3,6 +3,7 @@ package org.comroid.trie;
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
 import org.comroid.mutatio.ref.OutdateableReference;
+import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,9 +30,11 @@ public interface TrieMap<K, V> extends Map<K, V> {
         map.forEach(this::put);
     }
 
+    Stage<V> getStage(String key);
+
     final class Stage<V> implements Map.Entry<String, V> {
         private final Map<Character, Stage<V>> storage = new ConcurrentHashMap<>();
-        private final OutdateableReference<V> reference = new OutdateableReference<>();
+        private final Reference.Settable<V> reference = Reference.Settable.create();
         private final String keyConverted;
 
         @Override
@@ -46,18 +49,18 @@ public interface TrieMap<K, V> extends Map<K, V> {
 
         private Stage(String keyConverted) {
             this.keyConverted = keyConverted;
-            this.reference.outdate();
         }
 
         private Stage(String keyConverted, V containValue) {
             this(keyConverted);
 
-            this.reference.update(containValue);
+            this.reference.set(containValue);
         }
 
         public V remove() {
-            reference.outdate();
-            return reference.get();
+            V prev = reference.get();
+            reference.set(null);
+            return prev;
         }
 
         @Override
@@ -65,22 +68,24 @@ public interface TrieMap<K, V> extends Map<K, V> {
             if (value == null)
                 return remove();
 
-            return reference.update(value);
+            return reference.set(value);
         }
 
         private Stream<Stage<V>> streamPresentStages() {
+            if (reference.isNull())
+                return storage.values()
+                        .stream()
+                        .flatMap(Stage::streamPresentStages);
+
             return Stream.concat(
-                    reference.isOutdated() ? Stream.empty() : Stream.of(this),
+                    Stream.of(this),
                     storage.values().stream().flatMap(Stage::streamPresentStages)
             );
         }
 
         private Optional<V> getValue(char[] chars, int cIndex) {
-            if (cIndex >= chars.length) {
-                if (!reference.isOutdated())
-                    return reference.wrap();
-                else return Optional.empty();
-            }
+            if (cIndex >= chars.length)
+                return reference.wrap();
 
             return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
                     .flatMap(stage -> stage.getValue(chars, cIndex + 1));
@@ -103,12 +108,6 @@ public interface TrieMap<K, V> extends Map<K, V> {
                     .flatMap(stage -> stage.remove(chars, cIndex));
         }
 
-        private Optional<Stage<V>> getStage(char[] chars, int cIndex) {
-            if (cIndex < chars.length)
-                return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null));
-            else return Optional.empty();
-        }
-
         public boolean containsKey(char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return false;
@@ -118,6 +117,15 @@ public interface TrieMap<K, V> extends Map<K, V> {
             return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
                     .map(stage -> stage.containsKey(chars, cIndex + 1))
                     .orElse(false);
+        }
+
+        private Stage<V> requireStage(char[] chars, int cIndex) {
+            if (cIndex < chars.length) {
+                return storage.computeIfAbsent(chars[cIndex], key -> {
+                    String converted = new String(Arrays.copyOfRange(chars, 0, cIndex + 1));
+                    return new Stage<>(converted);
+                }).requireStage(chars, cIndex + 1);
+            } else return this;
         }
     }
 
@@ -137,12 +145,9 @@ public interface TrieMap<K, V> extends Map<K, V> {
             this.useKeyCache = useKeyCache;
         }
 
-        public Stage<V> getStage(String converted, char[] chars, int cIndex) {
-            return baseStage.getStage(chars, cIndex).orElseGet(() -> {
-                final Stage<V> newStage = new Stage<>(converted);
-                baseStage.storage.put(chars[0], newStage);
-                return newStage.getStage(chars, 1).orElseThrow(AssertionError::new);
-            });
+        @Override
+        public Stage<V> getStage(String key) {
+            return baseStage.requireStage(key.toCharArray(), 0);
         }
 
         @Override
@@ -174,7 +179,7 @@ public interface TrieMap<K, V> extends Map<K, V> {
         @Override
         public V put(K key, V value) {
             if (!assertStageExists(key))
-                throw new UnsupportedOperationException("Could not generate Stage for key: " + key);
+                throw new AssertionError("Could not generate Stage for key: " + key);
 
             return baseStage.putValue(convertKey(key), 0, value).orElse(null);
         }
@@ -229,28 +234,12 @@ public interface TrieMap<K, V> extends Map<K, V> {
             final char baseKey = converted[0];
             final String convertedKey = new String(converted);
 
-            IntStream.range(0, converted.length)
+            IntStream.range(0, converted.length + 1)
                     .mapToObj(end -> Arrays.copyOfRange(converted, 0, end))
                     .filter(chars -> !containsKey(new String(chars)))
-                    .forEachOrdered(stageKey -> {
-                        if (stageKey.length == 0)
-                            baseStage.storage.put(converted[0], new Stage<>(convertedKey));
-                        else putStageInto(getStage(new String(stageKey), stageKey, 0), stageKey, 0);
-                    });
+                    .forEachOrdered(chars -> baseStage.requireStage(chars, 0));
 
             return containsKey(convertedKey);
-        }
-
-        private void putStageInto(Stage<V> into, char[] target, int cIndex) {
-            if (into.getKey().equals(new String(target)))
-                throw new IllegalArgumentException("Target stage key and target key are equal");
-
-            if (cIndex == target.length - 1 || !into.storage.containsKey(target[cIndex])) {
-                into.storage.put(target[cIndex], new Stage<>(new String(Arrays.copyOfRange(target, 0, cIndex))));
-                return;
-            }
-
-            putStageInto(into.storage.get(target[cIndex]), target, cIndex + 1);
         }
 
         private char[] convertKey(Object key) {
