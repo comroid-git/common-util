@@ -110,8 +110,30 @@ public final class ReflectionHelper {
         return yields;
     }
 
-    public static <T> boolean typeCompat(Class<T> type, Class<?> other) {
-        return type.equals(other) || type.isAssignableFrom(other);
+    public static boolean typeCompat(Class<?> expected, Class<?> target) {
+        if (expected.getName().contains("."))
+            // type is not primitive
+            return expected.equals(target) || expected.isAssignableFrom(target);
+
+        // type is primitive
+        switch (expected.getName()) {
+            case "int":
+                return typeCompat(Integer.class, target);
+            case "double":
+                return typeCompat(Double.class, target);
+            case "long":
+                return typeCompat(Long.class, target);
+            case "char":
+                return typeCompat(Character.class, target);
+            case "boolean":
+                return typeCompat(Boolean.class, target);
+            case "short":
+                return typeCompat(Short.class, target);
+            case "float":
+                return typeCompat(Float.class, target);
+        }
+
+        return false;
     }
 
     public static <T> Set<T> collectStaticFields(
@@ -150,7 +172,7 @@ public final class ReflectionHelper {
         for (int i = 0; i < typesOrdered.length; i++) {
             int finalli = i;
             yields[i] = Stream.of(args)
-                    .filter(it -> typesOrdered[finalli].isInstance(it))
+                    .filter(it -> typeCompat(typesOrdered[finalli], it.getClass()))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
                             "No instance of " + typesOrdered[finalli].getName() + " found in array"));
