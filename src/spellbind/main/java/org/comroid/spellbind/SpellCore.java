@@ -78,6 +78,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
         private final Object base;
         private final Collection<TypeFragmentProvider<? super T>> typeFragmentProviders = new ArrayList<>();
         private final Set<Class<? super T>> interfaces = new HashSet<>();
+        private ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 
         public Builder(Class<T> mainInterface, Object base) {
             this.base = base;
@@ -99,7 +100,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
                     .collect(Collectors.toSet());
             final SpellCore<T> spellCore = new SpellCore<>(methods);
             final T proxy = Polyfill.uncheckedCast(Proxy.newProxyInstance(
-                    ClassLoader.getSystemClassLoader(),
+                    classLoader,
                     interfaces.toArray(new Class[0]),
                     spellCore
             ));
@@ -145,6 +146,11 @@ public class SpellCore<T extends TypeFragment<? super T>>
             else return target == null
                     ? Invocable.ofMethodCall(base, method)
                     : Invocable.ofMethodCall(target, method);
+        }
+
+        public Builder<T> setClassLoader(ClassLoader classLoader) {
+            this.classLoader = classLoader;
+            return this;
         }
     }
 }
