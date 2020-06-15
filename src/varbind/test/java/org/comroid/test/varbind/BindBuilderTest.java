@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
@@ -156,7 +157,7 @@ public class BindBuilderTest {
         // todo: Create test
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = InvocationTargetException.class)
     public void testNullAsDependency() {
         final VarBind<String, Dummy, String, String> bind
                 = group.createBind("name")
