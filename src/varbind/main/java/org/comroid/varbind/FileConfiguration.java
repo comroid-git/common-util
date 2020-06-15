@@ -36,11 +36,6 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
         return children;
     }
 
-    @Override
-    public void addChildren(AutoCloseable child) {
-        children.add(child);
-    }
-
     public FileConfiguration(
             SerializationAdapter<?, ?, ?> serializationAdapter,
             FileHandle file
@@ -57,6 +52,11 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
 
         this.serializationAdapter = serializationAdapter;
         this.file = file;
+    }
+
+    @Override
+    public void addChildren(AutoCloseable child) {
+        children.add(child);
     }
 
     @Override

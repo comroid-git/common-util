@@ -16,8 +16,8 @@ public class RestEndpointException extends RuntimeException {
     }
 
     public RestEndpointException(
-        @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int statusCode
-) {
+            @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int statusCode
+    ) {
         this(statusCode, "No detail message");
     }
 
@@ -32,9 +32,9 @@ public class RestEndpointException extends RuntimeException {
     }
 
     public RestEndpointException(
-        @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int statusCode,
-        Throwable cause
-) {
+            @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int statusCode,
+            Throwable cause
+    ) {
         this(statusCode, cause.getMessage(), cause);
     }
 

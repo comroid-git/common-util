@@ -31,6 +31,80 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
         return size() == 0;
     }
 
+    public final boolean isSingle() {
+        return size() == 1;
+    }
+
+    public final boolean isNotSingle() {
+        return size() != 1;
+    }
+
+    public final boolean isFixedSize() {
+        return fixedCapacity != UNFIXED_SIZE;
+    }
+
+    public Span() {
+        this(ReferenceIndex.create(), UNFIXED_SIZE, DEFAULT_MODIFY_POLICY);
+    }
+
+    public Span(int fixedCapacity) {
+        this(ReferenceIndex.create(), fixedCapacity, DEFAULT_MODIFY_POLICY);
+    }
+
+    public Span(ReferenceIndex<T> referenceIndex, ModifyPolicy modifyPolicy) {
+        this(referenceIndex, UNFIXED_SIZE, modifyPolicy);
+    }
+
+    public Span(ReferenceIndex<? extends T> data, ModifyPolicy modifyPolicy, boolean fixedSize) {
+        this(data, fixedSize ? data.size() : UNFIXED_SIZE, modifyPolicy);
+    }
+
+    protected Span(ReferenceIndex<? extends T> data, int fixedCapacity, ModifyPolicy modifyPolicy) {
+        //noinspection unchecked
+        this.storage = (ReferenceIndex<T>) data;
+        this.fixedCapacity = fixedCapacity;
+        this.modifyPolicy = modifyPolicy;
+    }
+
+    public static <T> Collector<T, ?, Span<T>> collector() {
+        return Span.<T>make()
+                .fixedSize(true)
+                .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
+                .collector();
+    }
+
+    public static <T> Span.API<T> make() {
+        return new Span.API<>();
+    }
+
+    public static <T> Span<T> empty() {
+        //noinspection unchecked
+        return (Span<T>) EMPTY;
+    }
+
+    public static <T> Span<T> singleton(T it) {
+        return Span.<T>make().initialValues(it)
+                .fixedSize(true)
+                .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
+                .span();
+    }
+
+    public static <T> Span<T> immutable(Collection<T> of) {
+        return Span.<T>make()
+                .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
+                .initialValues(of)
+                .fixedSize(true)
+                .span();
+    }
+
+    @SafeVarargs
+    public static <T> Span<T> immutable(T... of) {
+        return Span.<T>make().initialValues(of)
+                .fixedSize(true)
+                .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
+                .span();
+    }
+
     @Override
     public boolean contains(Object o) {
         for (T it : this) {
@@ -99,85 +173,11 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
         return removed;
     }
 
-    public final boolean isSingle() {
-        return size() == 1;
-    }
-
-    public final boolean isNotSingle() {
-        return size() != 1;
-    }
-
-    public final boolean isFixedSize() {
-        return fixedCapacity != UNFIXED_SIZE;
-    }
-
-    public Span() {
-        this(ReferenceIndex.create(), UNFIXED_SIZE, DEFAULT_MODIFY_POLICY);
-    }
-
-    public Span(int fixedCapacity) {
-        this(ReferenceIndex.create(), fixedCapacity, DEFAULT_MODIFY_POLICY);
-    }
-
-    public Span(ReferenceIndex<T> referenceIndex, ModifyPolicy modifyPolicy) {
-        this(referenceIndex, UNFIXED_SIZE, modifyPolicy);
-    }
-
-    public Span(ReferenceIndex<? extends T> data, ModifyPolicy modifyPolicy, boolean fixedSize) {
-        this(data, fixedSize ? data.size() : UNFIXED_SIZE, modifyPolicy);
-    }
-
-    protected Span(ReferenceIndex<? extends T> data, int fixedCapacity, ModifyPolicy modifyPolicy) {
-        //noinspection unchecked
-        this.storage = (ReferenceIndex<T>) data;
-        this.fixedCapacity = fixedCapacity;
-        this.modifyPolicy = modifyPolicy;
-    }
-
-    public static <T> Collector<T, ?, Span<T>> collector() {
-        return Span.<T>make()
-                .fixedSize(true)
-                .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
-                .collector();
-    }
-
-    public static <T> Span.API<T> make() {
-        return new Span.API<>();
-    }
-
-    public static <T> Span<T> empty() {
-        //noinspection unchecked
-        return (Span<T>) EMPTY;
-    }
-
     @Override
     public List<T> unwrap() {
         List<T> yields = new ArrayList<>();
         forEach(yields::add);
         return yields;
-    }
-
-    public static <T> Span<T> singleton(T it) {
-        return Span.<T>make().initialValues(it)
-                .fixedSize(true)
-                .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
-                .span();
-    }
-
-    public static <T> Span<T> immutable(Collection<T> of) {
-        return Span.<T>make()
-                .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
-                .initialValues(of)
-                .fixedSize(true)
-                .span();
-    }
-
-    @SafeVarargs
-    public static <T> Span<T> immutable(T... of) {
-        return Span.<T>make().initialValues(of)
-                .fixedSize(true)
-                .modifyPolicy(DefaultModifyPolicy.IMMUTABLE)
-                .span();
     }
 
     @Override

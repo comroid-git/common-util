@@ -3,7 +3,6 @@ package org.comroid.test.spellbind;
 import org.comroid.api.Invocable;
 import org.comroid.api.UUIDContainer;
 import org.comroid.spellbind.SpellCore;
-import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.test.model.AnotherPartialAbstract;
 import org.comroid.test.model.FullAbstract;
@@ -11,8 +10,6 @@ import org.comroid.test.model.NonAbstract;
 import org.comroid.test.model.PartialAbstract;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.UUID;
 
 public class SpellbindTest {
     @Test

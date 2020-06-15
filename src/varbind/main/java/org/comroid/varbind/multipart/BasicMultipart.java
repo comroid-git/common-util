@@ -16,7 +16,7 @@ public final class BasicMultipart {
     }
 
     public static final class Base<EXTR, DPND, REMAP, FINAL> extends UUIDContainer implements PartialBind.Base<EXTR, DPND, REMAP, FINAL> {
-        private static final Invocable<? super Base<?,?,?,?>> constructor = Invocable.ofConstructor(Base.class);
+        private static final Invocable<? super Base<?, ?, ?, ?>> constructor = Invocable.ofConstructor(Base.class);
         private final String fieldName;
         private final boolean required;
 

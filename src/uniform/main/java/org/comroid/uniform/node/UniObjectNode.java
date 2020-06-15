@@ -1,6 +1,5 @@
 package org.comroid.uniform.node;
 
-import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.OutdateableReference.SettableOfSupplier;
 import org.comroid.trie.TrieMap;
 import org.comroid.uniform.DataStructureType;
@@ -11,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {

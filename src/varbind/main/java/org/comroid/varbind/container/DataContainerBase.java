@@ -1,6 +1,5 @@
 package org.comroid.varbind.container;
 
-import org.comroid.api.Polyfill;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
@@ -21,10 +20,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.ElementType;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.unmodifiableSet;
 import static org.comroid.api.Polyfill.uncheckedCast;
 
 @SuppressWarnings("unchecked")

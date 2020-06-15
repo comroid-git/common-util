@@ -5,7 +5,6 @@ import org.comroid.api.Polyfill;
 import org.comroid.api.UUIDContainer;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 
-import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 

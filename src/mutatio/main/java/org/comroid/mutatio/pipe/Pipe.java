@@ -2,12 +2,12 @@ package org.comroid.mutatio.pipe;
 
 import org.comroid.api.Disposable;
 import org.comroid.api.Polyfill;
-import org.comroid.mutatio.span.Span;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.pump.BasicPump;
 import org.comroid.mutatio.pump.Pump;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
+import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;

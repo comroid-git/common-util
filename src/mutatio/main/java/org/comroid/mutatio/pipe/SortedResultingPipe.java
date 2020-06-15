@@ -9,14 +9,14 @@ import java.util.List;
 public class SortedResultingPipe<T> extends BasicPipe<T, T> implements Pipe<T, T> {
     private final Comparator<? super T> comparator;
 
-    public SortedResultingPipe(Pipe<?, T> base, Comparator<? super T> comparator) {
-        super(base);
-        this.comparator = comparator;
-    }
-
     @Override
     public boolean isSorted() {
         return true;
+    }
+
+    public SortedResultingPipe(Pipe<?, T> base, Comparator<? super T> comparator) {
+        super(base);
+        this.comparator = comparator;
     }
 
     @Override

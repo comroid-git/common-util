@@ -113,7 +113,7 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             @Override
             public R get() {
                 final T get = underlying.get();
-                
+
                 if (get != null)
                     return remapper.apply(get);
 

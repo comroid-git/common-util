@@ -26,11 +26,6 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
         return Collections.unmodifiableList(children);
     }
 
-    @Override
-    public final void addChildren(AutoCloseable child) {
-        children.add(child);
-    }
-
     public BasicPipe(ReferenceIndex<O> old) {
         this(old, 100);
     }
@@ -48,6 +43,11 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
         this.refs = old;
         this.adapter = adapter;
         this.autoEmptyLimit = autoEmptyLimit;
+    }
+
+    @Override
+    public final void addChildren(AutoCloseable child) {
+        children.add(child);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package org.comroid.test.model;
 
-import org.comroid.api.Invocable;
 import org.comroid.test.FastJSONLib;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniObjectNode;
