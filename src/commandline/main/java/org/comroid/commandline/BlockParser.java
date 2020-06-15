@@ -47,6 +47,6 @@ public class BlockParser {
 
     @NotNull
     private Reference.Settable<String> compute(String name) {
-        return yields.computeIfAbsent(name, key -> Reference.Settable.create());
+        return yields.computeIfAbsent(name, Reference.Settable::create);
     }
 }

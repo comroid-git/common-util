@@ -24,7 +24,10 @@ public class CommandLineArgumentsParserTest {
         Assert.assertEquals("1.15.5", parse.get("ver"));
 
         Assert.assertTrue(parse.hasKey("ciao"));
-        Assert.assertNull(parse.get("ciao"));
+        Assert.assertEquals("ciao", parse.get("ciao"));
+        Assert.assertEquals("r", parse.get("r"));
+        Assert.assertEquals("d", parse.get("d"));
+        Assert.assertEquals("E", parse.get("E"));
 
         Assert.assertTrue(parse.hasKey("adios"));
         Assert.assertEquals("amigos", parse.get("adios"));
