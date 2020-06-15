@@ -4,7 +4,6 @@ import org.comroid.api.Invocable;
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
 import org.comroid.api.UUIDContainer;
-import org.comroid.common.ref.Pair;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.trie.TrieMap;
@@ -15,7 +14,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.net.http.WebSocket.Builder;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -72,6 +70,11 @@ public class SpellCore<T extends TypeFragment<? super T>>
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
+        if (!Modifier.isAbstract(method.getModifiers())
+                && method.getDeclaringClass().isAssignableFrom(base.getClass()))
+            return Invocable.ofMethodCall(base, method)
+                    .invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args);
+
         return findMethod(method)
                 .map(invocable -> invocable.invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args))
                 .orElseThrow(() -> new NoSuchMethodError("No implementation found for " + methodString(method)));
