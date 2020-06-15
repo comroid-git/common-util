@@ -92,7 +92,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
         public T build(Object... args) {
             final TrieMap<String, Invocable<?>> methods = TrieMap.ofString();
 
-            scanMethods(methods, base, base.getClass().getMethods());
+            scanMethods(methods, base);
 
             final Set<? extends TypeFragment<? super T>> fragments = typeFragmentProviders.stream()
                     .map(provider -> resolveTypeFragmentProvider(methods, provider, args))
@@ -123,13 +123,15 @@ public class SpellCore<T extends TypeFragment<? super T>>
                 throw new IllegalArgumentException("Can only implement interfaces as TypeFragments");
             interfaces.add(target);
 
-            scanMethods(intoMap, fragment, target.getMethods());
+            scanMethods(intoMap, fragment);
 
             return fragment;
         }
 
-        private void scanMethods(Map<String, Invocable<?>> intoMap, Object fragment, Method[] methods) {
-            Arrays.stream(methods)
+        private void scanMethods(Map<String, Invocable<?>> intoMap, Object fragment) {
+            System.out.println("fragment = " + fragment);
+
+            Arrays.stream(fragment.getClass().getMethods())
                     .filter(method -> !method.getDeclaringClass().equals(Object.class))
                     .forEach(method -> {
                         final Invocable<?> invocable = buildInvocable(method, fragment);
