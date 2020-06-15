@@ -474,7 +474,7 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
     public static final class API<T> {
         private static final int RESULT_FIXED_SIZE = -2;
         private final ReferenceIndex<T> storage;
-        private DefaultModifyPolicy modifyPolicy;
+        private ModifyPolicy modifyPolicy = Span.DEFAULT_MODIFY_POLICY;
         private int fixedSize;
 
         public API() {
@@ -561,7 +561,7 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
         }
 
         @Contract(value = "_ -> this", mutates = "this")
-        public API<T> modifyPolicy(DefaultModifyPolicy modifyPolicy) {
+        public API<T> modifyPolicy(ModifyPolicy modifyPolicy) {
             this.modifyPolicy = modifyPolicy;
 
             return this;
