@@ -15,7 +15,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeFragment<Matrix<V, E>> {
-    static<V, E extends Matrix.Entry<V>> TypeFragmentProvider<Matrix<V, E>> fragmentProvider() {
+    static <V, E extends Matrix.Entry<V>> TypeFragmentProvider<Matrix<V, E>> fragmentProvider() {
         return new TypeFragmentProvider<Matrix<V, E>>() {
             @Override
             public Class<Matrix<V, E>> getInterface() {
@@ -24,7 +24,7 @@ public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeF
 
             @Override
             public Invocable<? extends Matrix<V, E>> getInstanceSupplier() {
-                return Invocable.ofConstructor(Polyfill.uncheckedCast(PartialMatrix.class));
+                return Invocable.ofConstructor(Polyfill.<Class<Matrix<V, E>>>uncheckedCast(PartialMatrix.class));
             }
         };
     }
