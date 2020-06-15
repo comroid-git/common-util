@@ -197,7 +197,10 @@ public interface TrieMap<K, V> extends Map<K, V> {
         @NotNull
         @Override
         public Set<K> keySet() {
-            return cachedKeys.keySet();
+            return baseStage.streamPresentStages()
+                    .map(Stage::getKey)
+                    .map(getKeyConverter()::backward)
+                    .collect(Collectors.toSet());
         }
 
         @NotNull
