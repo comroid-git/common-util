@@ -5,6 +5,7 @@ import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.span.Span;
+import org.comroid.trie.TrieMap;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -29,9 +30,9 @@ import static org.comroid.api.Polyfill.uncheckedCast;
 @SuppressWarnings("unchecked")
 public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private final GroupBind<? extends DataContainer<DEP>, DEP> rootBind;
-    private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = new ConcurrentHashMap<>();
-    private final Map<String, Reference.Settable<Span<Object>>> vars = new ConcurrentHashMap<>();
-    private final Map<String, OutdateableReference<Object>> computed = new ConcurrentHashMap<>();
+    private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = TrieMap.ofString();
+    private final Map<String, Reference.Settable<Span<Object>>> vars = TrieMap.ofString();
+    private final Map<String, OutdateableReference<Object>> computed = TrieMap.ofString();
     private final DEP dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
     private final Class<? extends DataContainer<DEP>> myType;

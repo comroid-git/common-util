@@ -1,6 +1,7 @@
 package org.comroid.common.ref;
 
 import org.comroid.api.Polyfill;
+import org.comroid.trie.TrieMap;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,7 +9,7 @@ import java.util.function.Supplier;
 
 public final class StaticCache {
     private static final Map<Object, StaticCache> staticCache = new ConcurrentHashMap<>();
-    private final Map<String, Object> cache = new ConcurrentHashMap<>();
+    private final Map<String, Object> cache = TrieMap.ofString();
     private final Object owner;
 
     private StaticCache(Object owner) {

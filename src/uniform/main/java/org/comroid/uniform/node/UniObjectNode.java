@@ -2,6 +2,7 @@ package org.comroid.uniform.node;
 
 import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.OutdateableReference.SettableOfSupplier;
+import org.comroid.trie.TrieMap;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -14,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {
-    private final Map<String, UniValueNode<String>> valueAdapters = new ConcurrentHashMap<>();
+    private final Map<String, UniValueNode<String>> valueAdapters = TrieMap.ofString();
     private final Adapter adapter;
 
     @Override
