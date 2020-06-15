@@ -1,7 +1,8 @@
 package org.comroid.test.model;
 
+import org.comroid.api.Invocable;
+import org.comroid.test.FastJSONLib;
 import org.comroid.uniform.ValueType;
-import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
@@ -24,14 +25,27 @@ public final class NGinXFSNode extends DataContainerBase<Void> {
     }
 
     protected NGinXFSNode(UniObjectNode initialData) {
-        super(, FastJSONLib.fastJsonLib, initialData, null);
+        super(initialData);
     }
 
     interface Bind {
         @RootBind
-        GroupBind root = new GroupBind(FastJSONLib.fastJsonLib, "fsnode", invocable);
-        VarBind.OneStage<String> Name = root.bind1stage("name", ValueType.STRING);
-        VarBind.OneStage<String> Type = root.bind1stage("type", ValueType.STRING);
-        VarBind.OneStage<String> MTime = root.bind1stage("mtime", ValueType.STRING);
+        GroupBind<NGinXFSNode, Void> ROOT
+                = new GroupBind<>(FastJSONLib.fastJsonLib, "fsnode", NGinXFSNode.class);
+        VarBind<String, Void, String, String> Name = ROOT.createBind("name")
+                .extractAs(ValueType.STRING)
+                .asIdentities()
+                .onceEach()
+                .build();
+        VarBind<String, Void, String, String> Type = ROOT.createBind("type")
+                .extractAs(ValueType.STRING)
+                .asIdentities()
+                .onceEach()
+                .build();
+        VarBind<String, Void, String, String> MTime = ROOT.createBind("mtime")
+                .extractAs(ValueType.STRING)
+                .asIdentities()
+                .onceEach()
+                .build();
     }
 }

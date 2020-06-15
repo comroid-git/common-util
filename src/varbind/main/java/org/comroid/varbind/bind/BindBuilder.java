@@ -1,16 +1,19 @@
 package org.comroid.varbind.bind;
 
 import org.comroid.api.Builder;
+import org.comroid.api.Invocable;
 import org.comroid.spellbind.SpellCore;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.varbind.container.DataContainer;
 import org.comroid.varbind.multipart.*;
 import org.jetbrains.annotations.Contract;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -114,6 +117,14 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
         this.remapperProvider = uncheckedCast((Object) StagedBind.dependentTwoStageProvider());
 
         return uncheckedCast(this);
+    }
+
+    @Contract(value = "_ -> this", mutates = "this")
+    public <R extends DataContainer<? extends DPND>> BindBuilder<UniObjectNode, DPND, R, FINAL> andConstruct(GroupBind<R, DPND> targetBind) {
+        return uncheckedCast(
+                andResolve(targetBind.getConstructor()
+                        .map(Invocable::<EXTR, DPND>biFunction)
+                        .orElseThrow(() -> new NoSuchElementException("No Constructor in " + targetBind))));
     }
 
     @Contract(value = "-> this", mutates = "this")

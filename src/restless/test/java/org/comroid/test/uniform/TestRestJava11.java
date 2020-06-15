@@ -2,8 +2,6 @@ package org.comroid.test.uniform;
 
 import org.comroid.restless.REST;
 import org.comroid.test.model.NGinXFSNode;
-import org.comroid.uniform.adapter.http.jdk.JavaHttpAdapter;
-import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
 import org.junit.Before;
 
 import java.net.URL;
