@@ -1,5 +1,6 @@
 package org.comroid.varbind.multipart;
 
+import org.comroid.api.Specifiable;
 import org.comroid.mutatio.span.Span;
 import org.comroid.spellbind.annotation.Partial;
 import org.comroid.spellbind.model.TypeFragment;
@@ -7,7 +8,7 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.varbind.bind.GroupBind;
 
 public final class PartialBind {
-    public interface BindFragment extends TypeFragment<BindFragment> {
+    public interface BindFragment extends TypeFragment<BindFragment>, Specifiable<BindFragment> {
     }
 
     @Partial

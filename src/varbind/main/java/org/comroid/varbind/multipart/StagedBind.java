@@ -2,6 +2,7 @@ package org.comroid.varbind.multipart;
 
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
+import org.comroid.api.UUIDContainer;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 
 import java.util.Objects;
@@ -21,7 +22,7 @@ public final class StagedBind {
         return new FragmentProviders.DependentTwoStage<>();
     }
 
-    public static final class OneStage<T> implements PartialBind.Remapper<T, Object, T> {
+    public static final class OneStage<T> extends UUIDContainer implements PartialBind.Remapper<T, Object, T> {
         private static final Invocable<? super OneStage<?>> constructor = Invocable.ofConstructor(OneStage.class);
 
         @Override
@@ -30,7 +31,7 @@ public final class StagedBind {
         }
     }
 
-    public static final class TwoStage<T, R> implements PartialBind.Remapper<T, Object, R> {
+    public static final class TwoStage<T, R> extends UUIDContainer implements PartialBind.Remapper<T, Object, R> {
         private static final Invocable<? super TwoStage<?, ?>> constructor = Invocable.ofConstructor(TwoStage.class);
         private final Function<T, R> remapper;
 
@@ -44,7 +45,7 @@ public final class StagedBind {
         }
     }
 
-    public static final class DependentTwoStage<T, D, R> implements PartialBind.Remapper<T, D, R> {
+    public static final class DependentTwoStage<T, D, R> extends UUIDContainer implements PartialBind.Remapper<T, D, R> {
         private static final Invocable<? super DependentTwoStage<?, ?, ?>> constructor = Invocable.ofConstructor(DependentTwoStage.class);
         private final BiFunction<T, D, R> resolver;
 

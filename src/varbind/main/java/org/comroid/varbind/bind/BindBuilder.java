@@ -92,7 +92,7 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     public BindBuilder<EXTR, DPND, EXTR, FINAL> asIdentities() {
         this.remapper = null;
         this.resolver = null;
-        this.remapperProvider = uncheckedCast(StagedBind.oneStageProvider());
+        this.remapperProvider = uncheckedCast((Object) StagedBind.oneStageProvider());
 
         return uncheckedCast(this);
     }
@@ -101,7 +101,7 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     public <R> BindBuilder<EXTR, DPND, R, FINAL> andRemap(Function<EXTR, R> remapper) {
         this.remapper = uncheckedCast(remapper);
         this.resolver = null;
-        this.remapperProvider = uncheckedCast(StagedBind.twoStageProvider());
+        this.remapperProvider = uncheckedCast((Object) StagedBind.twoStageProvider());
 
         return uncheckedCast(this);
     }
@@ -110,7 +110,7 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     public <R> BindBuilder<EXTR, DPND, R, FINAL> andResolve(BiFunction<DPND, EXTR, R> resolver) {
         this.remapper = null;
         this.resolver = uncheckedCast(resolver);
-        this.remapperProvider = uncheckedCast(StagedBind.dependentTwoStageProvider());
+        this.remapperProvider = uncheckedCast((Object) StagedBind.dependentTwoStageProvider());
 
         return uncheckedCast(this);
     }

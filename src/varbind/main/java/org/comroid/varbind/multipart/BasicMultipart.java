@@ -2,6 +2,7 @@ package org.comroid.varbind.multipart;
 
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
+import org.comroid.api.UUIDContainer;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.varbind.bind.GroupBind;
 
@@ -16,7 +17,7 @@ public final class BasicMultipart {
         return new FragmentProviders.Grouped<>();
     }
 
-    public static final class Base implements PartialBind.Base {
+    public static final class Base extends UUIDContainer implements PartialBind.Base {
         private static final Invocable<? super Base> constructor = Invocable.ofConstructor(Base.class);
         private final String fieldName;
         private final boolean required;
@@ -37,7 +38,7 @@ public final class BasicMultipart {
         }
     }
 
-    public static final class Grouped<D> implements PartialBind.Grouped<D> {
+    public static final class Grouped<D> extends UUIDContainer implements PartialBind.Grouped<D> {
         private static final Invocable<? super Grouped<?>> constructor = Invocable.ofConstructor(Grouped.class);
         private final GroupBind<?, D> group;
 

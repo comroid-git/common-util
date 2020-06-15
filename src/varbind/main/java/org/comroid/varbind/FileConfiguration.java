@@ -10,10 +10,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class FileConfiguration extends DataContainerBase<Object> implements FileProcessor {
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final FileHandle file;
+    private final Collection<AutoCloseable> children = new ArrayList<>();
 
     {
         try {
@@ -26,6 +29,16 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
     @Override
     public final FileHandle getFile() {
         return file;
+    }
+
+    @Override
+    public Collection<? extends AutoCloseable> getChildren() {
+        return children;
+    }
+
+    @Override
+    public void addChildren(AutoCloseable child) {
+        children.add(child);
     }
 
     public FileConfiguration(
@@ -57,7 +70,7 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
 
     @Override
     public final void reloadData() throws IOException {
-        final UniNode data = serializationAdapter.createUniNode(file.getLinesContent());
+        final UniNode data = serializationAdapter.createUniNode(file.getContent());
 
         updateFrom(data.asObjectNode());
     }

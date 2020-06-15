@@ -1,12 +1,12 @@
 package org.comroid.varbind;
 
 import com.google.common.flogger.FluentLogger;
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Disposable;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.func.Processor;
+import org.comroid.api.Disposable;
+import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.BasicCache;
 import org.comroid.uniform.cache.Cache;

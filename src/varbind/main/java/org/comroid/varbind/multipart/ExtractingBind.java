@@ -3,6 +3,7 @@ package org.comroid.varbind.multipart;
 import com.sun.tools.javac.util.List;
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
+import org.comroid.api.UUIDContainer;
 import org.comroid.mutatio.span.Span;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.uniform.ValueType;
@@ -26,7 +27,7 @@ public final class ExtractingBind {
         return new FragmentProviders.ToUniArray();
     }
 
-    public static final class ToValueType<E extends Serializable> implements PartialBind.Extractor<E> {
+    public static final class ToValueType<E extends Serializable> extends UUIDContainer implements PartialBind.Extractor<E> {
         private static final Invocable<? super ToValueType<?>> constructor = Invocable.ofConstructor(ToValueType.class);
 
         private final ValueType<E> valueType;
@@ -54,7 +55,7 @@ public final class ExtractingBind {
         }
     }
 
-    public static final class ToUniObject implements PartialBind.Extractor<UniObjectNode> {
+    public static final class ToUniObject extends UUIDContainer implements PartialBind.Extractor<UniObjectNode> {
         private static final Invocable<? super ToUniObject> constructor = Invocable.ofConstructor(ToUniObject.class);
 
         @Override
@@ -76,7 +77,7 @@ public final class ExtractingBind {
         }
     }
 
-    public static final class ToUniArray implements PartialBind.Extractor<UniArrayNode> {
+    public static final class ToUniArray extends UUIDContainer implements PartialBind.Extractor<UniArrayNode> {
         private static final Invocable<? super ToUniArray> constructor = Invocable.ofConstructor(ToUniArray.class);
 
         @Override
