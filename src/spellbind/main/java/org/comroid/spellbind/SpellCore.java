@@ -48,7 +48,14 @@ public class SpellCore<T extends TypeFragment<? super T>>
     }
 
     public static String methodString(Method method) {
-        return method.toGenericString();
+        return String.format(
+                "%s#%s(%s)",
+                method.getDeclaringClass().getCanonicalName(),
+                method.getName(),
+                Arrays.stream(method.getParameterTypes())
+                        .map(Class::getCanonicalName)
+                        .collect(Collectors.joining(","))
+        );
     }
 
     @Override
