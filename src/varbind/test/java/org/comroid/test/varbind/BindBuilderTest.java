@@ -15,8 +15,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
-
+import static org.comroid.test.varbind.FastJSONLib.fastJsonLib;
 
 public class BindBuilderTest {
     private GroupBind<Dummy, Dummy> group;

@@ -13,10 +13,11 @@ dependencies {
 
     implementation project(':spellbind')
 
-    testImplementation project(':uniform').sourceSets.java8compat.allJava.asFileTree
+    testImplementation 'com.alibaba:fastjson:1.2.70'
 }
 
 compileTestJava {
+    dependsOn project(':uniform').jar
     sourceCompatibility = 9
     targetCompatibility = 9
 }
