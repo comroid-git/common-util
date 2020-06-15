@@ -3,14 +3,10 @@ package org.comroid.mutatio.pump;
 import org.comroid.api.ExecutorBound;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.StageAdapter;
-import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
     static <T> Pump<T, T> create() {
