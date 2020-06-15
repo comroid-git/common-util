@@ -33,9 +33,7 @@ public class UniNodeTest {
                 .distinct()
                 .collect(Collectors.toList());
         randomMap = randomInts.stream()
-                .collect(Collectors.toMap(x -> {
-                    return String.valueOf(x * x);
-                }, x -> x));
+                .collect(Collectors.toMap(x -> String.valueOf(x * x), x -> x));
 
         object.putAll(randomMap);
         array.addAll(randomInts);
