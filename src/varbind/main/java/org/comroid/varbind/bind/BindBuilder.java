@@ -23,7 +23,7 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     private final GroupBind<?, DPND> groupBind;
     private final String fieldName;
 
-    private final TypeFragmentProvider<PartialBind.Base> baseProvider = BasicMultipart.baseProvider();
+    private final TypeFragmentProvider<PartialBind.Base<EXTR, DPND, REMAP, FINAL>> baseProvider = BasicMultipart.baseProvider();
     private final TypeFragmentProvider<PartialBind.Grouped<DPND>> groupedProvider = BasicMultipart.groupedProvider();
     private TypeFragmentProvider<PartialBind.Extractor<EXTR>> extractorProvider = null;
     private TypeFragmentProvider<PartialBind.Remapper<EXTR, DPND, REMAP>> remapperProvider = null;
@@ -108,7 +108,7 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     }
 
     @Contract(value = "_ -> this", mutates = "this")
-    public <R> BindBuilder<EXTR, DPND, R, FINAL> andResolve(BiFunction<DPND, EXTR, R> resolver) {
+    public <R> BindBuilder<EXTR, DPND, R, FINAL> andResolve(BiFunction<EXTR, DPND, R> resolver) {
         this.remapper = null;
         this.resolver = uncheckedCast(resolver);
         this.remapperProvider = uncheckedCast((Object) StagedBind.dependentTwoStageProvider());

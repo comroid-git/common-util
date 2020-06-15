@@ -55,7 +55,10 @@ public final class StagedBind {
 
         @Override
         public R remap(T from, D dependency) {
-            return resolver.apply(from, Objects.requireNonNull(dependency, "Dependency Object is null"));
+            if (dependency == null)
+                throw new NullPointerException("Dependency Object is null");
+
+            return resolver.apply(from, dependency);
         }
     }
 

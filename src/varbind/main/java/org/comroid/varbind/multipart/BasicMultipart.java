@@ -7,18 +7,16 @@ import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.varbind.bind.GroupBind;
 
 public final class BasicMultipart {
-    private static final TypeFragmentProvider<PartialBind.Base> BASE_PROVIDER = new FragmentProviders.Base();
-
-    public static TypeFragmentProvider<PartialBind.Base> baseProvider() {
-        return BASE_PROVIDER;
+    public static <EXTR, DPND, REMAP, FINAL> TypeFragmentProvider<PartialBind.Base<EXTR, DPND, REMAP, FINAL>> baseProvider() {
+        return new FragmentProviders.Base<>();
     }
 
     public static <D> TypeFragmentProvider<PartialBind.Grouped<D>> groupedProvider() {
         return new FragmentProviders.Grouped<>();
     }
 
-    public static final class Base extends UUIDContainer implements PartialBind.Base {
-        private static final Invocable<? super Base> constructor = Invocable.ofConstructor(Base.class);
+    public static final class Base<EXTR, DPND, REMAP, FINAL> extends UUIDContainer implements PartialBind.Base<EXTR, DPND, REMAP, FINAL> {
+        private static final Invocable<? super Base<?,?,?,?>> constructor = Invocable.ofConstructor(Base.class);
         private final String fieldName;
         private final boolean required;
 
@@ -53,14 +51,14 @@ public final class BasicMultipart {
     }
 
     private static final class FragmentProviders {
-        private static final class Base implements TypeFragmentProvider<PartialBind.Base> {
+        private static final class Base<EXTR, DPND, REMAP, FINAL> implements TypeFragmentProvider<PartialBind.Base<EXTR, DPND, REMAP, FINAL>> {
             @Override
-            public Class<PartialBind.Base> getInterface() {
-                return PartialBind.Base.class;
+            public Class<PartialBind.Base<EXTR, DPND, REMAP, FINAL>> getInterface() {
+                return Polyfill.uncheckedCast(PartialBind.Base.class);
             }
 
             @Override
-            public Invocable.TypeMap<? extends PartialBind.Base> getInstanceSupplier() {
+            public Invocable.TypeMap<? extends PartialBind.Base<EXTR, DPND, REMAP, FINAL>> getInstanceSupplier() {
                 return Polyfill.uncheckedCast(BasicMultipart.Base.constructor.typeMapped());
             }
         }

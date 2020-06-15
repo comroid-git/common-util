@@ -91,7 +91,7 @@ public class BindBuilderTest {
         final VarBind<String, Dummy, String, String> bind
                 = group.createBind("name")
                 .extractAs(ValueType.STRING)
-                .andResolve(Dummy::modify)
+                .andResolve((str, dummy) -> dummy.modify(str))
                 .onceEach()
                 .build();
 
