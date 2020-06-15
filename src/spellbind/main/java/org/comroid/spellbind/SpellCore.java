@@ -49,12 +49,12 @@ public class SpellCore<T extends TypeFragment<? super T>>
 
     public static String methodString(Method method) {
         return String.format(
-                "%s#%s(%s)",
-                method.getDeclaringClass().getCanonicalName(),
+                "%s(%s): %s",
                 method.getName(),
                 Arrays.stream(method.getParameterTypes())
                         .map(Class::getCanonicalName)
-                        .collect(Collectors.joining(","))
+                        .collect(Collectors.joining(",")),
+                method.getReturnType().getCanonicalName()
         );
     }
 
@@ -67,7 +67,6 @@ public class SpellCore<T extends TypeFragment<? super T>>
     public Object invoke(Object proxy, Method method, Object[] args) {
         return findMethod(method)
                 .map(invocable -> invocable.autoInvoke(args))
-                .map(Polyfill::uncheckedCast)
                 .orElseThrow(() -> new NoSuchMethodError("No implementation found for " + methodString(method)));
     }
 
