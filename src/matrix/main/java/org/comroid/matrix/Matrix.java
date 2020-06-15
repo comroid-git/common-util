@@ -24,7 +24,7 @@ public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeF
 
             @Override
             public Invocable<? extends Matrix<V, E>> getInstanceSupplier() {
-                return Invocable.ofProvider(Polyfill.uncheckedCast(PartialMatrix.class));
+                return Invocable.ofConstructor(Polyfill.uncheckedCast(PartialMatrix.class));
             }
         };
     }
