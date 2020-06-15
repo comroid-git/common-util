@@ -91,8 +91,8 @@ public class LoopManagerTest {
     @Test
     public void test() {
         loopManager.queue(lowPrioLoop1);
-        loopManager.queue(medPrioLoop1);
         loopManager.queue(higPrioLoop1);
+        loopManager.queue(medPrioLoop1);
         loopManager.queue(higPrioLoop2);
         loopManager.queue(medPrioLoop2);
         loopManager.queue(lowPrioLoop2);
