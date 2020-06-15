@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.comroid.api.Polyfill.uncheckedCast;
 
@@ -135,13 +136,17 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     public VarBind<EXTR, DPND, REMAP, FINAL> build() {
         final PartialBind.Base core = baseProvider.getInstanceSupplier().autoInvoke(fieldName, required);
         final SpellCore.Builder<VarBind<EXTR, DPND, REMAP, FINAL>> builder = SpellCore
-                .<VarBind<EXTR, DPND, REMAP, FINAL>>builder(uncheckedCast(VarBind.class),core)
+                .<VarBind<EXTR, DPND, REMAP, FINAL>>builder(uncheckedCast(VarBind.class), core)
                 .addFragment(groupedProvider)
                 .addFragment(Objects.requireNonNull(extractorProvider, "No extractor definition provided"))
                 .addFragment(Objects.requireNonNull(remapperProvider, "No remapper defintion provided"))
                 .addFragment(Objects.requireNonNull(finisherProvider, "No finisher definition provided"))
                 .setClassLoader(classLoader);
 
-        return builder.build();
+        return builder.build(Stream
+                .of(groupBind, fieldName, required, valueType, remapper, resolver, collectionProvider)
+                .filter(Objects::nonNull)
+                .toArray()
+        );
     }
 }
