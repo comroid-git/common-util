@@ -1,7 +1,7 @@
 package org.comroid.varbind.multipart;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Invocable;
+import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.varbind.bind.GroupBind;
 

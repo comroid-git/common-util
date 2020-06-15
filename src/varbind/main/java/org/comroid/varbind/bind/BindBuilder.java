@@ -1,7 +1,7 @@
 package org.comroid.varbind.bind;
 
-import org.comroid.common.func.Builder;
-import org.comroid.spellbind.Spellbind;
+import org.comroid.api.Builder;
+import org.comroid.spellbind.SpellCore;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
@@ -16,7 +16,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.comroid.common.Polyfill.uncheckedCast;
+import static org.comroid.api.Polyfill.uncheckedCast;
 
 public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarBind<EXTR, DPND, REMAP, FINAL>> {
     private final GroupBind<?, DPND> groupBind;
@@ -133,17 +133,14 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
 
     @Override
     public VarBind<EXTR, DPND, REMAP, FINAL> build() {
-        final Spellbind.Builder<VarBind<EXTR, DPND, REMAP, FINAL>> builder = Spellbind
-                .<VarBind<EXTR, DPND, REMAP, FINAL>>builder(uncheckedCast(VarBind.class))
-                .classloader(classLoader);
-
         final PartialBind.Base core = baseProvider.getInstanceSupplier().autoInvoke(fieldName, required);
-
-        builder.coreObject(core);
-        groupedProvider.accept(builder, groupBind);
-        Objects.requireNonNull(extractorProvider, "No extractor definition provided").accept(builder, valueType);
-        Objects.requireNonNull(remapperProvider, "No remapper defintion provided").accept(builder, remapper, resolver);
-        Objects.requireNonNull(finisherProvider, "No finisher definition provided").accept(builder, collectionProvider);
+        final SpellCore.Builder<VarBind<EXTR, DPND, REMAP, FINAL>> builder = SpellCore
+                .<VarBind<EXTR, DPND, REMAP, FINAL>>builder(uncheckedCast(VarBind.class),core)
+                .addFragment(groupedProvider)
+                .addFragment(Objects.requireNonNull(extractorProvider, "No extractor definition provided"))
+                .addFragment(Objects.requireNonNull(remapperProvider, "No remapper defintion provided"))
+                .addFragment(Objects.requireNonNull(finisherProvider, "No finisher definition provided"))
+                .setClassLoader(classLoader);
 
         return builder.build();
     }

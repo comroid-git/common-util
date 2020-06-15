@@ -1,8 +1,8 @@
 package org.comroid.varbind.bind;
 
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.iter.Span;
+import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
+import org.comroid.mutatio.span.Span;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.container.DataContainer;

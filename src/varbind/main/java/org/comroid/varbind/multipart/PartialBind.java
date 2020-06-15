@@ -1,7 +1,6 @@
 package org.comroid.varbind.multipart;
 
-import org.comroid.common.iter.Span;
-import org.comroid.common.ref.Specifiable;
+import org.comroid.mutatio.span.Span;
 import org.comroid.spellbind.annotation.Partial;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.uniform.node.UniNode;

@@ -1,9 +1,9 @@
 package org.comroid.varbind.multipart;
 
 import com.sun.tools.javac.util.List;
-import org.comroid.common.Polyfill;
-import org.comroid.common.func.Invocable;
-import org.comroid.common.iter.Span;
+import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
+import org.comroid.mutatio.span.Span;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
