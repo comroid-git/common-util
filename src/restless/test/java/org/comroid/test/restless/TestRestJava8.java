@@ -1,9 +1,9 @@
-package org.comroid.test.uniform;
+package org.comroid.test.restless;
 
 import org.comroid.restless.REST;
-import org.comroid.restless.adapter.okhttp.v3.OkHttp3Adapter;
+import org.comroid.restless.adapter.okhttp.v4.OkHttp3Adapter;
+import org.comroid.test.FastJSONLib;
 import org.comroid.test.model.NGinXFSNode;
-import org.comroid.uniform.adapter.json.fastjson.FastJSONLib;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,11 +15,11 @@ import static org.junit.Assert.*;
 
 public class TestRestJava8 {
     public final static URL testUrl = url("https://api.cdn.comroid.org/app/SymBLink/");
-    private REST rest;
+    private REST<Void> rest;
 
     @Before
     public void setup() {
-        rest = new REST<>(new OkHttp3Adapter(), FastJSONLib.fastJsonLib, executor, null, ratelimiter, pool);
+        rest = new REST<>(new OkHttp3Adapter(), FastJSONLib.fastJsonLib);
     }
 
     @Test

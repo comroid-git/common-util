@@ -1,6 +1,5 @@
 package org.comroid.test.model;
 
-import com.alibaba.fastjson.JSONObject;
 import org.comroid.uniform.node.UniObjectNode;
 
 public class DiscordAPI {
@@ -8,7 +7,7 @@ public class DiscordAPI {
         return new Channel(val);
     }
 
-    public User parseUser(JSONObject data) {
+    public User parseUser(UniObjectNode data) {
         return new User(this, data);
     }
 
