@@ -64,18 +64,6 @@ public class SpellbindTest {
     }
 
     public interface HyperInterface extends MainInterface, CharSequence, AnotherPartialAbstract {
-        TypeFragmentProvider<HyperInterface> Provider = new TypeFragmentProvider<HyperInterface>() {
-            @Override
-            public Class<HyperInterface> getInterface() {
-                return HyperInterface.class;
-            }
-
-            @Override
-            public Invocable<? extends HyperInterface> getInstanceSupplier() {
-                return Invocable.ofConstructor(SubImpl.class);
-            }
-        };
-
         @SuppressWarnings("NullableProblems")
         class SubImpl extends ImplementingClass implements HyperInterface {
             @Override
