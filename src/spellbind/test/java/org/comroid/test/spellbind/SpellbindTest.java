@@ -22,6 +22,7 @@ public class SpellbindTest {
         MainInterface proxy = SpellCore.builder(MainInterface.class, implementingClass)
                 .addFragment(MainInterface.PROVIDER)
                 .build();
+        Assert.assertSame(proxy, proxy.self());
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
                 .isPresent());
@@ -42,6 +43,7 @@ public class SpellbindTest {
         HyperInterface proxy = SpellCore.builder(HyperInterface.class, implementingClass)
                 .addFragment(HyperInterface.PROVIDER)
                 .build();
+        Assert.assertSame(proxy, proxy.self());
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
                 .isPresent());
