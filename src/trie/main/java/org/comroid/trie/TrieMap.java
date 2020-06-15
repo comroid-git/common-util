@@ -2,7 +2,6 @@ package org.comroid.trie;
 
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
-import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface TrieMap<K, V> extends Map<K, V> {
@@ -111,8 +109,6 @@ public interface TrieMap<K, V> extends Map<K, V> {
         public boolean containsKey(char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return false;
-            if (cIndex == chars.length - 1)
-                return storage.containsKey(chars[cIndex]);
 
             return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
                     .map(stage -> stage.containsKey(chars, cIndex + 1))
@@ -152,7 +148,11 @@ public interface TrieMap<K, V> extends Map<K, V> {
 
         @Override
         public boolean containsKey(Object key) {
-            return baseStage.containsKey(convertKey(key), 0);
+            final char[] convertKey = convertKey(key);
+            final Stage<V> stage = baseStage.requireStage(convertKey, 0);
+
+            return Arrays.equals(stage.keyConverted.toCharArray(), convertKey)
+                    && !stage.reference.isNull();
         }
 
         @Override
@@ -178,9 +178,9 @@ public interface TrieMap<K, V> extends Map<K, V> {
         @Nullable
         @Override
         public V put(K key, V value) {
-            if (!assertStageExists(key))
-                throw new AssertionError("Could not generate Stage for key: " + key);
-
+            if (!containsKey(key))
+                return baseStage.requireStage(convertKey(key), 0)
+                        .reference.set(value);
             return baseStage.putValue(convertKey(key), 0, value).orElse(null);
         }
 
@@ -214,35 +214,12 @@ public interface TrieMap<K, V> extends Map<K, V> {
         @NotNull
         @Override
         public Set<Entry<K, V>> entrySet() {
-            return cachedKeys.entrySet()
-                    .stream()
-                    .filter(entry -> containsKey(entry.getKey()))
-                    .map(entry -> {
-                        String converted = entry.getValue();
-                        return new AbstractMap.SimpleImmutableEntry<>(
-                                entry.getKey(),
-                                baseStage.getValue(converted.toCharArray(), 0)
-                                        .orElseThrow(() -> new AssertionError("Inexistent stage: " + converted))
-                        );
-                    }).collect(Collectors.toSet());
-        }
-
-        private boolean assertStageExists(Object atKey) {
-            if (containsKey(atKey))
-                return true;
-
-            //noinspection unchecked
-            final K key = (K) atKey;
-            final char[] converted = convertKey(atKey);
-            final char baseKey = converted[0];
-            final String convertedKey = new String(converted);
-
-            IntStream.range(0, converted.length + 1)
-                    .mapToObj(end -> Arrays.copyOfRange(converted, 0, end))
-                    .filter(chars -> !containsKey(new String(chars)))
-                    .forEachOrdered(chars -> baseStage.requireStage(chars, 0));
-
-            return containsKey(convertedKey);
+            return Collections.unmodifiableSet(baseStage.streamPresentStages()
+                    .map(stage -> new AbstractMap.SimpleImmutableEntry<>(
+                            getKeyConverter().backward(stage.keyConverted),
+                            stage.reference.get()
+                    ))
+                    .collect(Collectors.toSet()));
         }
 
         private char[] convertKey(Object key) {
