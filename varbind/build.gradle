@@ -17,7 +17,6 @@ dependencies {
 }
 
 compileTestJava {
-    dependsOn project(':uniform').jar
     sourceCompatibility = 9
     targetCompatibility = 9
 }

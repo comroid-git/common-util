@@ -23,17 +23,22 @@ public class SpellCore<T extends TypeFragment<? super T>>
         implements TypeFragment<T>, InvocationHandler {
     static final Map<UUID, SpellCore<?>> coreInstances = new TrieMap.Basic<>(Junction.of(UUID::toString, UUID::fromString), false);
     private final CompletableFuture<T> proxyFuture = new CompletableFuture<>();
+    private final Object base;
     private final Map<String, Invocable<?>> methods;
 
-    private SpellCore(Map<String, Invocable<?>> methods) {
+    private SpellCore(Object base, Map<String, Invocable<?>> methods) {
+        this.base = base;
         this.methods = Collections.unmodifiableMap(methods);
     }
 
     public static <T extends TypeFragment<? super T>> Builder<T> builder(Class<T> mainInterface) {
-        return builder(mainInterface, Polyfill.uncheckedCast(new Object()));
+        class Local extends UUIDContainer implements TypeFragment<T> {
+        }
+
+        return builder(mainInterface, new Local());
     }
 
-    public static <T extends TypeFragment<? super T>> SpellCore.Builder<T> builder(Class<T> mainInterface, Object base) {
+    public static <T extends TypeFragment<? super T>> SpellCore.Builder<T> builder(Class<T> mainInterface, TypeFragment<? super T> base) {
         return new Builder<>(mainInterface, base);
     }
 
@@ -66,7 +71,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
         return findMethod(method)
-                .map(invocable -> invocable.invokeRethrow(args))
+                .map(invocable -> invocable.invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args))
                 .orElseThrow(() -> new NoSuchMethodError("No implementation found for " + methodString(method)));
     }
 
@@ -75,12 +80,17 @@ public class SpellCore<T extends TypeFragment<? super T>>
     }
 
     public static final class Builder<T extends TypeFragment<? super T>> {
-        private final Object base;
+        private final TypeFragment<? super T> base;
         private final Collection<TypeFragmentProvider<? super T>> typeFragmentProviders = new ArrayList<>();
         private final Set<Class<? super T>> interfaces = new HashSet<>();
         private ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 
-        public Builder(Class<T> mainInterface, Object base) {
+        public Builder<T> setClassLoader(ClassLoader classLoader) {
+            this.classLoader = classLoader;
+            return this;
+        }
+
+        public Builder(Class<T> mainInterface, TypeFragment<? super T> base) {
             this.base = base;
             interfaces.add(mainInterface);
         }
@@ -98,14 +108,14 @@ public class SpellCore<T extends TypeFragment<? super T>>
             final Set<? extends TypeFragment<? super T>> fragments = typeFragmentProviders.stream()
                     .map(provider -> resolveTypeFragmentProvider(methods, provider, args))
                     .collect(Collectors.toSet());
-            final SpellCore<T> spellCore = new SpellCore<>(methods);
+            final SpellCore<T> spellCore = new SpellCore<>(base, methods);
             final T proxy = Polyfill.uncheckedCast(Proxy.newProxyInstance(
                     classLoader,
                     interfaces.toArray(new Class[0]),
                     spellCore
             ));
             spellCore.proxyFuture.complete(proxy);
-            SpellCore.coreInstances.put(spellCore.getUUID(), spellCore);
+            SpellCore.coreInstances.put(base.getUUID(), spellCore);
             fragments.forEach(it -> SpellCore.coreInstances
                     .put(it.getUUID(), spellCore));
 
@@ -146,11 +156,6 @@ public class SpellCore<T extends TypeFragment<? super T>>
             else return target == null
                     ? Invocable.ofMethodCall(base, method)
                     : Invocable.ofMethodCall(target, method);
-        }
-
-        public Builder<T> setClassLoader(ClassLoader classLoader) {
-            this.classLoader = classLoader;
-            return this;
         }
     }
 }

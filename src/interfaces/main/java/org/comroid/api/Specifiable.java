@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface Specifiable<B extends Specifiable<? super B>> extends SelfDeclared<B> {
-    default <R extends B, T extends Throwable> R as(Class<R> type, Supplier<String> message) throws T {
+    default <R extends B> R as(Class<R> type, Supplier<String> message) throws AssertionError {
         return as(type).orElseThrow(() -> new AssertionError(message.get()));
     }
 
