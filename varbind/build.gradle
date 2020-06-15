@@ -12,6 +12,13 @@ dependencies {
     api project(':mutatio')
 
     implementation project(':spellbind')
+
+    testImplementation project(':uniform').sourceSets.java8compat.allJava.asFileTree
+}
+
+compileTestJava {
+    sourceCompatibility = 9
+    targetCompatibility = 9
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"
