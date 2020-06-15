@@ -20,6 +20,7 @@ public class SpellbindTest {
         final ImplementingClass implementingClass = new ImplementingClass();
 
         MainInterface proxy = SpellCore.builder(MainInterface.class, implementingClass)
+                .addFragment(MainInterface.PROVIDER)
                 .build();
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
@@ -39,6 +40,7 @@ public class SpellbindTest {
         final ImplementingClass implementingClass = new ImplementingClass();
 
         HyperInterface proxy = SpellCore.builder(HyperInterface.class, implementingClass)
+                .addFragment(HyperInterface.PROVIDER)
                 .build();
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
@@ -64,6 +66,18 @@ public class SpellbindTest {
     }
 
     public interface HyperInterface extends MainInterface, CharSequence, AnotherPartialAbstract {
+        TypeFragmentProvider<HyperInterface> PROVIDER = new TypeFragmentProvider<HyperInterface>() {
+            @Override
+            public Class<HyperInterface> getInterface() {
+                return HyperInterface.class;
+            }
+
+            @Override
+            public Invocable<? extends HyperInterface> getInstanceSupplier() {
+                return Invocable.ofConstructor(SubImpl.class);
+            }
+        };
+
         @SuppressWarnings("NullableProblems")
         class SubImpl extends ImplementingClass implements HyperInterface {
             @Override
@@ -89,6 +103,17 @@ public class SpellbindTest {
     }
 
     public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {
+        TypeFragmentProvider<MainInterface> PROVIDER = new TypeFragmentProvider<MainInterface>() {
+            @Override
+            public Class<MainInterface> getInterface() {
+                return MainInterface.class;
+            }
+
+            @Override
+            public Invocable<? extends MainInterface> getInstanceSupplier() {
+                return Invocable.ofConstructor(ImplementingClass.class);
+            }
+        };
     }
 
     public static class ImplementingClass extends UUIDContainer implements MainInterface {
