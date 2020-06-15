@@ -2,7 +2,7 @@ package org.comroid.uniform;
 
 import java.util.function.Function;
 
-public final class ValueType<R> implements Function<String, R> {
+public final class ValueType<R> {
     public static final ValueType<Boolean> BOOLEAN = new ValueType<>(Boolean::parseBoolean);
     public static final ValueType<Character> CHARACTER = new ValueType<>(str -> str.toCharArray()[0]);
     public static final ValueType<Double> DOUBLE = new ValueType<>(Double::parseDouble);
@@ -27,7 +27,6 @@ public final class ValueType<R> implements Function<String, R> {
         return toType.apply(value.toString());
     }
 
-    @Override
     public R apply(String from) {
         return mapper.apply(from);
     }

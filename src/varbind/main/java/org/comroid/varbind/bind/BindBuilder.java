@@ -134,7 +134,7 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
 
     @Override
     public VarBind<EXTR, DPND, REMAP, FINAL> build() {
-        final PartialBind.Base core = baseProvider.getInstanceSupplier().autoInvoke(fieldName, required);
+        final PartialBind.Base<EXTR, DPND, REMAP, FINAL> core = baseProvider.getInstanceSupplier().autoInvoke(fieldName, required);
         final SpellCore.Builder<VarBind<EXTR, DPND, REMAP, FINAL>> builder = SpellCore
                 .<VarBind<EXTR, DPND, REMAP, FINAL>>builder(uncheckedCast(VarBind.class), core)
                 .addFragment(groupedProvider)
