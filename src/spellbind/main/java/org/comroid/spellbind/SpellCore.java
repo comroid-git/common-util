@@ -66,7 +66,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
         return findMethod(method)
-                .map(invocable -> invocable.autoInvoke(args))
+                .map(invocable -> invocable.invokeRethrow(args))
                 .orElseThrow(() -> new NoSuchMethodError("No implementation found for " + methodString(method)));
     }
 
@@ -129,8 +129,6 @@ public class SpellCore<T extends TypeFragment<? super T>>
         }
 
         private void scanMethods(Map<String, Invocable<?>> intoMap, Object fragment) {
-            System.out.println("fragment = " + fragment);
-
             Arrays.stream(fragment.getClass().getMethods())
                     .filter(method -> !method.getDeclaringClass().equals(Object.class))
                     .forEach(method -> {
