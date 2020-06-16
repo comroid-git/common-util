@@ -2,14 +2,7 @@ javadoc {
     dependsOn += subprojects.collect { it.classes }
     source = subprojects.collect { it.sourceSets.main.allJava }
     options {
-        destinationDir = file("$rootProject.buildDir/docs/$artifactName/")
+        destinationDir = file("$rootProject.projectDir/docs/$artifactName")
         encoding = 'UTF-8'
-    }
-}
-
-if (canPublishToGitHub) {
-    apply plugin: "de.jodamob.gradle.github"
-
-    githubCommit {
     }
 }

@@ -1,7 +1,3 @@
-plugins {
-    id "de.jodamob.gradle.github" version "1.0.RC1"
-}
-
 group 'org.comroid.util'
 
 tasks.findByName('wrapper').configure {
