@@ -1,6 +1,5 @@
 package org.comroid.varbind.multipart;
 
-import com.sun.tools.javac.util.List;
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
 import org.comroid.api.UUIDContainer;
@@ -12,6 +11,7 @@ import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public final class ExtractingBind {
@@ -69,10 +69,9 @@ public final class ExtractingBind {
                             return node.asNodeList()
                                     .stream()
                                     .map(UniNode::asObjectNode)
-                                    .collect(Collectors.toList());
-                        else return List.of(node.asObjectNode());
+                                    .collect(Span.collector());
+                        else return Span.immutable(node.asObjectNode());
                     })
-                    .map(Span::immutable)
                     .orElseThrow(() -> new AssertionError("Missing Base attribute"));
         }
     }
@@ -91,10 +90,9 @@ public final class ExtractingBind {
                             return node.asNodeList()
                                     .stream()
                                     .map(UniNode::asArrayNode)
-                                    .collect(Collectors.toList());
-                        else return List.of(node.asArrayNode());
+                                    .collect(Span.collector());
+                        else return Span.immutable(node.asArrayNode());
                     })
-                    .map(Span::immutable)
                     .orElseThrow(() -> new AssertionError("Missing Base attribute"));
         }
     }
