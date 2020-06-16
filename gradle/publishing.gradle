@@ -155,7 +155,7 @@ tasks.findByName('publishMavenJavaPublicationToGitHubPackagesRepository')?.onlyI
 
     def uri = new URI("https://$githubUsername:$githubPassword@maven.pkg.github.com/$userbase" +
             "/${rootProject.name.replace('.', '/')}/${rootProject.group.replace('.', '/')}" +
-            "/$artifactId/$project.version/$artifactId-$project.version.jar")
+            "/$artifactId/$project.version/$artifactId-${project.version}.jar")
     def response = client.send(HttpRequest.newBuilder(uri).GET()
             .header("Authorization", "$githubUsername:$githubPassword")
             .build(), BodyHandlers.ofString())
