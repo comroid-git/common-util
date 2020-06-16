@@ -75,7 +75,7 @@ dependencies {
     testRuntimeOnly project(':listnr')
     testRuntimeOnly project(':dreadpool')
     testRuntimeOnly 'com.squareup.okhttp3:okhttp:4.5.0'
-    testImplementation 'com.alibaba:fastjson:1.2.70'
+    testImplementation 'com.alibaba:fastjson:1.2.71'
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"
