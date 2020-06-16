@@ -3,10 +3,12 @@ package org.comroid.varbind;
 import com.google.common.flogger.FluentLogger;
 import org.comroid.api.Disposable;
 import org.comroid.api.Invocable;
+import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.mutatio.proc.Processor;
+import org.comroid.trie.TrieMap;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.cache.BasicCache;
 import org.comroid.uniform.cache.Cache;
@@ -24,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -47,13 +50,27 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
     }
 
     public FileCache(
+        SerializationAdapter<?, ?, ?> seriLib,
+        VarBind<?, ? super D, ?, K> idBind,
+        FileHandle file,
+        int largeThreshold,
+        D dependencyObject
+) {
+        this(seriLib, idBind, null, file, largeThreshold, false, dependencyObject);
+    }
+
+    public FileCache(
             SerializationAdapter<?, ?, ?> seriLib,
             VarBind<?, ? super D, ?, K> idBind,
+            Junction<K, String> converter,
             FileHandle file,
             int largeThreshold,
+            boolean keyCaching,
             D dependencyObject
     ) {
-        super(largeThreshold);
+        super(largeThreshold, converter == null
+                ? new ConcurrentHashMap<>()
+                : new TrieMap.Basic<>(converter, keyCaching));
 
         this.seriLib = seriLib;
         this.idBind = Polyfill.uncheckedCast(idBind);
