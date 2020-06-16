@@ -48,10 +48,10 @@ dependencies {
     java8compatCompileOnly project(':restless')
     java11compatCompileOnly project(':restless')
 
-    implementation project(':uniform')
+    api project(':uniform')
     java8compatImplementation project(':uniform')
     java11compatImplementation project(':uniform')
-    implementation project(':varbind')
+    api project(':varbind')
     java8compatImplementation project(':varbind')
     java11compatImplementation project(':varbind')
 

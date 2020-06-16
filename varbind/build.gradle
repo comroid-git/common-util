@@ -10,8 +10,7 @@ ext {
 dependencies {
     api project(':uniform')
     api project(':mutatio')
-
-    implementation project(':spellbind')
+    api project(':spellbind')
 
     testImplementation 'com.alibaba:fastjson:1.2.70'
 }
