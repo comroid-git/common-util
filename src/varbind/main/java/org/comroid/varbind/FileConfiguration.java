@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class FileConfiguration extends DataContainerBase<Object> implements FileProcessor {
-    private final Collection<AutoCloseable> children = new ArrayList<>();
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final FileHandle file;
+    private final Collection<AutoCloseable> children = new ArrayList<>();
 
     {
         try {
@@ -32,8 +32,15 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
     }
 
     @Override
-    public final Collection<AutoCloseable> getChildren() {
+    public Collection<? extends AutoCloseable> getChildren() {
         return children;
+    }
+
+    public FileConfiguration(
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            FileHandle file
+    ) {
+        this(serializationAdapter, null, file);
     }
 
     public FileConfiguration(
@@ -45,6 +52,11 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
 
         this.serializationAdapter = serializationAdapter;
         this.file = file;
+    }
+
+    @Override
+    public void addChildren(AutoCloseable child) {
+        children.add(child);
     }
 
     @Override
@@ -61,10 +73,5 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
         final UniNode data = serializationAdapter.createUniNode(file.getContent());
 
         updateFrom(data.asObjectNode());
-    }
-
-    @Override
-    public final void addChildren(AutoCloseable child) {
-        children.add(child);
     }
 }

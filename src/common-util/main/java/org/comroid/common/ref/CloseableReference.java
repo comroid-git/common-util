@@ -1,7 +1,7 @@
 package org.comroid.common.ref;
 
-import org.comroid.util.StackTraceUtils;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.util.StackTraceUtils;
 
 import java.io.Closeable;
 import java.util.ArrayList;

@@ -60,6 +60,10 @@ dependencies {
     java8compatCompileOnly 'com.alibaba:fastjson:1.2.70'
     java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
     java8compatCompileOnly 'org.json:json:20200518'
+
+    testImplementation sourceSets.java8compat.output.classesDirs
+    testImplementation sourceSets.java11compat.output.classesDirs
+    testImplementation 'com.alibaba:fastjson:1.2.70'
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

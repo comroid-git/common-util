@@ -1,7 +1,7 @@
 package org.comroid.test.common.ref;
 
-import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.ref.ReferenceIndex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -70,9 +70,12 @@ dependencies {
     java8compatImplementation 'com.google.flogger:flogger:0.5.1'
     java11compatImplementation 'com.google.flogger:flogger:0.5.1'
 
+    testImplementation sourceSets.java8compat.output.classesDirs
+    testImplementation sourceSets.java11compat.output.classesDirs
     testRuntimeOnly project(':listnr')
     testRuntimeOnly project(':dreadpool')
     testRuntimeOnly 'com.squareup.okhttp3:okhttp:4.5.0'
+    testImplementation 'com.alibaba:fastjson:1.2.70'
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

@@ -1,6 +1,8 @@
 package org.comroid.test.model;
 
-public interface FullAbstract {
+import org.comroid.spellbind.model.TypeFragment;
+
+public interface FullAbstract extends TypeFragment<NonAbstract> {
     boolean invert(boolean val);
 
     String name();

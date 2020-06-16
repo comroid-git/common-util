@@ -1,10 +1,9 @@
 package org.comroid.matrix;
 
 import org.comroid.api.Polyfill;
-import org.comroid.trie.TrieMap;
 import org.comroid.matrix.impl.MatrixCapability;
-import org.comroid.matrix.impl.PartialMatrix;
-import org.comroid.spellbind.Spellbind;
+import org.comroid.spellbind.SpellCore;
+import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -57,11 +56,13 @@ public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>> {
     }
 
     final class Builder<X, Y, V> implements org.comroid.api.Builder<Matrix2<X, Y, V>> {
-        private final Spellbind.Builder<Matrix2<X, Y, V>> binder = Spellbind
-                .builder(Polyfill.uncheckedCast(Matrix2.class));
         private final Map<String, Entry<X, Y, V>> initValues;
+        private final SpellCore.Builder<Matrix2<X, Y, V>> binder = SpellCore.builder(
+                Polyfill.uncheckedCast(Matrix2.class),
+                new MatrixCapability.BiDimensional<>()
+        );
 
-        public Spellbind.Builder<Matrix2<X, Y, V>> getBinder() {
+        public SpellCore.Builder<Matrix2<X, Y, V>> getBinder() {
             return binder;
         }
 
@@ -71,17 +72,12 @@ public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>> {
 
         protected Builder(@Nullable Map<String, Entry<X, Y, V>> initValues) {
             this.initValues = initValues;
-
-            final PartialMatrix<V, Entry<X, Y, V>> matrix = new PartialMatrix<>(initValues);
-
-            binder.coreObject(new MatrixCapability.BiDimensional<>());
-            binder.subImplement(matrix, Matrix.class);
-            binder.subImplement(matrix, Iterable.class);
+            binder.addFragment(Matrix.fragmentProvider());
         }
 
         @Override
         public Matrix2<X, Y, V> build() {
-            return binder.build();
+            return binder.build(initValues);
         }
     }
 }

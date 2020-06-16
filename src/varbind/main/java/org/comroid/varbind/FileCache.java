@@ -1,9 +1,9 @@
 package org.comroid.varbind;
 
 import com.google.common.flogger.FluentLogger;
-import org.comroid.api.Polyfill;
 import org.comroid.api.Disposable;
 import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
 import org.comroid.mutatio.proc.Processor;
@@ -106,8 +106,7 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
 
     @Override
     public synchronized void storeData() throws IOException {
-        logger.at(Level.INFO).log("Storing data in file %s", file);
-        final UniArrayNode array = seriLib.createUniArrayNode();
+        final UniArrayNode array = seriLib.createUniArrayNode(null);
 
         stream().filter(ref -> !ref.isNull())
                 .forEach(ref -> {
@@ -128,11 +127,6 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
 
     @Override
     public synchronized void reloadData() throws IOException {
-        logger.at(Level.INFO).log("Reading File %s...", file);
-
-        if (!file.validateExists())
-            throw new UnsupportedOperationException("Cannot create file: " + file);
-
         final BufferedReader reader = new BufferedReader(new FileReader(file));
         final String str = reader.lines().collect(Collectors.joining());
 
@@ -153,13 +147,6 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
                 .forEach(node -> {
                     final K id = idBind.getFrom(node);
 
-                    if (id == null) {
-                        logger.at(Level.WARNING).log("Skipped generation; no ID could be found for name %s. Data: %s",
-                                idBind.getFieldName(),
-                                node);
-                        return;
-                    }
-
                     if (containsKey(id)) {
                         getReference(id, false).requireNonNull().updateFrom(node);
                     } else {
@@ -178,8 +165,7 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
 
     private Optional<? extends V> tryConstruct(UniObjectNode node) {
         //noinspection unchecked
-        return (Optional<? extends V>) idBind.getGroup()
-                .findGroupForData(node)
+        return (Optional<? extends V>) idBind.getGroup().findGroupForData(node)
                 .flatMap(GroupBind::getConstructor)
                 .map(constr -> constr.autoInvoke(dependencyObject, node));
     }

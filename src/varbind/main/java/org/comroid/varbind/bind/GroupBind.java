@@ -1,12 +1,9 @@
 package org.comroid.varbind.bind;
 
-import org.comroid.api.Polyfill;
 import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
 import org.comroid.mutatio.span.Span;
 import org.comroid.uniform.SerializationAdapter;
-import org.comroid.uniform.ValueType;
-import org.comroid.uniform.node.UniArrayNode;
-import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.container.DataContainer;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -15,19 +12,17 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class GroupBind<T extends DataContainer<? extends D>, D> {
     private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
             .asObjectNode();
+    final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final String groupName;
     private final Span<GroupBind<? super T, D>> parents;
     private final List<GroupBind<? extends T, D>> subgroups = new ArrayList<>();
-    private final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
     private final @Nullable Invocable<? super T> constructor;
 
     public List<? extends VarBind<?, D, ?, ?>> getDirectChildren() {
@@ -47,7 +42,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public Collection<GroupBind<? extends T, D>> getSubgroups() {
-        return Collections.unmodifiableList(subgroups);
+        return subgroups;
     }
 
     public GroupBind(
@@ -69,13 +64,13 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     private GroupBind(
-            GroupBind<? super T, D> parent,
+            GroupBind<? super T, D> parents,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             String groupName,
             @Nullable Invocable<? super T> invocable
     ) {
         this(
-                Span.singleton(Objects.requireNonNull(parent, "parents")),
+                Span.singleton(Objects.requireNonNull(parents, "parents")),
                 serializationAdapter,
                 groupName,
                 invocable
@@ -130,25 +125,27 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public Optional<GroupBind<? extends T, D>> findGroupForData(UniObjectNode data) {
-        if (subgroups.isEmpty() && isValidData(data))
-            return Optional.of(this);
-        else return subgroups.stream()
-                .map(group -> group.findGroupForData(data))
-                .filter(Optional::isPresent)
-                .findAny()
-                .flatMap(Function.identity());
+        if (isValidData(data)) {
+            if (subgroups.isEmpty())
+                return Optional.of(this);
+
+            //noinspection rawtypes
+            GroupBind[] fitting = subgroups.stream()
+                    .filter(group -> group.isValidData(data))
+                    .toArray(GroupBind[]::new);
+            if (fitting.length == 1)
+                //noinspection unchecked
+                return (Optional<GroupBind<? extends T, D>>) fitting[0].findGroupForData(data);
+
+            throw new UnsupportedOperationException("Too many fitting subgroups found: " + Arrays.toString(fitting));
+        } else return Optional.empty();
     }
 
     public boolean isValidData(UniObjectNode data) {
-        final long childrenCount = streamAllChildren().count();
-
-        if (childrenCount == 0)
+        if (!parents.isEmpty())
             return false;
 
-        // todo: REWORK THIS, holy fuck
-        return streamAllChildren()
-                .filter(bind -> data.has(bind.getFieldName()))
-                .count() > (childrenCount / 2);
+        return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()) || !bind.isRequired());
     }
 
     public Stream<? extends VarBind<?, D, ?, ?>> streamAllChildren() {
@@ -182,143 +179,8 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return groupBind;
     }
 
-    public final <A> VarBind.OneStage<A> bind1stage(String fieldname, ValueType<A> type) {
-        return bind1stage(fieldname, extractor(type));
-    }
-
-    public final <A> VarBind.OneStage<A> bind1stage(
-            String fieldName, BiFunction<UniObjectNode, String, A> extractor
-    ) {
-        return new VarBind.OneStage<>(this, fieldName, extractor);
-    }
-
-    private <A> BiFunction<UniObjectNode, String, A> extractor(final ValueType<A> type) {
-        return (root, fieldName) -> root.get(fieldName).as(type);
-    }
-
-    public final <R> VarBind.TwoStage<UniObjectNode, R> bind2stage(
-            String fieldName, Function<UniObjectNode, R> remapper
-    ) {
-        return bind2stage(fieldName, objectNodeExtractor, remapper);
-    }
-
-    public final <A, R> VarBind.TwoStage<A, R> bind2stage(
-            String fieldName, BiFunction<UniObjectNode, String, A> extractor, Function<A, R> remapper
-    ) {
-        return new VarBind.TwoStage<>(this, fieldName, extractor, remapper);
-    }
-
-    public final <A, R> VarBind.TwoStage<A, R> bind2stage(
-            String fieldName, ValueType<A> type, Function<A, R> remapper
-    ) {
-        return bind2stage(fieldName, extractor(type), remapper);
-    }
-
-    public final <R extends DataContainer<D>> VarBind.DependentTwoStage<UniObjectNode, D, R> bindDependent(
-            String fieldName,
-            GroupBind<R, D> group
-    ) {
-        return bindDependent(fieldName, group.getConstructor()
-                .map(it -> Polyfill.<BiFunction<D, UniObjectNode, R>>uncheckedCast(it.<D, UniObjectNode>biFunction()))
-                .orElseThrow(() -> new NoSuchElementException("No Constructor available for GroupBind " + group)));
-    }
-
-    public final <R> VarBind.DependentTwoStage<UniObjectNode, D, R> bindDependent(
-            String fieldName, BiFunction<D, UniObjectNode, R> resolver
-    ) {
-        return bindDependent(fieldName, objectNodeExtractor, resolver);
-    }
-
-    public final <A, R> VarBind.DependentTwoStage<A, D, R> bindDependent(
-            String fieldName, BiFunction<UniObjectNode, String, A> extractor, BiFunction<D, A, R> resolver
-    ) {
-        return new VarBind.DependentTwoStage<>(this, fieldName, extractor, resolver);
-    }
-
-    public final <A, R> VarBind.DependentTwoStage<A, D, R> bindDependent(
-            String fieldName, ValueType<A> type, BiFunction<D, A, R> resolver
-    ) {
-        return bindDependent(fieldName, extractor(type), resolver);
-    }
-
-    public final <A, C extends Collection<A>> ArrayBind.OneStage<A, C> list1stage(
-            String fieldName, ValueType<A> type, Supplier<C> collectionSupplier
-    ) {
-        return list1stage(fieldName, eachExtractor(type), collectionSupplier);
-    }
-
-    public final <A, C extends Collection<A>> ArrayBind.OneStage<A, C> list1stage(
-            String fieldName, Function<? extends UniNode, A> extractor, Supplier<C> collectionSupplier
-    ) {
-        return new ArrayBind.OneStage<>(this, fieldName, extractor, collectionSupplier);
-    }
-
-    private <A> Function<UniNode, A> eachExtractor(final ValueType<A> type) {
-        return root -> root.as(type);
-    }
-
-    public final <A, R, C extends Collection<R>> ArrayBind.TwoStage<A, R, C> list2stage(
-            String fieldName, ValueType<A> type, Function<A, R> remapper, Supplier<C> collectionSupplier
-    ) {
-        return list2stage(fieldName, eachExtractor(type), remapper, collectionSupplier);
-    }
-
-    public final <A, R, C extends Collection<R>> ArrayBind.TwoStage<A, R, C> list2stage(
-            String fieldName, Function<? extends UniNode, A> extractor, Function<A, R> remapper, Supplier<C> collectionSupplier
-    ) {
-        return new ArrayBind.TwoStage<>(this, fieldName, extractor, remapper, collectionSupplier);
-    }
-
-    public final <R, C extends Collection<R>> ArrayBind.TwoStage<UniObjectNode, R, C> list2stage(
-            String fieldName, Function<UniObjectNode, R> remapper, Supplier<C> collectionSupplier
-    ) {
-        return list2stage(fieldName, UniNode::asObjectNode, remapper, collectionSupplier);
-    }
-
-    public final <R extends DataContainer<D>, C extends Collection<R>> ArrayBind.DependentTwoStage<UniObjectNode, D, R, C> listDependent(
-            String fieldName, GroupBind<R, D> group, Supplier<C> collectionSupplier
-    ) {
-        return listDependent(fieldName, group.getConstructor()
-                        .map(it -> Polyfill.<BiFunction<D, UniObjectNode, R>>uncheckedCast(it.<D, UniObjectNode>biFunction()))
-                        .orElseThrow(() -> new NoSuchElementException("No Constructor available for GroupBind " + group)),
-                collectionSupplier);
-    }
-
-    public final <R, C extends Collection<R>> ArrayBind.DependentTwoStage<UniObjectNode, D, R, C> listDependent(
-            String fieldName, BiFunction<D, UniObjectNode, R> resolver, Supplier<C> collectionSupplier
-    ) {
-        return listDependent(fieldName, UniNode::asObjectNode, resolver, collectionSupplier);
-    }
-
-    public final <A, R, C extends Collection<R>> ArrayBind.DependentTwoStage<A, D, R, C> listDependent(
-            String fieldName,
-            Function<? extends UniNode, A> extractor,
-            BiFunction<D, A, R> resolver,
-            Supplier<C> collectionSupplier
-    ) {
-        return new ArrayBind.DependentTwoStage<>(this, fieldName, extractor, resolver, collectionSupplier);
-    }
-
-    public final <A, R, C extends Collection<R>> ArrayBind.DependentTwoStage<A, D, R, C> listDependent(
-            String fieldName, ValueType<A> type, BiFunction<D, A, R> resolver, Supplier<C> collectionSupplier
-    ) {
-        return listDependent(fieldName, eachExtractor(type), resolver, collectionSupplier);
-    }
-
-    private <A> BiFunction<UniObjectNode, String, A> extractor(final Class<A> extractTarget) {
-        return (node, fieldName) -> extractTarget.cast(node.get(fieldName)
-                .asRaw(null));
-    }
-
-    private <A> BiFunction<UniArrayNode, String, Collection<A>> splitExtractor(
-            BiFunction<UniObjectNode, String, A> dataExtractor
-    ) {
-        return (arrayNode, fieldName) -> arrayNode.asNodeList()
-                .stream()
-                .map(UniNode::asObjectNode)
-                .filter(node -> !node.isNull())
-                .map(node -> dataExtractor.apply(node, fieldName))
-                .collect(Collectors.toList());
+    public BindBuilder<?, D, ?, ?> createBind(String fieldName) {
+        return new BindBuilder<>(this, fieldName);
     }
 
     @Internal

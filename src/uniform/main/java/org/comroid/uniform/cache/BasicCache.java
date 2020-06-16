@@ -1,8 +1,8 @@
 package org.comroid.uniform.cache;
 
 import org.comroid.api.Provider;
-import org.comroid.mutatio.span.Span;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,8 +86,8 @@ public class BasicCache<K, V> implements Cache<K, V> {
     @Override
     public final Stream<Reference<K, V>> stream(Predicate<K> filter) {
         return (large()
-                        ? cache.entrySet().parallelStream()
-                        : cache.entrySet().stream()
+                ? cache.entrySet().parallelStream()
+                : cache.entrySet().stream()
         ).filter(entry -> filter.test(entry.getKey()))
                 .map(Map.Entry::getValue);
     }

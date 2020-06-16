@@ -1,84 +1,166 @@
 package org.comroid.spellbind;
 
 import org.comroid.api.Invocable;
+import org.comroid.api.Junction;
+import org.comroid.api.Polyfill;
+import org.comroid.api.UUIDContainer;
+import org.comroid.spellbind.model.TypeFragment;
+import org.comroid.spellbind.model.TypeFragmentProvider;
+import org.comroid.trie.TrieMap;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class SpellCore implements InvocationHandler {
-    private final Object coreObject;
-    private final Map<String, Invocable<Object>> methodBinds;
+public class SpellCore<T extends TypeFragment<? super T>>
+        extends UUIDContainer
+        implements TypeFragment<T>, InvocationHandler {
+    static final Map<UUID, SpellCore<?>> coreInstances = new TrieMap.Basic<>(Junction.of(UUID::toString, UUID::fromString), false);
+    private final CompletableFuture<T> proxyFuture = new CompletableFuture<>();
+    private final Object base;
+    private final Map<String, Invocable<?>> methods;
 
-    SpellCore(Object coreObject, Map<String, Invocable<Object>> methodBinds) {
-        this.coreObject = coreObject;
-        this.methodBinds = methodBinds;
+    private SpellCore(Object base, Map<String, Invocable<?>> methods) {
+        this.base = base;
+        this.methods = Collections.unmodifiableMap(methods);
     }
 
-    public static String methodString(@Nullable Method method) {
-        if (method == null) {
-            return "null";
+    public static <T extends TypeFragment<? super T>> Builder<T> builder(Class<T> mainInterface) {
+        class Local extends UUIDContainer implements TypeFragment<T> {
         }
 
-        return String.format("%s#%s(%s)%s: %s",
-                method.getDeclaringClass()
-                        .getName(),
+        return builder(mainInterface, new Local());
+    }
+
+    public static <T extends TypeFragment<? super T>> SpellCore.Builder<T> builder(Class<T> mainInterface, TypeFragment<? super T> base) {
+        return new Builder<>(mainInterface, base);
+    }
+
+    @Internal
+    public static <T extends TypeFragment<? super T>> Optional<SpellCore<T>> getCore(TypeFragment<?> ofFragment) {
+        final UUID uuid = ofFragment.getUUID();
+
+        if (!coreInstances.containsKey(uuid))
+            return Optional.empty();
+        return Optional.of(coreInstances.get(uuid))
+                .map(Polyfill::uncheckedCast);
+    }
+
+    public static String methodString(Method method) {
+        return String.format(
+                "%s(%s): %s",
                 method.getName(),
-                paramString(method),
-                throwsString(method),
-                method.getReturnType()
-                        .getSimpleName()
+                Arrays.stream(method.getParameterTypes())
+                        .map(Class::getCanonicalName)
+                        .collect(Collectors.joining(",")),
+                method.getReturnType().getCanonicalName()
         );
-    }
-
-    private static String paramString(Method method) {
-        return Stream.of(method.getParameterTypes())
-                .map(Class::getName)
-                .collect(Collectors.joining(", "));
-    }
-
-    private static String throwsString(Method method) {
-        final Class<?>[] exceptionTypes = method.getExceptionTypes();
-
-        return exceptionTypes.length == 0
-                ? ""
-                : Stream.of(exceptionTypes)
-                .map(Class::getSimpleName)
-                .collect(Collectors.joining(", ", " throws ", ""));
-    }
-
-    private static Optional<SpellCore> getInstance(Object ofProxy) {
-        final InvocationHandler invocationHandler = Proxy.getInvocationHandler(ofProxy);
-
-        return invocationHandler instanceof SpellCore ? Optional.of((SpellCore) invocationHandler) : Optional.empty();
     }
 
     @Override
-    public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        final String methodString = methodString(method);
-        final Invocable<Object> invoc = methodBinds.get(methodString);
-
-        if (invoc == null)
-            throw$unimplemented(methodString, new NoSuchElementException("Bound Invocable"));
-
-        try {
-            return invoc.invoke(args);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+    public T self() {
+        return proxyFuture.join();
     }
 
-    private void throw$unimplemented(Object methodString, @Nullable Throwable e) throws UnsupportedOperationException {
-        throw e == null ? new UnsupportedOperationException(String.format("Method %s has no implementation in this proxy",
-                methodString
-        )) : new UnsupportedOperationException(String.format("Method %s has no " + "implementation in this proxy", methodString),
-                e
-        );
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) {
+        if (!Modifier.isAbstract(method.getModifiers())
+                && method.getDeclaringClass().isAssignableFrom(base.getClass()))
+            return Invocable.ofMethodCall(base, method)
+                    .invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args);
+
+        return findMethod(method)
+                .map(invocable -> invocable.invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args))
+                .orElseThrow(() -> new NoSuchMethodError("No implementation found for " + methodString(method)));
+    }
+
+    private Optional<Invocable<?>> findMethod(Method method) {
+        return Optional.ofNullable(methods.getOrDefault(methodString(method), null));
+    }
+
+    public static final class Builder<T extends TypeFragment<? super T>> {
+        private final TypeFragment<? super T> base;
+        private final Collection<TypeFragmentProvider<? super T>> typeFragmentProviders = new ArrayList<>();
+        private final Set<Class<? super T>> interfaces = new HashSet<>();
+        private ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+
+        public Builder<T> setClassLoader(ClassLoader classLoader) {
+            this.classLoader = classLoader;
+            return this;
+        }
+
+        public Builder(Class<T> mainInterface, TypeFragment<? super T> base) {
+            this.base = base;
+            interfaces.add(mainInterface);
+        }
+
+        public Builder<T> addFragment(TypeFragmentProvider<? super T> provider) {
+            typeFragmentProviders.add(provider);
+            return this;
+        }
+
+        public T build(Object... args) {
+            final TrieMap<String, Invocable<?>> methods = TrieMap.ofString();
+
+            scanMethods(methods, base);
+
+            final Set<? extends TypeFragment<? super T>> fragments = typeFragmentProviders.stream()
+                    .map(provider -> resolveTypeFragmentProvider(methods, provider, args))
+                    .collect(Collectors.toSet());
+            final SpellCore<T> spellCore = new SpellCore<>(base, methods);
+            final T proxy = Polyfill.uncheckedCast(Proxy.newProxyInstance(
+                    classLoader,
+                    interfaces.toArray(new Class[0]),
+                    spellCore
+            ));
+            spellCore.proxyFuture.complete(proxy);
+            SpellCore.coreInstances.put(base.getUUID(), spellCore);
+            fragments.forEach(it -> SpellCore.coreInstances
+                    .put(it.getUUID(), spellCore));
+
+            return proxy;
+        }
+
+        private TypeFragment<? super T> resolveTypeFragmentProvider(
+                Map<String, Invocable<?>> intoMap,
+                TypeFragmentProvider<? super T> provider,
+                Object[] args
+        ) {
+            final TypeFragment<? super T> fragment = provider.getInstanceSupplier().autoInvoke(args);
+            final Class<? super T> target = provider.getInterface();
+
+            if (!target.isInterface())
+                throw new IllegalArgumentException("Can only implement interfaces as TypeFragments");
+            interfaces.add(target);
+
+            scanMethods(intoMap, fragment);
+
+            return fragment;
+        }
+
+        private void scanMethods(Map<String, Invocable<?>> intoMap, Object fragment) {
+            Arrays.stream(fragment.getClass().getMethods())
+                    .filter(method -> !method.getDeclaringClass().equals(Object.class))
+                    .forEach(method -> {
+                        final Invocable<?> invocable = buildInvocable(method, fragment);
+                        final String methodString = methodString(method);
+
+                        intoMap.put(methodString, invocable);
+                    });
+        }
+
+        private Invocable<?> buildInvocable(Method method, @Nullable Object target) {
+            if (Modifier.isStatic(method.getModifiers()))
+                return Invocable.ofMethodCall(method);
+            else return target == null
+                    ? Invocable.ofMethodCall(base, method)
+                    : Invocable.ofMethodCall(target, method);
+        }
     }
 }

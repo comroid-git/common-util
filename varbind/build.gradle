@@ -10,6 +10,15 @@ ext {
 dependencies {
     api project(':uniform')
     api project(':mutatio')
+
+    implementation project(':spellbind')
+
+    testImplementation 'com.alibaba:fastjson:1.2.70'
+}
+
+compileTestJava {
+    sourceCompatibility = 9
+    targetCompatibility = 9
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

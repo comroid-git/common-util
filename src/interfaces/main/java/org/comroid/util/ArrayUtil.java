@@ -1,7 +1,5 @@
 package org.comroid.util;
 
-import org.comroid.api.Polyfill;
-
 import java.util.Arrays;
 
 public final class ArrayUtil {

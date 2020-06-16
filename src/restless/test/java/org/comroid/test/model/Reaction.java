@@ -6,16 +6,17 @@ import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.container.DataContainerBase;
 
-import static org.comroid.uniform.adapter.json.fastjson.FastJSONLib.fastJsonLib;
+import static org.comroid.test.FastJSONLib.fastJsonLib;
+
 
 @Location(Reaction.Binds.class)
 public class Reaction extends DataContainerBase<DiscordAPI> {
     public Reaction(DiscordAPI dependencyObject, UniObjectNode data) {
-        super(, fastJsonLib, data, dependencyObject);
+        super(data, dependencyObject);
     }
 
     public interface Binds {
         @RootBind
-        GroupBind GROUP = new GroupBind(fastJsonLib, "reaction", invocable);
+        GroupBind<Reaction, DiscordAPI> GROUP = new GroupBind<>(fastJsonLib, "reaction", Reaction.class);
     }
 }

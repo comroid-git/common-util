@@ -5,8 +5,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Function;
 
 public interface ThrowingRunnable<T extends Throwable> {
-    void run() throws T;
-
     static <R, T extends Throwable> Runnable handling(
             ThrowingRunnable<T> throwingRunnable, @Nullable Function<T, ? extends RuntimeException> remapper
     ) {
@@ -23,4 +21,6 @@ public interface ThrowingRunnable<T extends Throwable> {
             }
         };
     }
+
+    void run() throws T;
 }

@@ -1,8 +1,8 @@
 package org.comroid.mutatio.pipe;
 
 import org.comroid.api.ExecutorBound;
-import org.comroid.util.FunctionUtil;
 import org.comroid.mutatio.pump.Pump;
+import org.comroid.util.FunctionUtil;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;

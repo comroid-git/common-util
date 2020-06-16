@@ -1,10 +1,10 @@
 package org.comroid.varbind.container;
 
-import org.comroid.api.Polyfill;
-import org.comroid.mutatio.span.Span;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.span.Span;
+import org.comroid.trie.TrieMap;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -12,17 +12,14 @@ import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.util.ReflectionHelper;
 import org.comroid.varbind.annotation.Location;
 import org.comroid.varbind.annotation.RootBind;
-import org.comroid.varbind.bind.ArrayBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
-import org.comroid.varbind.model.Reprocessed;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.ElementType;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
@@ -32,9 +29,9 @@ import static org.comroid.api.Polyfill.uncheckedCast;
 @SuppressWarnings("unchecked")
 public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private final GroupBind<? extends DataContainer<DEP>, DEP> rootBind;
-    private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = new ConcurrentHashMap<>();
-    private final Map<String, Reference.Settable<Span<Object>>> vars = new ConcurrentHashMap<>();
-    private final Map<String, OutdateableReference<Object>> computed = new ConcurrentHashMap<>();
+    private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = TrieMap.ofString();
+    private final Map<String, Reference.Settable<Span<Object>>> vars = TrieMap.ofString();
+    private final Map<String, OutdateableReference<Object>> computed = TrieMap.ofString();
     private final DEP dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
     private final Class<? extends DataContainer<DEP>> myType;
@@ -98,16 +95,16 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                         Location.class.getName()
                 )));
 
-        return ReflectionHelper
+        final Iterator<GroupBind<T, D>> groups = ReflectionHelper
                 .<GroupBind<T, D>>collectStaticFields(
-                        Polyfill.uncheckedCast(GroupBind.class),
+                        uncheckedCast(GroupBind.class),
                         location.value(),
                         true,
                         RootBind.class
-                ).stream()
-                .findAny()
-                .orElseThrow(() -> new NoSuchElementException(String
-                        .format("No @RootBind annotated field found in %s", location.value())));
+                ).iterator();
+        if (!groups.hasNext())
+            throw new NoSuchElementException(String.format("No @RootBind annotated field found in %s", location.value()));
+        return groups.next();
     }
 
     private Set<VarBind<Object, ? super DEP, ?, Object>> updateVars(
@@ -123,7 +120,6 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
 
         getRootBind().streamAllChildren()
-                .filter(bind -> !(bind instanceof Reprocessed))
                 .map(it -> (VarBind<Object, ? super DEP, ?, Object>) it)
                 .filter(bind -> data.has(bind.getFieldName()))
                 .map(it -> (VarBind<Object, Object, Object, Object>) it)
@@ -168,7 +164,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                 .getParents().isSingle()) {
             parentGroup = parentGroup.map(group -> group.getParents()
                     .wrap()
-                    .orElse(Polyfill.uncheckedCast(group)));
+                    .orElse(uncheckedCast(group)));
         }
 
         // find the subgroup named the first split part,
@@ -229,7 +225,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         final T apply = parser.apply(value);
         final R prev = getComputedReference(bind).get();
 
-        if (bind instanceof ArrayBind) {
+        if (bind.isListing()) {
             getExtractionReference(bind).compute(span -> {
                 span.add(apply);
                 return span;
@@ -248,14 +244,14 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
     @Override
     public <E> Reference.Settable<Span<E>> getExtractionReference(String fieldName) {
-        return Polyfill.uncheckedCast(vars.computeIfAbsent(fieldName,
+        return uncheckedCast(vars.computeIfAbsent(fieldName,
                 key -> Reference.Settable.create(new Span<>())));
     }
 
     @Override
     public <T, E> OutdateableReference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
-        return Polyfill.uncheckedCast(computed.computeIfAbsent(cacheBind(bind),
-                key -> Polyfill.uncheckedCast(new ComputedReference<>(bind))));
+        return uncheckedCast(computed.computeIfAbsent(cacheBind(bind),
+                key -> uncheckedCast(new ComputedReference<>(bind))));
     }
 
     @Override

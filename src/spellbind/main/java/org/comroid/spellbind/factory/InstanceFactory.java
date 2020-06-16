@@ -4,7 +4,8 @@ import org.comroid.api.Invocable;
 import org.comroid.common.info.Dependent;
 import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
-import org.comroid.spellbind.Spellbind;
+import org.comroid.spellbind.SpellCore;
+import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,19 +15,26 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public final class InstanceFactory<T, D> implements Invocable.TypeMap<T>, Dependent<D> {
+public final class InstanceFactory<T extends TypeFragment<? super T>, D>
+        implements Invocable.TypeMap<T>, Dependent<D> {
     private final OutdateableReference<Class<?>[]> requiredTypes = new OutdateableReference<>();
     private final Class<T> mainInterface;
     private final Reference<? extends T> coreObject;
     private final @Nullable D dependent;
-    private final Collection<TypeFragmentProvider<?>> typeFragmentProviders;
+    private final Collection<TypeFragmentProvider<? super T>> typeFragmentProviders;
 
     @Override
     public @Nullable D getDependent() {
         return dependent;
     }
 
-    public InstanceFactory(Class<T> mainInterface, Reference<? extends T> coreObject, @Nullable D dependent, TypeFragmentProvider<?>... typeFragmentProviders) {
+    @SafeVarargs
+    public InstanceFactory(
+            Class<T> mainInterface,
+            Reference<? extends T> coreObject,
+            @Nullable D dependent,
+            TypeFragmentProvider<? super T>... typeFragmentProviders
+    ) {
         this.mainInterface = mainInterface;
         this.coreObject = coreObject;
         this.dependent = dependent;
@@ -37,7 +45,7 @@ public final class InstanceFactory<T, D> implements Invocable.TypeMap<T>, Depend
             throw new IllegalArgumentException("Duplicate parameter type detected: " + Arrays.toString(classes));
     }
 
-    public void addSubimplementation(TypeFragmentProvider<?> fragmentProvider) {
+    public void addSubimplementation(TypeFragmentProvider<? super T> fragmentProvider) {
         typeFragmentProviders.add(fragmentProvider);
         requiredTypes.outdate();
     }
@@ -61,14 +69,12 @@ public final class InstanceFactory<T, D> implements Invocable.TypeMap<T>, Depend
     @Nullable
     @Override
     public T invoke(Map<Class<?>, Object> args) {
-        final Spellbind.Builder<T> builder = Spellbind.builder(mainInterface);
+        final SpellCore.Builder<T> builder = SpellCore.builder(mainInterface, coreObject.requireNonNull("Core Object"));
 
         if (dependent != null)
             args.putIfAbsent(dependent.getClass(), dependent);
+        typeFragmentProviders.forEach(builder::addFragment);
 
-        builder.coreObject(coreObject.requireNonNull("Core Object"));
-        typeFragmentProviders.forEach(sub -> sub.accept(builder, args.values().toArray()));
-
-        return builder.build();
+        return builder.build(args);
     }
 }

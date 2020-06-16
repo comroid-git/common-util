@@ -1,6 +1,9 @@
 package org.comroid.test.spellbind;
 
-import org.comroid.spellbind.Spellbind;
+import org.comroid.api.Invocable;
+import org.comroid.api.UUIDContainer;
+import org.comroid.spellbind.SpellCore;
+import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.test.model.AnotherPartialAbstract;
 import org.comroid.test.model.FullAbstract;
 import org.comroid.test.model.NonAbstract;
@@ -13,9 +16,10 @@ public class SpellbindTest {
     public void testDirectBound() {
         final ImplementingClass implementingClass = new ImplementingClass();
 
-        MainInterface proxy = Spellbind.builder(MainInterface.class)
-                .coreObject(implementingClass)
+        MainInterface proxy = SpellCore.builder(MainInterface.class, implementingClass)
+                .addFragment(MainInterface.PROVIDER)
                 .build();
+        Assert.assertSame(proxy, proxy.self());
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
                 .isPresent());
@@ -33,10 +37,10 @@ public class SpellbindTest {
     public void testMultipleBound() {
         final ImplementingClass implementingClass = new ImplementingClass();
 
-        HyperInterface proxy = Spellbind.builder(HyperInterface.class)
-                .coreObject(implementingClass)
-                .subImplement(new HyperInterface.SubImpl(), HyperInterface.class)
+        HyperInterface proxy = SpellCore.builder(HyperInterface.class, implementingClass)
+                .addFragment(HyperInterface.PROVIDER)
                 .build();
+        Assert.assertSame(proxy, proxy.self());
 
         Assert.assertTrue(proxy.cast(PartialAbstract.class)
                 .isPresent());
@@ -61,6 +65,18 @@ public class SpellbindTest {
     }
 
     public interface HyperInterface extends MainInterface, CharSequence, AnotherPartialAbstract {
+        TypeFragmentProvider<HyperInterface> PROVIDER = new TypeFragmentProvider<HyperInterface>() {
+            @Override
+            public Class<HyperInterface> getInterface() {
+                return HyperInterface.class;
+            }
+
+            @Override
+            public Invocable<? extends HyperInterface> getInstanceSupplier() {
+                return Invocable.ofConstructor(SubImpl.class);
+            }
+        };
+
         @SuppressWarnings("NullableProblems")
         class SubImpl extends ImplementingClass implements HyperInterface {
             @Override
@@ -86,9 +102,20 @@ public class SpellbindTest {
     }
 
     public interface MainInterface extends NonAbstract, PartialAbstract, FullAbstract {
+        TypeFragmentProvider<MainInterface> PROVIDER = new TypeFragmentProvider<MainInterface>() {
+            @Override
+            public Class<MainInterface> getInterface() {
+                return MainInterface.class;
+            }
+
+            @Override
+            public Invocable<? extends MainInterface> getInstanceSupplier() {
+                return Invocable.ofConstructor(ImplementingClass.class);
+            }
+        };
     }
 
-    public static class ImplementingClass implements MainInterface {
+    public static class ImplementingClass extends UUIDContainer implements MainInterface {
         @Override
         public int getValue() {
             return 42;

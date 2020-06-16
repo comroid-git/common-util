@@ -1,10 +1,9 @@
 package org.comroid.matrix;
 
 import org.comroid.api.Polyfill;
-import org.comroid.trie.TrieMap;
 import org.comroid.matrix.impl.MatrixCapability;
-import org.comroid.matrix.impl.PartialMatrix;
-import org.comroid.spellbind.Spellbind;
+import org.comroid.spellbind.SpellCore;
+import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -57,11 +56,13 @@ public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>
     }
 
     final class Builder<X, Y, Z, V> implements org.comroid.api.Builder<Matrix3<X, Y, Z, V>> {
-        private final Spellbind.Builder<Matrix3<X, Y, Z, V>> binder = Spellbind
-                .builder(Polyfill.uncheckedCast(Matrix3.class));
+        private final SpellCore.Builder<Matrix3<X, Y, Z, V>> binder = SpellCore.builder(
+                Polyfill.uncheckedCast(Matrix3.class),
+                new MatrixCapability.TriDimensional<>()
+        );
         private final Map<String, Entry<X, Y, Z, V>> initValues;
 
-        public Spellbind.Builder<Matrix3<X, Y, Z, V>> getBinder() {
+        public SpellCore.Builder<Matrix3<X, Y, Z, V>> getBinder() {
             return binder;
         }
 
@@ -71,14 +72,12 @@ public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>
 
         protected Builder(@Nullable Map<String, Entry<X, Y, Z, V>> initValues) {
             this.initValues = initValues;
-
-            binder.coreObject(new MatrixCapability.TriDimensional<>());
-            binder.subImplement(new PartialMatrix<>(initValues), Matrix.class);
+            binder.addFragment(Matrix.fragmentProvider());
         }
 
         @Override
         public Matrix3<X, Y, Z, V> build() {
-            return binder.build();
+            return binder.build(initValues);
         }
     }
 }

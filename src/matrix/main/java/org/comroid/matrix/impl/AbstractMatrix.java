@@ -1,16 +1,18 @@
 package org.comroid.matrix.impl;
 
-import org.comroid.trie.TrieMap;
+import org.comroid.api.UUIDContainer;
 import org.comroid.matrix.Matrix;
+import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> implements Matrix<V, E> {
+public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDContainer implements Matrix<V, E> {
     private final Map<String, E> entries;
 
     protected AbstractMatrix() {
@@ -18,7 +20,7 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> implements Ma
     }
 
     protected AbstractMatrix(Map<String, E> underlying) {
-        this.entries = underlying;
+        this.entries = Optional.ofNullable(underlying).orElseGet(TrieMap::ofString);
     }
 
     protected abstract @NotNull E createEntry(String key, @Nullable V initialValue);

@@ -1,10 +1,10 @@
 package org.comroid.varbind.container;
 
 import org.comroid.common.info.Dependent;
-import org.comroid.mutatio.span.Span;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.span.Span;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;
@@ -54,7 +54,7 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
     }
 
     default UniObjectNode toObjectNode(SerializationAdapter<?, ?, ?> serializationAdapter) {
-        return toObjectNode(serializationAdapter.createUniObjectNode());
+        return toObjectNode(serializationAdapter.createUniObjectNode(null));
     }
 
     UniObjectNode toObjectNode(UniObjectNode node);
