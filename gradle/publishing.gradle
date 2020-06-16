@@ -1,10 +1,4 @@
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse.BodyHandlers
-
 import static java.lang.System.getenv
-
-final HttpClient client = HttpClient.newBuilder().build()
 
 ext {
     snapshot = project.version.endsWith('SNAPSHOT')
@@ -128,42 +122,6 @@ publishing {
             System.out.println("Registered artifact publication: '${group}:${artifactId}:${project.version}' -> $project.projectDescription")
         }
     }
-}
-
-def artifactId = publishing.publications.mavenJava.artifactId
-
-// block sonatype release if exists
-tasks.findByName('publishMavenJavaPublicationToSonatypeRepository')?.onlyIf {
-    if (snapshot) return true
-
-    def uri = new URI(String.format("https://oss.sonatype.org/content/repositories/releases/%s/%s/%s/%s",
-            rootProject.group.toString().replace(".", "/"), // domain
-            artifactId,
-            project.version,
-            String.format("%s-%s.pom", artifactId, project.version)
-    ))
-    def response = client.send(HttpRequest.newBuilder(uri).GET().build(), BodyHandlers.ofString())
-    def code = response.statusCode()
-
-    System.out.printf("Checked for existing Sonatype Artifact: %s RETURNED %d\n", uri, code)
-
-    return code != 200
-}
-// block github release if exists
-tasks.findByName('publishMavenJavaPublicationToGitHubPackagesRepository')?.onlyIf {
-    if (snapshot) return false
-
-    def uri = new URI("https://$githubUsername:$githubPassword@maven.pkg.github.com/$userbase" +
-            "/${rootProject.name.replace('.', '/')}/${rootProject.group.replace('.', '/')}" +
-            "/$artifactId/$project.version/$artifactId-${project.version}.jar")
-    def response = client.send(HttpRequest.newBuilder(uri).GET()
-            .header("Authorization", "$githubUsername:$githubPassword")
-            .build(), BodyHandlers.ofString())
-    def code = response.statusCode()
-
-    System.out.printf("Checked for existing GitHubPackages Artifact: %s RETURNED %d\n", uri, code)
-
-    return code != 200
 }
 
 task generateGithubPom(type: GenerateMavenPom) {
