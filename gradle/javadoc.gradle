@@ -6,3 +6,10 @@ javadoc {
         encoding = 'UTF-8'
     }
 }
+
+if (canPublishToGitHub) {
+    apply plugin: "de.jodamob.gradle.github"
+
+    githubCommit {
+    }
+}
