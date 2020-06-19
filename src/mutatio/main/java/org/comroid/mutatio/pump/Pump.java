@@ -6,6 +6,7 @@ import org.comroid.mutatio.pipe.StageAdapter;
 import org.comroid.mutatio.ref.ReferenceIndex;
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
@@ -28,4 +29,22 @@ public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
     <R> Pump<T, R> addStage(StageAdapter<T, R> stage);
 
     <R> Pump<T, R> addStage(Executor executor, StageAdapter<T, R> stage);
+
+    default CompletableFuture<T> next() {
+        class OnceCompletingStage implements StageAdapter<T, T> {
+            private final CompletableFuture<T> future = new CompletableFuture<>();
+
+            @Override
+            public synchronized T apply(T it) {
+                if (!future.isDone())
+                    future.complete(it);
+                return null;
+            }
+        }
+
+        final OnceCompletingStage stage = new OnceCompletingStage();
+        addStage(stage);
+
+        return stage.future;
+    }
 }
