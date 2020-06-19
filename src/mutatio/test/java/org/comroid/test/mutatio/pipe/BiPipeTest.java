@@ -32,7 +32,7 @@ public class BiPipeTest {
     public void testRemapFirst() {
         refs.pipe()
                 .bi(String::length)
-                .filter((str, len) -> len > 3)
+                .filterSecond(x -> x > 3)
                 .mapFirst(str -> str.substring(str.length() + 2))
                 .forEach((str, len) -> Assert.assertEquals((int) len, str.length() - 2));
     }

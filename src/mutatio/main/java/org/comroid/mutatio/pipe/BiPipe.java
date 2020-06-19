@@ -6,6 +6,7 @@ import org.comroid.mutatio.ref.Reference;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class BiPipe<A, B, X, Y> extends BasicPipe<Pair<A, B>, Pair<X, Y>> {
     <T> BiPipe(Pipe<?, A> base, Function<A, B> bMapper) {
@@ -19,6 +20,16 @@ public final class BiPipe<A, B, X, Y> extends BasicPipe<Pair<A, B>, Pair<X, Y>> 
     public BiPipe<X, Y, X, Y> filter(BiPredicate<? super X, ? super Y> predicate) {
         return new BiPipe<>(this, StageAdapter
                 .filter(pair -> predicate.test(pair.getFirst(), pair.getSecond())));
+    }
+
+    public BiPipe<X, Y, X, Y> filterFirst(Predicate<? super X> predicate) {
+        return new BiPipe<>(this, StageAdapter
+                .filter(pair -> predicate.test(pair.getFirst())));
+    }
+
+    public BiPipe<X, Y, X, Y> filterSecond(Predicate<? super Y> predicate) {
+        return new BiPipe<>(this, StageAdapter
+                .filter(pair -> predicate.test(pair.getSecond())));
     }
 
     public <R> BiPipe<X, Y, R, Y> mapFirst(Function<? super X, ? extends R> mapper) {
