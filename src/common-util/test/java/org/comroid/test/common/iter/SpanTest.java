@@ -1,5 +1,6 @@
 package org.comroid.test.common.iter;
 
+import org.comroid.common.ref.BasicPair;
 import org.comroid.common.ref.Pair;
 import org.comroid.mutatio.span.Span;
 import org.junit.Test;
@@ -24,7 +25,7 @@ public class SpanTest {
         this.generated = IntStream.range(0, bound)
                 .mapToObj(c -> UUID.randomUUID()
                         .toString())
-                .map(str -> new Pair<>(str, rng.nextInt() % bound))
+                .map(str -> new BasicPair<>(str, rng.nextInt() % bound))
                 .sorted(Comparator.comparingInt(Pair::getSecond))
                 .collect(Collectors.toList());
         System.out.printf("generated        = {%d}%s%n", generated.size(), generated);

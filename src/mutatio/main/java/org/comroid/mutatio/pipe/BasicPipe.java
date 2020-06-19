@@ -6,6 +6,7 @@ import org.comroid.mutatio.ref.ReferenceIndex;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class BasicPipe<O, T> implements Pipe<O, T> {
     public static final int AUTOEMPTY_DISABLED = -1;
@@ -53,6 +54,11 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     @Override
     public <R> Pipe<T, R> addStage(StageAdapter<T, R> stage) {
         return new BasicPipe<>(this, stage);
+    }
+
+    @Override
+    public <X> BiPipe<T, X, T, X> bi(Function<T, X> mapper) {
+        return new BiPipe.Support.Impl<T, X, T, X>(this, mapper);
     }
 
     @Override

@@ -1,10 +1,10 @@
 package org.comroid.common.map;
 
-import org.comroid.common.ref.Pair;
+import org.comroid.common.ref.BasicPair;
 
 import java.util.Map;
 
-public class EntryPair<K, V> extends Pair<K, V> implements Map.Entry<K, V> {
+public class EntryPair<K, V> extends BasicPair<K, V> implements Map.Entry<K, V> {
     @Override
     public K getKey() {
         return getFirst();

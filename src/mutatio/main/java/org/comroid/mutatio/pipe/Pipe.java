@@ -55,12 +55,16 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
         return addStage(StageAdapter.flatMap(mapper));
     }
 
-    default Pipe<O, O> distinct() {
-        return addStage(StageAdapter.distinct());
-    }
-
     default Pipe<O, O> peek(Consumer<? super O> action) {
         return addStage(StageAdapter.peek(action));
+    }
+
+    default void forEach(Consumer<? super O> action) {
+        addStage(StageAdapter.peek(action));
+    }
+
+    default Pipe<O, O> distinct() {
+        return addStage(StageAdapter.distinct());
     }
 
     default Pipe<O, O> limit(long maxSize) {
@@ -69,10 +73,6 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
 
     default Pipe<O, O> skip(long skip) {
         return addStage(StageAdapter.skip(skip));
-    }
-
-    default void forEach(Consumer<? super O> action) {
-        addStage(StageAdapter.peek(action));
     }
 
     default Pipe<O, O> sorted() {
@@ -102,6 +102,8 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
     default Pump<I, O> pump(Executor executor) {
         return new BasicPump<>(executor, this.map(Polyfill::uncheckedCast));
     }
+
+    <X> BiPipe<O, X, O, X> bi(Function<O, X> mapper);
 
     @Override
     default void accept(I input) {
