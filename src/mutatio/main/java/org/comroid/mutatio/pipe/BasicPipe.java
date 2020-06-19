@@ -57,8 +57,8 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     }
 
     @Override
-    public <X> BiPipe<T, X, T, X> bi(Function<T, X> mapper) {
-        return new BiPipe.Support.Impl<T, X, T, X>(this, mapper);
+    public <X> BiPipe<T, X, T, X> bi(Function<T, X> source) {
+        return new BiPipe<>(this, source);
     }
 
     @Override

@@ -7,8 +7,4 @@ ext {
     projectDescription = "JVM Mutation Tools"
 }
 
-dependencies {
-    api project(':common-util')
-}
-
 apply from: "$rootDir/gradle/publishing.gradle"
