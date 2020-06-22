@@ -30,14 +30,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V>
-        implements Cache<K, V>, FileProcessor, Disposable.Container {
+public class FileCache<K, V extends DataContainer<D>, D>
+        extends DataContainerCache<K, V, D>
+        implements FileProcessor, Disposable.Container {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final Disposable disposable = new Disposable.Basic();
     private final SerializationAdapter<?, ?, ?> seriLib;
-    private final VarBind<?, D, ?, K> idBind;
     private final FileHandle file;
-    private final D dependencyObject;
 
     @Override
     public FileHandle getFile() {
@@ -70,12 +69,10 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
     ) {
         super(largeThreshold, converter == null
                 ? new ConcurrentHashMap<>()
-                : new TrieMap.Basic<>(converter, keyCaching));
+                : new TrieMap.Basic<>(converter, keyCaching), idBind, dependencyObject);
 
         this.seriLib = seriLib;
-        this.idBind = Polyfill.uncheckedCast(idBind);
         this.file = file;
-        this.dependencyObject = dependencyObject;
 
         try {
             reloadData();
@@ -90,35 +87,6 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
         set(key, value);
 
         return true;
-    }
-
-    public final <T extends V> Processor<T> autoUpdate(Class<T> type, UniObjectNode data) {
-        return autoUpdate(DataContainerBase.findRootBind(type), data);
-    }
-
-    public final <T extends V> Processor<T> autoUpdate(GroupBind<? extends T, ? extends D> group, UniObjectNode data) {
-        return autoUpdate(group.getConstructor()
-                .orElseThrow(() -> new NoSuchElementException("No constructor defined in group " + group)), data);
-    }
-
-    public final <T extends V> Processor<T> autoUpdate(Invocable<? extends T> creator, UniObjectNode data) {
-        final K key = idBind.getFrom(data);
-
-        if (containsKey(key))
-            //noinspection unchecked
-            return getReference(key, false)
-                    .process()
-                    .peek(it -> it.updateFrom(data))
-                    .map(it -> (T) it);
-        else //noinspection unchecked
-            return Processor.ofConstant(tryConstruct(data))
-                    .map(opt -> {
-                        if (!opt.isPresent())
-                            return creator.autoInvoke(data, dependencyObject);
-                        return opt.get();
-                    })
-                    .map(it -> (T) it)
-                    .peek(it -> getReference(key, true).set(it));
     }
 
     @Override
@@ -180,10 +148,4 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
         reader.close();
     }
 
-    private Optional<? extends V> tryConstruct(UniObjectNode node) {
-        //noinspection unchecked
-        return (Optional<? extends V>) idBind.getGroup().findGroupForData(node)
-                .flatMap(GroupBind::getConstructor)
-                .map(constr -> constr.autoInvoke(dependencyObject, node));
-    }
 }
