@@ -3,17 +3,30 @@ package org.comroid.restless.adapter.okhttp.v4;
 import okhttp3.*;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
+import org.comroid.restless.socket.WebSocket;
+import org.comroid.uniform.SerializationAdapter;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class OkHttp3Adapter implements HttpAdapter {
     private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
     @Override
-    public CompletableFuture<REST.Response> call(REST.Request request, String mimeType) {
+    public CompletableFuture<? extends WebSocket> createWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib,
+            Executor executor,
+            URI uri,
+            REST.Header.List headers
+    ) {
+        return OkHttp3WebSocket.create(seriLib, executor, httpClient, uri, headers);
+    }
 
+    @Override
+    public CompletableFuture<REST.Response> call(REST.Request request, String mimeType) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final REST.Method requestMethod = request.getMethod();

@@ -100,7 +100,7 @@ public final class JavaWebSocket extends UUIDContainer implements org.comroid.re
 
         @Override
         public void onOpen(WebSocket webSocket) {
-            JavaWebSocket.this.publish(WebSocketEvent.OPEN, WebSocketData.empty(JavaWebSocket.this, WebSocketEvent.OPEN));
+            publish(WebSocketEvent.OPEN, WebSocketData.empty(JavaWebSocket.this, WebSocketEvent.OPEN));
             webSocket.request(1);
         }
 
