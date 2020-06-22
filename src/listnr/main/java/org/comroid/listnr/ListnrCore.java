@@ -21,29 +21,27 @@ public final class ListnrCore {
         this.executor = executor;
     }
 
-    public <I,
-            M extends EventManager<I, ? super P, ? super T>,
-            T extends EventType<I, P>,
-            P extends EventPayload>
-    Pipe<?, P> eventPipe(T eventType, M target) {
+    public <I, P extends EventPayload> Pipe<?, P> eventPipe(
+            EventType<I, P> eventType,
+            EventManager<I, EventType<I, P>, ? super P> target
+    ) {
         return computePipe(eventType, target).pipe();
     }
 
-    public <I,
-            M extends EventManager<I, ? super P, ? super T>,
-            T extends EventType<I, P>,
-            P extends EventPayload>
-    void publish(T eventType, M target, I payloadInput) {
+    public <I, P extends EventPayload> void publish(
+            EventType<I, P> eventType,
+            EventManager<I, EventType<I, P>, ? super P> target,
+            I payloadInput
+    ) {
         computePipe(eventType, target)
                 .consumer()
                 .accept(payloadInput);
     }
 
-    private <I,
-            M extends EventManager<I, ? super P, ? super T>,
-            T extends EventType<I, P>,
-            P extends EventPayload>
-    PipeContainer<I, P> computePipe(T eventType, M target) {
+    private <I, P extends EventPayload> PipeContainer<I, P> computePipe(
+            EventType<I, P> eventType,
+            EventManager<I, EventType<I, P>, ? super P> target
+    ) {
         return Polyfill.uncheckedCast(pipes.computeIfAbsent(
                 target.getUUID() + eventType.getName(),
                 key -> new PipeContainer<>(eventType.andThen(Polyfill::<P>uncheckedCast))

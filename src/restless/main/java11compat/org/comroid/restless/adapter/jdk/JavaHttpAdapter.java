@@ -13,6 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public final class JavaHttpAdapter implements HttpAdapter {
     private final HttpClient httpClient;
@@ -23,8 +24,12 @@ public final class JavaHttpAdapter implements HttpAdapter {
 
     @Override
     public CompletableFuture<? extends WebSocket> createWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib, URI uri, REST.Header.List headers) {
-        return JavaWebSocket.create(seriLib, httpClient, uri, headers);
+            SerializationAdapter<?, ?, ?> seriLib,
+            Executor executor,
+            URI uri,
+            REST.Header.List headers
+    ) {
+        return JavaWebSocket.create(seriLib, executor, httpClient, uri, headers);
     }
 
     @Override

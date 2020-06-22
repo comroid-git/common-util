@@ -4,16 +4,18 @@ import org.comroid.mutatio.pipe.Pipe;
 
 import java.util.UUID;
 
+import static org.comroid.api.Polyfill.uncheckedCast;
+
 public interface EventManager<I, T extends EventType<? super I, ? super P>, P extends EventPayload> {
     UUID getUUID();
 
-    ListnrCore getListnrCore();
+    ListnrCore listnr();
 
-    default <XP extends P, XT extends EventType<? super I, XP>> Pipe<?, XP> eventPipe(XT type) {
-        return getListnrCore().<I, EventManager<I, XT, XP>, XT, XP>eventPipe(type, this);
+    default <XP extends P> Pipe<?, XP> eventPipe(EventType<I, XP> type) {
+        return listnr().eventPipe(type, uncheckedCast(this));
     }
 
-    default <XP extends P, XT extends T> void publish(XT type, I payload) {
-        getListnrCore().publish(type, this, payload);
+    default <XP extends P> void publish(EventType<I, XP> type, I payload) {
+        listnr().publish(type, uncheckedCast(this), payload);
     }
 }

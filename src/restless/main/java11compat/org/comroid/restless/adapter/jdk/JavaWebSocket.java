@@ -16,24 +16,21 @@ import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executor;
 
 public final class JavaWebSocket extends UUIDContainer implements org.comroid.restless.socket.WebSocket {
-    private final ListnrCore listnrCore = new ListnrCore(ForkJoinPool.commonPool()); // todo
     private final WebSocket.Listener listener = new JListener();
     private final SerializationAdapter<?, ?, ?> seriLib;
+    private final ListnrCore listnrCore;
 
-    @Override
-    public ListnrCore getListnrCore() {
-        return listnrCore;
-    }
-
-    public JavaWebSocket(SerializationAdapter<?, ?, ?> seriLib) {
+    public JavaWebSocket(SerializationAdapter<?, ?, ?> seriLib, Executor executor) {
         this.seriLib = seriLib;
+        this.listnrCore = new ListnrCore(executor);
     }
 
     public static CompletableFuture<JavaWebSocket> create(
             SerializationAdapter<?, ?, ?> seriLib,
+            Executor executor,
             HttpClient httpClient,
             URI uri,
             REST.Header.List headers
@@ -42,10 +39,15 @@ public final class JavaWebSocket extends UUIDContainer implements org.comroid.re
 
         headers.forEach(builder::header);
 
-        final JavaWebSocket socket = new JavaWebSocket(seriLib);
+        final JavaWebSocket socket = new JavaWebSocket(seriLib, executor);
 
         return builder.buildAsync(uri, socket.listener)
                 .thenApply(nil -> socket);
+    }
+
+    @Override
+    public ListnrCore listnr() {
+        return listnrCore;
     }
 
     private final class JListener implements WebSocket.Listener {
@@ -53,76 +55,59 @@ public final class JavaWebSocket extends UUIDContainer implements org.comroid.re
 
         @Override
         public void onOpen(WebSocket webSocket) {
-            getListnrCore().publish(JavaWebSocket.this, Type.OPEN, WebSocketData.empty(JavaWebSocket.this, Type.OPEN));
+            JavaWebSocket.this.publish(Type.OPEN, WebSocketData.empty(JavaWebSocket.this, Type.OPEN));
             webSocket.request(1);
         }
 
         @Override
         public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-            return handleData(webSocket, last, data.toString());
+            handleData(webSocket, last, data.toString().intern());
+            return null;
         }
 
         @Override
         public CompletionStage<?> onBinary(WebSocket webSocket, ByteBuffer data, boolean last) {
-            return handleData(webSocket, last, new String(data.array()));
+            handleData(webSocket, last, new String(data.array()).intern());
+            return null;
         }
 
         @Override
         public CompletionStage<?> onPing(WebSocket webSocket, ByteBuffer message) {
-            getListnrCore().publish(
-                    JavaWebSocket.this,
-                    Type.PING,
-                    WebSocketData.empty(JavaWebSocket.this, Type.PING)
-            );
+            publish(Type.PING, WebSocketData.empty(JavaWebSocket.this, Type.PING));
             webSocket.request(1);
             return null;
         }
 
         @Override
         public CompletionStage<?> onPong(WebSocket webSocket, ByteBuffer message) {
-            getListnrCore().publish(
-                    JavaWebSocket.this,
-                    Type.PONG,
-                    WebSocketData.empty(JavaWebSocket.this, Type.PONG)
-            );
+            publish(Type.PONG, WebSocketData.empty(JavaWebSocket.this, Type.PONG));
             webSocket.request(1);
             return null;
         }
 
         @Override
         public void onError(WebSocket webSocket, Throwable error) {
-            getListnrCore().publish(
-                    JavaWebSocket.this,
-                    Type.ERROR,
-                    WebSocketData.error(JavaWebSocket.this, error));
+            publish(Type.ERROR, WebSocketData.error(JavaWebSocket.this, error));
             webSocket.request(1);
         }
 
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-            getListnrCore().publish(
-                    JavaWebSocket.this,
-                    Type.CLOSE,
-                    WebSocketData.close(JavaWebSocket.this, statusCode, reason)
-            );
+            publish(Type.CLOSE, WebSocketData.close(JavaWebSocket.this, statusCode, reason));
             return Polyfill.infiniteFuture();
         }
 
         @Nullable
-        private CompletionStage<?> handleData(WebSocket webSocket, boolean last, String newData) {
+        private void handleData(WebSocket webSocket, boolean last, String newData) {
             sb.append(newData);
 
             if (last) {
                 final UniNode node = seriLib.createUniNode(sb.toString());
-                getListnrCore().publish(
-                        JavaWebSocket.this,
-                        Type.DATA,
-                        WebSocketData.ofNode(JavaWebSocket.this, node));
+                publish(Type.DATA, WebSocketData.ofNode(JavaWebSocket.this, node));
                 sb = new StringBuilder();
             }
 
             webSocket.request(1);
-            return null;
         }
     }
 }
