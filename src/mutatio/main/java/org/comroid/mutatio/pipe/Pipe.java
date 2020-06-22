@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -112,5 +113,24 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
 
     default Span<O> span() {
         return new Span<>(this, Span.DefaultModifyPolicy.SKIP_NULLS);
+    }
+
+    default CompletableFuture<O> next() {
+        class OnceCompletingStage implements StageAdapter<O,O> {
+            private final CompletableFuture<O> future = new CompletableFuture<>();
+
+            @Override
+            public synchronized O apply(O it) {
+                if (!future.isDone())
+                    future.complete(it);
+                return null;
+            }
+        }
+
+        final OnceCompletingStage stage = new OnceCompletingStage();
+        final Pipe<O, O> resulting = addStage(stage);
+        stage.future.thenRun(resulting::close);
+
+        return stage.future;
     }
 }
