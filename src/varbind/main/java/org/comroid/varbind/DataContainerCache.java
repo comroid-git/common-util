@@ -25,11 +25,15 @@ public abstract class DataContainerCache<K, V extends DataContainer<D>, D> exten
         this.dependencyObject = dependencyObject;
     }
 
+    public final Processor<V> autoUpdate(UniObjectNode data) {
+        return autoUpdate(Polyfill.<GroupBind<V, D>>uncheckedCast(idBind.getGroup()), data);
+    }
+
     public final <T extends V> Processor<T> autoUpdate(Class<T> type, UniObjectNode data) {
         return autoUpdate(DataContainerBase.findRootBind(type), data);
     }
 
-    public final <T extends V> Processor<T> autoUpdate(GroupBind<? extends T, ? extends D> group, UniObjectNode data) {
+    public final <T extends V> Processor<T> autoUpdate(GroupBind<? extends T, D> group, UniObjectNode data) {
         return autoUpdate(group.getConstructor()
                 .orElseThrow(() -> new NoSuchElementException("No constructor defined in group " + group)), data);
     }
