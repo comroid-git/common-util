@@ -1,4 +1,8 @@
 package org.comroid.restless.socket;
 
-public interface WebSocket {
+import org.comroid.listnr.EventManager;
+import org.comroid.restless.socket.event.WebSocketEvent;
+
+public interface WebSocket extends EventManager<WebSocketEvent, WebSocketEventPayload> {
+
 }

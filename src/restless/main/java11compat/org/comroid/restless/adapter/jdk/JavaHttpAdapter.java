@@ -3,8 +3,11 @@ package org.comroid.restless.adapter.jdk;
 import org.comroid.restless.CommonHeaderNames;
 import org.comroid.restless.HttpAdapter;
 import org.comroid.restless.REST;
+import org.comroid.restless.socket.WebSocket;
+import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniNode;
 
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -16,6 +19,12 @@ public final class JavaHttpAdapter implements HttpAdapter {
 
     public JavaHttpAdapter() {
         this.httpClient = HttpClient.newBuilder().build();
+    }
+
+    @Override
+    public CompletableFuture<? extends WebSocket> createWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib, URI uri, REST.Header.List headers) {
+        return JavaWebSocket.create(seriLib, httpClient, uri, headers);
     }
 
     @Override
