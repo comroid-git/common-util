@@ -4,16 +4,16 @@ import org.comroid.mutatio.pipe.Pipe;
 
 import java.util.UUID;
 
-public interface EventManager<T extends EventType<?, ? super P>, P extends EventPayload> {
+public interface EventManager<I, T extends EventType<? super I, ? super P>, P extends EventPayload> {
     UUID getUUID();
 
     ListnrCore getListnrCore();
 
-    default <E extends T, D extends P> Pipe<?, D> eventPipe(E type) {
-        return getListnrCore().eventPipe(this, type);
+    default <XP extends P, XT extends EventType<? super I, XP>> Pipe<?, XP> eventPipe(XT type) {
+        return getListnrCore().<I, EventManager<I, XT, XP>, XT, XP>eventPipe(type, this);
     }
 
-    default <E extends T, D extends P> void publish(E type, P payload) {
-        getListnrCore().publish(this, type, payload);
+    default <XP extends P, XT extends T> void publish(XT type, I payload) {
+        getListnrCore().publish(type, this, payload);
     }
 }
