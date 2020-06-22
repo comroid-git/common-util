@@ -96,12 +96,12 @@ public class FileCache<K, V extends DataContainer<D>, D> extends BasicCache<K, V
         return autoUpdate(DataContainerBase.findRootBind(type), data);
     }
 
-    public final <T extends V> Processor<T> autoUpdate(GroupBind<? super T, ? super D> group, UniObjectNode data) {
+    public final <T extends V> Processor<T> autoUpdate(GroupBind<? extends T, ? extends D> group, UniObjectNode data) {
         return autoUpdate(group.getConstructor()
                 .orElseThrow(() -> new NoSuchElementException("No constructor defined in group " + group)), data);
     }
 
-    public final <T extends V> Processor<T> autoUpdate(Invocable<? super T> creator, UniObjectNode data) {
+    public final <T extends V> Processor<T> autoUpdate(Invocable<? extends T> creator, UniObjectNode data) {
         final K key = idBind.getFrom(data);
 
         if (containsKey(key))
