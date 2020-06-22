@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 public interface WebSocketData {
     WebSocket getWebSocket();
 
-    WebSocketEvent.Type getType();
+    WebSocketEvent getType();
 
     default UniNode getBody() {
         return UniValueNode.nullNode();
@@ -26,7 +26,7 @@ public interface WebSocketData {
         return null;
     }
 
-    static WebSocketData empty(WebSocket socket, WebSocketEvent.Type type) {
+    static WebSocketData empty(WebSocket socket, WebSocketEvent type) {
         return new Support.Empty(socket, type);
     }
 
@@ -44,7 +44,7 @@ public interface WebSocketData {
 
     final class Support {
         private static class Empty implements WebSocketData {
-            private final WebSocketEvent.Type type;
+            private final WebSocketEvent type;
             private final WebSocket webSocket;
 
             @Override
@@ -53,11 +53,11 @@ public interface WebSocketData {
             }
 
             @Override
-            public WebSocketEvent.Type getType() {
+            public WebSocketEvent getType() {
                 return type;
             }
 
-            private Empty(WebSocket webSocket, WebSocketEvent.Type type) {
+            private Empty(WebSocket webSocket, WebSocketEvent type) {
                 this.webSocket = webSocket;
                 this.type = type;
             }
@@ -72,7 +72,7 @@ public interface WebSocketData {
             }
 
             private OfNode(WebSocket webSocket, UniNode body) {
-                super(webSocket, WebSocketEvent.Type.DATA);
+                super(webSocket, WebSocketEvent.DATA);
 
                 this.body = body;
             }
@@ -87,7 +87,7 @@ public interface WebSocketData {
             }
 
             public OfError(WebSocket webSocket, Throwable throwable) {
-                super(webSocket, WebSocketEvent.Type.ERROR);
+                super(webSocket, WebSocketEvent.ERROR);
 
                 this.throwable = throwable;
             }
@@ -106,7 +106,7 @@ public interface WebSocketData {
             }
 
             public Close(WebSocket webSocket, int statusCode, String reason) {
-                super(webSocket, WebSocketEvent.Type.CLOSE);
+                super(webSocket, WebSocketEvent.CLOSE);
 
                 this.statusCode = statusCode;
                 this.reason = reason;
