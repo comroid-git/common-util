@@ -178,6 +178,10 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return subGroup(subGroupName, (Invocable<R>) null);
     }
 
+    public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Class<? extends T> type) {
+        return subGroup(subGroupName, Polyfill.<Invocable<R>>uncheckedCast(Invocable.ofConstructor(type)));
+    }
+
     public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Constructor<? extends T> type) {
         return subGroup(subGroupName, Polyfill.<Invocable<R>>uncheckedCast(Invocable.ofConstructor(type)));
     }
