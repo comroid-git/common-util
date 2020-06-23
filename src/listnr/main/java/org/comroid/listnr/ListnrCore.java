@@ -11,6 +11,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -36,10 +37,7 @@ public final class ListnrCore {
             EventManager<I, EventType<I, P>, ? super P> target,
             I payloadInput
     ) {
-        computePipe(eventType, target)
-                .consumer()
-                .accept(payloadInput);
-
+        computePipe(eventType, target).push(eventType, target, payloadInput);
     }
 
     @Internal
@@ -68,8 +66,13 @@ public final class ListnrCore {
             return pipe;
         }
 
-        private Consumer<I> consumer() {
-            return pump;
+        public void push(
+                EventType<I, P> eventType,
+                EventManager<I, EventType<I, P>, ? super P> target,
+                I input
+        ) {
+            pump.accept(input);
+            target.getParents().forEach(parent -> parent.publish(Polyfill.uncheckedCast(eventType), input));
         }
     }
 }
