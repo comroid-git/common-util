@@ -3,6 +3,7 @@ package org.comroid.trie;
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface TrieMap<K, V> extends Map<K, V> {
+public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>> {
     Junction<K, String> getKeyConverter();
 
     @Override
@@ -90,12 +91,12 @@ public interface TrieMap<K, V> extends Map<K, V> {
             );
         }
 
-        private Optional<V> getValue(char[] chars, int cIndex) {
+        private Optional<Reference.Settable<V>> getReference(char[] chars, int cIndex) {
             if (cIndex >= chars.length)
-                return reference.wrap();
+                return Optional.of(reference);
 
             return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
-                    .flatMap(stage -> stage.getValue(chars, cIndex + 1));
+                    .flatMap(stage -> stage.getReference(chars, cIndex + 1));
         }
 
         private Optional<V> putValue(char[] chars, int cIndex, @Nullable V value) {
@@ -175,13 +176,14 @@ public interface TrieMap<K, V> extends Map<K, V> {
         }
 
         @Override
-        public V get(Object key) {
+        public Reference.Settable<V> getReference(K key, boolean createIfAbsent) {
             final char[] convertKey = convertKey(key);
 
             if (convertKey.length == 0)
-                return null;
+                return Reference.Settable.create();
 
-            return baseStage.getValue(convertKey, 0).orElse(null);
+            return baseStage.getReference(convertKey, 0)
+                    .orElseGet(Reference.Settable::create);
         }
 
         @Nullable
