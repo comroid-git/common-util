@@ -3,21 +3,19 @@ package org.comroid.mutatio.ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface ReferenceMap<K, V, REF extends Reference<V>> extends Map<K, V> {
+public interface ReferenceMap<K, V, REF extends Reference<V>> {
     default REF getReference(K key) {
         return getReference(key, false);
     }
 
     REF getReference(K key, boolean createIfAbsent);
 
-    default V get(Object key) {
-        //noinspection unchecked
-        return getReference((K) key).get();
+    default V get(K key) {
+        return getReference(key).get();
     }
 
     default Optional<V> wrap(K key) {
