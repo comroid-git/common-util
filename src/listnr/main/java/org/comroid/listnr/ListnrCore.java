@@ -25,7 +25,7 @@ public final class ListnrCore {
     @Internal
     <I, P extends EventPayload> Pipe<?, P> eventPipe(
             EventType<I, P> eventType,
-            AbstractEventManager<I, EventType<I, P>, ? super P> target
+            EventManager<I, EventType<I, P>, ? super P> target
     ) {
         return computePipe(eventType, target).pipe();
     }
@@ -33,18 +33,19 @@ public final class ListnrCore {
     @Internal
     <I, P extends EventPayload> void publish(
             EventType<I, P> eventType,
-            AbstractEventManager<I, EventType<I, P>, ? super P> target,
+            EventManager<I, EventType<I, P>, ? super P> target,
             I payloadInput
     ) {
         computePipe(eventType, target)
                 .consumer()
                 .accept(payloadInput);
+
     }
 
     @Internal
     <I, P extends EventPayload> PipeContainer<I, P> computePipe(
             EventType<I, P> eventType,
-            AbstractEventManager<I, EventType<I, P>, ? super P> target
+            EventManager<I, EventType<I, P>, ? super P> target
     ) {
         return Polyfill.uncheckedCast(pipes.computeIfAbsent(
                 target.getUUID() + eventType.getName(),
