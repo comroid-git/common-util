@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -151,5 +152,11 @@ public final class Polyfill {
                 return value;
             }
         };
+    }
+
+    private static final CompletableFuture<?> infiniteFuture = new CompletableFuture<>();
+
+    public static <T> CompletableFuture<T> infiniteFuture() {
+        return uncheckedCast(infiniteFuture);
     }
 }

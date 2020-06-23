@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,7 +21,15 @@ public interface TrieMap<K, V> extends Map<K, V> {
     }
 
     static <V> TrieMap<String, V> ofString() {
-        return new Basic<>(Junction.identity(), false);
+        return new Basic<>(Junction.of(String::intern, Function.identity()), true);
+    }
+
+    static <K, V> TrieMap<K, V> parsing(Function<String, K> parser) {
+        return new Basic<>(Junction.of(Objects::toString, parser), false);
+    }
+
+    static <K, V> TrieMap<K, V> parsingCached(Function<String, K> parser) {
+        return new Basic<>(Junction.of(Objects::toString, parser), true);
     }
 
     @Override

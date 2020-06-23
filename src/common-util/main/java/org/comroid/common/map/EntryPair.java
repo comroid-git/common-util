@@ -1,6 +1,6 @@
 package org.comroid.common.map;
 
-import org.comroid.common.ref.Pair;
+import org.comroid.util.Pair;
 
 import java.util.Map;
 

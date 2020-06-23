@@ -6,6 +6,7 @@ import org.comroid.mutatio.pipe.StageAdapter;
 import org.comroid.mutatio.ref.ReferenceIndex;
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
@@ -17,7 +18,7 @@ public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
         return new BasicPump<>(executor, ReferenceIndex.create());
     }
 
-    static <T> Pump<T, T> of(Collection<T> collection) {
+    static <T> Pump<?, T> of(Collection<T> collection) {
         final Pump<T, T> pump = create();
         collection.forEach(pump);
 

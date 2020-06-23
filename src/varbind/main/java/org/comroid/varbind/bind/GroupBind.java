@@ -23,13 +23,13 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     private final String groupName;
     private final Span<GroupBind<? super T, D>> parents;
     private final List<GroupBind<? extends T, D>> subgroups = new ArrayList<>();
-    private final @Nullable Invocable<? super T> constructor;
+    private final @Nullable Invocable<? extends T> constructor;
 
     public List<? extends VarBind<?, D, ?, ?>> getDirectChildren() {
         return Collections.unmodifiableList(children);
     }
 
-    public Optional<Invocable<? super T>> getConstructor() {
+    public Optional<Invocable<? extends T>> getConstructor() {
         return Optional.ofNullable(constructor);
     }
 
@@ -46,19 +46,24 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public GroupBind(
-            SerializationAdapter<?, ?, ?> serializationAdapter, String groupName
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            String groupName
     ) {
         this(serializationAdapter, groupName, (Invocable<T>) null);
     }
 
     public GroupBind(
-            SerializationAdapter<?, ?, ?> serializationAdapter, String groupName, Class<T> constructorClass
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            String groupName,
+            Class<? extends T> constructorClass
     ) {
         this(serializationAdapter, groupName, Invocable.ofConstructor(constructorClass));
     }
 
     public GroupBind(
-            SerializationAdapter<?, ?, ?> serializationAdapter, String groupName, Invocable<? super T> invocable
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            String groupName,
+            Invocable<? extends T> invocable
     ) {
         this(Span.empty(), serializationAdapter, groupName, invocable);
     }
@@ -67,7 +72,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
             GroupBind<? super T, D> parents,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             String groupName,
-            @Nullable Invocable<? super T> invocable
+            @Nullable Invocable<? extends T> invocable
     ) {
         this(
                 Span.singleton(Objects.requireNonNull(parents, "parents")),
@@ -81,7 +86,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
             Span<GroupBind<? super T, D>> parents,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             String groupName,
-            @Nullable Invocable<? super T> invocable
+            @Nullable Invocable<? extends T> invocable
     ) {
         this.parents = parents;
         this.serializationAdapter = serializationAdapter;
@@ -110,7 +115,11 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> combine(String groupName, Invocable<? super T> invocable, GroupBind<?, D>... parents) {
+    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> combine(
+            String groupName,
+            Invocable<? extends T> invocable,
+            GroupBind<?, D>... parents
+    ) {
         final GroupBind<?, D> rootParent = (GroupBind<?, D>) findRootParent(Polyfill.uncheckedCast(Arrays.asList(parents)));
 
         // god is never gonna forgive me for this
@@ -169,11 +178,15 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return subGroup(subGroupName, (Invocable<R>) null);
     }
 
+    public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Class<? extends T> type) {
+        return subGroup(subGroupName, Polyfill.<Invocable<R>>uncheckedCast(Invocable.ofConstructor(type)));
+    }
+
     public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Constructor<? extends T> type) {
         return subGroup(subGroupName, Polyfill.<Invocable<R>>uncheckedCast(Invocable.ofConstructor(type)));
     }
 
-    public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Invocable<? super R> constructor) {
+    public <R extends T> GroupBind<R, D> subGroup(String subGroupName, Invocable<? extends R> constructor) {
         final GroupBind<R, D> groupBind = new GroupBind<>(this, serializationAdapter, subGroupName, constructor);
         subgroups.add(groupBind);
         return groupBind;

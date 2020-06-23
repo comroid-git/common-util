@@ -1,10 +1,10 @@
-package org.comroid.common.ref;
+package org.comroid.util;
 
-import org.comroid.mutatio.ref.Reference;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Pair<A, B> {
-    protected final Reference.Settable<A> first;
-    protected final Reference.Settable<B> second;
+    protected final AtomicReference<A> first;
+    protected final AtomicReference<B> second;
 
     public A getFirst() {
         return first.get();
@@ -15,8 +15,8 @@ public class Pair<A, B> {
     }
 
     public Pair(A first, B second) {
-        this.first = Reference.Settable.create(first);
-        this.second = Reference.Settable.create(second);
+        this.first = new AtomicReference<>(first);
+        this.second = new AtomicReference<>(second);
     }
 
     @Override

@@ -1,13 +1,10 @@
-version = '0.10.1'
+version = '0.11.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
     projectDescription = "JVM Mutation Tools"
-}
-
-dependencies {
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"

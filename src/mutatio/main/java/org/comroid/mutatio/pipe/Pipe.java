@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,12 +56,16 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
         return addStage(StageAdapter.flatMap(mapper));
     }
 
-    default Pipe<O, O> distinct() {
-        return addStage(StageAdapter.distinct());
-    }
-
     default Pipe<O, O> peek(Consumer<? super O> action) {
         return addStage(StageAdapter.peek(action));
+    }
+
+    default void forEach(Consumer<? super O> action) {
+        addStage(StageAdapter.peek(action));
+    }
+
+    default Pipe<O, O> distinct() {
+        return addStage(StageAdapter.distinct());
     }
 
     default Pipe<O, O> limit(long maxSize) {
@@ -69,10 +74,6 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
 
     default Pipe<O, O> skip(long skip) {
         return addStage(StageAdapter.skip(skip));
-    }
-
-    default void forEach(Consumer<? super O> action) {
-        addStage(StageAdapter.peek(action));
     }
 
     default Pipe<O, O> sorted() {
@@ -90,7 +91,7 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
 
     @NotNull
     default Processor<O> findAny() {
-        return span().process();
+        return Processor.ofReference(Reference.conditional(() -> size() > 0, () -> get(0)));
     }
 
     @Override
@@ -103,6 +104,8 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
         return new BasicPump<>(executor, this.map(Polyfill::uncheckedCast));
     }
 
+    <X> BiPipe<O, X, O, X> bi(Function<O, X> mapper);
+
     @Override
     default void accept(I input) {
         add(getAdapter().apply(input));
@@ -110,5 +113,24 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
 
     default Span<O> span() {
         return new Span<>(this, Span.DefaultModifyPolicy.SKIP_NULLS);
+    }
+
+    default CompletableFuture<O> next() {
+        class OnceCompletingStage implements StageAdapter<O,O> {
+            private final CompletableFuture<O> future = new CompletableFuture<>();
+
+            @Override
+            public synchronized O apply(O it) {
+                if (!future.isDone())
+                    future.complete(it);
+                return null;
+            }
+        }
+
+        final OnceCompletingStage stage = new OnceCompletingStage();
+        final Pipe<O, O> resulting = addStage(stage);
+        stage.future.thenRun(resulting::close);
+
+        return stage.future;
     }
 }

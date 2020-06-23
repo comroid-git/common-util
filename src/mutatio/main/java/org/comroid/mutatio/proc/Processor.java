@@ -78,6 +78,12 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return new Support.ReferenceFlatMapped<>(this, mapper);
     }
 
+    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<R>> mapper) {
+        return flatMap(mapper
+                .andThen(Optional::get)
+                .andThen(Reference::constant));
+    }
+
     default Settable<T> snapshot() {
         return Settable.create(get());
     }

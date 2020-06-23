@@ -1,6 +1,6 @@
 package org.comroid.test.common.iter;
 
-import org.comroid.common.ref.Pair;
+import org.comroid.util.Pair;
 import org.comroid.mutatio.span.Span;
 import org.junit.Test;
 
