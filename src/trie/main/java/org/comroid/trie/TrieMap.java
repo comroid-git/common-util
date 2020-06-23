@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>> {
+public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>, Map<K, V> {
     Junction<K, String> getKeyConverter();
 
     @Override
@@ -39,6 +39,11 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
     }
 
     Stage<V> getStage(String key);
+
+    default V get(Object key) {
+        //noinspection unchecked
+        return getReference((K) key).get();
+    }
 
     final class Stage<V> implements Map.Entry<String, V> {
         private final Map<Character, Stage<V>> storage = new ConcurrentHashMap<>();
