@@ -21,7 +21,7 @@ public abstract class AbstractEventManager<I, T extends EventType<? super I, ? s
     @SafeVarargs
     public AbstractEventManager(EventManager<? super I, ? super T, ? super P>... parents) {
         if (parents.length == 0)
-            throw new IllegalArgumentException("Cannot define zero parents!");
+            throw new IllegalArgumentException("Cannot define zero parents using this constructor!");
 
         this.parents = Span.immutable(parents);
         this.listnr = this.parents.pipe()
