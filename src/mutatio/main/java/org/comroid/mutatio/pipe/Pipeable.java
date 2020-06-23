@@ -14,19 +14,11 @@ import static org.jetbrains.annotations.ApiStatus.OverrideOnly;
 public interface Pipeable<T> {
     Pipe<?, T> pipe();
 
-    @Deprecated
     default Pump<?, T> pump() {
         return pump(Runnable::run);
     }
 
-    @Deprecated
-    default Pump<?, T> pump(Executor executor) {
-        Executor exe = Stream.<Callable<Executor>>of(() -> executor, ((ExecutorBound) this)::getExecutor, () -> Runnable::run)
-                .map(FunctionUtil::executeRethrow)
-                .findAny()
-                .orElseThrow(AssertionError::new);
-        return pipe().pump(exe); //todo this will throw stackoverflow errors
-    }
+    Pump<?, T> pump(Executor executor);
 
     interface From<T> extends Pipeable<T> {
         @Override

@@ -40,7 +40,7 @@ public class TrieMapTest {
     // amount of calls made
     // multiplied by
     // 75 as the maximum average timeout
-    @Test(timeout = (TEST_SIZE / 50) * 75)
+    @Test(timeout = (TEST_SIZE / 50) * 150)
     public void testPerformance() {
         System.out.printf("Starting TrieMap performance test at %d with %d ms timeout\n", nanoTime(), (TEST_SIZE / 50) * 75);
 
@@ -60,6 +60,12 @@ public class TrieMapTest {
 
     private void assertions() {
         Assert.assertEquals(TEST_SIZE, trie.size());
+
+        final int equal = trie.biPipe()
+                .filter((str, id) -> id.toString().equals(str))
+                .span()
+                .size();
+        Assert.assertEquals(trie.size(), equal);
 
         ids.forEach(uuid -> {
             final String str = uuid.toString();

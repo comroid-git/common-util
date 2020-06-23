@@ -3,6 +3,8 @@ package org.comroid.trie;
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
+import org.comroid.mutatio.ref.ReferenceMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface TrieMap<K, V> extends Map<K, V> {
+public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>, Map<K, V> {
     Junction<K, String> getKeyConverter();
 
     @Override
@@ -38,6 +40,11 @@ public interface TrieMap<K, V> extends Map<K, V> {
     }
 
     Stage<V> getStage(String key);
+
+    default V get(Object key) {
+        //noinspection unchecked
+        return getReference((K) key).get();
+    }
 
     final class Stage<V> implements Map.Entry<String, V> {
         private final Map<Character, Stage<V>> storage = new ConcurrentHashMap<>();
@@ -90,12 +97,12 @@ public interface TrieMap<K, V> extends Map<K, V> {
             );
         }
 
-        private Optional<V> getValue(char[] chars, int cIndex) {
+        private Optional<Reference.Settable<V>> getReference(char[] chars, int cIndex) {
             if (cIndex >= chars.length)
-                return reference.wrap();
+                return Optional.of(reference);
 
-            return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
-                    .flatMap(stage -> stage.getValue(chars, cIndex + 1));
+            return getStageByChar(chars[cIndex])
+                    .flatMap(stage -> stage.getReference(chars, cIndex + 1));
         }
 
         private Optional<V> putValue(char[] chars, int cIndex, @Nullable V value) {
@@ -103,7 +110,7 @@ public interface TrieMap<K, V> extends Map<K, V> {
                 return Optional.ofNullable(setValue(value));
 
             // expect existing stages
-            return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
+            return getStageByChar(chars[cIndex])
                     .flatMap(stage -> stage.putValue(chars, cIndex + 1, value));
         }
 
@@ -111,7 +118,7 @@ public interface TrieMap<K, V> extends Map<K, V> {
             if (cIndex >= chars.length)
                 return Optional.ofNullable(remove());
 
-            return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
+            return getStageByChar(chars[cIndex])
                     .flatMap(stage -> stage.remove(chars, cIndex));
         }
 
@@ -119,18 +126,23 @@ public interface TrieMap<K, V> extends Map<K, V> {
             if (cIndex >= chars.length)
                 return false;
 
-            return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
+            return getStageByChar(chars[cIndex])
                     .map(stage -> stage.containsKey(chars, cIndex + 1))
                     .orElse(false);
         }
 
-        private Stage<V> requireStage(char[] chars, int cIndex) {
+        public Stage<V> requireStage(char[] chars, int cIndex) {
             if (cIndex < chars.length) {
                 return storage.computeIfAbsent(chars[cIndex], key -> {
                     String converted = new String(Arrays.copyOfRange(chars, 0, cIndex + 1));
                     return new Stage<>(converted);
                 }).requireStage(chars, cIndex + 1);
             } else return this;
+        }
+
+        @NotNull
+        public Optional<Stage<V>> getStageByChar(char aChar) {
+            return Optional.ofNullable(storage.getOrDefault(aChar, null));
         }
     }
 
@@ -175,13 +187,58 @@ public interface TrieMap<K, V> extends Map<K, V> {
         }
 
         @Override
-        public V get(Object key) {
+        public Reference.Settable<V> getReference(K key, boolean createIfAbsent) {
             final char[] convertKey = convertKey(key);
 
             if (convertKey.length == 0)
-                return null;
+                return Reference.Settable.create();
 
-            return baseStage.getValue(convertKey, 0).orElse(null);
+            return baseStage.getReference(convertKey, 0)
+                    .orElseGet(Reference.Settable::create);
+        }
+
+        @Override
+        public ReferenceIndex<Entry<K, V>> entryIndex() {
+            class RemoteIndex implements ReferenceIndex<Entry<K, V>> {
+                private final ArrayList<Entry<K, V>> entries = new ArrayList<>(entrySet());
+
+                @Override
+                public List<Entry<K, V>> unwrap() {
+                    return entries;
+                }
+
+                @Override
+                public int size() {
+                    return entries.size();
+                }
+
+                @Override
+                public boolean add(Entry<K, V> entry) {
+                    Basic.this.put(entry.getKey(), entry.getValue());
+                    return Basic.this.containsKey(entry.getKey());
+                }
+
+                @Override
+                public boolean remove(Entry<K, V> entry) {
+                    Basic.this.remove(entry.getKey());
+                    return !Basic.this.containsKey(entry.getKey());
+                }
+
+                @Override
+                public void clear() {
+                    Basic.this.clear();
+                }
+
+                @Override
+                public Reference<Entry<K, V>> getReference(int index) {
+                    return Reference.conditional(
+                            () -> entries.size() < index,
+                            () -> entries.get(index)
+                    );
+                }
+            }
+
+            return new RemoteIndex();
         }
 
         @Nullable
