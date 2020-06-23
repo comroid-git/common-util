@@ -1,49 +1,21 @@
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/comroid-git/common-util) 
 
-# comroid polyfills
+## Space Repository
 
-### spellbind (Gradle)
-```groovy
-// using JetBrains Space repository
-    repositories {
-        maven {
-            url "https://maven.jetbrains.space/comroid/repo"
-            credentials.username "Anonymous.User"
-            credentials.password "anonymous"
-        }
-    }
-
-    dependencies {
-        implementation 'org.comroid:common-util-spellbind:0.10.0'
-    }
-
-// using mavenCentral repository
-	repositories.jcenter()
-
-	dependencies {
-    	implementation 'org.comroid:common-util-spellbind:0.10.0'
-	}
+### Credentials
+```
+Username: Anonymous.User
+Password: anonymous
 ```
 
-### trie (Gradle)
+### [Maven Repository](https://comroid.jetbrains.space/packages/maven/release): `https://maven.jetbrains.space/comroid/release`
+#### Gradle
 ```groovy
-// using JetBrains Space repository
-    repositories {
-        maven {
-            url "https://maven.jetbrains.space/comroid/repo"
-            credentials.username "Anonymous.User"
-            credentials.password "anonymous"
-        }
+repositories {
+    maven {
+        url "https://maven.jetbrains.space/comroid/release"
+        credentials.username "Anonymous.User"
+        credentials.password "anonymous"
     }
-
-    dependencies {
-        implementation 'org.comroid:common-util-trie:1.0.0'
-    }
-
-// using mavenCentral repository
-	repositories.jcenter()
-
-	dependencies {
-    	implementation 'org.comroid:common-util-trie:1.0.0'
-	}
+}
 ```
