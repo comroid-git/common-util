@@ -200,16 +200,14 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         @Override
         public ReferenceIndex<Entry<K, V>> entryIndex() {
             class RemoteIndex implements ReferenceIndex<Entry<K, V>> {
-                private final ArrayList<Entry<K, V>> entries = new ArrayList<>(entrySet());
-
                 @Override
                 public List<Entry<K, V>> unwrap() {
-                    return entries;
+                    return new ArrayList<>(entrySet());
                 }
 
                 @Override
                 public int size() {
-                    return entries.size();
+                    return Basic.this.size();
                 }
 
                 @Override
@@ -232,8 +230,8 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
                 @Override
                 public Reference<Entry<K, V>> getReference(int index) {
                     return Reference.conditional(
-                            () -> entries.size() < index,
-                            () -> entries.get(index)
+                            () -> Basic.this.size() < index,
+                            () -> unwrap().get(index)
                     );
                 }
             }
