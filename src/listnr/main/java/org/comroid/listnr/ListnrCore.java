@@ -7,7 +7,6 @@ import org.comroid.mutatio.pump.BasicPump;
 import org.comroid.mutatio.pump.Pump;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.trie.TrieMap;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.util.Map;
@@ -26,7 +25,7 @@ public final class ListnrCore {
     @Internal
     <I, P extends EventPayload> Pipe<?, P> eventPipe(
             EventType<I, P> eventType,
-            EventManager<I, EventType<I, P>, ? super P> target
+            AbstractEventManager<I, EventType<I, P>, ? super P> target
     ) {
         return computePipe(eventType, target).pipe();
     }
@@ -34,7 +33,7 @@ public final class ListnrCore {
     @Internal
     <I, P extends EventPayload> void publish(
             EventType<I, P> eventType,
-            EventManager<I, EventType<I, P>, ? super P> target,
+            AbstractEventManager<I, EventType<I, P>, ? super P> target,
             I payloadInput
     ) {
         computePipe(eventType, target)
@@ -45,7 +44,7 @@ public final class ListnrCore {
     @Internal
     <I, P extends EventPayload> PipeContainer<I, P> computePipe(
             EventType<I, P> eventType,
-            EventManager<I, EventType<I, P>, ? super P> target
+            AbstractEventManager<I, EventType<I, P>, ? super P> target
     ) {
         return Polyfill.uncheckedCast(pipes.computeIfAbsent(
                 target.getUUID() + eventType.getName(),

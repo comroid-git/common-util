@@ -4,7 +4,7 @@ import com.google.common.flogger.FluentLogger;
 import org.comroid.api.UUIDContainer;
 import org.comroid.dreadpool.loop.Infinite;
 import org.comroid.dreadpool.loop.manager.LoopManager;
-import org.comroid.listnr.EventManager;
+import org.comroid.listnr.AbstractEventManager;
 import org.comroid.listnr.ListnrCore;
 import org.comroid.mutatio.span.Span;
 import org.comroid.restless.socket.event.WebSocketEvent;
@@ -23,12 +23,10 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public final class WebSocketServer extends UUIDContainer
-        implements EventManager<WebSocketData, WebSocketEvent<WebSocketPayload.Data>, WebSocketPayload.Data> {
+public final class WebSocketServer extends AbstractEventManager<WebSocketData, WebSocketEvent<WebSocketPayload.Data>, WebSocketPayload.Data> {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final Executor executor;
-    private final ListnrCore listnrCore;
     private final Consumer<SocketHandler> additionalSocketHandler;
     private final ServerSocket socket;
     private final Span<SocketHandler> handlers = new Span<>();
@@ -50,18 +48,14 @@ public final class WebSocketServer extends UUIDContainer
             InetAddress adress,
             int port
     ) throws IOException {
+        super(new ListnrCore(executor));
+
         this.seriLib = serializationAdapter;
         this.executor = executor;
-        this.listnrCore = new ListnrCore(executor);
         this.additionalSocketHandler = additionalSocketHandler;
         this.socket = new ServerSocket(port, 0, adress);
 
         executor.execute(new SocketAcceptor());
-    }
-
-    @Override
-    public ListnrCore listnr() {
-        return listnrCore;
     }
 
     public void broadcast(UniNode data) {
@@ -69,7 +63,7 @@ public final class WebSocketServer extends UUIDContainer
     }
 
     @SuppressWarnings("FieldCanBeLocal")
-    public final class SocketHandler extends UUIDContainer {
+    public final class SocketHandler extends AbstractEventManager<WebSocketData, WebSocketEvent<WebSocketPayload.Data>, WebSocketPayload.Data> {
         private final Socket socket;
         private final LoopManager loopManager;
         private final Queue<String> messageQueue = new LinkedBlockingQueue<>();
@@ -123,6 +117,8 @@ public final class WebSocketServer extends UUIDContainer
         }
 
         public SocketHandler(Socket socket) {
+            super(WebSocketServer.this);
+
             this.socket = socket;
             this.loopManager = LoopManager.start(2);
 
