@@ -7,6 +7,8 @@ import org.comroid.mutatio.pump.BasicPump;
 import org.comroid.mutatio.pump.Pump;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.trie.TrieMap;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -21,14 +23,16 @@ public final class ListnrCore {
         this.executor = executor;
     }
 
-    public <I, P extends EventPayload> Pipe<?, P> eventPipe(
+    @Internal
+    <I, P extends EventPayload> Pipe<?, P> eventPipe(
             EventType<I, P> eventType,
             EventManager<I, EventType<I, P>, ? super P> target
     ) {
         return computePipe(eventType, target).pipe();
     }
 
-    public <I, P extends EventPayload> void publish(
+    @Internal
+    <I, P extends EventPayload> void publish(
             EventType<I, P> eventType,
             EventManager<I, EventType<I, P>, ? super P> target,
             I payloadInput
@@ -38,7 +42,8 @@ public final class ListnrCore {
                 .accept(payloadInput);
     }
 
-    private <I, P extends EventPayload> PipeContainer<I, P> computePipe(
+    @Internal
+    <I, P extends EventPayload> PipeContainer<I, P> computePipe(
             EventType<I, P> eventType,
             EventManager<I, EventType<I, P>, ? super P> target
     ) {
