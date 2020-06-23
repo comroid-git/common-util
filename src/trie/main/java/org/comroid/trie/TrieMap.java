@@ -199,43 +199,6 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
         @Override
         public ReferenceIndex<Entry<K, V>> entryIndex() {
-            class RemoteIndex implements ReferenceIndex<Entry<K, V>> {
-                @Override
-                public List<Entry<K, V>> unwrap() {
-                    return new ArrayList<>(entrySet());
-                }
-
-                @Override
-                public int size() {
-                    return Basic.this.size();
-                }
-
-                @Override
-                public boolean add(Entry<K, V> entry) {
-                    Basic.this.put(entry.getKey(), entry.getValue());
-                    return Basic.this.containsKey(entry.getKey());
-                }
-
-                @Override
-                public boolean remove(Entry<K, V> entry) {
-                    Basic.this.remove(entry.getKey());
-                    return !Basic.this.containsKey(entry.getKey());
-                }
-
-                @Override
-                public void clear() {
-                    Basic.this.clear();
-                }
-
-                @Override
-                public Reference<Entry<K, V>> getReference(int index) {
-                    return Reference.conditional(
-                            () -> Basic.this.size() < index,
-                            () -> unwrap().get(index)
-                    );
-                }
-            }
-
             return new RemoteIndex();
         }
 
@@ -299,6 +262,43 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             return useKeyCache
                     ? cachedKeys.computeIfAbsent(keyCast, it -> getKeyConverter().forward(it))
                     : getKeyConverter().forward(keyCast);
+        }
+
+        private final class RemoteIndex implements ReferenceIndex<Entry<K, V>> {
+            @Override
+            public List<Entry<K, V>> unwrap() {
+                return new ArrayList<>(entrySet());
+            }
+
+            @Override
+            public int size() {
+                return Basic.this.size();
+            }
+
+            @Override
+            public boolean add(Entry<K, V> entry) {
+                Basic.this.put(entry.getKey(), entry.getValue());
+                return Basic.this.containsKey(entry.getKey());
+            }
+
+            @Override
+            public boolean remove(Entry<K, V> entry) {
+                Basic.this.remove(entry.getKey());
+                return !Basic.this.containsKey(entry.getKey());
+            }
+
+            @Override
+            public void clear() {
+                Basic.this.clear();
+            }
+
+            @Override
+            public Reference<Entry<K, V>> getReference(int index) {
+                return Reference.conditional(
+                        () -> Basic.this.size() < index,
+                        () -> unwrap().get(index)
+                );
+            }
         }
     }
 }
