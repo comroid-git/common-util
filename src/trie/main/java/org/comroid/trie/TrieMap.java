@@ -199,7 +199,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
         @Override
         public ReferenceIndex<Entry<K, V>> entryIndex() {
-            return new RemoteIndex();
+            return new EntryIndex();
         }
 
         @Nullable
@@ -264,7 +264,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
                     : getKeyConverter().forward(keyCast);
         }
 
-        private final class RemoteIndex implements ReferenceIndex<Entry<K, V>> {
+        private final class EntryIndex implements ReferenceIndex<Entry<K, V>> {
             @Override
             public List<Entry<K, V>> unwrap() {
                 return new ArrayList<>(entrySet());
