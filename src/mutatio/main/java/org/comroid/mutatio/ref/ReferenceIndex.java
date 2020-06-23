@@ -1,5 +1,6 @@
 package org.comroid.mutatio.ref;
 
+import org.comroid.mutatio.pipe.BasicPipe;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.Pipeable;
 import org.comroid.mutatio.pump.BasicPump;
@@ -9,6 +10,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface ReferenceIndex<T> extends Pipeable<T> {
@@ -57,7 +62,9 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
     }
 
     @Override
-    Pipe<?, T> pipe();
+    default Pipe<?, T> pipe() {
+        return new BasicPipe<>(this);
+    }
 
     @Override
     default Pump<?, T> pump(Executor executor) {
