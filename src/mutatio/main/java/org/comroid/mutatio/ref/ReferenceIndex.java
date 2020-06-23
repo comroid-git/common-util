@@ -2,10 +2,13 @@ package org.comroid.mutatio.ref;
 
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.Pipeable;
+import org.comroid.mutatio.pump.BasicPump;
+import org.comroid.mutatio.pump.Pump;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
 public interface ReferenceIndex<T> extends Pipeable<T> {
@@ -55,6 +58,11 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
 
     @Override
     Pipe<?, T> pipe();
+
+    @Override
+    default Pump<?, T> pump(Executor executor) {
+        return new BasicPump<>(executor, this);
+    }
 
     Reference<T> getReference(int index);
 
