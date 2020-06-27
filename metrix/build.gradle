@@ -1,0 +1,15 @@
+version = '0.10.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    projectDescription = "Metric and Unit library"
+}
+
+dependencies {
+    api project(':common-util')
+    api project(':mutatio')
+}
+
+apply from: "$rootDir/gradle/publishing.gradle"

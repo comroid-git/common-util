@@ -1,7 +1,5 @@
 package org.comroid.listnr;
 
-import org.comroid.common.ref.Named;
-
 import java.util.function.Function;
 import java.util.function.Predicate;
 
