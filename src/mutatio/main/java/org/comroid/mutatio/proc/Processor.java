@@ -106,11 +106,11 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        private static final class Remapped<T, R> implements Processor<R> {
+        public static final class Remapped<T, R> implements Processor<R> {
             private final Reference<T> underlying;
             private final Function<? super T, ? extends R> remapper;
 
-            private Remapped(Processor<T> base, Function<? super T, ? extends R> remapper) {
+            public Remapped(Reference<T> base, Function<? super T, ? extends R> remapper) {
                 this.underlying = base;
                 this.remapper = remapper;
             }
@@ -127,11 +127,11 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        private static final class Filtered<T> implements Processor<T> {
-            private final Processor<T> underlying;
+        public static final class Filtered<T> implements Processor<T> {
+            private final Reference<T> underlying;
             private final Predicate<? super T> predicate;
 
-            private Filtered(Processor<T> underlying, Predicate<? super T> predicate) {
+            public Filtered(Reference<T> underlying, Predicate<? super T> predicate) {
                 this.underlying = underlying;
                 this.predicate = predicate;
             }

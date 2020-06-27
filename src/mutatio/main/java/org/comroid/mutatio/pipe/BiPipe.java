@@ -1,7 +1,7 @@
 package org.comroid.mutatio.pipe;
 
-import org.comroid.util.Pair;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.util.Pair;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
