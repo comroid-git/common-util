@@ -63,7 +63,7 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, D
     }
 
     default void forEach(Consumer<? super O> action) {
-        addStage(StageAdapter.peek(action));
+        addStage(StageAdapter.peek(action)).unwrap();
     }
 
     default Pipe<O, O> distinct() {
