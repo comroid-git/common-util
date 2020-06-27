@@ -45,9 +45,7 @@ public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeF
     @Nullable
     V computeIfAbsent(String coordinate, Function<? super String, ? extends V> supplier);
 
-    default boolean isNull(String coordinate) {
-        return getEntryAt(coordinate, null).isNull();
-    }
+    boolean isNull(String coordinate);
 
     @NotNull
     E getEntryAt(String coordinate, @Nullable V initialValue);

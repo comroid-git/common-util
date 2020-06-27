@@ -15,36 +15,25 @@ public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>
         return new Builder<X, Y, Z, V>(TrieMap.ofString()).build();
     }
 
-    default boolean containsKey(X x, Y y, Z z) {
-        return containsCoordinate(generateCoordinate(x, y, z));
-    }
+    boolean containsKey(X x, Y y, Z z);
 
-    default boolean isNull(X x, Y y, Z z) {
-        return isNull(generateCoordinate(x, y, z));
-    }
+    boolean isNull(X x, Y y, Z z);
 
-    default V get(X x, Y y, Z z) {
-        return get(generateCoordinate(x, y, z));
-    }
+    V get(X x, Y y, Z z);
 
-    default V put(X x, Y y, Z z, V value) {
-        return put(generateCoordinate(x, y, z), value);
-    }
+    V put(X x, Y y, Z z, V value);
 
-    default V compute(X x, Y y, Z z, BiFunction<String, ? super V, ? extends V> computor) {
-        return compute(generateCoordinate(x, y, z), computor);
-    }
+    V compute(X x, Y y, Z z, BiFunction<String, ? super V, ? extends V> computor);
 
-    default V computeIfPresent(X x, Y y, Z z, BiFunction<String, ? super V, ? extends V> computor) {
-        return computeIfPresent(generateCoordinate(x, y, z), computor);
-    }
+    V computeIfPresent(X x, Y y, Z z, BiFunction<String, ? super V, ? extends V> computor);
 
-    default V computeIfAbsent(X x, Y y, Z z, Function<? super String, ? extends V> supplier) {
-        return computeIfAbsent(generateCoordinate(x, y, z), supplier);
-    }
+    V computeIfAbsent(X x, Y y, Z z, Function<? super String, ? extends V> supplier);
 
-    default String generateCoordinate(X x, Y y, Z z) {
-        return String.format("%s-%s-%s", x, y, z);
+    String generateCoordinate(X x, Y y, Z z);
+
+    @Override
+    default boolean isNull(String coordinate) {
+        return getEntryAt(coordinate, null).isNull();
     }
 
     interface Entry<X, Y, Z, V> extends Matrix.Entry<V> {

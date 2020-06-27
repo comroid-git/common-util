@@ -92,4 +92,9 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
     public Iterator<E> iterator() {
         return entries.values().iterator();
     }
+
+    @Override
+    public boolean isNull(String coordinate) {
+        return getEntryAt(coordinate, null).isNull();
+    }
 }
