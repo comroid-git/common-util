@@ -1,12 +1,8 @@
 package org.comroid.metrix;
 
-import org.comroid.api.DoubleEnum;
-import org.comroid.common.ref.Named;
+import java.util.Optional;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
-public enum SIUnit implements DoubleEnum, Named {
+public enum SIUnit implements MultiplierUnit {
     YOTTA("Y", 24),
     ZETTA("Z", 21),
     EXA("E", 18),
@@ -66,11 +62,15 @@ public enum SIUnit implements DoubleEnum, Named {
         return String.format("SIUnit{multiplier=0x%s}", Double.toHexString(multiplier));
     }
 
-    public double convertTo(SIUnit si, double input) {
-        final double siValue = si.getValue();
+    public Optional<SIUnit> above() {
+        final int ordinal = ordinal();
+        return ordinal > 0 ? Optional.of(values()[ordinal - 1]) : Optional.empty();
+    }
 
-        if (siValue == multiplier)
-            return input;
-        return (max(siValue, multiplier) / min(siValue, multiplier)) * input;
+    public Optional<SIUnit> below() {
+        final int ordinal = ordinal();
+        final SIUnit[] values = values();
+
+        return ordinal < values.length ? Optional.of(values[ordinal + 1]) : Optional.empty();
     }
 }
