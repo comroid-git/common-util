@@ -59,7 +59,7 @@ public enum SIUnit implements MultiplierUnit {
 
     @Override
     public String toString() {
-        return String.format("SIUnit{multiplier=0x%s}", Double.toHexString(multiplier));
+        return String.format("SIUnit{multiplier=%s}", Double.toHexString(multiplier));
     }
 
     public Optional<SIUnit> above() {

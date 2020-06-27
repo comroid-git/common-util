@@ -13,7 +13,7 @@ public class SITest {
     public void test() {
         Pipe.of(Arrays.asList(SIUnit.values()))
                 .bi(si -> Meter.of(5, si))
-                .peek((si, len) -> System.out.printf("Testing unit %s with %s", si, len))
+                .peek((si, len) -> System.out.printf("Testing unit %s with %s\n", si, len))
                 .forEach((si, meter) -> {
                     si.above().map(unit -> si.convertTo(unit, 5))
                             .ifPresent(expected -> Assert.assertEquals(expected, meter
