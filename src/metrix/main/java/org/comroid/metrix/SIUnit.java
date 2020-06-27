@@ -7,31 +7,32 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 public enum SIUnit implements DoubleEnum, Named {
-    YOTTA(24),
-    ZETTA(21),
-    EXA(18),
-    PETA(15),
-    TERA(12),
-    GIGA(9),
-    MEGA(6),
-    KILO(3),
-    HEKTO(2),
-    DEKA(1),
+    YOTTA("Y", 24),
+    ZETTA("Z", 21),
+    EXA("E", 18),
+    PETA("P", 15),
+    TERA("T", 12),
+    GIGA("G", 9),
+    MEGA("M", 6),
+    KILO("k", 3),
+    HEKTO("h", 2),
+    DEKA("da", 1),
 
-    ONE(0),
+    ONE("", 0),
 
-    DECI(-1),
-    CENTI(-2),
-    MILLI(-3),
-    MICRO(-6),
-    NANO(-9),
-    PIKO(-12),
-    FEMTO(-15),
-    ATTO(-18),
-    ZEPTO(-21),
-    YOKTO(-24);
+    DECI("d", -1),
+    CENTI("c", -2),
+    MILLI("m", -3),
+    MICRO("µ", -6),
+    NANO("n", -9),
+    PIKO("p", -12),
+    FEMTO("f", -15),
+    ATTO("a", -18),
+    ZEPTO("z", -21),
+    YOKTO("y", -24);
 
     private final double multiplier;
+    private final String shorthand;
     private final int power;
 
     public int getPower() {
@@ -49,7 +50,13 @@ public enum SIUnit implements DoubleEnum, Named {
         return name.charAt(0) + name.substring(1).toLowerCase();
     }
 
-    SIUnit(int pow) {
+    @Override
+    public String getAlternateFormattedName() {
+        return shorthand;
+    }
+
+    SIUnit(String shorthand, int pow) {
+        this.shorthand = shorthand;
         this.power = pow;
         this.multiplier = Math.pow(10, pow);
     }
