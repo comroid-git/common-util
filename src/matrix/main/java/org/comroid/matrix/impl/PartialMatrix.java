@@ -1,6 +1,7 @@
 package org.comroid.matrix.impl;
 
 import org.comroid.matrix.Matrix;
+import org.comroid.spellbind.model.TypeFragment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +20,8 @@ public final class PartialMatrix<V, E extends Matrix.Entry<V>> extends AbstractM
         throw new UnsupportedOperationException("Cannot create entries");
     }
 
-    public interface TwoDim<X, Y, V> {
+    public interface TwoDim<X, Y, V, E extends Matrix.Entry<V>>
+            extends TypeFragment<Matrix<V, E>> {
         boolean containsKey(X x, Y y);
 
         boolean isNull(X x, Y y);
@@ -37,7 +39,8 @@ public final class PartialMatrix<V, E extends Matrix.Entry<V>> extends AbstractM
         String generateCoordinate(X x, Y y);
     }
 
-    public interface ThreeDim<X, Y, Z, V> {
+    public interface ThreeDim<X, Y, Z, V, E extends Matrix.Entry<V>>
+            extends TypeFragment<Matrix<V, E>> {
         boolean containsKey(X x, Y y, Z z);
 
         boolean isNull(X x, Y y, Z z);

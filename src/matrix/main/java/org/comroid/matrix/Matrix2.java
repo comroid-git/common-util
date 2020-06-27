@@ -9,9 +9,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>>, PartialMatrix.TwoDim<X, Y, V> {
+public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>>, PartialMatrix.TwoDim<X, Y, V, Matrix2.Entry<X, Y, V>> {
     static <X, Y, V> Matrix2<X, Y, V> create() {
         return new Builder<X, Y, V>(TrieMap.ofString()).build();
+    }
+
+    static <X, Y, V> Matrix2<X, Y, V> using(PartialMatrix.TwoDim<X, Y, V, Matrix2.Entry<X, Y, V>> capability) {
+        return SpellCore.<Matrix2<X, Y, V>>builder(
+                Polyfill.uncheckedCast(Matrix2.class),
+                capability
+        )
+                .addFragment(Matrix.fragmentProvider())
+                .build();
     }
 
     @Override

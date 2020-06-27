@@ -9,9 +9,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>>, PartialMatrix.ThreeDim<X, Y, Z, V> {
+public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>>, PartialMatrix.ThreeDim<X, Y, Z, V, Matrix3.Entry<X, Y, Z, V>> {
     static <X, Y, Z, V> Matrix3<X, Y, Z, V> create() {
         return new Builder<X, Y, Z, V>(TrieMap.ofString()).build();
+    }
+
+    static <X, Y, Z, V> Matrix3<X, Y, Z, V> using(PartialMatrix.ThreeDim<X, Y, Z, V, Matrix3.Entry<X, Y, Z, V>> capability) {
+        return SpellCore.<Matrix3<X, Y, Z, V>>builder(
+                Polyfill.uncheckedCast(Matrix3.class),
+                capability
+        )
+                .addFragment(Matrix.fragmentProvider())
+                .build();
     }
 
     interface Entry<X, Y, Z, V> extends Matrix.Entry<V> {
