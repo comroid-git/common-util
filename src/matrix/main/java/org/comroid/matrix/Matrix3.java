@@ -2,38 +2,16 @@ package org.comroid.matrix;
 
 import org.comroid.api.Polyfill;
 import org.comroid.matrix.impl.MatrixCapability;
+import org.comroid.matrix.impl.PartialMatrix;
 import org.comroid.spellbind.SpellCore;
 import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
-public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>> {
+public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>>, PartialMatrix.ThreeDim<X, Y, Z, V> {
     static <X, Y, Z, V> Matrix3<X, Y, Z, V> create() {
         return new Builder<X, Y, Z, V>(TrieMap.ofString()).build();
-    }
-
-    boolean containsKey(X x, Y y, Z z);
-
-    boolean isNull(X x, Y y, Z z);
-
-    V get(X x, Y y, Z z);
-
-    V put(X x, Y y, Z z, V value);
-
-    V compute(X x, Y y, Z z, BiFunction<String, ? super V, ? extends V> computor);
-
-    V computeIfPresent(X x, Y y, Z z, BiFunction<String, ? super V, ? extends V> computor);
-
-    V computeIfAbsent(X x, Y y, Z z, Function<? super String, ? extends V> supplier);
-
-    String generateCoordinate(X x, Y y, Z z);
-
-    @Override
-    default boolean isNull(String coordinate) {
-        return getEntryAt(coordinate, null).isNull();
     }
 
     interface Entry<X, Y, Z, V> extends Matrix.Entry<V> {

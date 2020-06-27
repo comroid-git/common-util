@@ -2,34 +2,17 @@ package org.comroid.matrix;
 
 import org.comroid.api.Polyfill;
 import org.comroid.matrix.impl.MatrixCapability;
+import org.comroid.matrix.impl.PartialMatrix;
 import org.comroid.spellbind.SpellCore;
 import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
-public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>> {
+public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>>, PartialMatrix.TwoDim<X, Y, V> {
     static <X, Y, V> Matrix2<X, Y, V> create() {
         return new Builder<X, Y, V>(TrieMap.ofString()).build();
     }
-
-    boolean containsKey(X x, Y y);
-
-    boolean isNull(X x, Y y);
-
-    V get(X x, Y y);
-
-    V put(X x, Y y, V value);
-
-    V compute(X x, Y y, BiFunction<String, ? super V, ? extends V> computor);
-
-    V computeIfPresent(X x, Y y, BiFunction<String, ? super V, ? extends V> computor);
-
-    V computeIfAbsent(X x, Y y, Function<String, ? extends V> supplier);
-
-    String generateCoordinate(X x, Y y);
 
     @Override
     default boolean isNull(String coordinate) {
@@ -37,10 +20,8 @@ public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>> {
     }
 
     interface Entry<X, Y, V> extends Matrix.Entry<V> {
-        @Nullable
         X getX();
 
-        @Nullable
         Y getY();
     }
 
