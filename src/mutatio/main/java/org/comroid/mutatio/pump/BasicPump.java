@@ -2,6 +2,7 @@ package org.comroid.mutatio.pump;
 
 import org.comroid.mutatio.pipe.BasicPipe;
 import org.comroid.mutatio.pipe.StageAdapter;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 
 import java.util.ArrayList;
@@ -43,12 +44,13 @@ public class BasicPump<O, T> extends BasicPipe<O, T> implements Pump<O, T> {
     }
 
     @Override
-    public void accept(O it) {
-        refs.add(it);
+    public void accept(Reference<O> in) {
+        final O item = in.get();
+        refs.add(item);
 
-        final T subData = getAdapter().apply(it);
+        final Reference<T> out = getAdapter().advance(in);
 
-        if (getAdapter().test(it))
-            executor.execute(() -> subStages.forEach(sub -> sub.accept(subData)));
+        if (item != null)
+            executor.execute(() -> subStages.forEach(sub -> sub.accept(out)));
     }
 }

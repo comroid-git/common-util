@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
+public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, Disposable {
     StageAdapter<I, O> getAdapter();
 
     default boolean isSorted() {
@@ -32,7 +32,9 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
 
     static <T> Pipe<T, T> of(Collection<T> collection) {
         final Pipe<T, T> pipe = create();
-        collection.forEach(pipe);
+        collection.stream()
+                .map(Reference::constant)
+                .forEach(pipe);
 
         return pipe;
     }
@@ -61,7 +63,7 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
     }
 
     default void forEach(Consumer<? super O> action) {
-        addStage(StageAdapter.peek(action));
+        addStage(StageAdapter.peek(action)).unwrap();
     }
 
     default Pipe<O, O> distinct() {
@@ -106,9 +108,12 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
 
     <X> BiPipe<O, X, O, X> bi(Function<O, X> mapper);
 
+    /**
+     * Only meant for use from a {@link Pump} instance.
+     */
     @Override
-    default void accept(I input) {
-        add(getAdapter().apply(input));
+    default void accept(Reference<I> input) {
+        throw new UnsupportedOperationException("Method #accept is only meant for use from a Pump instance");
     }
 
     default Span<O> span() {
@@ -116,14 +121,14 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<I>, Disposable {
     }
 
     default CompletableFuture<O> next() {
-        class OnceCompletingStage implements StageAdapter<O,O> {
+        class OnceCompletingStage implements StageAdapter<O, O> {
             private final CompletableFuture<O> future = new CompletableFuture<>();
 
             @Override
-            public synchronized O apply(O it) {
-                if (!future.isDone())
-                    future.complete(it);
-                return null;
+            public Reference<O> advance(Reference<O> ref) {
+                if (!ref.isNull() && !future.isDone())
+                    future.complete(ref.get());
+                return Reference.empty();
             }
         }
 

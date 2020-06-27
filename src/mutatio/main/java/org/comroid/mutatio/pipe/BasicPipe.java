@@ -81,8 +81,8 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     }
 
     @Override
-    public void accept(O other) {
-        refs.add(other);
+    public void accept(Reference<O> other) {
+        refs.add(other.get());
     }
 
     @Override
@@ -92,10 +92,6 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
 
     @Override
     public Reference<T> getReference(int index) {
-        return accessors.computeIfAbsent(index, key -> Reference.conditional(
-                () -> (index >= 0 || refs.size() >= index)
-                        && adapter.test(refs.get(index)),
-                () -> adapter.apply(refs.get(index))
-        ));
+        return accessors.computeIfAbsent(index, key -> adapter.advance(refs.getReference(index)));
     }
 }

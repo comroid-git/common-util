@@ -3,10 +3,10 @@ package org.comroid.mutatio.pump;
 import org.comroid.api.ExecutorBound;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.StageAdapter;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
@@ -20,7 +20,9 @@ public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
 
     static <T> Pump<?, T> of(Collection<T> collection) {
         final Pump<T, T> pump = create();
-        collection.forEach(pump);
+        collection.stream()
+                .map(Reference::constant)
+                .forEach(pump);
 
         return pump;
     }
