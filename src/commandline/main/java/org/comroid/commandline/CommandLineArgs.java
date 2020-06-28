@@ -1,15 +1,16 @@
 package org.comroid.commandline;
 
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.ref.ReferenceMap;
+import org.comroid.trie.TrieMap;
 
-import java.util.Collections;
 import java.util.Map;
 
 public final class CommandLineArgs implements ReferenceMap<String, String, Reference<String>> {
-    private final Map<String, Reference<String>> values;
+    private final TrieMap<String, String> values;
 
-    private CommandLineArgs(Map<String, Reference<String>> values) {
+    private CommandLineArgs(TrieMap<String, String> values) {
         this.values = values;
     }
 
@@ -20,7 +21,7 @@ public final class CommandLineArgs implements ReferenceMap<String, String, Refer
             parser.append(args[i]);
         }
 
-        return new CommandLineArgs(Collections.unmodifiableMap(parser.yields));
+        return new CommandLineArgs(parser.yields);
     }
 
     public boolean hasFlag(char c) {
@@ -33,8 +34,11 @@ public final class CommandLineArgs implements ReferenceMap<String, String, Refer
 
     @Override
     public Reference<String> getReference(String key, boolean createIfAbsent) {
-        return createIfAbsent
-                ? values.computeIfAbsent(key, k -> Reference.empty())
-                : values.getOrDefault(key, Reference.empty());
+        return values.getReference(key, createIfAbsent);
+    }
+
+    @Override
+    public ReferenceIndex<Map.Entry<String, String>> entryIndex() {
+        return values.entryIndex();
     }
 }

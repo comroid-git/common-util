@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 
 public class BlockParser {
-    public final Map<String, Reference.Settable<String>> yields = TrieMap.ofString();
+    public final TrieMap<String, String> yields = TrieMap.ofString();
 
     private String prevName = null;
 
@@ -47,6 +47,6 @@ public class BlockParser {
 
     @NotNull
     private Reference.Settable<String> compute(String name) {
-        return yields.computeIfAbsent(name, Reference.Settable::create);
+        return yields.getReference(name);
     }
 }
