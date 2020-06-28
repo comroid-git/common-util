@@ -101,34 +101,32 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (cIndex >= chars.length)
                 return Optional.of(reference);
 
-            return getStageByChar(chars[cIndex])
-                    .flatMap(stage -> stage.getReference(chars, cIndex + 1));
+            return getStageByChar(chars, cIndex)
+                    .getReference(chars, cIndex + 1);
         }
 
         private Optional<V> putValue(char[] chars, int cIndex, @Nullable V value) {
             if (cIndex >= chars.length)
                 return Optional.ofNullable(setValue(value));
 
-            // expect existing stages
-            return getStageByChar(chars[cIndex])
-                    .flatMap(stage -> stage.putValue(chars, cIndex + 1, value));
+            return getStageByChar(chars, cIndex)
+                    .putValue(chars, cIndex + 1, value);
         }
 
         private Optional<V> remove(char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return Optional.ofNullable(remove());
 
-            return getStageByChar(chars[cIndex])
-                    .flatMap(stage -> stage.remove(chars, cIndex));
+            return getStageByChar(chars, cIndex)
+                    .remove(chars, cIndex);
         }
 
         public boolean containsKey(char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return false;
 
-            return getStageByChar(chars[cIndex])
-                    .map(stage -> stage.containsKey(chars, cIndex + 1))
-                    .orElse(false);
+            return getStageByChar(chars, cIndex)
+                    .containsKey(chars, cIndex + 1);
         }
 
         public Stage<V> requireStage(char[] chars, int cIndex) {
@@ -140,9 +138,9 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             } else return this;
         }
 
-        @NotNull
-        public Optional<Stage<V>> getStageByChar(char aChar) {
-            return Optional.ofNullable(storage.getOrDefault(aChar, null));
+        public Stage<V> getStageByChar(char[] chars, int cIndex) {
+            return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
+                    .orElseGet(() -> requireStage(chars, cIndex));
         }
     }
 
@@ -193,8 +191,8 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (convertKey.length == 0)
                 return Reference.Settable.create();
 
-            return baseStage.getReference(convertKey, 0)
-                    .orElseGet(Reference.Settable::create);
+            final Optional<Reference.Settable<V>> reference = baseStage.getReference(convertKey, 0);
+            return reference.orElseGet(Reference.Settable::create);
         }
 
         @Override
