@@ -215,8 +215,8 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (convertKey.length == 0)
                 return Reference.Settable.create();
 
-            final Optional<Reference.Settable<V>> reference = baseStage.getReference(convertKey, 0);
-            return reference.orElseGet(Reference.Settable::create);
+            return baseStage.getReference(convertKey, 0)
+                    .orElseGet(Reference.Settable::create);
         }
 
         @Override
