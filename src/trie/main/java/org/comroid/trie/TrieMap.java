@@ -46,6 +46,30 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         return getReference((K) key).get();
     }
 
+    @NotNull
+    @Override
+    default Set<Entry<K, V>> entrySet() {
+        return Collections.unmodifiableSet(new HashSet<>(entryIndex().unwrap()));
+    }
+
+    @NotNull
+    @Override
+    default Set<K> keySet() {
+        //noinspection SimplifyStreamApiCallChains
+        return Collections.unmodifiableSet(entrySet()
+                .stream()
+                .map(Entry::getKey)
+                .collect(Collectors.toSet()));
+    }
+
+    @NotNull
+    @Override
+    default Collection<V> values() {
+        return entryIndex().pipe()
+                .map(Entry::getValue)
+                .span();
+    }
+
     final class Stage<V> implements Map.Entry<String, V> {
         private final Map<Character, Stage<V>> storage = new ConcurrentHashMap<>();
         private final Reference.Settable<V> reference = Reference.Settable.create();
@@ -217,34 +241,6 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         @Override
         public void clear() {
             baseStage.storage.clear();
-        }
-
-        @NotNull
-        @Override
-        public Set<K> keySet() {
-            return baseStage.streamPresentStages()
-                    .map(Stage::getKey)
-                    .map(getKeyConverter()::backward)
-                    .collect(Collectors.toSet());
-        }
-
-        @NotNull
-        @Override
-        public Collection<V> values() {
-            return Collections.unmodifiableList(baseStage.streamPresentStages()
-                    .map(Stage::getValue)
-                    .collect(Collectors.toList()));
-        }
-
-        @NotNull
-        @Override
-        public Set<Entry<K, V>> entrySet() {
-            return Collections.unmodifiableSet(baseStage.streamPresentStages()
-                    .map(stage -> new AbstractMap.SimpleImmutableEntry<>(
-                            getKeyConverter().backward(stage.keyConverted),
-                            stage.reference.get()
-                    ))
-                    .collect(Collectors.toSet()));
         }
 
         private char[] convertKey(Object key) {
