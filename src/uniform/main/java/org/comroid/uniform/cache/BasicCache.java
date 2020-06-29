@@ -2,7 +2,6 @@ package org.comroid.uniform.cache;
 
 import org.comroid.api.Provider;
 import org.comroid.mutatio.pipe.Pipe;
-import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BasicCache<K, V> implements Cache<K, V> {
@@ -117,36 +117,51 @@ public class BasicCache<K, V> implements Cache<K, V> {
         return new EntryIndex();
     }
 
-    // todo
     private final class EntryIndex implements ReferenceIndex<Map.Entry<K, V>> {
+        private final BasicCache<K, V> it = BasicCache.this;
+
         @Override
         public List<Map.Entry<K, V>> unwrap() {
-            return null;
+            return BasicCache.this.cache.entrySet()
+                    .stream()
+                    .map(entry -> new AbstractMap.SimpleImmutableEntry<>(
+                            entry.getKey(),
+                            entry.getValue().get()
+                    ))
+                    .collect(Collectors.toList());
         }
 
         @Override
         public int size() {
-            return 0;
+            return BasicCache.this.size();
         }
 
         @Override
-        public boolean add(Map.Entry<K, V> item) {
-            return false;
+        public boolean add(Map.Entry<K, V> entry) {
+            return set(entry.getKey(), entry.getValue()) == entry.getValue();
         }
 
         @Override
-        public boolean remove(Map.Entry<K, V> item) {
-            return false;
+        public boolean remove(Map.Entry<K, V> entry) {
+            if (!containsKey(entry.getKey()))
+                return false;
+
+            return BasicCache.this
+                    .getReference(entry.getKey(), false)
+                    .set(null) != entry;
         }
 
         @Override
         public void clear() {
-
+            throw new UnsupportedOperationException("Clear operation not supported by Cache");
         }
 
         @Override
         public org.comroid.mutatio.ref.Reference<Map.Entry<K, V>> getReference(int index) {
-            return null;
+            return org.comroid.mutatio.ref.Reference.conditional(
+                    () -> BasicCache.this.size() < index,
+                    () -> unwrap().get(index)
+            );
         }
     }
 }
