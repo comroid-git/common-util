@@ -2,12 +2,15 @@ package org.comroid.uniform.cache;
 
 import org.comroid.api.Provider;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -107,5 +110,43 @@ public class BasicCache<K, V> implements Cache<K, V> {
                 emptyValueProvider == null
                         ? Reference.create()
                         : Reference.constant(key, emptyValueProvider.now()));
+    }
+
+    @Override
+    public ReferenceIndex<Map.Entry<K, V>> entryIndex() {
+        return new EntryIndex();
+    }
+
+    // todo
+    private final class EntryIndex implements ReferenceIndex<Map.Entry<K, V>> {
+        @Override
+        public List<Map.Entry<K, V>> unwrap() {
+            return null;
+        }
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean add(Map.Entry<K, V> item) {
+            return false;
+        }
+
+        @Override
+        public boolean remove(Map.Entry<K, V> item) {
+            return false;
+        }
+
+        @Override
+        public void clear() {
+
+        }
+
+        @Override
+        public org.comroid.mutatio.ref.Reference<Map.Entry<K, V>> getReference(int index) {
+            return null;
+        }
     }
 }

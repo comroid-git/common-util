@@ -31,8 +31,9 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
 
     Stream<Reference<K, V>> stream(Predicate<K> filter);
 
-    default Pipe<?, Reference<K, V>> pipe() {
-        return pipe(any -> true);
+    @Override
+    default Pipe<?, V> pipe() {
+        return pipe(any -> true).map(Reference::get);
     }
 
     Pipe<?, Reference<K, V>> pipe(Predicate<K> filter);
