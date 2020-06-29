@@ -58,18 +58,30 @@ public interface ReferenceMap<K, V, REF extends Reference<V>> extends Pipeable<V
     }
 
     interface Settable<K, V, REF extends Reference.Settable<V>> extends ReferenceMap<K, V, REF> {
+        /**
+         * @return The new value if it could be set, else null.
+         */
         default @Nullable V set(K key, V newValue) {
             return getReference(key).set(newValue);
         }
 
+        /**
+         * @return The new value if it could be set, else null.
+         */
         default @Nullable V compute(K key, Function<V, V> computor) {
             return getReference(key, true).compute(computor);
         }
 
+        /**
+         * @return The new value if it could be set, else null.
+         */
         default @Nullable V computeIfPresent(K key, Function<V, V> computor) {
             return getReference(key, true).computeIfPresent(computor);
         }
 
+        /**
+         * @return The new value if it could be set, else null.
+         */
         default @Nullable V computeIfAbsent(K key, Supplier<V> supplier) {
             return getReference(key, true).computeIfAbsent(supplier);
         }

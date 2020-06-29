@@ -113,17 +113,22 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         }
 
         /**
-         * @param newValue The new value
-         * @return The previous value
+         * @return The new value if it could be set, else null.
          */
         @Nullable T set(T newValue);
 
+        /**
+         * @return The new value if it could be set, else null.
+         */
         default T compute(Function<T, T> computor) {
             set(computor.apply(get()));
 
             return get();
         }
 
+        /**
+         * @return The new value if it could be set, else null.
+         */
         default T computeIfPresent(Function<T, T> computor) {
             if (!isNull())
                 set(computor.apply(get()));
@@ -131,6 +136,9 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             return get();
         }
 
+        /**
+         * @return The new value if it could be set, else null.
+         */
         default T computeIfAbsent(Supplier<T> supplier) {
             if (isNull())
                 set(supplier.get());
@@ -199,8 +207,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
             @Override
             public T set(T newValue) {
                 synchronized (lock) {
-                    this.value = newValue;
-                    return value;
+                    return (this.value = newValue);
                 }
             }
         }
