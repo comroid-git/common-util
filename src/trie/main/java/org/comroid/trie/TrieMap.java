@@ -130,46 +130,46 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             );
         }
 
-        private Optional<Reference.Settable<V>> getReference(char[] chars, int cIndex) {
+        private Optional<Reference.Settable<V>> getReference(String kStr, char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return Optional.of(reference);
 
-            return requireStage(chars, cIndex)
-                    .getReference(chars, cIndex + 1);
+            return requireStage(kStr, chars, cIndex)
+                    .getReference(kStr, chars, cIndex + 1);
         }
 
-        private Optional<V> putValue(char[] chars, int cIndex, @Nullable V value) {
+        private Optional<V> putValue(String kStr, char[] chars, int cIndex, @Nullable V value) {
             if (cIndex >= chars.length)
                 return Optional.ofNullable(setValue(value));
 
-            return requireStage(chars, cIndex)
-                    .putValue(chars, cIndex + 1, value);
+            return requireStage(kStr, chars, cIndex)
+                    .putValue(kStr, chars, cIndex + 1, value);
         }
 
-        private Optional<V> remove(char[] chars, int cIndex) {
+        private Optional<V> remove(String kStr, char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return Optional.ofNullable(remove());
 
-            return requireStage(chars, cIndex)
-                    .remove(chars, cIndex);
+            return requireStage(kStr, chars, cIndex)
+                    .remove(kStr, chars, cIndex);
         }
 
-        public boolean containsKey(char[] chars, int cIndex) {
+        public boolean containsKey(String kStr, char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return false;
 
-            return requireStage(chars, cIndex)
-                    .containsKey(chars, cIndex + 1);
+            return requireStage(kStr, chars, cIndex)
+                    .containsKey(kStr, chars, cIndex + 1);
         }
 
-        public Stage<V> requireStage(char[] chars, int cIndex) {
-            if (new String(chars).equals(keyConverted) || cIndex >= chars.length)
+        public Stage<V> requireStage(String kStr, char[] chars, int cIndex) {
+            if (kStr.equals(keyConverted) || cIndex >= chars.length)
                 return this;
 
             return storage.computeIfAbsent(chars[cIndex], key -> {
                 String converted = new String(Arrays.copyOfRange(chars, 0, cIndex + 1));
                 return new Stage<>(this, converted);
-            }).requireStage(chars, cIndex + 1);
+            }).requireStage(kStr, chars, cIndex + 1);
         }
 
         @Override
@@ -215,13 +215,14 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
         @Override
         public Stage<V> getStage(String key) {
-            return baseStage.requireStage(key.toCharArray(), 0);
+            return baseStage.requireStage(key, key.toCharArray(), 0);
         }
 
         @Override
         public boolean containsKey(Object key) {
             final char[] convertKey = convertKey(key);
-            final Stage<V> stage = baseStage.requireStage(convertKey, 0);
+            final String kStr = new String(convertKey);
+            final Stage<V> stage = baseStage.requireStage(kStr, convertKey, 0);
 
             return Arrays.equals(stage.keyConverted.toCharArray(), convertKey)
                     && !stage.reference.isNull();
@@ -244,7 +245,8 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (convertKey.length == 0)
                 return Reference.Settable.create();
 
-            return baseStage.getReference(convertKey, 0)
+            final String kStr = new String(convertKey);
+            return baseStage.getReference(kStr, convertKey, 0)
                     .orElseGet(Reference.Settable::create);
         }
 
@@ -282,15 +284,21 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         @Nullable
         @Override
         public V put(K key, V value) {
+            final char[] chars = convertKey(key);
+            final String kStr = new String(chars);
+
             if (!containsKey(key))
-                return baseStage.requireStage(convertKey(key), 0)
+                return baseStage.requireStage(kStr, chars, 0)
                         .reference.set(value);
-            return baseStage.putValue(convertKey(key), 0, value).orElse(null);
+            return baseStage.putValue(kStr, chars, 0, value).orElse(null);
         }
 
         @Override
         public V remove(Object key) {
-            return baseStage.remove(convertKey(key), 0).orElse(null);
+            final char[] chars = convertKey(key);
+            final String kStr = new String(chars);
+
+            return baseStage.remove(kStr, chars, 0).orElse(null);
         }
 
         @Override
