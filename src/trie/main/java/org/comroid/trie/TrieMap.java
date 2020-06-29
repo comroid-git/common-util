@@ -73,6 +73,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
     final class Stage<V> implements Map.Entry<String, V> {
         private final Map<Character, Stage<V>> storage = new ConcurrentHashMap<>();
         private final Reference.Settable<V> reference = Reference.Settable.create();
+        private final Stage<V> parent;
         private final String keyConverted;
 
         @Override
@@ -85,12 +86,13 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             return reference.get();
         }
 
-        private Stage(String keyConverted) {
+        private Stage(Stage<V> parent, String keyConverted) {
+            this.parent = parent;
             this.keyConverted = keyConverted;
         }
 
-        private Stage(String keyConverted, V containValue) {
-            this(keyConverted);
+        private Stage(Stage<V> parent, String keyConverted, V containValue) {
+            this(parent, keyConverted);
 
             this.reference.set(containValue);
         }
@@ -125,7 +127,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (cIndex >= chars.length)
                 return Optional.of(reference);
 
-            return getStageByChar(chars, cIndex)
+            return requireStage(chars, cIndex)
                     .getReference(chars, cIndex + 1);
         }
 
@@ -133,7 +135,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (cIndex >= chars.length)
                 return Optional.ofNullable(setValue(value));
 
-            return getStageByChar(chars, cIndex)
+            return requireStage(chars, cIndex)
                     .putValue(chars, cIndex + 1, value);
         }
 
@@ -141,7 +143,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (cIndex >= chars.length)
                 return Optional.ofNullable(remove());
 
-            return getStageByChar(chars, cIndex)
+            return requireStage(chars, cIndex)
                     .remove(chars, cIndex);
         }
 
@@ -149,7 +151,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (cIndex >= chars.length)
                 return false;
 
-            return getStageByChar(chars, cIndex)
+            return requireStage(chars, cIndex)
                     .containsKey(chars, cIndex + 1);
         }
 
@@ -157,19 +159,19 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (cIndex < chars.length) {
                 return storage.computeIfAbsent(chars[cIndex], key -> {
                     String converted = new String(Arrays.copyOfRange(chars, 0, cIndex + 1));
-                    return new Stage<>(converted);
+                    return new Stage<>(this, converted);
                 }).requireStage(chars, cIndex + 1);
             } else return this;
         }
 
-        public Stage<V> getStageByChar(char[] chars, int cIndex) {
-            return Optional.ofNullable(storage.getOrDefault(chars[cIndex], null))
-                    .orElseGet(() -> requireStage(chars, cIndex));
+        @Override
+        public String toString() {
+            return String.format("Stage{keyConverted='%s'}", keyConverted);
         }
     }
 
     class Basic<K, V> implements TrieMap<K, V> {
-        private final TrieMap.Stage<V> baseStage = new Stage<>(null);
+        private final TrieMap.Stage<V> baseStage = new Stage<>(null, null);
         private final Map<K, String> cachedKeys = new ConcurrentHashMap<>();
         private final Junction<K, String> keyConverter;
         private final boolean useKeyCache;
