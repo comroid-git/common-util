@@ -70,4 +70,5 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     testImplementation 'org.easymock:easymock:4.1'
     testImplementation 'org.codehaus.groovy:groovy:3.0.0-rc-2'
+    testImplementation 'com.google.flogger:flogger-system-backend:0.5.1'
 }
