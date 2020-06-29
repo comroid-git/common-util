@@ -113,12 +113,12 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         }
 
         /**
-         * @return The new value if it could be set, else null.
+         * @return The new value if it could be set, else the previous value.
          */
         @Nullable T set(T newValue);
 
         /**
-         * @return The new value if it could be set, else null.
+         * @return The new value if it could be set, else the previous value.
          */
         default T compute(Function<T, T> computor) {
             set(computor.apply(get()));
@@ -127,7 +127,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         }
 
         /**
-         * @return The new value if it could be set, else null.
+         * @return The new value if it could be set, else the previous value.
          */
         default T computeIfPresent(Function<T, T> computor) {
             if (!isNull())
@@ -137,7 +137,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         }
 
         /**
-         * @return The new value if it could be set, else null.
+         * @return The new value if it could be set, else the previous value.
          */
         default T computeIfAbsent(Supplier<T> supplier) {
             if (isNull())
