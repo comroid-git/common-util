@@ -47,6 +47,8 @@ public class BlockParser {
 
     @NotNull
     private Reference.Settable<String> compute(String name) {
-        return yields.getReference(name, true);
+        final Reference.Settable<String> ref = yields.getReference(name, true);
+        ref.set(name);
+        return ref;
     }
 }
