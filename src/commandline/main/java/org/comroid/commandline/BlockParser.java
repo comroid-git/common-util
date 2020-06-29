@@ -4,8 +4,6 @@ import org.comroid.mutatio.ref.Reference;
 import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
 public class BlockParser {
     public final TrieMap<String, String> yields = TrieMap.ofString();
 
@@ -48,7 +46,8 @@ public class BlockParser {
     @NotNull
     private Reference.Settable<String> compute(String name) {
         final Reference.Settable<String> ref = yields.getReference(name, true);
-        ref.set(name);
+        if (ref.isNull())
+            ref.set(name);
         return ref;
     }
 }
