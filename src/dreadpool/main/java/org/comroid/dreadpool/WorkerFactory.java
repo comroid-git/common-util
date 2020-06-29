@@ -10,25 +10,25 @@ import java.util.Queue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 
-public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, ThreadFactory {
-    private final Queue<ThreadPool.Worker> workers = new PriorityQueue<>();
-    private final Provider<ThreadPool.Worker> workerProvider;
+public class WorkerFactory implements Executor, Factory<ThreadPoolWorker>, ThreadFactory {
+    private final Queue<ThreadPoolWorker> workers = new PriorityQueue<>();
+    private final Provider<ThreadPoolWorker> workerProvider;
     private final int maxSize;
     public ThreadPool threadPool = null;
     private int c = 0;
 
     public WorkerFactory(ThreadGroup group, int maxSize) {
-        this(() -> new ThreadPool.Worker(group, "worker"), maxSize);
+        this(() -> new ThreadPoolWorker(group, "worker"), maxSize);
     }
 
-    public WorkerFactory(Provider.Now<ThreadPool.Worker> workerProvider, int maxSize) {
+    public WorkerFactory(Provider.Now<ThreadPoolWorker> workerProvider, int maxSize) {
         this.workerProvider = workerProvider;
         this.maxSize = maxSize;
     }
 
     @Override
-    public ThreadPool.Worker newThread(@NotNull Runnable task) {
-        final ThreadPool.Worker newWorker = create();
+    public ThreadPoolWorker newThread(@NotNull Runnable task) {
+        final ThreadPoolWorker newWorker = create();
 
         if (newWorker != null) {
             newWorker.execute(task);
@@ -42,7 +42,7 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
 
     @Override
     public void execute(@NotNull Runnable task) {
-        ThreadPool.Worker worker = null;
+        ThreadPoolWorker worker = null;
         if (allBusy() && workers.size() < maxSize && (worker = create()) == null) {
             throw new IllegalThreadStateException("Could not create worker even though\n" + "- all workers are busy, and\n" +
                     "- there's less workers than allowed, and\n" + "- worker creation failed\n" + "\t");
@@ -62,7 +62,7 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
 
     public boolean allBusy() {
         return workers.stream()
-                .allMatch(ThreadPool.Worker::isBusy);
+                .allMatch(ThreadPoolWorker::isBusy);
     }
 
     /**
@@ -72,9 +72,9 @@ public class WorkerFactory implements Executor, Factory<ThreadPool.Worker>, Thre
      */
     @Override
     @Nullable
-    public ThreadPool.Worker create() {
+    public ThreadPoolWorker create() {
         if (counter() < maxSize) {
-            ThreadPool.Worker newWorker = workerProvider.now();
+            ThreadPoolWorker newWorker = workerProvider.now();
             newWorker.threadPool = this.threadPool;
             workers.add(newWorker);
         } else if (allBusy()) {
