@@ -5,9 +5,11 @@ import org.comroid.api.Polyfill;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.ref.ReferenceMap;
+import org.jetbrains.annotations.ApiStatus.Experimental;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -70,6 +72,9 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
                 .span();
     }
 
+    @Experimental
+    void printStages();
+
     final class Stage<V> implements Map.Entry<String, V> {
         private final Map<Character, Stage<V>> storage = new ConcurrentHashMap<>();
         private final Reference.Settable<V> reference = Reference.Settable.create();
@@ -78,7 +83,9 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
         @Override
         public String getKey() {
-            return keyConverted;
+            return parent == null
+                    ? keyConverted
+                    : parent.getKey() + File.pathSeparator + keyConverted;
         }
 
         @Override
@@ -156,17 +163,28 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         }
 
         public Stage<V> requireStage(char[] chars, int cIndex) {
-            if (cIndex < chars.length) {
-                return storage.computeIfAbsent(chars[cIndex], key -> {
-                    String converted = new String(Arrays.copyOfRange(chars, 0, cIndex + 1));
-                    return new Stage<>(this, converted);
-                }).requireStage(chars, cIndex + 1);
-            } else return this;
+            if (new String(chars).equals(keyConverted) || cIndex >= chars.length)
+                return this;
+
+            return storage.computeIfAbsent(chars[cIndex], key -> {
+                String converted = new String(Arrays.copyOfRange(chars, 0, cIndex + 1));
+                return new Stage<>(this, converted);
+            }).requireStage(chars, cIndex + 1);
         }
 
         @Override
         public String toString() {
             return String.format("Stage{keyConverted='%s'}", keyConverted);
+        }
+
+        @Experimental
+        private Stream<Stage<V>> streamStages() {
+            return Stream.concat(
+                    Stream.of(this),
+                    storage.values()
+                            .stream()
+                            .flatMap(Stage::streamStages)
+            );
         }
     }
 
@@ -184,6 +202,15 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         public Basic(Junction<K, String> keyConverter, boolean useKeyCache) {
             this.keyConverter = keyConverter;
             this.useKeyCache = useKeyCache;
+        }
+
+        @Override
+        public void printStages() {
+            baseStage.streamStages()
+                    .map(stage -> stage.reference.isNull()
+                            ? String.format("%s", stage.getKey())
+                            : String.format("%s -> %s", stage.getKey(), stage.reference.get()))
+                    .forEachOrdered(System.out::println);
         }
 
         @Override
