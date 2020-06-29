@@ -2,6 +2,7 @@ package org.comroid.test.dreadpool;
 
 import org.comroid.dreadpool.ThreadPool;
 import org.junit.Before;
+import org.junit.Test;
 
 import java.util.*;
 import java.util.stream.Collector;
@@ -25,6 +26,7 @@ public class FixedSizeThreadPoolTest {
         yields = new ArrayList<>();
     }
 
+    @Test
     public void test() throws InterruptedException {
         someTasks.stream()
                 .limit(10)
