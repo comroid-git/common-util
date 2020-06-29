@@ -12,8 +12,6 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class ListnrCore {
@@ -27,7 +25,7 @@ public final class ListnrCore {
     @Internal
     <I, P extends EventPayload> Pipe<?, P> eventPipe(
             EventType<I, P> eventType,
-            EventManager<I, EventType<I, P>, ? super P> target
+            EventManager<I, EventType<? super I, ? super P>, ? super P> target
     ) {
         return computePipe(eventType, target).pipe();
     }
@@ -35,7 +33,7 @@ public final class ListnrCore {
     @Internal
     <I, P extends EventPayload> void publish(
             EventType<I, P> eventType,
-            EventManager<I, EventType<I, P>, ? super P> target,
+            EventManager<I, EventType<? super I, ? super P>, ? super P> target,
             I payloadInput
     ) {
         computePipe(eventType, target).push(eventType, target, payloadInput);
@@ -44,7 +42,7 @@ public final class ListnrCore {
     @Internal
     <I, P extends EventPayload> PipeContainer<I, P> computePipe(
             EventType<I, P> eventType,
-            EventManager<I, EventType<I, P>, ? super P> target
+            EventManager<I, EventType<? super I, ? super P>, ? super P> target
     ) {
         return Polyfill.uncheckedCast(pipes.computeIfAbsent(
                 target.getUUID() + eventType.getName(),
@@ -69,7 +67,7 @@ public final class ListnrCore {
 
         public void push(
                 EventType<I, P> eventType,
-                EventManager<I, EventType<I, P>, ? super P> target,
+                EventManager<I, EventType<? super I, ? super P>, ? super P> target,
                 I input
         ) {
             pump.accept(Reference.constant(input));
