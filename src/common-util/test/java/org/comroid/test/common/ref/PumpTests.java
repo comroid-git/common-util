@@ -1,6 +1,7 @@
 package org.comroid.test.common.ref;
 
 import org.comroid.mutatio.pump.Pump;
+import org.comroid.mutatio.ref.Reference;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +27,9 @@ public class PumpTests {
     public void testBasicOperations() throws InterruptedException {
         final Pump<String, String> remapOp = (Pump<String, String>) Pump.<String>create()
                 .map(String::toLowerCase);
-        controlGroup.forEach(remapOp);
+        controlGroup.stream()
+                .map(Reference::constant)
+                .forEach(remapOp);
         for (int i = 0; i < controlGroup.size(); i++)
             Assert.assertEquals("index " + i, controlGroup.get(i).toLowerCase(), remapOp.get(i));
 
@@ -34,7 +37,9 @@ public class PumpTests {
                 .filter(str -> str.chars()
                         .map(Character::toLowerCase)
                         .allMatch(c -> c != 'a'));
-        controlGroup.forEach(filterOp);
+        controlGroup.stream()
+                .map(Reference::constant)
+                .forEach(filterOp);
         for (int i = 0; i < filterOp.size(); i++)
             filterOp.getReference(i)
                     .wrap()
@@ -45,7 +50,9 @@ public class PumpTests {
                 .map(String::toLowerCase)
                 .filter(str -> str.chars()
                         .allMatch(c -> c != 'a'));
-        controlGroup.forEach(filterMapOp);
+        controlGroup.stream()
+                .map(Reference::constant)
+                .forEach(filterMapOp);
         for (int i = 0; i < filterOp.size(); i++)
             filterOp.getReference(i)
                     .wrap()
