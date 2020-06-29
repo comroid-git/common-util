@@ -130,46 +130,46 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             );
         }
 
-        private Optional<Reference.Settable<V>> getReference(String kStr, char[] chars, int cIndex) {
+        private Optional<Reference.Settable<V>> getReference(String targetKey, char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return Optional.of(reference);
 
-            return requireStage(kStr, chars, cIndex)
-                    .getReference(kStr, chars, cIndex + 1);
+            return requireStage(targetKey, chars, cIndex)
+                    .getReference(targetKey, chars, cIndex + 1);
         }
 
-        private Optional<V> putValue(String kStr, char[] chars, int cIndex, @Nullable V value) {
+        private Optional<V> putValue(String targetKey, char[] chars, int cIndex, @Nullable V value) {
             if (cIndex >= chars.length)
                 return Optional.ofNullable(setValue(value));
 
-            return requireStage(kStr, chars, cIndex)
-                    .putValue(kStr, chars, cIndex + 1, value);
+            return requireStage(targetKey, chars, cIndex)
+                    .putValue(targetKey, chars, cIndex + 1, value);
         }
 
-        private Optional<V> remove(String kStr, char[] chars, int cIndex) {
+        private Optional<V> remove(String targetKey, char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return Optional.ofNullable(remove());
 
-            return requireStage(kStr, chars, cIndex)
-                    .remove(kStr, chars, cIndex);
+            return requireStage(targetKey, chars, cIndex)
+                    .remove(targetKey, chars, cIndex);
         }
 
-        public boolean containsKey(String kStr, char[] chars, int cIndex) {
+        public boolean containsKey(String targetKey, char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return false;
 
-            return requireStage(kStr, chars, cIndex)
-                    .containsKey(kStr, chars, cIndex + 1);
+            return requireStage(targetKey, chars, cIndex)
+                    .containsKey(targetKey, chars, cIndex + 1);
         }
 
-        public Stage<V> requireStage(String kStr, char[] chars, int cIndex) {
-            if (kStr.equals(keyConverted) || cIndex >= chars.length)
+        public Stage<V> requireStage(String targetKey, char[] chars, int cIndex) {
+            if (targetKey.equals(keyConverted) || cIndex >= chars.length)
                 return this;
 
             return storage.computeIfAbsent(chars[cIndex], key -> {
                 String converted = new String(Arrays.copyOfRange(chars, 0, cIndex + 1));
                 return new Stage<>(this, converted);
-            }).requireStage(kStr, chars, cIndex + 1);
+            }).requireStage(targetKey, chars, cIndex + 1);
         }
 
         @Override
