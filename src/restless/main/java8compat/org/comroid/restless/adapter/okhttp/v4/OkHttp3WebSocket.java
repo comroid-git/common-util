@@ -3,12 +3,13 @@ package org.comroid.restless.adapter.okhttp.v4;
 import okhttp3.*;
 import okio.ByteString;
 import org.comroid.api.Polyfill;
-import org.comroid.api.UUIDContainer;
+import org.comroid.listnr.EventManager;
 import org.comroid.listnr.ListnrCore;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.restless.REST;
 import org.comroid.restless.socket.WebSocketData;
 import org.comroid.restless.socket.event.WebSocketEvent;
+import org.comroid.restless.socket.event.WebSocketPayload;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniNode;
 import org.jetbrains.annotations.NotNull;
@@ -18,16 +19,27 @@ import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public final class OkHttp3WebSocket extends UUIDContainer implements org.comroid.restless.socket.WebSocket {
+public final class OkHttp3WebSocket extends org.comroid.restless.socket.WebSocket {
     private final WebSocketListener listener = new OkListener();
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final Reference<WebSocket> iSocketRef;
-    private final ListnrCore listnrCore;
 
     private OkHttp3WebSocket(SerializationAdapter<?, ?, ?> seriLib, CompletableFuture<WebSocket> socketFuture, Executor executor) {
+        super(new ListnrCore(executor));
+
         this.seriLib = seriLib;
         this.iSocketRef = Reference.later(socketFuture);
-        this.listnrCore = new ListnrCore(executor);
+    }
+
+    @SafeVarargs
+    public OkHttp3WebSocket(
+            SerializationAdapter<?, ?, ?> seriLib,
+            CompletableFuture<WebSocket> iSocketRef,
+            EventManager<? super WebSocketData, ? super WebSocketEvent<WebSocketPayload>, ? super WebSocketPayload>... parents
+    ) {
+        super(parents);
+        this.seriLib = seriLib;
+        this.iSocketRef = Reference.later(iSocketRef);
     }
 
     public static CompletableFuture<OkHttp3WebSocket> create(
@@ -48,11 +60,6 @@ public final class OkHttp3WebSocket extends UUIDContainer implements org.comroid
         iSocketFuture.complete(okSocket);
 
         return CompletableFuture.completedFuture(socket);
-    }
-
-    @Override
-    public ListnrCore listnr() {
-        return listnrCore;
     }
 
     @Override

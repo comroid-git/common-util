@@ -1,7 +1,7 @@
 package org.comroid.restless.adapter.jdk;
 
 import org.comroid.api.Polyfill;
-import org.comroid.api.UUIDContainer;
+import org.comroid.listnr.EventManager;
 import org.comroid.listnr.ListnrCore;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.restless.REST;
@@ -23,16 +23,27 @@ import java.util.stream.IntStream;
 
 import static java.lang.System.currentTimeMillis;
 
-public final class JavaWebSocket extends UUIDContainer implements org.comroid.restless.socket.WebSocket {
+public final class JavaWebSocket extends org.comroid.restless.socket.WebSocket {
     private final WebSocket.Listener listener = new JListener();
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final Reference<WebSocket> jSocketRef;
-    private final ListnrCore listnrCore;
 
     private JavaWebSocket(SerializationAdapter<?, ?, ?> seriLib, CompletableFuture<WebSocket> socketFuture, Executor executor) {
+        super(new ListnrCore(executor));
+
         this.seriLib = seriLib;
         this.jSocketRef = Reference.later(socketFuture);
-        this.listnrCore = new ListnrCore(executor);
+    }
+
+    @SuppressWarnings("unchecked")
+    public JavaWebSocket(
+            SerializationAdapter<?, ?, ?> seriLib,
+            CompletableFuture<WebSocket> jSocketRef,
+            EventManager<? super WebSocketData, ? super WebSocketEvent<WebSocketPayload>, ? super WebSocketPayload>... parents) {
+        super(parents);
+
+        this.seriLib = seriLib;
+        this.jSocketRef = Reference.later(jSocketRef);
     }
 
     public static CompletableFuture<JavaWebSocket> create(
@@ -52,11 +63,6 @@ public final class JavaWebSocket extends UUIDContainer implements org.comroid.re
         return builder.buildAsync(uri, socket.listener)
                 .thenApply(jSocketFuture::complete)
                 .thenApply(nil -> socket);
-    }
-
-    @Override
-    public ListnrCore listnr() {
-        return listnrCore;
     }
 
     @Override

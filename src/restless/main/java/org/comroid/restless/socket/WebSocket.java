@@ -1,18 +1,29 @@
 package org.comroid.restless.socket;
 
 import org.comroid.listnr.AbstractEventManager;
+import org.comroid.listnr.EventManager;
+import org.comroid.listnr.ListnrCore;
 import org.comroid.restless.socket.event.WebSocketEvent;
 import org.comroid.restless.socket.event.WebSocketPayload;
 import org.comroid.uniform.node.UniNode;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface WebSocket extends AbstractEventManager<WebSocketData, WebSocketEvent<WebSocketPayload>, WebSocketPayload> {
-    int MAX_MESSAGE_LENGTH = 2000;
+public abstract class WebSocket extends AbstractEventManager<WebSocketData, WebSocketEvent<WebSocketPayload>, WebSocketPayload> {
+public static final     int MAX_MESSAGE_LENGTH = 2000;
 
-    CompletableFuture<?> sendData(UniNode data);
+    public WebSocket(ListnrCore listnr) {
+        super(listnr);
+    }
 
-    CompletableFuture<?> sendClose(int statusCode, String reason);
+    @SafeVarargs
+    public WebSocket(EventManager<? super WebSocketData, ? super WebSocketEvent<WebSocketPayload>, ? super WebSocketPayload>... parents) {
+        super(parents);
+    }
 
-    CompletableFuture<Long> evaluatePing();
+    public abstract CompletableFuture<?> sendData(UniNode data);
+
+    public abstract CompletableFuture<?> sendClose(int statusCode, String reason);
+
+    public abstract CompletableFuture<Long> evaluatePing();
 }
