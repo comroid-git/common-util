@@ -5,6 +5,7 @@ import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.StageAdapter;
 import org.comroid.mutatio.pump.BasicPump;
 import org.comroid.mutatio.pump.Pump;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -71,7 +72,7 @@ public final class ListnrCore {
                 EventManager<I, EventType<I, P>, ? super P> target,
                 I input
         ) {
-            pump.accept(input);
+            pump.accept(Reference.constant(input));
             target.getParents().forEach(parent -> parent.publish(Polyfill.uncheckedCast(eventType), input));
         }
     }
