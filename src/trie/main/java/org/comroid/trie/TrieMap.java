@@ -220,6 +220,32 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         }
 
         @Override
+        public @NotNull Set<Entry<K, V>> entrySet() {
+            return baseStage.streamPresentStages()
+                    .map(stage -> new AbstractMap.SimpleImmutableEntry<>(
+                            keyConverter.backward(stage.keyConverted),
+                            stage.reference.get()
+                    ))
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public @NotNull Set<K> keySet() {
+            //noinspection SimplifyStreamApiCallChains
+            return entrySet().stream()
+                    .map(Entry::getKey)
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public @NotNull Collection<V> values() {
+            //noinspection SimplifyStreamApiCallChains
+            return entrySet().stream()
+                    .map(Entry::getValue)
+                    .collect(Collectors.toList());
+        }
+
+        @Override
         public ReferenceIndex<Entry<K, V>> entryIndex() {
             return new EntryIndex();
         }
