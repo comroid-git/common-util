@@ -5,7 +5,7 @@ import org.comroid.mutatio.span.Span;
 
 import java.util.UUID;
 
-public interface EventManager<I, T extends EventType<? super I, ? super P>, P extends EventPayload> {
+public interface EventManager<I, T extends EventType<? super I, ? extends P>, P extends EventPayload> {
     UUID getUUID();
 
     Span<EventManager<? super I, ? super T, ? super P>> getParents();

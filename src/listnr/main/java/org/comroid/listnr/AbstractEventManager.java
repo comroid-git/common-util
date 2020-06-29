@@ -9,7 +9,9 @@ import java.util.Objects;
 
 import static org.comroid.api.Polyfill.uncheckedCast;
 
-public abstract class AbstractEventManager<I, T extends EventType<? super I, ? super P>, P extends EventPayload> extends UUIDContainer implements EventManager<I, T, P> {
+public abstract class AbstractEventManager<I, T extends EventType<? super I, ? extends P>, P extends EventPayload>
+        extends UUIDContainer
+        implements EventManager<I, T, P> {
     private final Span<EventManager<? super I, ? super T, ? super P>> parents;
     private final Reference<ListnrCore> listnr;
 
