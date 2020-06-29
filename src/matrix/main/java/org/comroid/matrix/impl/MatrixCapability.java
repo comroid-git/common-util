@@ -9,10 +9,17 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Formattable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public final class MatrixCapability {
+    private static String wrapFormattable(Object it) {
+        if (it instanceof Formattable)
+            return String.format("%#s", it);
+        return it.toString();
+    }
+
     @Internal
     private static abstract class AbstractEntry<V> implements Matrix.Entry<V> {
         protected final String coordinate;
@@ -114,7 +121,7 @@ public final class MatrixCapability {
 
         @Override
         public String generateCoordinate(X x, Y y) {
-            return String.format("%s-%s", x, y);
+            return String.format("%s-%s", wrapFormattable(x), wrapFormattable(y));
         }
     }
 
@@ -197,7 +204,7 @@ public final class MatrixCapability {
 
         @Override
         public String generateCoordinate(X x, Y y, Z z) {
-            return String.format("%s-%s-%s", x, y, z);
+            return String.format("%s-%s-%s", wrapFormattable(x), wrapFormattable(y), wrapFormattable(z));
         }
     }
 }
