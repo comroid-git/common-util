@@ -41,13 +41,13 @@ public final class ExtractingBind {
                     .orElseThrow(() -> new AssertionError("Missing Base attribute"));
 
             return as(PartialBind.Finisher.class)
-                    .map(PartialBind.Finisher::isListing)
-                    .map(lists -> {
-                        if (lists) return from.get(fieldName)
-                                .asNodeList()
-                                .stream()
-                                .map(node -> node.as(valueType))
-                                .collect(Span.collector());
+                    .map(bind -> {
+                        if (bind.isListing())
+                            return from.get(fieldName)
+                                    .asNodeList()
+                                    .stream()
+                                    .map(node -> node.as(valueType))
+                                    .collect(Span.collector());
                         else return Span.immutable(from.get(fieldName).as(valueType));
                     }).orElseThrow(() -> new AssertionError("Missing Finisher attribute"));
         }
