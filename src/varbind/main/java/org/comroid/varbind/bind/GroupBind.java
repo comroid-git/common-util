@@ -158,9 +158,10 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public Stream<? extends VarBind<?, D, ?, ?>> streamAllChildren() {
-        return Stream.concat(children.stream(), getParents()
-                .stream()
-                .flatMap(GroupBind::streamAllChildren)
+        return Stream.concat(
+                getParents().stream()
+                        .flatMap(GroupBind::streamAllChildren),
+                children.stream()
         ).distinct();
     }
 
