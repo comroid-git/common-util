@@ -79,7 +79,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
                     .invokeRethrow(args);
 
         return findMethod(method)
-                .map(invocable -> invocable.invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args))
+                .map(invocable -> invocable.invokeRethrow((ReflectiveOperationException e) -> new RuntimeException(e.getCause()), args))
                 .orElseThrow(() -> new NoSuchMethodError("No implementation found for " + methodString(method)));
     }
 
