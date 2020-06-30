@@ -30,7 +30,6 @@ public final class FinishedBind {
         @Override
         public R finish(Span<R> parts) {
             return as(PartialBind.Base.class)
-                    .filter(PartialBind.Base::isRequired)
                     .map(base -> parts.get())
                     .orElseGet(parts);
         }
