@@ -28,7 +28,10 @@ public class SpellCore<T extends TypeFragment<? super T>>
 
     private SpellCore(Object base, Map<String, Invocable<?>> methods) {
         this.base = base;
-        this.methods = methods;
+        this.methods = Collections.unmodifiableMap(methods);
+
+        if (methods instanceof TrieMap)
+            ((TrieMap<String, Invocable<?>>) methods).printStages();
     }
 
     public static <T extends TypeFragment<? super T>> Builder<T> builder(Class<T> mainInterface) {
@@ -73,7 +76,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
         if (!Modifier.isAbstract(method.getModifiers())
                 && method.getDeclaringClass().isAssignableFrom(base.getClass()))
             return Invocable.ofMethodCall(base, method)
-                    .invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args);
+                    .invokeRethrow(args);
 
         return findMethod(method)
                 .map(invocable -> invocable.invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args))
