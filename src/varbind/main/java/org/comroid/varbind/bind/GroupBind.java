@@ -146,7 +146,11 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
                 //noinspection unchecked
                 return (Optional<GroupBind<? extends T, D>>) fitting[0].findGroupForData(data);
 
-            throw new UnsupportedOperationException("Too many fitting subgroups found: " + Arrays.toString(fitting));
+            throw new UnsupportedOperationException(String.format(
+                    "%s fitting subgroups found: %s",
+                    (fitting.length == 0 ? "No" : "Too many"),
+                    Arrays.toString(fitting)
+            ));
         } else return Optional.empty();
     }
 
