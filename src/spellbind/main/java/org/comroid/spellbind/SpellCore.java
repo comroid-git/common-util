@@ -28,7 +28,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
 
     private SpellCore(Object base, Map<String, Invocable<?>> methods) {
         this.base = base;
-        this.methods = Collections.unmodifiableMap(methods);
+        this.methods = methods;
     }
 
     public static <T extends TypeFragment<? super T>> Builder<T> builder(Class<T> mainInterface) {
