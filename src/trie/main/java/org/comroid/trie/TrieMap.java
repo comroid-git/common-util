@@ -226,6 +226,9 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
         @Override
         public boolean containsKey(Object key) {
+            if (key == null)
+                return false;
+
             final char[] convertKey = convertKey(key);
             final String kStr = new String(convertKey);
             final Stage<V> stage = baseStage.requireStage(kStr, convertKey, 0);
@@ -317,6 +320,8 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         }
 
         private String cacheKey(Object key) {
+            Objects.requireNonNull(key, "Key is null");
+
             if (key instanceof String)
                 return (String) key;
 
