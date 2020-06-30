@@ -78,13 +78,13 @@ public class SpellCore<T extends TypeFragment<? super T>>
             return Invocable.ofMethodCall(base, method)
                     .invokeRethrow(args);
 
-        return findMethod(method)
-                .map(invocable -> invocable.invokeRethrow((ReflectiveOperationException e) -> new RuntimeException(e.getCause()), args))
-                .orElseThrow(() -> new NoSuchMethodError("No implementation found for " + methodString(method)));
-    }
+        String methodString = methodString(method);
+        Invocable<?> invocable = methods.get(methodString);
 
-    private Optional<Invocable<?>> findMethod(Method method) {
-        return Optional.ofNullable(methods.getOrDefault(methodString(method), null));
+        if (invocable != null)
+            return invocable.invokeRethrow((ReflectiveOperationException e) -> new RuntimeException(e.getCause()), args);
+
+        throw new NoSuchMethodError("No implementation found for " + methodString);
     }
 
     public static final class Builder<T extends TypeFragment<? super T>> {
