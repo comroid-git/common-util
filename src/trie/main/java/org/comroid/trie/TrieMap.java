@@ -29,7 +29,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
     }
 
     static <K, V> TrieMap<K, V> parsing(Function<String, K> parser) {
-        return new Basic<>(Junction.of(Objects::toString, parser), false);
+        return new Basic<>(Junction.of(it -> String.valueOf(it).intern(), parser), true);
     }
 
     static <K, V> TrieMap<K, V> parsingCached(Function<String, K> parser) {
