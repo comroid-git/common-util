@@ -84,6 +84,10 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
                 .andThen(Reference::constant));
     }
 
+    default Processor<T> or(final Supplier<T> other) {
+        return new Support.Or(this, other);
+    }
+
     default Settable<T> snapshot() {
         return Settable.create(get());
     }
@@ -148,8 +152,24 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
+        public static final class Or<T> implements Processor<T> {
+            private final Reference<T> base;
+            private final Supplier<T> other;
+
+            public Or(Reference<T> base, Supplier<T> other) {
+                this.base = base;
+                this.other = other;
+            }
+
+            @Override
+            public T get() {
+                return base.orElseGet(other);
+            }
+        }
+
         private static final class ReferenceFlatMapped<T, R> implements Processor<R> {
             private final Reference<T> base;
+
             private final Function<? super T, ? extends Reference<R>> mapper;
 
             public ReferenceFlatMapped(Reference<T> base, Function<? super T, ? extends Reference<R>> mapper) {
