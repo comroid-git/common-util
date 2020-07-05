@@ -49,4 +49,9 @@ public final class ValueType<R> implements HeldType<R> {
     public R apply(String from) {
         return mapper.apply(from);
     }
+
+    @Override
+    public String toString() {
+        return String.format("ValueType{%s}", name);
+    }
 }
