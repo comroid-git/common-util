@@ -1,6 +1,5 @@
 package org.comroid.uniform.node;
 
-import org.comroid.api.Polyfill;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference.Settable;
 import org.comroid.uniform.HeldType;
@@ -12,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {
     private final Adapter adapter;

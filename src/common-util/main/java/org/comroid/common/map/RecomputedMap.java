@@ -23,6 +23,11 @@ public class RecomputedMap<K, V, R> implements Map<K, R> {
         return base;
     }
 
+    @Override
+    public final boolean isEmpty() {
+        return base.isEmpty();
+    }
+
     public RecomputedMap(Map<K, V> base, BiFunction<K, @Nullable V, R> recomputor) {
         this(base, new ConcurrentHashMap<>(), recomputor);
     }
@@ -40,11 +45,6 @@ public class RecomputedMap<K, V, R> implements Map<K, R> {
     @Override
     public final int size() {
         return base.size();
-    }
-
-    @Override
-    public final boolean isEmpty() {
-        return base.isEmpty();
     }
 
     @Override

@@ -9,7 +9,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -17,6 +16,8 @@ import java.util.regex.Matcher;
 import static java.util.Objects.isNull;
 
 public final class Polyfill {
+    private static final CompletableFuture<?> infiniteFuture = new CompletableFuture<>();
+
     public static <T> T supplyOnce(Provider<T> provider, Function<T, T> writer, Supplier<T> accessor) {
         final T accessed = accessor.get();
         return accessed == null ? (writer.apply(provider.now())) : accessed;
@@ -153,8 +154,6 @@ public final class Polyfill {
             }
         };
     }
-
-    private static final CompletableFuture<?> infiniteFuture = new CompletableFuture<>();
 
     public static <T> CompletableFuture<T> infiniteFuture() {
         return uncheckedCast(infiniteFuture);

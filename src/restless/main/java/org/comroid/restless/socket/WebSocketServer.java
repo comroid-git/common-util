@@ -1,7 +1,6 @@
 package org.comroid.restless.socket;
 
 import com.google.common.flogger.FluentLogger;
-import org.comroid.api.UUIDContainer;
 import org.comroid.dreadpool.loop.Infinite;
 import org.comroid.dreadpool.loop.manager.LoopManager;
 import org.comroid.listnr.AbstractEventManager;

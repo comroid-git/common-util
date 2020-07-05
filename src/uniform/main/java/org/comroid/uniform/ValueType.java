@@ -37,6 +37,11 @@ public final class ValueType<R> implements HeldType<R> {
         return name;
     }
 
+    @Override
+    public Junction<String, R> getConverter() {
+        return converter;
+    }
+
     public ValueType(String name, Function<String, R> mapper) {
         this.name = name;
         this.converter = Junction.ofString(mapper);
@@ -45,11 +50,6 @@ public final class ValueType<R> implements HeldType<R> {
     @Override
     public <T> T convert(R value, ValueType<T> toType) {
         return toType.converter.forward(value.toString());
-    }
-
-    @Override
-    public Junction<String, R> getConverter() {
-        return converter;
     }
 
     @Override

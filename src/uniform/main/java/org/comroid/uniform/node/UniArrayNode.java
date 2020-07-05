@@ -1,6 +1,5 @@
 package org.comroid.uniform.node;
 
-import org.comroid.api.Polyfill;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.HeldType;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 public final class UniArrayNode extends UniNode {
     private final Map<Integer, UniValueNode<String>> valueAdapters = new ConcurrentHashMap<>();
