@@ -5,6 +5,7 @@ import org.comroid.common.info.MessageSupplier;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.trie.TrieMap;
+import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.HeldType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -20,6 +21,8 @@ import java.util.function.Supplier;
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Type type;
+    private final Map<String, Reference.Settable<String>> baseAccessors = TrieMap.ofString();
+    private final Map<String, Processor<UniNode>> wrappedAccessors = TrieMap.ofString();
 
     public String getSerializedString() {
         return toString();
@@ -288,18 +291,32 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return getBaseNode().toString();
     }
 
-    private final Map<String, UniValueNode<String>> values = TrieMap.ofString();
-
-    @NotNull
-    protected UniValueNode<String> computeValueNode(
+    protected Processor<UniNode> computeNode(
             String fieldName,
             Supplier<Reference.Settable<String>> stringReferenceSupplier
     ) {
-        return values.computeIfAbsent(fieldName, key -> {
-            final UniValueNode.Adapter.ViaString adapter
-                    = new UniValueNode.Adapter.ViaString(stringReferenceSupplier.get());
-            return new UniValueNode<>(serializationAdapter, adapter);
-        });
+        final Reference.Settable<String> base
+                = baseAccessors.computeIfAbsent(fieldName, key -> stringReferenceSupplier.get());
+        final Processor<UniNode> wrapped
+                = wrappedAccessors.computeIfAbsent(fieldName, key -> base.process()
+                .map(str -> {
+                    final DataStructureType<? extends SerializationAdapter<?, ?, ?>, ?, ?> dst = serializationAdapter.typeOfData(str);
+
+                    if (dst != null) switch (dst.typ) {
+                        case OBJECT:
+                            return serializationAdapter.parse(str).asObjectNode();
+                        case ARRAY:
+                            return serializationAdapter.parse(str).asArrayNode();
+                    }
+
+                    final UniValueNode.Adapter.ViaString adapter
+                            = new UniValueNode.Adapter.ViaString(base);
+                    final UniValueNode<String> valueNode
+                            = new UniValueNode<>(serializationAdapter, adapter);
+                    return valueNode;
+                }));
+
+        return wrapped;
     }
 
     protected void set(Object value) {

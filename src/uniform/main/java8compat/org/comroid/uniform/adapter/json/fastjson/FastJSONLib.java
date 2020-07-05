@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
 import org.comroid.annotations.Instance;
+import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -22,6 +23,32 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
 
     private FastJSONLib() {
         super("application/json", JSONObject.class, JSONArray.class);
+    }
+
+    @Override
+    public DataStructureType<SerializationAdapter<JSON, JSONObject, JSONArray>, JSON, ? extends JSON> typeOfData(String data) {
+        final JSONValidator validator = JSONValidator.from(data);
+
+        if (validator.validate()) {
+            final JSONValidator.Type type = validator.getType();
+
+            try {
+                validator.close();
+            } catch (IOException e) {
+                throw new RuntimeException("Could not close validator", e);
+            }
+
+            switch (type) {
+                case Object:
+                    return objectType;
+                case Array:
+                    return arrayType;
+            }
+        } else {
+            throw new IllegalArgumentException("String is not valid JSON");
+        }
+
+        return null;
     }
 
     @Override

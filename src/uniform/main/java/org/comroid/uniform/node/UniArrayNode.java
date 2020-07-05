@@ -1,7 +1,7 @@
 package org.comroid.uniform.node;
 
 import org.comroid.api.Polyfill;
-import org.comroid.mutatio.ref.OutdateableReference.SettableOfSupplier;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.HeldType;
 import org.comroid.uniform.SerializationAdapter;
@@ -32,11 +32,10 @@ public final class UniArrayNode extends UniNode {
 
     @Override
     public @NotNull UniNode get(int index) {
-        return makeValueNode(index);
+        return makeValueNode(index).orElseGet(UniValueNode::nullNode);
     }
 
-    @NotNull
-    private UniNode makeValueNode(int index) {
+    private Processor<UniNode> makeValueNode(int index) {
         class Accessor implements Reference.Settable<String> {
             private final int index;
 
@@ -59,7 +58,7 @@ public final class UniArrayNode extends UniNode {
         }
 
         String key = String.valueOf(index);
-        return computeValueNode(key, () -> new Accessor(index));
+        return computeNode(key, () -> new Accessor(index));
     }
 
     @Override
@@ -98,11 +97,10 @@ public final class UniArrayNode extends UniNode {
             return get(index);
         } else {
             final String put = type.convert(value, ValueType.STRING);
-            final UniNode node = makeValueNode(index);
 
-            node.set(put);
-
-            return node;
+            return makeValueNode(index)
+                    .peek(node -> node.set(put))
+                    .requireNonNull("Missing Node");
         }
     }
 
