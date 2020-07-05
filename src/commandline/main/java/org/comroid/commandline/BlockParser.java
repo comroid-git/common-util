@@ -11,7 +11,7 @@ public class BlockParser {
 
     public void append(String arg) {
         final int len = arg.length();
-        final String name = arg.contains("-") ? arg.substring(arg.lastIndexOf('-') + 1) : arg;
+        final String name = arg.contains("-") ? arg.substring(arg.lastIndexOf('-', 2) + 1) : arg;
 
         if (arg.startsWith("-")) {
             if (!arg.startsWith("--")) {
