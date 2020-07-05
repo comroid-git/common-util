@@ -4,6 +4,8 @@ import org.comroid.api.Specifiable;
 import org.comroid.common.info.MessageSupplier;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.trie.TrieMap;
+import org.comroid.uniform.HeldType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.Contract;
@@ -11,7 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
@@ -86,15 +90,21 @@ public abstract class UniNode implements Specifiable<UniNode> {
     public abstract boolean has(String fieldName);
 
     // todo: add helper methods
-    public @NotNull <T> UniValueNode<String> add(ValueType<T> type, T value) throws UnsupportedOperationException {
+    public @NotNull <T> UniNode add(HeldType<T> type, T value) throws UnsupportedOperationException {
         return put(size(), type, value);
     }
 
-    public @NotNull <T> UniValueNode<String> put(int index, ValueType<T> type, T value) throws UnsupportedOperationException {
+    public @NotNull <T> UniNode put(int index, HeldType<T> type, T value) throws UnsupportedOperationException {
         return unsupported("PUT_INDEX", Type.ARRAY);
     }
 
-    public @NotNull <T> UniValueNode<String> put(String key, ValueType<T> type, T value) throws UnsupportedOperationException {
+    protected String unwrapDST(Object o) {
+        if (o instanceof UniNode)
+            return o.toString();
+        return String.valueOf(o);
+    }
+
+    public @NotNull <T> UniNode put(String key, HeldType<T> type, T value) throws UnsupportedOperationException {
         return unsupported("PUT_KEY", Type.OBJECT);
     }
 
@@ -278,10 +288,22 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return getBaseNode().toString();
     }
 
+    private final Map<String, UniValueNode<String>> values = TrieMap.ofString();
+
     @NotNull
-    protected UniValueNode<String> generateValueNode(Reference.Settable<String> stringReference) {
-        final UniValueNode.Adapter.ViaString valueAdapter = new UniValueNode.Adapter.ViaString(stringReference);
-        return new UniValueNode<>(serializationAdapter, valueAdapter);
+    protected UniValueNode<String> computeValueNode(
+            String fieldName,
+            Supplier<Reference.Settable<String>> stringReferenceSupplier
+    ) {
+        return values.computeIfAbsent(fieldName, key -> {
+            final UniValueNode.Adapter.ViaString adapter
+                    = new UniValueNode.Adapter.ViaString(stringReferenceSupplier.get());
+            return new UniValueNode<>(serializationAdapter, adapter);
+        });
+    }
+
+    protected void set(Object value) {
+        unsupported("SET", Type.VALUE);
     }
 
     public enum Type {

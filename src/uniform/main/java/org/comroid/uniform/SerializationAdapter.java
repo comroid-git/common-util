@@ -10,9 +10,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
+    public final String mimeType;
     public final DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
     public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
-    private final String mimeType;
 
     public final String getMimeType() {
         return mimeType;

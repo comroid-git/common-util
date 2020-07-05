@@ -1,19 +1,18 @@
 package org.comroid.uniform.node;
 
-import org.comroid.mutatio.ref.OutdateableReference.SettableOfSupplier;
-import org.comroid.trie.TrieMap;
-import org.comroid.uniform.DataStructureType;
+import org.comroid.api.Polyfill;
+import org.comroid.mutatio.ref.Reference.Settable;
+import org.comroid.uniform.HeldType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {
-    private final Map<String, UniValueNode<String>> valueAdapters = TrieMap.ofString();
     private final Adapter adapter;
 
     @Override
@@ -63,41 +62,53 @@ public final class UniObjectNode extends UniNode {
     }
 
     @Override
-    public @NotNull UniNode get(String fieldName) {
-        final Object value = adapter.get(fieldName);
-
-        if (value == null) {
-            return UniValueNode.nullNode();
-        }
-
-        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
-                .map(DataStructureType::typeClass)
-                .noneMatch(type -> type.isInstance(value))) {
-            return valueAdapters.computeIfAbsent(fieldName, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
-                    .process()
-                    .map(String::valueOf)
-                    .snapshot()));
-        } else {
-            return serializationAdapter.createUniNode(value);
-        }
+    public @NotNull UniNode get(final String fieldName) {
+        return makeValueNode(fieldName);
     }
 
-    @Override
-    public @NotNull <T> UniValueNode<String> put(String key, ValueType<T> type, T value) {
-        if (adapter.containsKey(key)) {
-            Object at = adapter.get(key);
-            if (at instanceof UniValueNode) {
-                adapter.put(key, value);
-                //noinspection unchecked
-                return (UniValueNode<String>) at;
+    @NotNull
+    private UniNode makeValueNode(String fieldName) {
+        class Accessor implements Settable<String> {
+            private final String key;
+
+            private Accessor(String key) {
+                this.key = key;
+            }
+
+            @Nullable
+            @Override
+            public String get() {
+                return unwrapDST(adapter.get(fieldName));
+            }
+
+            @Nullable
+            @Override
+            public String set(String newValue) {
+                adapter.put(key, newValue);
+                return get();
             }
         }
 
-        adapter.put(key, value);
-        return valueAdapters.computeIfAbsent(key, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
-                .process()
-                .map(String::valueOf)
-                .snapshot()));
+        return computeValueNode(fieldName, () -> new Accessor(fieldName));
+    }
+
+    @Override
+    public @NotNull <T> UniNode put(String key, HeldType<T> type, T value) {
+        if (value instanceof UniNode) {
+            return put(key, ValueType.VOID, Polyfill.uncheckedCast(((UniNode) value).getBaseNode()));
+        }
+
+        if (type == ValueType.VOID) {
+            adapter.put(key, value);
+            return get(key);
+        } else {
+            final String put = type.convert(value, ValueType.STRING);
+            final UniNode node = makeValueNode(key);
+
+            node.set(put);
+
+            return node;
+        }
     }
 
     @Override

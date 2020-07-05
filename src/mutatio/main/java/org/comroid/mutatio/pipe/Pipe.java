@@ -10,6 +10,7 @@ import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -28,6 +29,11 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, D
 
     static <T> Pipe<T, T> create() {
         return new BasicPipe<>(ReferenceIndex.create());
+    }
+
+    @SafeVarargs
+    static <T> Pipe<T, T> of(T... values) {
+        return of(Arrays.asList(values));
     }
 
     static <T> Pipe<T, T> of(Collection<T> collection) {
