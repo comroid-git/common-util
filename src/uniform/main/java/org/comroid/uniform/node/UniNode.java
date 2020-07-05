@@ -1,5 +1,6 @@
 package org.comroid.uniform.node;
 
+import org.comroid.api.Polyfill;
 import org.comroid.api.Specifiable;
 import org.comroid.common.info.MessageSupplier;
 import org.comroid.mutatio.proc.Processor;
@@ -291,32 +292,48 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return getBaseNode().toString();
     }
 
-    protected Processor<UniNode> computeNode(
+    protected <T> Processor<UniNode> computeNode(
             String fieldName,
-            Supplier<Reference.Settable<String>> stringReferenceSupplier
+            Supplier<Reference.Settable<T>> referenceSupplier
+    ) {
+        return computeNode(fieldName, Polyfill.uncheckedCast(ValueType.VOID), referenceSupplier);
+    }
+
+    protected <T> Processor<UniNode> computeNode(
+            String fieldName,
+            ValueType<T> providedType,
+            Supplier<Reference.Settable<T>> referenceSupplier
     ) {
         final Reference.Settable<String> base
-                = baseAccessors.computeIfAbsent(fieldName, key -> stringReferenceSupplier.get());
-        final Processor<UniNode> wrapped
-                = wrappedAccessors.computeIfAbsent(fieldName, key -> base.process()
+                = baseAccessors.computeIfAbsent(fieldName, key -> referenceSupplier.get()
+                .process()
+                .map(it -> {
+                    if (providedType == ValueType.VOID)
+                        return String.valueOf(it);
+                    return providedType.convert(it, ValueType.STRING);
+                })
+                .snapshot());
+        return wrappedAccessors.computeIfAbsent(fieldName, key -> base.process()
                 .map(str -> {
-                    final DataStructureType<? extends SerializationAdapter<?, ?, ?>, ?, ?> dst = serializationAdapter.typeOfData(str);
+                    try {
+                        DataStructureType<? extends SerializationAdapter<?, ?, ?>, ?, ?> dst = serializationAdapter.typeOfData(str);
 
-                    if (dst != null) switch (dst.typ) {
-                        case OBJECT:
-                            return serializationAdapter.parse(str).asObjectNode();
-                        case ARRAY:
-                            return serializationAdapter.parse(str).asArrayNode();
+                        if (dst != null) switch (dst.typ) {
+                            case OBJECT:
+                                return serializationAdapter.parse(str).asObjectNode();
+                            case ARRAY:
+                                return serializationAdapter.parse(str).asArrayNode();
+                        }
+                    } catch (IllegalArgumentException ignored) {
                     }
 
                     final UniValueNode.Adapter.ViaString adapter
-                            = new UniValueNode.Adapter.ViaString(base);
-                    final UniValueNode<String> valueNode
-                            = new UniValueNode<>(serializationAdapter, adapter);
-                    return valueNode;
+                            = new UniValueNode.Adapter.ViaString(base
+                            .process()
+                            .map(String::valueOf)
+                            .snapshot());
+                    return new UniValueNode<>(serializationAdapter, adapter);
                 }));
-
-        return wrapped;
     }
 
     protected void set(Object value) {
