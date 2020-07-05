@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public final class UniArrayNode extends UniNode {
     private final Map<Integer, UniValueNode<String>> valueAdapters = new ConcurrentHashMap<>();
@@ -88,9 +89,9 @@ public final class UniArrayNode extends UniNode {
 
     @Override
     public @NotNull <T> UniNode put(int index, HeldType<T> type, T value) {
-        if (value instanceof UniNode) {
-            return put(index, ValueType.VOID, Polyfill.uncheckedCast(((UniNode) value).getBaseNode()));
-        }
+        UniNode node = unwrapNode(String.valueOf(index), type, value);
+        if (node != null)
+            return node;
 
         if (type == ValueType.VOID) {
             adapter.set(index, value);
@@ -99,7 +100,7 @@ public final class UniArrayNode extends UniNode {
             final String put = type.convert(value, ValueType.STRING);
 
             return makeValueNode(index)
-                    .peek(node -> node.set(put))
+                    .peek(newNode -> newNode.set(put))
                     .requireNonNull("Missing Node");
         }
     }

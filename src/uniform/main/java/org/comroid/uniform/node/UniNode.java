@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
@@ -292,27 +293,12 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return getBaseNode().toString();
     }
 
-    protected <T> Processor<UniNode> computeNode(
+    protected Processor<UniNode> computeNode(
             String fieldName,
-            Supplier<Reference.Settable<T>> referenceSupplier
-    ) {
-        return computeNode(fieldName, Polyfill.uncheckedCast(ValueType.VOID), referenceSupplier);
-    }
-
-    protected <T> Processor<UniNode> computeNode(
-            String fieldName,
-            ValueType<T> providedType,
-            Supplier<Reference.Settable<T>> referenceSupplier
+            Supplier<Reference.Settable<String>> referenceSupplier
     ) {
         final Reference.Settable<String> base
-                = baseAccessors.computeIfAbsent(fieldName, key -> referenceSupplier.get()
-                .process()
-                .map(it -> {
-                    if (providedType == ValueType.VOID)
-                        return String.valueOf(it);
-                    return providedType.convert(it, ValueType.STRING);
-                })
-                .snapshot());
+                = baseAccessors.computeIfAbsent(fieldName, key -> referenceSupplier.get());
         return wrappedAccessors.computeIfAbsent(fieldName, key -> base.process()
                 .map(str -> {
                     try {
@@ -338,6 +324,16 @@ public abstract class UniNode implements Specifiable<UniNode> {
 
     protected void set(Object value) {
         unsupported("SET", Type.VALUE);
+    }
+
+    @Nullable
+    protected <T> UniNode unwrapNode(String key, HeldType<T> type, T value) {
+        if (value instanceof UniNode)
+            return put(key, ValueType.VOID, Polyfill.uncheckedCast(((UniNode) value).getBaseNode()));
+        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
+                .anyMatch(dst -> dst.typeClass().isInstance(value)) && type != ValueType.VOID)
+            return put(key, ValueType.VOID, Polyfill.uncheckedCast(value));
+        return null;
     }
 
     public enum Type {

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {
     private final Adapter adapter;
@@ -94,9 +95,9 @@ public final class UniObjectNode extends UniNode {
 
     @Override
     public @NotNull <T> UniNode put(String key, HeldType<T> type, T value) {
-        if (value instanceof UniNode) {
-            return put(key, ValueType.VOID, Polyfill.uncheckedCast(((UniNode) value).getBaseNode()));
-        }
+        UniNode node = unwrapNode(key, type, value);
+        if (node != null)
+            return node;
 
         if (type == ValueType.VOID) {
             adapter.put(key, value);
@@ -105,7 +106,7 @@ public final class UniObjectNode extends UniNode {
             final String put = type.convert(value, ValueType.STRING);
 
             return makeValueNode(key)
-                    .peek(node -> node.set(put))
+                    .peek(newNode -> newNode.set(put))
                     .requireNonNull("Missing Node");
         }
     }
