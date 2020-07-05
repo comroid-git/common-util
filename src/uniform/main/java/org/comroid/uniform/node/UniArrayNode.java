@@ -99,9 +99,9 @@ public final class UniArrayNode extends UniNode {
         } else {
             final String put = type.convert(value, ValueType.STRING);
 
-            return makeValueNode(index)
-                    .peek(newNode -> newNode.set(put))
-                    .requireNonNull("Missing Node");
+            final UniNode vn = makeValueNode(index).requireNonNull("Missing Node");
+            vn.set(put);
+            return vn;
         }
     }
 

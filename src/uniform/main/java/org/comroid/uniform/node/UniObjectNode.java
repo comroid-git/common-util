@@ -79,7 +79,7 @@ public final class UniObjectNode extends UniNode {
             @Nullable
             @Override
             public String get() {
-                return unwrapDST(adapter.get(fieldName));
+                return unwrapDST(adapter.get(key));
             }
 
             @Nullable
@@ -105,9 +105,9 @@ public final class UniObjectNode extends UniNode {
         } else {
             final String put = type.convert(value, ValueType.STRING);
 
-            return makeValueNode(key)
-                    .peek(newNode -> newNode.set(put))
-                    .requireNonNull("Missing Node");
+            final UniNode vn = makeValueNode(key).requireNonNull("Missing Node");
+            vn.set(put);
+            return vn;
         }
     }
 
