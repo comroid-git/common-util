@@ -1,5 +1,7 @@
 package org.comroid.uniform;
 
+import org.comroid.api.Junction;
+
 import java.util.function.Function;
 
 public final class ValueType<R> implements HeldType<R> {
@@ -23,11 +25,11 @@ public final class ValueType<R> implements HeldType<R> {
             = new ValueType<>("Void", it -> null);
 
     private final String name;
-    private final Function<String, R> mapper;
+    private final Junction<String, R> converter;
 
     @Deprecated
     public Function<String, R> getMapper() {
-        return this;
+        return getConverter()::forward;
     }
 
     @Override
@@ -37,17 +39,17 @@ public final class ValueType<R> implements HeldType<R> {
 
     public ValueType(String name, Function<String, R> mapper) {
         this.name = name;
-        this.mapper = mapper;
+        this.converter = Junction.ofString(mapper);
     }
 
     @Override
     public <T> T convert(R value, ValueType<T> toType) {
-        return toType.apply(value.toString());
+        return toType.converter.forward(value.toString());
     }
 
     @Override
-    public R apply(String from) {
-        return mapper.apply(from);
+    public Junction<String, R> getConverter() {
+        return converter;
     }
 
     @Override

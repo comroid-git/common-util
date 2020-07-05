@@ -191,7 +191,7 @@ public class UniValueNode<T> extends UniNode {
             public <R> @Nullable R get(ValueType<R> as) {
                 final String from = sub.get();
                 if (from != null)
-                    return as.apply(from);
+                    return as.getConverter().forward(from);
                 return null;
             }
 
