@@ -14,8 +14,8 @@ configurations {
 }
 
 sourceSets {
-    java8compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java8compat")
-    java11compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java11compat")
+    java8compat.java.srcDirs = files("$parent.projectDir/src/$artifactName/main/java8compat")
+    java11compat.java.srcDirs = files("$parent.projectDir/src/$artifactName/main/java11compat")
 }
 
 compileJava8compatJava {
@@ -44,9 +44,9 @@ dependencies {
     java8compatCompileOnly 'org.jetbrains:annotations:19.0.0'
     java11compatCompileOnly 'org.jetbrains:annotations:19.0.0'
 
-    api project(':common-util')
-    java8compatCompileOnly project(':uniform')
-    java11compatCompileOnly project(':uniform')
+    api project(':common-util:common-util')
+    java8compatCompileOnly project(':common-util:uniform')
+    java11compatCompileOnly project(':common-util:uniform')
 
     // json adapter dependencies
     java8compatCompileOnly 'com.alibaba:fastjson:1.2.71'
@@ -66,5 +66,5 @@ dependencies {
     testImplementation 'com.alibaba:fastjson:1.2.70'
 }
 
-apply from: "$rootDir/gradle/publishing.gradle"
+apply from: "$parent.projectDir/gradle/publishing.gradle"
 

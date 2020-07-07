@@ -14,8 +14,8 @@ configurations {
 }
 
 sourceSets {
-    java8compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java8compat")
-    java11compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java11compat")
+    java8compat.java.srcDirs = files("$parent.projectDir/src/$artifactName/main/java8compat")
+    java11compat.java.srcDirs = files("$parent.projectDir/src/$artifactName/main/java11compat")
 }
 
 compileJava8compatJava {
@@ -44,24 +44,24 @@ dependencies {
     java8compatCompileOnly 'org.jetbrains:annotations:19.0.0'
     java11compatCompileOnly 'org.jetbrains:annotations:19.0.0'
 
-    api project(':common-util')
-    java8compatCompileOnly project(':restless')
-    java11compatCompileOnly project(':restless')
+    api project(':common-util:common-util')
+    java8compatCompileOnly project(':common-util:restless')
+    java11compatCompileOnly project(':common-util:restless')
 
-    api project(':uniform')
-    java8compatImplementation project(':uniform')
-    java11compatImplementation project(':uniform')
-    api project(':varbind')
-    java8compatImplementation project(':varbind')
-    java11compatImplementation project(':varbind')
+    api project(':common-util:uniform')
+    java8compatImplementation project(':common-util:uniform')
+    java11compatImplementation project(':common-util:uniform')
+    api project(':common-util:varbind')
+    java8compatImplementation project(':common-util:varbind')
+    java11compatImplementation project(':common-util:varbind')
 
     // websocket dependencies
-    compileOnly project(':listnr')
-    java8compatCompileOnly project(':listnr')
-    java11compatCompileOnly project(':listnr')
-    compileOnly project(':dreadpool')
-    java8compatCompileOnly project(':dreadpool')
-    java11compatCompileOnly project(':dreadpool')
+    compileOnly project(':common-util:listnr')
+    java8compatCompileOnly project(':common-util:listnr')
+    java11compatCompileOnly project(':common-util:listnr')
+    compileOnly project(':common-util:dreadpool')
+    java8compatCompileOnly project(':common-util:dreadpool')
+    java11compatCompileOnly project(':common-util:dreadpool')
 
     // http adapter dependencies
     java8compatCompileOnly 'com.squareup.okhttp3:okhttp:4.7.2'
@@ -72,11 +72,11 @@ dependencies {
 
     testImplementation sourceSets.java8compat.output.classesDirs
     testImplementation sourceSets.java11compat.output.classesDirs
-    testRuntimeOnly project(':listnr')
-    testRuntimeOnly project(':dreadpool')
+    testRuntimeOnly project(':common-util:listnr')
+    testRuntimeOnly project(':common-util:dreadpool')
     testRuntimeOnly 'com.squareup.okhttp3:okhttp:4.5.0'
     testImplementation 'com.alibaba:fastjson:1.2.71'
 }
 
-apply from: "$rootDir/gradle/publishing.gradle"
+apply from: "$parent.projectDir/gradle/publishing.gradle"
 

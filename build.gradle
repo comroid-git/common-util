@@ -14,7 +14,7 @@ configurations {
 subprojects {
     group 'org.comroid'
     apply plugin: 'java-library'
-    apply from: "$rootDir/gradle/vars.gradle"
-    apply from: "$rootDir/gradle/javadoc.gradle"
-    apply from: "$rootDir/gradle/global.gradle"
+    apply from: "$parent.projectDir/gradle/vars.gradle"
+    apply from: "$parent.projectDir/gradle/javadoc.gradle"
+    apply from: "$parent.projectDir/gradle/global.gradle"
 }

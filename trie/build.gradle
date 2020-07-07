@@ -8,7 +8,7 @@ ext {
 }
 
 dependencies {
-    api project(':mutatio')
+    api project(':common-util:mutatio')
 }
 
-apply from: "$rootDir/gradle/publishing.gradle"
+apply from: "$parent.projectDir/gradle/publishing.gradle"
