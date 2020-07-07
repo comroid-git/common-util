@@ -10,7 +10,7 @@ import org.comroid.uniform.node.UniNode;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class WebSocket extends AbstractEventManager<WebSocketData, WebSocketEvent<WebSocketPayload>, WebSocketPayload> {
-public static final     int MAX_MESSAGE_LENGTH = 2000;
+    public static final int MAX_MESSAGE_LENGTH = 2000;
 
     public WebSocket(ListnrCore listnr) {
         super(listnr);

@@ -29,7 +29,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
     }
 
     static <K, V> TrieMap<K, V> parsing(Function<String, K> parser) {
-        return new Basic<>(Junction.of(Objects::toString, parser), false);
+        return new Basic<>(Junction.of(it -> String.valueOf(it).intern(), parser), true);
     }
 
     static <K, V> TrieMap<K, V> parsingCached(Function<String, K> parser) {
@@ -80,12 +80,17 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         private final Reference.Settable<V> reference = Reference.Settable.create();
         private final Stage<V> parent;
         private final String keyConverted;
+        private final char c;
 
         @Override
         public String getKey() {
-            return parent == null
-                    ? keyConverted
-                    : parent.getKey() + File.pathSeparator + keyConverted;
+            return keyConverted;
+        }
+
+        public String getDescribedKey() {
+            if (parent == null)
+                return keyConverted;
+            return parent.getDescribedKey() + File.separatorChar + c;
         }
 
         @Override
@@ -93,13 +98,14 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             return reference.get();
         }
 
-        private Stage(Stage<V> parent, String keyConverted) {
+        private Stage(Stage<V> parent, char c, String keyConverted) {
             this.parent = parent;
             this.keyConverted = keyConverted;
+            this.c = c;
         }
 
-        private Stage(Stage<V> parent, String keyConverted, V containValue) {
-            this(parent, keyConverted);
+        private Stage(Stage<V> parent, char c, String keyConverted, V containValue) {
+            this(parent, c, keyConverted);
 
             this.reference.set(containValue);
         }
@@ -168,7 +174,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
             return storage.computeIfAbsent(chars[cIndex], key -> {
                 String converted = new String(Arrays.copyOfRange(chars, 0, cIndex + 1));
-                return new Stage<>(this, converted);
+                return new Stage<>(this, chars[cIndex], converted);
             }).requireStage(targetKey, chars, cIndex + 1);
         }
 
@@ -189,7 +195,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
     }
 
     class Basic<K, V> implements TrieMap<K, V> {
-        private final TrieMap.Stage<V> baseStage = new Stage<>(null, null);
+        private final TrieMap.Stage<V> baseStage = new Stage<>(null, (char) 0, null);
         private final Map<K, String> cachedKeys = new ConcurrentHashMap<>();
         private final Junction<K, String> keyConverter;
         private final boolean useKeyCache;
@@ -208,8 +214,8 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         public void printStages() {
             baseStage.streamStages()
                     .map(stage -> stage.reference.isNull()
-                            ? String.format("%s", stage.getKey())
-                            : String.format("%s -> %s", stage.getKey(), stage.reference.get()))
+                            ? String.format("%s", stage.getDescribedKey())
+                            : String.format("%s -> %s", stage.getDescribedKey(), stage.reference.get()))
                     .forEachOrdered(System.out::println);
         }
 
@@ -220,6 +226,9 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
         @Override
         public boolean containsKey(Object key) {
+            if (key == null)
+                return false;
+
             final char[] convertKey = convertKey(key);
             final String kStr = new String(convertKey);
             final Stage<V> stage = baseStage.requireStage(kStr, convertKey, 0);
@@ -311,6 +320,8 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         }
 
         private String cacheKey(Object key) {
+            Objects.requireNonNull(key, "Key is null");
+
             if (key instanceof String)
                 return (String) key;
 

@@ -146,21 +146,23 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
                 //noinspection unchecked
                 return (Optional<GroupBind<? extends T, D>>) fitting[0].findGroupForData(data);
 
-            throw new UnsupportedOperationException("Too many fitting subgroups found: " + Arrays.toString(fitting));
+            throw new UnsupportedOperationException(String.format(
+                    "%s fitting subgroups found: %s",
+                    (fitting.length == 0 ? "No" : "Too many"),
+                    Arrays.toString(fitting)
+            ));
         } else return Optional.empty();
     }
 
     public boolean isValidData(UniObjectNode data) {
-        if (!parents.isEmpty())
-            return false;
-
         return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()) || !bind.isRequired());
     }
 
     public Stream<? extends VarBind<?, D, ?, ?>> streamAllChildren() {
-        return Stream.concat(children.stream(), getParents()
-                .stream()
-                .flatMap(GroupBind::streamAllChildren)
+        return Stream.concat(
+                getParents().stream()
+                        .flatMap(GroupBind::streamAllChildren),
+                children.stream()
         ).distinct();
     }
 

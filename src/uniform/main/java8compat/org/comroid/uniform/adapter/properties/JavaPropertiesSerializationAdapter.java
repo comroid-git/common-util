@@ -1,6 +1,7 @@
 package org.comroid.uniform.adapter.properties;
 
 import org.comroid.annotations.Instance;
+import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -18,6 +19,17 @@ public class JavaPropertiesSerializationAdapter extends SerializationAdapter<Pro
 
     private JavaPropertiesSerializationAdapter() {
         super("text/x-java-propertie", Properties.class, null);
+    }
+
+    @Override
+    public DataStructureType<SerializationAdapter<Properties, Properties, Properties>, Properties, ? extends Properties> typeOfData(String data) {
+        final Properties properties = ofString(data);
+
+        if (properties.keySet().stream()
+                .map(String::valueOf)
+                .allMatch(x -> x.matches("\\d+")))
+            return arrayType;
+        return objectType;
     }
 
     @Override

@@ -14,7 +14,7 @@ public class UniValueNode<T> extends UniNode {
         return asRaw(null);
     }
 
-    public UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
+    protected UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
         super(serializationAdapter, Type.VALUE);
 
         this.adapter = adapter;
@@ -42,6 +42,11 @@ public class UniValueNode<T> extends UniNode {
     @Override
     public @NotNull UniNode get(String fieldName) {
         return unsupported("GET_FIELD", Type.OBJECT);
+    }
+
+    @Override
+    protected void set(Object value) {
+        adapter.set(String.valueOf(value));
     }
 
     @Override
@@ -186,7 +191,7 @@ public class UniValueNode<T> extends UniNode {
             public <R> @Nullable R get(ValueType<R> as) {
                 final String from = sub.get();
                 if (from != null)
-                    return as.apply(from);
+                    return as.getConverter().forward(from);
                 return null;
             }
 

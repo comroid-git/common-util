@@ -15,6 +15,11 @@ public abstract class AbstractEventManager<I, T extends EventType<? super I, ? e
     private final Span<EventManager<? super I, ? super T, ? super P>> parents;
     private final Reference<ListnrCore> listnr;
 
+    @Override
+    public final Span<EventManager<? super I, ? super T, ? super P>> getParents() {
+        return parents;
+    }
+
     public AbstractEventManager(ListnrCore listnr) {
         this.parents = Span.empty();
         this.listnr = Reference.constant(Objects.requireNonNull(listnr));
@@ -29,11 +34,6 @@ public abstract class AbstractEventManager<I, T extends EventType<? super I, ? e
         this.listnr = this.parents.pipe()
                 .map(EventManager::listnr)
                 .findAny();
-    }
-
-    @Override
-    public final Span<EventManager<? super I, ? super T, ? super P>> getParents() {
-        return parents;
     }
 
     @Override

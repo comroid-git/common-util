@@ -114,7 +114,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
             return emptySet();
         }
 
-        if (!rootBind.isValidData(data))
+        if (!getRootBind().isValidData(data))
             throw new IllegalArgumentException("Data is invalid");
 
         final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
@@ -212,12 +212,12 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         return applyTo;
     }
 
-    private void applyValueToNode(UniObjectNode applyTo, String key, Object it) {
+    private UniNode applyValueToNode(UniObjectNode applyTo, String key, Object it) {
         if (it instanceof DataContainer)
-            ((DataContainer<DEP>) it).toObjectNode(applyTo.putObject(key));
+            return ((DataContainer<DEP>) it).toObjectNode(applyTo.putObject(key));
         else if (it instanceof UniNode)
-            applyTo.putObject(key).copyFrom((UniNode) it);
-        else applyTo.put(key, ValueType.STRING, String.valueOf(it));
+            return applyTo.putObject(key).copyFrom((UniNode) it);
+        else return applyTo.put(key, ValueType.STRING, String.valueOf(it));
     }
 
     @Override

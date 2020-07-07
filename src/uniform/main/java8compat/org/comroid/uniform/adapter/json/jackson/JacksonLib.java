@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.comroid.annotations.Instance;
+import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -18,6 +19,11 @@ public final class JacksonLib extends SerializationAdapter<JsonNode, ObjectNode,
 
     protected JacksonLib() {
         super("application/json", ObjectNode.class, ArrayNode.class);
+    }
+
+    @Override
+    public DataStructureType<SerializationAdapter<JsonNode, ObjectNode, ArrayNode>, JsonNode, ? extends JsonNode> typeOfData(String data) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -154,10 +154,13 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
                 .addFragment(Objects.requireNonNull(finisherProvider, "No finisher definition provided"))
                 .setClassLoader(classLoader);
 
-        return builder.build(Stream
+        final VarBind<EXTR, DPND, REMAP, FINAL> bind = builder.build(Stream
                 .of(groupBind, fieldName, required, valueType, remapper, resolver, collectionProvider)
                 .filter(Objects::nonNull)
                 .toArray()
         );
+
+        groupBind.addChild(bind);
+        return bind;
     }
 }

@@ -29,6 +29,9 @@ public class SpellCore<T extends TypeFragment<? super T>>
     private SpellCore(Object base, Map<String, Invocable<?>> methods) {
         this.base = base;
         this.methods = Collections.unmodifiableMap(methods);
+
+        if (methods instanceof TrieMap)
+            ((TrieMap<String, Invocable<?>>) methods).printStages();
     }
 
     public static <T extends TypeFragment<? super T>> Builder<T> builder(Class<T> mainInterface) {
@@ -73,15 +76,15 @@ public class SpellCore<T extends TypeFragment<? super T>>
         if (!Modifier.isAbstract(method.getModifiers())
                 && method.getDeclaringClass().isAssignableFrom(base.getClass()))
             return Invocable.ofMethodCall(base, method)
-                    .invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args);
+                    .invokeRethrow(args);
 
-        return findMethod(method)
-                .map(invocable -> invocable.invokeRethrow((ReflectiveOperationException e) -> (RuntimeException) e.getCause(), args))
-                .orElseThrow(() -> new NoSuchMethodError("No implementation found for " + methodString(method)));
-    }
+        String methodString = methodString(method);
+        Invocable<?> invocable = methods.get(methodString);
 
-    private Optional<Invocable<?>> findMethod(Method method) {
-        return Optional.ofNullable(methods.getOrDefault(methodString(method), null));
+        if (invocable != null)
+            return invocable.invokeRethrow((ReflectiveOperationException e) -> new RuntimeException(e.getCause()), args);
+
+        throw new NoSuchMethodError("No implementation found for " + methodString);
     }
 
     public static final class Builder<T extends TypeFragment<? super T>> {

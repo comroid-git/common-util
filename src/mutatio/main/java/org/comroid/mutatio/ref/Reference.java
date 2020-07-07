@@ -145,6 +145,32 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
 
             return get();
         }
+
+        default Settable<T> rebind(Supplier<T> behind) {
+            class Rebound implements Settable<T> {
+                private final Settable<T> setter;
+                private final Supplier<T> getter;
+
+                public Rebound(Settable<T> setter, Supplier<T> getter) {
+                    this.setter = setter;
+                    this.getter = getter;
+                }
+
+                @Nullable
+                @Override
+                public T get() {
+                    return getter.get();
+                }
+
+                @Nullable
+                @Override
+                public T set(T newValue) {
+                    return setter.set(newValue);
+                }
+            }
+
+            return new Rebound(this, behind);
+        }
     }
 
     @Internal

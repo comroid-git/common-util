@@ -36,19 +36,21 @@ public final class ExtractingBind {
 
         @Override
         public Span<E> extract(UniNode from) {
-            final String fieldName = as(PartialBind.Base.class)
-                    .map(PartialBind.Base::getFieldName)
-                    .orElseThrow(() -> new AssertionError("Missing Base attribute"));
+            final String fieldName = as(PartialBind.Base.class, "Missing Base attribute").getFieldName();
 
             return as(PartialBind.Finisher.class)
-                    .map(PartialBind.Finisher::isListing)
-                    .map(lists -> {
-                        if (lists) return from.get(fieldName)
-                                .asNodeList()
-                                .stream()
-                                .map(node -> node.as(valueType))
-                                .collect(Span.collector());
-                        else return Span.immutable(from.get(fieldName).as(valueType));
+                    .map(bind -> {
+                        final UniNode target = from.get(fieldName);
+                        if (bind.isListing())
+                            return target
+                                    .asNodeList()
+                                    .stream()
+                                    .map(node -> node.as(valueType))
+                                    .collect(Span.collector());
+                        else {
+                            final E as = target.as(valueType);
+                            return Span.immutable(as);
+                        }
                     }).orElseThrow(() -> new AssertionError("Missing Finisher attribute"));
         }
     }

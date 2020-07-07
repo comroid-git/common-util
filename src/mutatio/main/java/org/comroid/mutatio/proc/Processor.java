@@ -1,5 +1,6 @@
 package org.comroid.mutatio.proc;
 
+import org.comroid.api.Polyfill;
 import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
@@ -10,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Cloneable through {@link #process()}.
@@ -18,6 +20,8 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
     default boolean isPresent() {
         return get() != null;
     }
+
+    Optional<? extends Reference<?>> getParent();
 
     static <T> Processor<T> ofReference(Reference<T> reference) {
         return new Support.OfReference<>(reference);
@@ -40,6 +44,19 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
 
     static <T> Processor<T> providedOptional(Supplier<Optional<T>> supplier) {
         return new Support.OfReference<>(Reference.provided(() -> supplier.get().orElse(null)));
+    }
+
+    default Stream<Reference<?>> upstream() {
+        return Stream.concat(
+                Stream.of(this),
+                getParent()
+                        .map(ref -> {
+                            if (ref instanceof Processor)
+                                return ((Processor<?>) ref).upstream();
+                            else return Stream.of(ref);
+                        })
+                        .orElseGet(Stream::empty)
+        );
     }
 
     @Override
@@ -89,18 +106,34 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
     }
 
     default Settable<T> snapshot() {
-        return Settable.create(get());
+        return upstream()
+                .filter(Settable.class::isInstance)
+                .findAny()
+                .map(Polyfill::<Settable<T>>uncheckedCast)
+                .map(ref -> ref.rebind(this))
+                .orElseGet(() -> into(Settable::create));
     }
 
     @Internal
     final class Support {
         private static final Processor<?> EMPTY = new OfReference<>(Reference.empty());
 
-        private static final class OfReference<T> implements Processor<T> {
-            private final Reference<T> underlying;
+        private static abstract class Abstract<I, O> implements Processor<O> {
+            protected final Reference<I> underlying;
 
-            private OfReference(Reference<T> underlying) {
+            @Override
+            public Optional<? extends Reference<?>> getParent() {
+                return Optional.ofNullable(underlying);
+            }
+
+            protected Abstract(Reference<I> underlying) {
                 this.underlying = underlying;
+            }
+        }
+
+        private static final class OfReference<T> extends Abstract<T, T> {
+            private OfReference(Reference<T> underlying) {
+                super(underlying);
             }
 
             @Nullable
@@ -110,12 +143,12 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        public static final class Remapped<T, R> implements Processor<R> {
-            private final Reference<T> underlying;
+        public static final class Remapped<T, R> extends Abstract<T, R> {
             private final Function<? super T, ? extends R> remapper;
 
             public Remapped(Reference<T> base, Function<? super T, ? extends R> remapper) {
-                this.underlying = base;
+                super(base);
+
                 this.remapper = remapper;
             }
 
@@ -131,12 +164,12 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        public static final class Filtered<T> implements Processor<T> {
-            private final Reference<T> underlying;
+        public static final class Filtered<T> extends Abstract<T, T> {
             private final Predicate<? super T> predicate;
 
             public Filtered(Reference<T> underlying, Predicate<? super T> predicate) {
-                this.underlying = underlying;
+                super(underlying);
+
                 this.predicate = predicate;
             }
 
@@ -152,35 +185,34 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        public static final class Or<T> implements Processor<T> {
-            private final Reference<T> base;
+        public static final class Or<T> extends Abstract<T, T> {
             private final Supplier<T> other;
 
             public Or(Reference<T> base, Supplier<T> other) {
-                this.base = base;
+                super(base);
+
                 this.other = other;
             }
 
             @Override
             public T get() {
-                return base.orElseGet(other);
+                return underlying.orElseGet(other);
             }
         }
 
-        private static final class ReferenceFlatMapped<T, R> implements Processor<R> {
-            private final Reference<T> base;
-
+        private static final class ReferenceFlatMapped<T, R> extends Abstract<T, R> {
             private final Function<? super T, ? extends Reference<R>> mapper;
 
-            public ReferenceFlatMapped(Reference<T> base, Function<? super T, ? extends Reference<R>> mapper) {
-                this.base = base;
+            public ReferenceFlatMapped(Reference<T> underlying, Function<? super T, ? extends Reference<R>> mapper) {
+                super(underlying);
+
                 this.mapper = mapper;
             }
 
             @Nullable
             @Override
             public R get() {
-                return mapper.apply(base.get()).get();
+                return mapper.apply(underlying.get()).get();
             }
         }
     }
