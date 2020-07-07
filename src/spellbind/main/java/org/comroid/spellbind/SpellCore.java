@@ -29,9 +29,6 @@ public class SpellCore<T extends TypeFragment<? super T>>
     private SpellCore(Object base, Map<String, Invocable<?>> methods) {
         this.base = base;
         this.methods = Collections.unmodifiableMap(methods);
-
-        if (methods instanceof TrieMap)
-            ((TrieMap<String, Invocable<?>>) methods).printStages();
     }
 
     public static <T extends TypeFragment<? super T>> Builder<T> builder(Class<T> mainInterface) {

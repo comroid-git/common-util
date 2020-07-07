@@ -9,8 +9,12 @@ ext {
 
 configurations {
     main
-    java8compat.extendsFrom main
-    java11compat.extendsFrom main
+    java8compat {
+        extendsFrom main
+    }
+    java11compat {
+        extendsFrom main
+    }
 }
 
 sourceSets {
@@ -29,13 +33,9 @@ compileJava11compatJava {
 }
 
 jar {
-    dependsOn = ['compileJava8compatJava', 'compileJava11compatJava']
-    tasks.findByName('compileJava8compatJava').mustRunAfter('compileJava')
-    tasks.findByName('compileJava11compatJava').mustRunAfter('compileJava')
-
-    from files(tasks.findByName('compileJava').destinationDir,
-            tasks.findByName('compileJava8compatJava').destinationDir,
-            tasks.findByName('compileJava11compatJava').destinationDir)
+    from files(sourceSets.main.output.classesDirs,
+            sourceSets.java8compat.output.classesDirs,
+            sourceSets.java11compat.output.classesDirs)
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
