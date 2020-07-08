@@ -94,7 +94,7 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
         ));
     }
 
-    public abstract DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, ? extends BAS> typeOfData(String data);
+    public abstract DataStructureType<? extends SerializationAdapter<BAS, OBJ, ARR>, BAS, ? extends BAS> typeOfData(String data);
 
     public abstract UniNode parse(@Nullable String data);
 
