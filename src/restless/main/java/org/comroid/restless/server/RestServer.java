@@ -10,6 +10,7 @@ import org.comroid.restless.CommonHeaderNames;
 import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
 import org.comroid.restless.REST.Response;
+import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
@@ -18,6 +19,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -30,21 +32,28 @@ public class RestServer implements Closeable {
     private final AutoContextHandler autoContextHandler = new AutoContextHandler();
     private final HttpServer server;
     private final Span<ServerEndpoint> endpoints;
-    private final REST rest;
+    private final SerializationAdapter seriLib;
     private final String mimeType;
     private final String baseUrl;
     private final REST.Header.List commonHeaders = new REST.Header.List();
 
-    public RestServer(REST rest, String baseUrl, InetAddress address, int port, ServerEndpoint... endpoints) throws IOException {
+    public RestServer(
+            SerializationAdapter seriLib,
+            Executor executor,
+            String baseUrl,
+            InetAddress address,
+            int port,
+            ServerEndpoint... endpoints
+    ) throws IOException {
         logger.at(Level.INFO).log("Starting REST Server with %d endpoints", endpoints.length);
-        this.rest = rest;
-        this.mimeType = rest.getSerializationAdapter().getMimeType();
+        this.seriLib = seriLib;
+        this.mimeType = seriLib.getMimeType();
         this.baseUrl = baseUrl;
         this.server = HttpServer.create(new InetSocketAddress(address, port), port);
         this.endpoints = Span.immutable(endpoints);
 
         server.createContext("/", autoContextHandler);
-        server.setExecutor(rest.getExecutor());
+        server.setExecutor(executor);
         server.start();
     }
 
@@ -91,7 +100,7 @@ public class RestServer implements Closeable {
                             )
                     );
 
-                    final String mimeType = rest.getSerializationAdapter().getMimeType();
+                    final String mimeType = seriLib.getMimeType();
                     final List<String> targetMimes = requestHeaders.get("Accept");
                     if (!supportedMimeType(targetMimes == null ? new ArrayList<>() : targetMimes)) {
                         logger.at(Level.INFO).log(
@@ -254,7 +263,7 @@ public class RestServer implements Closeable {
         }
 
         private UniObjectNode generateErrorNode(RestEndpointException reex) {
-            final UniObjectNode rsp = rest.getSerializationAdapter().createUniObjectNode();
+            final UniObjectNode rsp = seriLib.createUniObjectNode();
 
             rsp.put("code", ValueType.INTEGER, reex.getStatusCode());
             rsp.put("description", ValueType.STRING, HTTPStatusCodes.toString(reex.getStatusCode()));
@@ -275,8 +284,8 @@ public class RestServer implements Closeable {
                 String data = br.lines().collect(Collectors.joining());
 
                 if (data.isEmpty())
-                    return rest.getSerializationAdapter().createUniObjectNode();
-                else return rest.getSerializationAdapter().createUniNode(data);
+                    return seriLib.createUniObjectNode();
+                else return seriLib.createUniNode(data);
             } catch (Throwable t) {
                 logger.at(Level.SEVERE).log("Could not deserialize response");
             }
