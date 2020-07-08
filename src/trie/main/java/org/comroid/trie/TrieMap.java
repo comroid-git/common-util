@@ -157,7 +157,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
                 return Optional.ofNullable(remove());
 
             return requireStage(targetKey, chars, cIndex)
-                    .remove(targetKey, chars, cIndex);
+                    .remove(targetKey, chars, cIndex + 1);
         }
 
         public boolean containsKey(String targetKey, char[] chars, int cIndex) {
