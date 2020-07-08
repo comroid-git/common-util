@@ -271,4 +271,19 @@ public final class ReflectionHelper {
 
         return true;
     }
+
+    public static <T> @Nullable T forceGetField(Object from, String fieldName) {
+        final Class<?> kls = from.getClass();
+
+        try {
+            final Field field = kls.getDeclaredField(fieldName);
+
+            if (!field.isAccessible())
+                field.setAccessible(true);
+
+            return Polyfill.uncheckedCast(field.get(from));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return null;
+        }
+    }
 }
