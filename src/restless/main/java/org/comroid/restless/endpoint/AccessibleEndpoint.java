@@ -151,6 +151,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
         });
     }
 
+    @Internal
     default Pattern buildUrlPattern() {
         final String[] regExpGroups = getRegExpGroups();
 
