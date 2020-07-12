@@ -11,7 +11,7 @@ dependencies {
     api project(":common-util")
 
     implementation 'com.alibaba:fastjson:1.2.71'
-    implementation 'com.squareup.okhttp3:okhttp:4.7.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.8.0'
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"
