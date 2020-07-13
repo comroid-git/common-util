@@ -17,11 +17,7 @@ import java.util.stream.Stream;
  * Cloneable through {@link #process()}.
  */
 public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
-    default boolean isPresent() {
-        return get() != null;
-    }
-
-    Optional<? extends Reference<?>> getParent();
+    Optional<Reference<?>> getParent();
 
     static <T> Processor<T> ofReference(Reference<T> reference) {
         return new Support.OfReference<>(reference);
@@ -59,9 +55,6 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         );
     }
 
-    @Override
-    @Nullable T get();
-
     /**
      * Consumes the processor and terminates.
      * Used for completing some calls that return {@linkplain Processor processors}.
@@ -69,11 +62,6 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
     @Override
     default void close() {
         get();
-    }
-
-    @Override
-    default Processor<T> process() {
-        return Processor.ofReference(this);
     }
 
     default Processor<T> filter(Predicate<? super T> predicate) {
@@ -116,103 +104,67 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
 
     @Internal
     final class Support {
-        private static final Processor<?> EMPTY = new OfReference<>(Reference.empty());
+        public static abstract class Base<T> extends Reference.Support.Base<T> implements Processor<T> {
+            private final Supplier<T> getter;
+            private final Function<T, Boolean> setter;
 
-        private static abstract class Abstract<I, O> implements Processor<O> {
-            protected final Reference<I> underlying;
-
-            @Override
-            public Optional<? extends Reference<?>> getParent() {
-                return Optional.ofNullable(underlying);
+            protected Base(Supplier<T> getter) {
+                this(getter, null);
             }
 
-            protected Abstract(Reference<I> underlying) {
-                this.underlying = underlying;
+            protected Base(Supplier<T> getter, Function<T, I> converter, Function<I, Boolean> setter) {
+                this(getter, converter.andThen(setter));
+            }
+
+            protected Base(Supplier<T> getter, @Nullable Function<T, Boolean> setter) {
+                super(setter != null);
+
+                this.getter = getter;
+                this.setter = setter;
+            }
+
+            @Override
+            public Optional<Reference<?>> getParent() {
+                if (getter instanceof Reference)
+                    return Optional.of((Reference<?>) getter);
+                return Optional.empty();
+            }
+
+            @Override
+            protected T doGet() {
+                return getter.get();
+            }
+
+            @Override
+            protected boolean doSet(T value) {
+                assert setter != null : "isMutable check wrong";
+
+                return setter.apply(value);
             }
         }
 
-        private static final class OfReference<T> extends Abstract<T, T> {
-            private OfReference(Reference<T> underlying) {
-                super(underlying);
-            }
+        private static final class Filtered<T> extends Base<T> {
+            private final Predicate<? super T> filter;
 
-            @Nullable
-            @Override
-            public T get() {
-                return underlying.get();
-            }
-        }
-
-        public static final class Remapped<T, R> extends Abstract<T, R> {
-            private final Function<? super T, ? extends R> remapper;
-
-            public Remapped(Reference<T> base, Function<? super T, ? extends R> remapper) {
+            public Filtered(Processor<T> base, Predicate<? super T> filter) {
                 super(base);
 
-                this.remapper = remapper;
+                this.filter = filter;
             }
 
-            @Nullable
             @Override
-            public R get() {
-                final T get = underlying.get();
+            protected T doGet() {
+                final T value = super.doGet();
 
-                if (get != null)
-                    return remapper.apply(get);
-
+                if (filter.test(value))
+                    return value;
                 return null;
             }
         }
 
-        public static final class Filtered<T> extends Abstract<T, T> {
-            private final Predicate<? super T> predicate;
-
-            public Filtered(Reference<T> underlying, Predicate<? super T> predicate) {
-                super(underlying);
-
-                this.predicate = predicate;
-            }
-
-            @Nullable
-            @Override
-            public T get() {
-                T result = underlying.get();
-
-                if (predicate.test(result))
-                    return result;
-
-                return null;
-            }
-        }
-
-        public static final class Or<T> extends Abstract<T, T> {
-            private final Supplier<T> other;
-
-            public Or(Reference<T> base, Supplier<T> other) {
+        private static final class Remapped<I, O> extends Base<O> {
+            public <R> Remapped(Processor<I> base, Function<? super I, ? extends O> remapper) {
                 super(base);
-
-                this.other = other;
-            }
-
-            @Override
-            public T get() {
-                return underlying.orElseGet(other);
-            }
-        }
-
-        private static final class ReferenceFlatMapped<T, R> extends Abstract<T, R> {
-            private final Function<? super T, ? extends Reference<R>> mapper;
-
-            public ReferenceFlatMapped(Reference<T> underlying, Function<? super T, ? extends Reference<R>> mapper) {
-                super(underlying);
-
-                this.mapper = mapper;
-            }
-
-            @Nullable
-            @Override
-            public R get() {
-                return mapper.apply(underlying.get()).get();
             }
         }
     }
