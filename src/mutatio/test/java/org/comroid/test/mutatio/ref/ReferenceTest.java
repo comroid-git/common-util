@@ -52,7 +52,7 @@ public class ReferenceTest {
         Assert.assertFalse("emptyRef", emptyRef.wrap().isPresent());
         Assert.assertFalse("nullRef", nullRef.wrap().isPresent());
         Assert.assertTrue("valueRef", valueRef.wrap().isPresent());
-        Assert.assertFalse("hashRef", hashRef.wrap().isPresent());
+        Assert.assertTrue("hashRef", hashRef.wrap().isPresent());
 
         hashRef.get();
         Assert.assertEquals("too many computations", 1, computationCounter.get());
