@@ -21,16 +21,23 @@ public class SortedResultingPipe<T> extends BasicPipe<T, T> implements Pipe<T, T
 
     @Override
     public Reference<T> getReference(int index) {
-        class SubRef implements Reference<T> {
+        class SubRef extends Reference.Support.Base<T> {
             private final int accessedIndex;
 
+            @Override
+            public boolean isOutdated() {
+                return true;
+            }
+
             public SubRef(int accessedIndex) {
+                super(null, false);
+
                 this.accessedIndex = accessedIndex;
             }
 
             @Nullable
             @Override
-            public T get() {
+            public T doGet() {
                 final List<T> sorted = refs.unwrap();
                 sorted.sort(comparator);
                 if (accessedIndex < sorted.size()) {

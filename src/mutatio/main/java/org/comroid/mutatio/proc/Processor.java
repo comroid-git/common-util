@@ -169,10 +169,10 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        private static final class Filtered<T> extends Base<T, T> {
+        public static final class Filtered<T> extends Base<T, T> {
             private final Predicate<? super T> filter;
 
-            private Filtered(Processor<T> base, Predicate<? super T> filter) {
+            public Filtered(Reference<T> base, Predicate<? super T> filter) {
                 super(base, Function.identity());
 
                 this.filter = filter;
@@ -188,11 +188,11 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        private static final class Remapped<I, O> extends Base<I, O> {
+        public static final class Remapped<I, O> extends Base<I, O> {
             private final Function<? super I, ? extends O> remapper;
 
-            private <R> Remapped(
-                    Processor<I> base,
+            public <R> Remapped(
+                    Reference<I> base,
                     Function<? super I, ? extends O> remapper,
                     Function<O, I> backwardsConverter
             ) {
@@ -211,11 +211,11 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        private static final class ReferenceFlatMapped<I, O> extends Base<I, O> {
+        public static final class ReferenceFlatMapped<I, O> extends Base<I, O> {
             private final Function<? super I, ? extends Reference<O>> remapper;
 
-            private ReferenceFlatMapped(
-                    Processor<I> base,
+            public ReferenceFlatMapped(
+                    Reference<I> base,
                     Function<? super I, ? extends Reference<O>> remapper,
                     Function<O, I> backwardsConverter
             ) {
@@ -234,10 +234,10 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             }
         }
 
-        private static final class Or<T> extends Base<T, T> {
+        public static final class Or<T> extends Base<T, T> {
             private final Supplier<T> other;
 
-            private Or(Processor<T> base, Supplier<T> other) {
+            public Or(Reference<T> base, Supplier<T> other) {
                 super(base, Function.identity());
 
                 this.other = other;

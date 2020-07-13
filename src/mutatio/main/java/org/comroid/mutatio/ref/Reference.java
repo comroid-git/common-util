@@ -169,7 +169,9 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T>, Specifiable<R
     /**
      * @return Whether the new value could be set.
      */
-    boolean set(T newValue);
+    default boolean set(T newValue) {
+        return false;
+    }
 
     /**
      * @return The new value if it could be set, else the previous value.

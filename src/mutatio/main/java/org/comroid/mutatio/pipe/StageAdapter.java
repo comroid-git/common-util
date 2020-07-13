@@ -115,7 +115,7 @@ public interface StageAdapter<O, T> {
 
             @Override
             public Reference<T> advance(Reference<O> ref) {
-                return new Processor.Support.Remapped<>(ref, mapper);
+                return new Processor.Support.Remapped<>(ref, mapper, null);
             }
         }
     }

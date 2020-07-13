@@ -1,6 +1,7 @@
 package org.comroid.mutatio.span;
 
 import org.comroid.api.Polyfill;
+import org.comroid.mutatio.cache.CachedValue;
 import org.comroid.mutatio.pipe.BasicPipe;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.ref.Reference;
@@ -16,7 +17,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
 
-public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
+public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
     public static final int UNFIXED_SIZE = -1;
     public static final DefaultModifyPolicy DEFAULT_MODIFY_POLICY = DefaultModifyPolicy.SKIP_NULLS;
     private static final Span<?> EMPTY = new Span<>(ReferenceIndex.empty(), DefaultModifyPolicy.IMMUTABLE);
@@ -60,6 +61,8 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
     }
 
     protected Span(ReferenceIndex<? extends T> data, int fixedCapacity, ModifyPolicy modifyPolicy) {
+        super(null);
+
         //noinspection unchecked
         this.storage = (ReferenceIndex<T>) data;
         this.fixedCapacity = fixedCapacity;
@@ -75,6 +78,11 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
 
     public static <T> Span.API<T> make() {
         return new Span.API<>();
+    }
+
+    @Override
+    public boolean isMutable() {
+        return false;
     }
 
     public static <T> Span<T> empty() {

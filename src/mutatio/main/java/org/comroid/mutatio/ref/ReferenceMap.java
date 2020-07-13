@@ -57,33 +57,32 @@ public interface ReferenceMap<K, V, REF extends Reference<V>> extends Pipeable<V
         return pipe().pump(executor);
     }
 
-    interface Settable<K, V, REF extends Reference.Settable<V>> extends ReferenceMap<K, V, REF> {
-        /**
-         * @return The new value if it could be set, else the previous value.
-         */
-        default @Nullable V set(K key, V newValue) {
-            return getReference(key).set(newValue);
-        }
-
-        /**
-         * @return The new value if it could be set, else the previous value.
-         */
-        default @Nullable V compute(K key, Function<V, V> computor) {
-            return getReference(key, true).compute(computor);
-        }
-
-        /**
-         * @return The new value if it could be set, else the previous value.
-         */
-        default @Nullable V computeIfPresent(K key, Function<V, V> computor) {
-            return getReference(key, true).computeIfPresent(computor);
-        }
-
-        /**
-         * @return The new value if it could be set, else the previous value.
-         */
-        default @Nullable V computeIfAbsent(K key, Supplier<V> supplier) {
-            return getReference(key, true).computeIfAbsent(supplier);
-        }
+    /**
+     * @return The new value if it could be set, else the previous value.
+     */
+    default boolean set(K key, V newValue) {
+        return getReference(key).set(newValue);
     }
+
+    /**
+     * @return The new value if it could be set, else the previous value.
+     */
+    default @Nullable V compute(K key, Function<V, V> computor) {
+        return getReference(key, true).compute(computor);
+    }
+
+    /**
+     * @return The new value if it could be set, else the previous value.
+     */
+    default @Nullable V computeIfPresent(K key, Function<V, V> computor) {
+        return getReference(key, true).computeIfPresent(computor);
+    }
+
+    /**
+     * @return The new value if it could be set, else the previous value.
+     */
+    default @Nullable V computeIfAbsent(K key, Supplier<V> supplier) {
+        return getReference(key, true).computeIfAbsent(supplier);
+    }
+
 }
