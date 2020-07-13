@@ -13,7 +13,7 @@ public final class FutureReference<T> extends Reference.Support.Base<T> {
     }
 
     public FutureReference(CompletableFuture<T> future) {
-        super(false);
+        super(parent, false);
 
         this.future = future;
     }

@@ -164,7 +164,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                 .getParents().isSingle()) {
             parentGroup = parentGroup.map(group -> group.getParents()
                     .wrap()
-                    .orElse(uncheckedCast(group)));
+                    .orElse(uncheckedCast(group)), backwardsConverter);
         }
 
         // find the subgroup named the first split part,

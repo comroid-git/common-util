@@ -1,6 +1,7 @@
 package org.comroid.mutatio.cache;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -40,12 +41,17 @@ public interface CachedValue<T> {
     boolean detach(ValueUpdateListener<T> listener);
 
     abstract class Abstract<T> implements CachedValue<T> {
+        private final CachedValue<?> parent;
         private final Set<ValueUpdateListener<T>> listeners = new HashSet<>();
         private final AtomicBoolean outdated = new AtomicBoolean(false);
 
+        protected Abstract(@Nullable CachedValue<?> parent) {
+            this.parent = parent;
+        }
+
         @Override
         public boolean isOutdated() {
-            return outdated.get();
+            return outdated.get() || (parent != null && parent.isOutdated());
         }
 
         @Override

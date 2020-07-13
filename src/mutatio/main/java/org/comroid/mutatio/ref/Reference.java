@@ -219,6 +219,12 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T>, Specifiable<R
             }
 
             protected Base(boolean mutable) {
+                this(null, mutable);
+            }
+
+            protected Base(@Nullable CachedValue<?> parent, boolean mutable) {
+                super(parent);
+
                 this.mutable = mutable;
             }
 
