@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+@Deprecated
 public class OutdateableReference<T> implements Reference<T> {
     private final Object lock = Polyfill.selfawareLock();
     private boolean outdated = true;

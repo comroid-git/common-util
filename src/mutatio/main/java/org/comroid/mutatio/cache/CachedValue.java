@@ -13,6 +13,10 @@ public interface CachedValue<T> {
      */
     boolean isOutdated();
 
+    default boolean isUpToDate() {
+        return !isOutdated();
+    }
+
     /**
      * <p>Implementation Note: The value should already be stored when this method is called.</p>
      *
