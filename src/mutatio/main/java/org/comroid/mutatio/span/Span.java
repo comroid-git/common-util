@@ -273,7 +273,7 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
     }
 
     @Override
-    public Pipe<?, T> pipe() {
+    public Pipe<T, T> pipe() {
         return new BasicPipe<>(this, 512);
     }
 
