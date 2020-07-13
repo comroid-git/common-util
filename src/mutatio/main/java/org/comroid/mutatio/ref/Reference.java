@@ -4,6 +4,7 @@ import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
 import org.comroid.api.Provider;
 import org.comroid.api.Specifiable;
+import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.proc.Processor;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
@@ -14,16 +15,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BooleanSupplier;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
     default boolean isNull() {
-        return Objects.isNull(get());
+        return test(Objects::isNull);
+    }
+
+    default boolean isPresent() {
+        return test(Objects::nonNull);
     }
 
     static <T> Reference<T> constant(@Nullable T of) {
@@ -95,6 +97,10 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         return Processor.ofReference(this);
     }
 
+    default Pipe<T, T> pipe() {
+        return Pipe.of(get());
+    }
+
     default boolean test(Predicate<? super T> predicate) {
         return predicate.test(get());
     }
@@ -103,7 +109,46 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
         return remapper.apply(get());
     }
 
+    default boolean contentEquals(T other) {
+        if (other == null)
+            return isNull();
+        return into(other::equals);
+    }
+
+    default void consume(Consumer<T> consumer) {
+        consumer.accept(get());
+    }
+
+    default void ifPresent(Consumer<T> consumer) {
+        if (isPresent())
+            consume(consumer);
+    }
+
+    default void ifEmpty(Runnable task) {
+        if (isNull())
+            task.run();
+    }
+
+    default void ifPresentOrElse(Consumer<T> consumer, Runnable task) {
+        if (isPresent())
+            consume(consumer);
+        else task.run();
+    }
+
+    default <R> @Nullable R ifPresentMap(Function<T, R> consumer) {
+        if (isPresent())
+            return into(consumer);
+        return null;
+    }
+
+    default <R> R ifPresentMapOrElse(Function<T, R> consumer, Supplier<R> task) {
+        if (isPresent())
+            return into(consumer);
+        else return task.get();
+    }
+
     interface Settable<T> extends Reference<T> {
+
         static <T> Settable<T> create() {
             return create(null);
         }
