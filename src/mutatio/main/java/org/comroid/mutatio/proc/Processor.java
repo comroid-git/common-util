@@ -182,7 +182,7 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             protected T doGet() {
                 final T value = parent.get();
 
-                if (filter.test(value))
+                if (value != null && filter.test(value))
                     return value;
                 return null;
             }
