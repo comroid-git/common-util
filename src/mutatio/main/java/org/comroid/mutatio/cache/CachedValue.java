@@ -43,7 +43,7 @@ public interface CachedValue<T> {
     abstract class Abstract<T> implements CachedValue<T> {
         private final CachedValue<?> parent;
         private final Set<ValueUpdateListener<T>> listeners = new HashSet<>();
-        private final AtomicBoolean outdated = new AtomicBoolean(false);
+        private final AtomicBoolean outdated = new AtomicBoolean(true);
 
         protected Abstract(@Nullable CachedValue<?> parent) {
             this.parent = parent;

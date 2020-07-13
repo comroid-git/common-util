@@ -242,12 +242,21 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T>, Specifiable<R
             public final T get() {
                 if (isUpToDate())
                     return atom.get();
-                return atom.updateAndGet(old -> doGet());
+                return atom.updateAndGet(old -> {
+                    final T value = doGet();
+                    update(value);
+                    return value;
+                });
             }
 
             @Override
             public final boolean set(T value) {
-                return isMutable() && doSet(value) && update(value) == value;
+                if (isImmutable())
+                    return false;
+
+                final boolean updated = update(value) == value;
+                final boolean set = doSet(value);
+                return isMutable() && (set & updated);
             }
         }
 

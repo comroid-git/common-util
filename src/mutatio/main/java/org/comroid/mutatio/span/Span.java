@@ -44,6 +44,11 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
         return fixedCapacity != UNFIXED_SIZE;
     }
 
+    @Override
+    public boolean isMutable() {
+        return false;
+    }
+
     public Span() {
         this(ReferenceIndex.create(), UNFIXED_SIZE, DEFAULT_MODIFY_POLICY);
     }
@@ -78,11 +83,6 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
 
     public static <T> Span.API<T> make() {
         return new Span.API<>();
-    }
-
-    @Override
-    public boolean isMutable() {
-        return false;
     }
 
     public static <T> Span<T> empty() {
@@ -183,9 +183,8 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
 
     @Override
     public List<T> unwrap() {
-        List<T> yields = new ArrayList<>();
-        forEach(yields::add);
-        return yields;
+        //noinspection unchecked
+        return Arrays.asList((T[]) toArray());
     }
 
     @Override
@@ -204,13 +203,11 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
 
     @NotNull
     @Override
-    @SuppressWarnings("NullableProblems") // false positive
     public final Object[] toArray() {
         return toArray(new Object[0], Function.identity());
     }
 
     @Override
-    @SuppressWarnings("NullableProblems") // false positive
     public final <R> @NotNull R[] toArray(@NotNull R[] dummy) {
         //noinspection unchecked
         return toArray(dummy, it -> (R) it);
@@ -616,8 +613,6 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
             while (!modifyPolicy.canIterate(next)) {
                 if (nextIndex + 1 >= dataSnapshot.length)
                     return false;
-
-                tryAcquireNext();
             }
 
             previousIndex = nextIndex;
