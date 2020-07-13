@@ -4,6 +4,7 @@ import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
 import org.comroid.api.Provider;
 import org.comroid.api.Specifiable;
+import org.comroid.mutatio.cache.CachedValue;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.proc.Processor;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -18,8 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
 import java.util.stream.Stream;
 
-@FunctionalInterface
-public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
+public interface Reference<T> extends CachedValue<T>, Supplier<T>, Specifiable<Reference<T>> {
     default boolean isNull() {
         return test(Objects::isNull);
     }
@@ -41,7 +41,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
     }
 
     static <T> Reference<T> provided(Supplier<T> supplier) {
-        return supplier::get;
+        return new Support.Conditional<>(() -> true, supplier);
     }
 
     static <T> Reference<T> conditional(BooleanSupplier condition, Supplier<T> supplier) {
@@ -222,7 +222,7 @@ public interface Reference<T> extends Supplier<T>, Specifiable<Reference<T>> {
     final class Support {
         private static final Reference<?> EMPTY = new Constant<>(null);
 
-        private static final class Constant<T> implements Reference<T> {
+        private static final class Constant<T> extends CachedValue.Abstract<T> implements Reference<T> {
             private static final Map<Object, Constant<Object>> cache = new ConcurrentHashMap<>();
             private final T value;
 

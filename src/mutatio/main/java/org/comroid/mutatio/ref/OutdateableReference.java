@@ -23,9 +23,6 @@ public class OutdateableReference<T> implements Reference<T> {
         }
     }
 
-    /**
-     * @return The new Value
-     */
     public T update(T newValue) {
         synchronized (lock) {
             this.it = newValue;
@@ -34,9 +31,6 @@ public class OutdateableReference<T> implements Reference<T> {
         }
     }
 
-    /**
-     * @return Whether the reference became outdated with this call.
-     */
     public boolean outdate() {
         if (isOutdated()) {
             return false;
