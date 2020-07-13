@@ -1,10 +1,10 @@
 package org.comroid.mutatio.cache;
 
-import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public interface CachedValue<T> {
@@ -14,6 +14,8 @@ public interface CachedValue<T> {
     boolean isOutdated();
 
     /**
+     * <p>Implementation Note: The value should already be stored when this method is called.</p>
+     *
      * @return The new Value
      */
     T update(T withValue);
@@ -35,6 +37,27 @@ public interface CachedValue<T> {
 
     abstract class Abstract<T> implements CachedValue<T> {
         private final Set<ValueUpdateListener<T>> listeners = new HashSet<>();
+        private final AtomicBoolean outdated = new AtomicBoolean(false);
+
+        @Override
+        public boolean isOutdated() {
+            return outdated.get();
+        }
+
+        @Override
+        public T update(T withValue) {
+            outdated.set(false);
+            listeners.forEach(listener -> listener.acceptNewValue(withValue));
+            return withValue;
+        }
+
+        @Override
+        public boolean outdate() {
+            if (isOutdated())
+                return false;
+            outdated.set(true);
+            return true;
+        }
 
         @Override
         public boolean attach(ValueUpdateListener<T> listener) {
