@@ -10,15 +10,13 @@ import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, Disposable {
     StageAdapter<I, O> getAdapter();
@@ -42,6 +40,12 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, D
                 .map(Reference::constant)
                 .forEach(pipe);
 
+        return pipe;
+    }
+
+    static <T> Pipe<?, T> ofStream(Stream<T> stream) {
+        final Pipe<T, T> pipe = create();
+        stream.iterator().forEachRemaining(pipe::add);
         return pipe;
     }
 
