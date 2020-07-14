@@ -2,10 +2,13 @@ package org.comroid.util;
 
 import org.comroid.api.BitmaskEnum;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.ToIntFunction;
+import java.util.function.*;
+import java.util.stream.Collector;
 
 public final class Bitmask {
     public static final int EMPTY = 0x0;
@@ -71,4 +74,46 @@ public final class Bitmask {
         return yield;
     }
 
+    public static Collector<Integer, AtomicInteger, Integer> collector() {
+        return new BitmaskCollector();
+    }
+
+    private static final class BitmaskCollector implements Collector<Integer, AtomicInteger, Integer> {
+        private static final Set<Characteristics> characteristics
+                = Collections.singleton(Characteristics.IDENTITY_FINISH);
+        private final Supplier<AtomicInteger> supplier
+                = () -> new AtomicInteger(0);
+        private final BiConsumer<AtomicInteger, Integer> accumulator
+                = (atom, x) -> atom.accumulateAndGet(x, Bitmask::combine);
+        private final BinaryOperator<AtomicInteger> combiner = (x, y) -> {
+            x.accumulateAndGet(y.get(), Bitmask::combine);
+            return x;
+        };
+        private final Function<AtomicInteger, Integer> finisher = AtomicInteger::get;
+
+        @Override
+        public Supplier<AtomicInteger> supplier() {
+            return supplier;
+        }
+
+        @Override
+        public BiConsumer<AtomicInteger, Integer> accumulator() {
+            return accumulator;
+        }
+
+        @Override
+        public BinaryOperator<AtomicInteger> combiner() {
+            return combiner;
+        }
+
+        @Override
+        public Function<AtomicInteger, Integer> finisher() {
+            return finisher;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return characteristics;
+        }
+    }
 }

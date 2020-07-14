@@ -69,6 +69,16 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
         this.fieldName = fieldName;
     }
 
+    @Contract(value = "-> this", mutates = "this")
+    public BindBuilder<EXTR, DPND, REMAP, FINAL> setRequired() {
+        return setRequired(true);
+    }
+
+    @Contract(value = "-> this", mutates = "this")
+    public BindBuilder<EXTR, DPND, REMAP, FINAL> setOptional() {
+        return setRequired(false);
+    }
+
     @Contract(value = "_ -> this", mutates = "this")
     public <E extends Serializable> BindBuilder<E, DPND, REMAP, FINAL> extractAs(ValueType<E> valueType) {
         this.valueType = uncheckedCast(valueType);
