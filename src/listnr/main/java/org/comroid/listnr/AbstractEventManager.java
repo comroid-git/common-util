@@ -16,7 +16,7 @@ public abstract class AbstractEventManager<I, T extends EventType<? super I, ? e
     private final Reference<ListnrCore> listnr;
 
     @Override
-    public final Span<EventManager<?, ?, ? extends I>> getChildren() {
+    public final Span<EventManager<? super I, ? super T, ? super P>> getChildren() {
         return parents;
     }
 

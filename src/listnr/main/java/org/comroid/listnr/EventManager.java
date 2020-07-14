@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 public interface EventManager<I, T extends EventType<? super I, ? extends P>, P extends EventPayload> {
     UUID getUUID();
 
-    Span<EventManager<?, ?, ? extends I>> getChildren();
+    Span<EventManager<? super I, ? super T, ? super P>> getChildren();
 
     ListnrCore listnr();
 
