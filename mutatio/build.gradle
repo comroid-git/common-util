@@ -4,7 +4,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    projectDescription = "JVM Mutation Tools"
+    projectDescription = "JVM value mutation Tools"
 }
 
 apply from: "$parent.projectDir/gradle/publishing.gradle"
