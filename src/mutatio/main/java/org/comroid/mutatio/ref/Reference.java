@@ -2,7 +2,6 @@ package org.comroid.mutatio.ref;
 
 import org.comroid.api.Invocable;
 import org.comroid.api.Provider;
-import org.comroid.api.Specifiable;
 import org.comroid.mutatio.cache.CachedValue;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.proc.Processor;

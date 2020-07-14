@@ -4,14 +4,14 @@ import java.io.Closeable;
 import java.util.function.Consumer;
 
 public interface ValueUpdateListener<T> extends Closeable {
+    static <T> ValueUpdateListener<T> ofConsumer(CachedValue<T> parent, Consumer<T> consumer) {
+        return new Support.OfConsumer<>(parent, consumer);
+    }
+
     void acceptNewValue(T value);
 
     @Override
     void close();
-
-    static <T> ValueUpdateListener<T> ofConsumer(CachedValue<T> parent, Consumer<T> consumer) {
-        return new Support.OfConsumer<>(parent, consumer);
-    }
 
     final class Support {
         public static abstract class Base<T> implements ValueUpdateListener<T> {
