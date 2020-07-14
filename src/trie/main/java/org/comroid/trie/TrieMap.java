@@ -16,7 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>, Map<K, V> {
+public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference<V>>, Map<K, V> {
     Junction<K, String> getKeyConverter();
 
     @Override
@@ -77,7 +77,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
     final class Stage<V> implements Map.Entry<String, V> {
         private final Map<Character, Stage<V>> storage = new ConcurrentHashMap<>();
-        private final Reference.Settable<V> reference = Reference.Settable.create();
+        private final Reference<V> reference = Reference.create();
         private final Stage<V> parent;
         private final String keyConverted;
         private final char c;
@@ -121,7 +121,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             if (value == null)
                 return remove();
 
-            return reference.set(value);
+            return reference.set(value) ? value : getValue();
         }
 
         private Stream<Stage<V>> streamPresentStages() {
@@ -136,7 +136,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
             );
         }
 
-        private Optional<Reference.Settable<V>> getReference(String targetKey, char[] chars, int cIndex) {
+        private Optional<Reference<V>> getReference(String targetKey, char[] chars, int cIndex) {
             if (cIndex >= chars.length)
                 return Optional.of(reference);
 
@@ -248,15 +248,15 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
         }
 
         @Override
-        public Reference.Settable<V> getReference(K key, boolean createIfAbsent) {
+        public Reference<V> getReference(K key, boolean createIfAbsent) {
             final char[] convertKey = convertKey(key);
 
             if (convertKey.length == 0)
-                return Reference.Settable.create();
+                return Reference.create();
 
             final String kStr = new String(convertKey);
             return baseStage.getReference(kStr, convertKey, 0)
-                    .orElseGet(Reference.Settable::create);
+                    .orElseGet(Reference::create);
         }
 
         @Override
@@ -298,7 +298,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference.Settable<V>>
 
             if (!containsKey(key))
                 return baseStage.requireStage(kStr, chars, 0)
-                        .reference.set(value);
+                        .reference.set(value) ? value : null;
             return baseStage.putValue(kStr, chars, 0, value).orElse(null);
         }
 
