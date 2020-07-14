@@ -71,7 +71,13 @@ public final class ListnrCore {
                 I input
         ) {
             pump.accept(Reference.constant(input));
-            target.getParents().forEach(parent -> parent.publish(Polyfill.uncheckedCast(eventType), input));
+
+            final P output = eventType.apply(input);
+            target.getChildren().forEach(parent -> parent.getEventTypes()
+                    .stream()
+                    .filter(type -> type.test(output))
+                    .map(Polyfill::uncheckedCast)
+                    .forEach(type -> parent.publish(type, output)));
         }
     }
 }
