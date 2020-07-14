@@ -35,24 +35,24 @@ public final class UniArrayNode extends UniNode {
     }
 
     private Processor<UniNode> makeValueNode(int index) {
-        class Accessor implements Reference.Settable<String> {
+        class Accessor extends Reference.Support.Base<String> {
             private final int index;
 
             private Accessor(int index) {
+                super(true);
+
                 this.index = index;
             }
 
             @Nullable
             @Override
-            public String get() {
+            public String doGet() {
                 return unwrapDST(adapter.get(index));
             }
 
-            @Nullable
             @Override
-            public String set(String newValue) {
-                adapter.set(index, newValue);
-                return get();
+            protected boolean doSet(String newValue) {
+                return adapter.set(index, newValue) != newValue;
             }
         }
 

@@ -33,7 +33,7 @@ public class BlockParser {
                 return;
             }
         } else if (prevName != null) {
-            final Reference.Settable<String> compute = compute(prevName);
+            final Reference<String> compute = compute(prevName);
             compute.set(arg);
             prevName = null;
         }
@@ -44,8 +44,8 @@ public class BlockParser {
     }
 
     @NotNull
-    private Reference.Settable<String> compute(String name) {
-        final Reference.Settable<String> ref = yields.getReference(name, true);
+    private Reference<String> compute(String name) {
+        final Reference<String> ref = yields.getReference(name, true);
         if (ref.isNull())
             ref.set(name);
         return ref;

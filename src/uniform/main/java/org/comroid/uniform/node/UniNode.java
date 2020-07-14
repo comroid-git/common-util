@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Type type;
-    private final Map<String, Reference.Settable<String>> baseAccessors = TrieMap.ofString();
+    private final Map<String, Reference<String>> baseAccessors = TrieMap.ofString();
     private final Map<String, Processor<UniNode>> wrappedAccessors = TrieMap.ofString();
 
     public String getSerializedString() {
@@ -295,9 +295,9 @@ public abstract class UniNode implements Specifiable<UniNode> {
 
     protected Processor<UniNode> computeNode(
             String fieldName,
-            Supplier<Reference.Settable<String>> referenceSupplier
+            Supplier<Reference<String>> referenceSupplier
     ) {
-        final Reference.Settable<String> base
+        final Reference<String> base
                 = baseAccessors.computeIfAbsent(fieldName, key -> referenceSupplier.get());
         return wrappedAccessors.computeIfAbsent(fieldName, key -> base.process()
                 .map(str -> {

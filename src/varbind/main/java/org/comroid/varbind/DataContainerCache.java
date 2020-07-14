@@ -53,8 +53,8 @@ public abstract class DataContainerCache<K, V extends DataContainer<D>, D> exten
                         if (!opt.isPresent())
                             return creator.autoInvoke(data, dependencyObject);
                         return opt.get();
-                    }, backwardsConverter)
-                    .map(it -> (T) it, backwardsConverter)
+                    })
+                    .map(it -> (T) it)
                     .peek(it -> getReference(key, true).set(it));
     }
 

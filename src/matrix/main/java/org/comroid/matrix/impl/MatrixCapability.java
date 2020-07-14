@@ -21,9 +21,9 @@ public final class MatrixCapability {
     }
 
     @Internal
-    private static abstract class AbstractEntry<V> implements Matrix.Entry<V> {
+    private static abstract class AbstractEntry<V> extends Reference.Support.Base<V> implements Matrix.Entry<V> {
         protected final String coordinate;
-        protected final Reference.Settable<V> valueRef;
+        protected final Reference<V> valueRef;
 
         @Override
         public final String getCoordinate() {
@@ -31,19 +31,20 @@ public final class MatrixCapability {
         }
 
         protected AbstractEntry(String coordinate, @Nullable V initialValue) {
+            super(true);
+
             this.coordinate = coordinate;
-            this.valueRef = Reference.Settable.create(initialValue);
+            this.valueRef = Reference.create(initialValue);
         }
 
         @Nullable
         @Override
-        public final V get() {
+        protected final V doGet() {
             return valueRef.get();
         }
 
-        @Nullable
         @Override
-        public final V set(V newValue) {
+        protected final boolean doSet(V newValue) {
             return valueRef.set(newValue);
         }
     }

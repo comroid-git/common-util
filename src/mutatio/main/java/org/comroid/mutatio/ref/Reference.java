@@ -205,6 +205,9 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return new Support.Rebound<>(this::set, behind);
     }
 
+    @Deprecated
+    interface Settable<T> extends Reference<T> {}
+
     @Internal
     final class Support {
         private static final Reference<?> EMPTY = new Default<>(false, null);

@@ -2,7 +2,6 @@ package org.comroid.varbind.container;
 
 import org.comroid.common.info.Dependent;
 import org.comroid.mutatio.proc.Processor;
-import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.span.Span;
 import org.comroid.uniform.SerializationAdapter;
@@ -65,13 +64,13 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
 
     <T, S> @Nullable T put(VarBind<S, ? super DEP, ?, T> bind, Function<T, S> parser, T value);
 
-    <E> Reference.Settable<Span<E>> getExtractionReference(String fieldName);
+    <E> Reference<Span<E>> getExtractionReference(String fieldName);
 
-    default <E> Reference.Settable<Span<E>> getExtractionReference(VarBind<E, ? super DEP, ?, ?> bind) {
+    default <E> Reference<Span<E>> getExtractionReference(VarBind<E, ? super DEP, ?, ?> bind) {
         return getExtractionReference(cacheBind(bind));
     }
 
-    <T, E> OutdateableReference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind);
+    <T, E> Reference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind);
 
     @Internal
     <T> String cacheBind(VarBind<?, ? super DEP, ?, ?> bind);
@@ -125,12 +124,12 @@ public interface DataContainer<DEP> extends Dependent<DEP> {
         }
 
         @Override
-        default <E> Reference.Settable<Span<E>> getExtractionReference(String fieldName) {
+        default <E> Reference<Span<E>> getExtractionReference(String fieldName) {
             return getUnderlyingVarCarrier().getExtractionReference(fieldName);
         }
 
         @Override
-        default <T, E> OutdateableReference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
+        default <T, E> Reference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
             return getUnderlyingVarCarrier().getComputedReference(bind);
         }
     }

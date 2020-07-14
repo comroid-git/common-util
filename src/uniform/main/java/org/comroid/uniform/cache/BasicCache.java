@@ -57,7 +57,10 @@ public class BasicCache<K, V> implements Cache<K, V> {
         return stream().map(ref -> new AbstractMap.SimpleEntry<K, V>(ref.getKey(), ref.get()) {
             @Override
             public V setValue(V value) {
-                return getReference(getKey(), false).set(value);
+                final Reference<K, V> reference = getReference(getKey(), false);
+                final V prev = reference.get();
+                reference.set(value);
+                return prev;
             }
         })
                 .map(it -> (Map.Entry<K, V>) it)
@@ -138,7 +141,7 @@ public class BasicCache<K, V> implements Cache<K, V> {
 
         @Override
         public boolean add(Map.Entry<K, V> entry) {
-            return set(entry.getKey(), entry.getValue()) == entry.getValue();
+            return set(entry.getKey(), entry.getValue());
         }
 
         @Override
@@ -148,7 +151,7 @@ public class BasicCache<K, V> implements Cache<K, V> {
 
             return BasicCache.this
                     .getReference(entry.getKey(), false)
-                    .set(null) != entry;
+                    .set(null);
         }
 
         @Override

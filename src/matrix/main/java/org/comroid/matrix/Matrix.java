@@ -50,7 +50,7 @@ public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeF
     @NotNull
     E getEntryAt(String coordinate, @Nullable V initialValue);
 
-    interface Entry<V> extends Reference.Settable<V>, Named, Valued<V> {
+    interface Entry<V> extends Reference<V>, Named, Valued<V> {
         String getCoordinate();
 
         @Override

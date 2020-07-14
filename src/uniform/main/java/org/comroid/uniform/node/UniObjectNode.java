@@ -1,7 +1,7 @@
 package org.comroid.uniform.node;
 
 import org.comroid.mutatio.proc.Processor;
-import org.comroid.mutatio.ref.Reference.Settable;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.HeldType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
@@ -67,24 +67,24 @@ public final class UniObjectNode extends UniNode {
     }
 
     private Processor<UniNode> makeValueNode(String fieldName) {
-        class Accessor implements Settable<String> {
+        class Accessor extends Reference.Support.Base<String> {
             private final String key;
 
             private Accessor(String key) {
+                super(true);
+
                 this.key = key;
             }
 
             @Nullable
             @Override
-            public String get() {
+            protected String doGet() {
                 return unwrapDST(adapter.get(key));
             }
 
-            @Nullable
             @Override
-            public String set(String newValue) {
-                adapter.put(key, newValue);
-                return get();
+            protected boolean doSet(String newValue) {
+                return adapter.put(key, newValue) != newValue;
             }
         }
 

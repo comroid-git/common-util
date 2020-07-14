@@ -30,8 +30,8 @@ import static org.comroid.api.Polyfill.uncheckedCast;
 public class DataContainerBase<DEP> implements DataContainer<DEP> {
     private final GroupBind<? extends DataContainer<DEP>, DEP> rootBind;
     private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = TrieMap.ofString();
-    private final Map<String, Reference.Settable<Span<Object>>> vars = TrieMap.ofString();
-    private final Map<String, OutdateableReference<Object>> computed = TrieMap.ofString();
+    private final Map<String, Reference<Span<Object>>> vars = TrieMap.ofString();
+    private final Map<String, Reference<Object>> computed = TrieMap.ofString();
     private final DEP dependencyObject;
     private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
     private final Class<? extends DataContainer<DEP>> myType;
@@ -164,7 +164,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
                 .getParents().isSingle()) {
             parentGroup = parentGroup.map(group -> group.getParents()
                     .wrap()
-                    .orElse(uncheckedCast(group)), backwardsConverter);
+                    .orElse(uncheckedCast(group)));
         }
 
         // find the subgroup named the first split part,
@@ -184,7 +184,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
             final @NotNull Span<Object> them = getExtractionReference(key).requireNonNull("Span is null");
 
             if (them.isEmpty()) {
-                final OutdateableReference<Object> ref = computed.get(key);
+                final Reference<Object> ref = computed.get(key);
                 final Object it = ref.get();
 
                 // support array binds
@@ -243,13 +243,13 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     @Override
-    public <E> Reference.Settable<Span<E>> getExtractionReference(String fieldName) {
+    public <E> Reference<Span<E>> getExtractionReference(String fieldName) {
         return uncheckedCast(vars.computeIfAbsent(fieldName,
-                key -> Reference.Settable.create(new Span<>())));
+                key -> Reference.create(new Span<>())));
     }
 
     @Override
-    public <T, E> OutdateableReference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
+    public <T, E> Reference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
         return uncheckedCast(computed.computeIfAbsent(cacheBind(bind),
                 key -> uncheckedCast(new ComputedReference<>(bind))));
     }
@@ -263,11 +263,13 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         return fieldName;
     }
 
-    public class ComputedReference<T, E> extends OutdateableReference<T> {
+    public class ComputedReference<T, E> extends Reference.Support.Base<T> {
         private final VarBind<E, ? super DEP, ?, T> bind;
         private final Processor<T> accessor;
 
         public ComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
+            super(false); // todo Implement reverse binding
+
             this.bind = bind;
             this.accessor = getExtractionReference(bind)
                     .process()
@@ -275,7 +277,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         }
 
         @Override
-        public final @Nullable T get() {
+        public final @Nullable T doGet() {
             if (!isOutdated())
                 return super.get();
             return update(accessor.get());

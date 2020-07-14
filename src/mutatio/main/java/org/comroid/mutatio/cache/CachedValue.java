@@ -21,7 +21,7 @@ public interface CachedValue<T> {
     }
 
     @Internal
-    Collection<? extends CachedValue<?>> getDependent();
+    Collection<? extends CachedValue<?>> getDependents();
 
     /**
      * <p>Implementation Note: The value should already be stored when this method is called.</p>
@@ -43,7 +43,7 @@ public interface CachedValue<T> {
     default boolean outdateChildren() {
         int c = 0;
 
-        final Collection<? extends CachedValue<?>> dependent = getDependent();
+        final Collection<? extends CachedValue<?>> dependent = getDependents();
         for (CachedValue<?> cachedValue : dependent)
             if (cachedValue.outdate()) c++;
         return c == dependent.size();
@@ -70,7 +70,7 @@ public interface CachedValue<T> {
         }
 
         @Override
-        public Collection<? extends CachedValue<?>> getDependent() {
+        public Collection<? extends CachedValue<?>> getDependents() {
             return Collections.unmodifiableCollection(dependent);
         }
 

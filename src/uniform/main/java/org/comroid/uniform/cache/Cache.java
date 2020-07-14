@@ -3,7 +3,6 @@ package org.comroid.uniform.cache;
 import org.comroid.api.Polyfill;
 import org.comroid.api.Provider;
 import org.comroid.mutatio.pipe.Pipe;
-import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.ReferenceMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +15,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Settable<K, V, Cache.Reference<K, V>> {
+public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap<K, V, Cache.Reference<K, V>> {
     boolean large();
 
     int size();
@@ -52,9 +51,10 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
         forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
     }
 
-    class Reference<K, V> implements org.comroid.mutatio.ref.Reference.Settable<V> {
+    class Reference<K, V> extends org.comroid.mutatio.ref.Reference.Support.Base<V> {
         public final AtomicReference<V> reference = new AtomicReference<>(null);
-        private final OutdateableReference<CompletableFuture<V>> firstValueFuture = new OutdateableReference<>();
+        private final org.comroid.mutatio.ref.Reference<CompletableFuture<V>> firstValueFuture
+                = org.comroid.mutatio.ref.Reference.create();
         private final Object lock = Polyfill.selfawareLock();
         private final K key;
 
@@ -63,11 +63,15 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
         }
 
         public Reference(K key) {
+            super(true);
+
             this.key = key;
             this.firstValueFuture.update(new CompletableFuture<>());
         }
 
         public Reference(K key, V initValue) {
+            super(true);
+
             this.key = key;
             this.firstValueFuture.outdate();
         }
@@ -79,31 +83,29 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap.Set
 
         public static <K, V> Reference<K, V> constant(K key, V value) {
             return new Reference<K, V>(key, value) {
-                @Nullable
                 @Override
-                public V set(V value) {
-                    throw new UnsupportedOperationException("Reference is constant");
+                public boolean isMutable() {
+                    return false;
                 }
             };
         }
 
-        @Nullable
         @Override
-        public V set(V value) {
+        protected boolean doSet(V value) {
             synchronized (lock) {
                 if (!firstValueFuture.isOutdated()
                         && !firstValueFuture.isNull()
                         && !Objects.requireNonNull(firstValueFuture.get(), "AssertionFailure").isDone()) {
-                    firstValueFuture.get().complete(value);
+                    firstValueFuture.requireNonNull().complete(value);
                 }
 
-                return reference.getAndSet(value);
+                return reference.getAndSet(value) != value;
             }
         }
 
         @Nullable
         @Override
-        public V get() {
+        protected V doGet() {
             synchronized (lock) {
                 return reference.get();
             }
