@@ -298,7 +298,7 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, Reference<V>>, Map<K, 
 
             if (!containsKey(key))
                 return baseStage.requireStage(kStr, chars, 0)
-                        .reference.set(value) ? value : null;
+                        .reference.set(value) ? null : null; // todo this is bad
             return baseStage.putValue(kStr, chars, 0, value).orElse(null);
         }
 
