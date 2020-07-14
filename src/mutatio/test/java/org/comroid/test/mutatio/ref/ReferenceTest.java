@@ -24,7 +24,7 @@ public class ReferenceTest {
 
         emptyRef = Reference.empty();
         nullRef = Reference.constant(null);
-        valueRef = Reference.constant(testGroup);
+        valueRef = Reference.create(testGroup);
         hashRef = valueRef.process().map(s -> {
             System.out.printf("Computation occurred; now %d\n", computationCounter.incrementAndGet());
             return s.hashCode();
@@ -70,5 +70,28 @@ public class ReferenceTest {
 
         hashRef.get();
         Assert.assertEquals("too many computations", 1, computationCounter.get());
+    }
+
+    @Test
+    public void testRecompute() {
+        hashRef.get();
+        hashRef.get();
+
+        Assert.assertEquals("test group", testGroup, valueRef.get());
+        Assert.assertEquals("test group hash", testGroup.hashCode(), (int) hashRef.requireNonNull("hash"));
+
+        Assert.assertEquals("too many computations", 1, computationCounter.get());
+
+        final String newValue = UUID.randomUUID().toString();
+
+        Assert.assertTrue("Setting valueRef", valueRef.set(newValue));
+
+        hashRef.get();
+        hashRef.get();
+
+        Assert.assertEquals("new value", newValue, valueRef.get());
+        Assert.assertEquals("new hash", newValue.hashCode(), (int) hashRef.requireNonNull("hash"));
+
+        Assert.assertEquals("too many computations", 2, computationCounter.get());
     }
 }

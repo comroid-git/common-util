@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 import java.util.stream.Stream;
 
-public interface Reference<T> extends CachedValue<T>, Supplier<T>, Specifiable<Reference<T>> {
+public interface Reference<T> extends CachedValue<T>, Supplier<T> {
     boolean isMutable();
 
     default boolean isImmutable() {
@@ -160,7 +160,7 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T>, Specifiable<R
         return null;
     }
 
-    default <R> R ifPresentMapOrElse(Function<T, R> consumer, Supplier<R> task) {
+    default <R> R ifPresentMapOrElseGet(Function<T, R> consumer, Supplier<R> task) {
         if (isPresent())
             return into(consumer);
         else return task.get();
@@ -256,7 +256,12 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T>, Specifiable<R
 
                 final boolean updated = update(value) == value;
                 final boolean set = doSet(value);
-                return isMutable() && (set & updated);
+                return set & updated;
+            }
+
+            @Override
+            public String toString() {
+                return String.format("ReferenceBase{atom=%s, mutable=%s, outdated=%s}", atom, mutable, isOutdated());
             }
         }
 
