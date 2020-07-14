@@ -53,34 +53,19 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
 
     @Override
     public UniNode parse(@Nullable String data) {
-        final JSONValidator validator = JSONValidator.from(data);
+        final DataStructureType<SerializationAdapter<JSON, JSONObject, JSONArray>, JSON, ? extends JSON> type = typeOfData(data);
 
-        UniNode node = null;
-
-        if (validator.validate()) {
-            final JSONValidator.Type type = validator.getType();
-
-            try {
-                validator.close();
-            } catch (IOException e) {
-                throw new RuntimeException("Could not close validator", e);
-            }
-
-            switch (type) {
-                case Object:
-                    node = createUniObjectNode(JSONObject.parseObject(data));
-                    break;
-                case Array:
-                    node = createUniArrayNode(JSONArray.parseArray(data));
-                    break;
-                case Value:
-                    throw new IllegalArgumentException("Cannot parse JSON Value");
-            }
-        } else {
+        if (type == null)
             throw new IllegalArgumentException("String is not valid JSON");
+
+        switch (type.typ) {
+            case OBJECT:
+                return createUniObjectNode(JSONObject.parseObject(data));
+            case ARRAY:
+                return createUniArrayNode(JSONArray.parseArray(data));
         }
 
-        return Objects.requireNonNull(node, "Node is null");
+        throw new IllegalArgumentException("Cannot parse JSON Value");
     }
 
     @Override

@@ -3,10 +3,7 @@ package org.comroid.mutatio.pipe;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.util.Pair;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 public final class BiPipe<A, B, X, Y> extends BasicPipe<Pair<A, B>, Pair<X, Y>> {
     <T> BiPipe(Pipe<?, A> base, Function<A, B> bMapper) {
@@ -50,6 +47,10 @@ public final class BiPipe<A, B, X, Y> extends BasicPipe<Pair<A, B>, Pair<X, Y>> 
     public <R> BiPipe<X, Y, X, R> flatMapSecond(Function<? super Y, ? extends Reference<? extends R>> mapper) {
         return new BiPipe<>(this, StageAdapter
                 .map(pair -> new Pair<>(pair.getFirst(), mapper.apply(pair.getSecond()).get())));
+    }
+
+    public <R> Pipe<Pair<X, Y>, R> merge(BiFunction<X, Y, R> mergeFunction) {
+        return map(pair -> mergeFunction.apply(pair.getFirst(), pair.getSecond()));
     }
 
     public BiPipe<X, Y, X, Y> peek(BiConsumer<? super X, ? super Y> action) {
