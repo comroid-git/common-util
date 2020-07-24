@@ -1,6 +1,5 @@
 package org.comroid.listnr.impl;
 
-import jdk.internal.net.http.frame.PushPromiseFrame;
 import org.comroid.api.Polyfill;
 import org.comroid.api.UUIDContainer;
 import org.comroid.listnr.EventManager;
@@ -22,7 +21,7 @@ public abstract class AbstractEventManager<I extends EventPayload, T extends Eve
         implements EventManager<I, T, P> {
     private final Span<EventManager<?, ?, I>> parents = new Span<>();
     private final Span<EventManager<P, ?, ?>> children = new Span<>();
-    private final Span<? extends T> registeredTypes = new Span<>();
+    private final Span<? extends T> registeredTypes;
     protected final Executor executor;
 
     @Override
@@ -67,7 +66,9 @@ public abstract class AbstractEventManager<I extends EventPayload, T extends Eve
 
     protected abstract <XP extends P> PipeAccessor<I, XP> getPipeAccessor(EventType<I, XP> eventType);
 
-    protected AbstractEventManager(Executor executor) {
+    @SafeVarargs
+    protected AbstractEventManager(Executor executor, T... eventTypes) {
         this.executor = executor;
+        this.registeredTypes = Span.immutable(eventTypes);
     }
 }

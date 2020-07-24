@@ -16,12 +16,14 @@ public class BaseEventManager<I extends EventPayload, T extends EventType<? supe
         extends AbstractEventManager<I, T, P> {
     private final Map<String, PumpAccessor<? extends P>> accessors = TrieMap.ofString();
 
-    public BaseEventManager() {
-        this(ForkJoinPool.commonPool());
+    @SafeVarargs
+    public BaseEventManager(T... eventTypes) {
+        this(ForkJoinPool.commonPool(), eventTypes);
     }
 
-    public BaseEventManager(Executor executor) {
-        super(executor);
+    @SafeVarargs
+    public BaseEventManager(Executor executor, T... eventTypes) {
+        super(executor, eventTypes);
     }
 
     @Override

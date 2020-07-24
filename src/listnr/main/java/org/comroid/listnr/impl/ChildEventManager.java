@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 import static org.comroid.api.Polyfill.uncheckedCast;
 
@@ -21,8 +22,13 @@ public class ChildEventManager<I extends EventPayload, T extends EventType<? sup
     private final Map<String, PumpAccessor<? extends P>> accessors = TrieMap.ofString();
 
     @SafeVarargs
-    protected ChildEventManager(Executor executor, EventManager<?, ?, I>... parents) {
-        super(executor);
+    protected ChildEventManager(EventManager<?, ?, I>[] parents, T... eventTypes) {
+        this(ForkJoinPool.commonPool(), parents, eventTypes);
+    }
+
+    @SafeVarargs
+    protected ChildEventManager(Executor executor, EventManager<?, ?, I>[] parents, T... eventTypes) {
+        super(executor, eventTypes);
 
         AssertionException.expect(0, parents.length, (x, y) -> x > y, "no parents defined");
 
