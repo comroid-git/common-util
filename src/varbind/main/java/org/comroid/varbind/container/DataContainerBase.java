@@ -88,17 +88,12 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
     @Internal
     public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> findRootBind(Class<T> inClass) {
-        final Location location = ReflectionHelper.findAnnotation(Location.class, inClass, ElementType.TYPE)
-                .orElseThrow(() -> new IllegalStateException(String.format(
-                        "Class %s extends VariableCarrier,\nbut does not have a %s annotation.",
-                        inClass.getName(),
-                        Location.class.getName()
-                )));
+        final Location location = ReflectionHelper.findAnnotation(Location.class, inClass, ElementType.TYPE).orElse(null);
 
         final Iterator<GroupBind<T, D>> groups = ReflectionHelper
                 .<GroupBind<T, D>>collectStaticFields(
                         uncheckedCast(GroupBind.class),
-                        location.value(),
+                        location == null ? inClass : location.value(),
                         true,
                         RootBind.class
                 ).iterator();
