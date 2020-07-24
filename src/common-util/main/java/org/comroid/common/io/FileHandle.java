@@ -66,6 +66,20 @@ public final class FileHandle extends File implements Named {
         this.dir = dir;
     }
 
+    public static String guessMimeTypeFromName(String name) {
+        String ext = "*";
+
+        if (name.contains("."))
+            ext = name.substring(name.lastIndexOf('.'));
+        return String.format("*/%s", ext); // todo: improve
+    }
+
+    public static FileHandle of(File file) {
+        if (file instanceof FileHandle)
+            return (FileHandle) file;
+        return new FileHandle(file);
+    }
+
     public FileHandle createSubFile(String name) {
         return createSub(name, false);
     }

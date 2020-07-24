@@ -4,6 +4,8 @@ import com.google.common.flogger.FluentLogger;
 import com.sun.net.httpserver.Headers;
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
+import org.comroid.common.io.FileHandle;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.span.Span;
 import org.comroid.restless.endpoint.AccessibleEndpoint;
 import org.comroid.restless.endpoint.CompleteEndpoint;
@@ -18,8 +20,10 @@ import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.container.DataContainer;
 import org.comroid.varbind.container.DataContainerBase;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -29,6 +33,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
+
+import static org.comroid.mutatio.proc.Processor.ofConstant;
 
 public final class REST<D> {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -208,30 +214,178 @@ public final class REST<D> {
 
     public static class Response {
         private final int statusCode;
-        private final UniNode body;
-        private final Header.List headers = new Header.List();
+        private final String mimeType;
+        private final @Nullable UniNode body;
+        private final @Nullable FileHandle file;
+        private final Header.List headers;
 
         public int getStatusCode() {
             return statusCode;
         }
 
-        public UniNode getBody() {
-            return body;
+        public String getMimeType() {
+            return mimeType;
+        }
+
+        public Processor<UniNode> getBody() {
+            return ofConstant(body);
+        }
+
+        public Processor<FileHandle> getFile() {
+            return ofConstant(file);
         }
 
         public Header.List getHeaders() {
             return headers;
         }
 
-        public Response(int statusCode, UniNode body) {
-            this.statusCode = statusCode;
-            this.body = body;
+        /**
+         * Creates an empty response and no extra headers.
+         *
+         * @param statusCode the status code
+         * @see Response#Response(int, Header.List) superloaded
+         */
+        public Response(
+                int statusCode
+        ) {
+            this(statusCode, new Header.List());
         }
 
+        /**
+         * Creates an empty response, using mimeType {@code *\/*} and the given extra {@code headers}.
+         *
+         * @param statusCode the status code
+         * @param headers    the response headers
+         */
+        public Response(
+                int statusCode,
+                Header.List headers
+        ) {
+            this.statusCode = statusCode;
+            this.mimeType = "*/*";
+            this.body = null;
+            this.file = null;
+            this.headers = headers;
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code body}.
+         *
+         * @param statusCode the status code
+         * @param body       the response body
+         * @see Response#Response(int, UniNode, Header.List) superloaded
+         */
+        public Response(
+                int statusCode,
+                UniNode body
+        ) {
+            this(statusCode, body, new Header.List());
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code body} and the given extra {@code headers}.
+         *
+         * @param statusCode the status code
+         * @param body       the response body
+         * @param headers    the response headers
+         */
+        public Response(
+                int statusCode,
+                UniNode body,
+                Header.List headers
+        ) {
+            this.statusCode = statusCode;
+            this.body = Objects.requireNonNull(body, "body");
+            this.mimeType = body.getMimeType();
+            this.file = null;
+            this.headers = Objects.requireNonNull(headers, "headers list");
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code file} as response.
+         * A {@code mimeType} parameter is required.
+         *
+         * @param statusCode the status code
+         * @param mimeType   the mimeType of the response file
+         * @param file       the file to send in response
+         * @see Response#Response(int, String, File, Header.List) superloaded
+         */
+        public Response(
+                int statusCode,
+                String mimeType,
+                File file
+        ) {
+            this(statusCode, mimeType, file, new Header.List());
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code file} as response and the given extra {@code headers}.
+         * This constructor tries to {@linkplain FileHandle#guessMimeTypeFromName(String) guess the mime type} of the file.
+         *
+         * @param statusCode the status code
+         * @param file       the file to send in response
+         * @param headers    the response headers
+         * @see Response#Response(int, String, File, Header.List) superloaded
+         */
+        public Response(
+                int statusCode,
+                File file,
+                Header.List headers
+        ) {
+            this(statusCode, FileHandle.guessMimeTypeFromName(file.getName()), file, headers);
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code file} as response and the given extra {@code headers}.
+         * A {@code mimeType} parameter is required.
+         *
+         * @param statusCode the status code
+         * @param mimeType   the mimeType of the response file
+         * @param file       the file to send in response
+         * @param headers    the response headers
+         */
+        public Response(
+                int statusCode,
+                String mimeType,
+                File file,
+                Header.List headers
+        ) {
+            this.statusCode = statusCode;
+            this.mimeType = Objects.requireNonNull(mimeType, "mimeType");
+            this.body = null;
+            this.file = FileHandle.of(Objects.requireNonNull(file, "file"));
+            this.headers = Objects.requireNonNull(headers, "headers list");
+        }
+
+        /**
+         * Creates any kind of response.
+         *
+         * @param statusCode the status code
+         * @param mimeType   the mimeType of the response file
+         * @param file       the file to send in response
+         * @param headers    the response headers
+         */
+        @Internal
+        public Response(
+                int statusCode,
+                String mimeType,
+                @Nullable UniNode body,
+                @Nullable File file,
+                Header.List headers
+        ) {
+            this.statusCode = statusCode;
+            this.mimeType = mimeType;
+            this.body = body;
+            this.file = ofConstant(file).into(FileHandle::of);
+            this.headers = headers;
+        }
+
+        @Deprecated
         public Response(REST rest, int statusCode, String body) {
             this(statusCode, rest.serializationAdapter.createUniNode(body));
         }
 
+        @Deprecated
         public static Response empty(SerializationAdapter seriLib, @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
             return new Response(code, seriLib.createUniNode(null));
         }
@@ -338,7 +492,9 @@ public final class REST<D> {
         }
 
         public final CompletableFuture<UniNode> execute$body() {
-            return execute().thenApply(Response::getBody);
+            return execute()
+                    .thenApply(Response::getBody)
+                    .thenApply(Processor::get);
         }
 
         public final CompletableFuture<Span<T>> execute$deserialize() {
