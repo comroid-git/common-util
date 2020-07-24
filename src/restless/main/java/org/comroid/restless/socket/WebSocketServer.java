@@ -3,8 +3,6 @@ package org.comroid.restless.socket;
 import com.google.common.flogger.FluentLogger;
 import org.comroid.dreadpool.loop.Infinite;
 import org.comroid.dreadpool.loop.manager.LoopManager;
-import org.comroid.listnr.AbstractEventManager;
-import org.comroid.listnr.ListnrCore;
 import org.comroid.mutatio.span.Span;
 import org.comroid.restless.REST;
 import org.comroid.restless.REST.Header.List;

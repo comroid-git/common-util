@@ -10,15 +10,11 @@ import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, Disposable {
@@ -50,6 +46,51 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, D
         final Pipe<T, T> pipe = create();
         stream.iterator().forEachRemaining(pipe::add);
         return pipe;
+    }
+
+    static <T> Collector<Pump<?, T>, List<Pump<?, T>>, Pipe<?, T>> resultingPipeCollector(Executor executor) {
+        class ResultingPipeCollector implements Collector<Pump<?, T>, List<Pump<?, T>>, Pipe<?, T>> {
+            private final Pump<T, T> yield = Pump.create(executor);
+            private final Supplier<List<Pump<?, T>>> supplier = ArrayList::new;
+            private final BiConsumer<List<Pump<?, T>>, Pump<?, T>> accumulator = List::add;
+            private final BinaryOperator<List<Pump<?, T>>> combiner = (l, r) -> {
+                l.addAll(r);
+                return l;
+            };
+            private final Function<List<Pump<?, T>>, Pipe<?, T>> finisher = pipes -> {
+                pipes.forEach(pump -> pump
+                        .map(Reference::constant)
+                        .peek(yield));
+                return yield;
+            };
+
+            @Override
+            public Supplier<List<Pump<?, T>>> supplier() {
+                return supplier;
+            }
+
+            @Override
+            public BiConsumer<List<Pump<?, T>>, Pump<?, T>> accumulator() {
+                return accumulator;
+            }
+
+            @Override
+            public BinaryOperator<List<Pump<?, T>>> combiner() {
+                return combiner;
+            }
+
+            @Override
+            public Function<List<Pump<?, T>>, Pipe<?, T>> finisher() {
+                return finisher;
+            }
+
+            @Override
+            public Set<Characteristics> characteristics() {
+                return Collections.singleton(Characteristics.IDENTITY_FINISH);
+            }
+        }
+
+        return new ResultingPipeCollector();
     }
 
     @Override

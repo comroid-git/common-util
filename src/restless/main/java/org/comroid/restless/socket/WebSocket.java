@@ -1,8 +1,6 @@
 package org.comroid.restless.socket;
 
-import org.comroid.listnr.AbstractEventManager;
 import org.comroid.listnr.EventManager;
-import org.comroid.listnr.ListnrCore;
 import org.comroid.restless.socket.event.WebSocketEvent;
 import org.comroid.restless.socket.event.WebSocketPayload;
 import org.comroid.uniform.node.UniNode;

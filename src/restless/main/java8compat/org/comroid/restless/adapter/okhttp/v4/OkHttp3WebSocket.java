@@ -4,7 +4,6 @@ import okhttp3.*;
 import okio.ByteString;
 import org.comroid.api.Polyfill;
 import org.comroid.listnr.EventManager;
-import org.comroid.listnr.ListnrCore;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.restless.REST;
 import org.comroid.restless.socket.WebSocketData;

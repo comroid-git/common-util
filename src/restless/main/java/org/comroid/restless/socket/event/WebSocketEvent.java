@@ -28,12 +28,12 @@ public interface WebSocketEvent<P extends WebSocketPayload> extends EventType<We
         }
 
         @Override
-        public boolean test(WebSocketData webSocketData) {
-            return equals(webSocketData.getType());
+        public boolean triggeredBy(WebSocketData oldPayload) {
+            return equals(oldPayload.getType());
         }
 
         @Override
-        public P apply(WebSocketData webSocketData) {
+        public P createPayload(WebSocketData webSocketData) {
             return remapper.apply(webSocketData);
         }
 
