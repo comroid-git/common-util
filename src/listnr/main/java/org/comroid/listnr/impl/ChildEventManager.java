@@ -17,18 +17,28 @@ import java.util.concurrent.ForkJoinPool;
 
 import static org.comroid.api.Polyfill.uncheckedCast;
 
-public class ChildEventManager<I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
-        extends AbstractEventManager<I, T, P> {
+public class ChildEventManager<D, I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
+        extends AbstractEventManager<D, I, T, P> {
     private final Map<String, PumpAccessor<? extends P>> accessors = TrieMap.ofString();
 
     @SafeVarargs
-    protected ChildEventManager(EventManager<?, ?, I>[] parents, T... eventTypes) {
-        this(ForkJoinPool.commonPool(), parents, eventTypes);
+    protected ChildEventManager(EventManager<?, ?, ?, I>[] parents, T... eventTypes) {
+        this((D) null, parents, eventTypes);
     }
 
     @SafeVarargs
-    protected ChildEventManager(Executor executor, EventManager<?, ?, I>[] parents, T... eventTypes) {
-        super(executor, eventTypes);
+    protected ChildEventManager(D dependent, EventManager<?, ?, ?, I>[] parents, T... eventTypes) {
+        this(dependent, ForkJoinPool.commonPool(), parents, eventTypes);
+    }
+
+    @SafeVarargs
+    protected ChildEventManager(Executor executor, EventManager<?, ?, ?, I>[] parents, T... eventTypes) {
+        this(null, executor, parents, eventTypes);
+    }
+
+    @SafeVarargs
+    protected ChildEventManager(D dependent, Executor executor, EventManager<?, ?, ?, I>[] parents, T... eventTypes) {
+        super(dependent, executor, eventTypes);
 
         AssertionException.expect(0, parents.length, (x, y) -> x > y, "no parents defined");
 
@@ -38,7 +48,7 @@ public class ChildEventManager<I extends EventPayload, T extends EventType<? sup
     }
 
     @Override
-    public <XP extends P> ChildEventManager<I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
+    public <XP extends P> ChildEventManager<D, I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
         final String key = type.getName();
 
         if (accessors.containsKey(key))

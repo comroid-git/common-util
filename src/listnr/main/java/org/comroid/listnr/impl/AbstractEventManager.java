@@ -9,6 +9,7 @@ import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pump.Pump;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.span.Span;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,27 +17,41 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
-public abstract class AbstractEventManager<I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
+public abstract class AbstractEventManager<D, I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
         extends UUIDContainer
-        implements EventManager<I, T, P> {
-    private final Span<EventManager<?, ?, I>> parents = new Span<>();
-    private final Span<EventManager<P, ?, ?>> children = new Span<>();
-    private final Span<? extends T> registeredTypes;
+        implements EventManager<D, I, T, P> {
     protected final Executor executor;
+    private final Span<EventManager<?, ?, ?, I>> parents = new Span<>();
+    private final Span<EventManager<?, P, ?, ?>> children = new Span<>();
+    private final Span<? extends T> registeredTypes;
+    private final @Nullable D dependent;
 
     @Override
-    public final Span<EventManager<?, ?, I>> getParents() {
+    public final Span<EventManager<?, ?, ?, I>> getParents() {
         return parents;
     }
 
     @Override
-    public final Span<EventManager<P, ?, ?>> getChildren() {
+    public final Span<EventManager<?, P, ?, ?>> getChildren() {
         return children;
     }
 
     @Override
     public final Span<? extends T> getEventTypes() {
         return registeredTypes;
+    }
+
+    @Nullable
+    @Override
+    public final D getDependent() {
+        return dependent;
+    }
+
+    @SafeVarargs
+    protected AbstractEventManager(@Nullable D dependent, Executor executor, T... eventTypes) {
+        this.dependent = dependent;
+        this.executor = executor;
+        this.registeredTypes = Span.immutable(eventTypes);
     }
 
     @Override
@@ -62,11 +77,5 @@ public abstract class AbstractEventManager<I extends EventPayload, T extends Eve
                         })
                         .map(task -> CompletableFuture.supplyAsync(task, executor))
                         .toArray(CompletableFuture[]::new));
-    }
-
-    @SafeVarargs
-    protected AbstractEventManager(Executor executor, T... eventTypes) {
-        this.executor = executor;
-        this.registeredTypes = Span.immutable(eventTypes);
     }
 }

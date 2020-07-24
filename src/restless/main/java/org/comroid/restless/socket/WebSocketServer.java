@@ -49,7 +49,7 @@ public final class WebSocketServer extends BaseEventManager<WebSocketData, WebSo
             InetAddress adress,
             int port
     ) throws IOException {
-        super(executor);
+        super(dependent, executor);
 
         this.seriLib = serializationAdapter;
         this.handlerCreator = socketHandlerCreator;
@@ -127,7 +127,7 @@ public final class WebSocketServer extends BaseEventManager<WebSocketData, WebSo
         }
 
         public SocketHandler(WebSocketServer socketServer, Socket socket) {
-            super(socketServer);
+            super(dependent, socketServer);
 
             this.socketServer = socketServer;
             this.socket = socket;

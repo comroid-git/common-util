@@ -12,22 +12,32 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
-public class BaseEventManager<I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
-        extends AbstractEventManager<I, T, P> {
+public class BaseEventManager<D, I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
+        extends AbstractEventManager<D, I, T, P> {
     private final Map<String, PumpAccessor<? extends P>> accessors = TrieMap.ofString();
 
     @SafeVarargs
     public BaseEventManager(T... eventTypes) {
-        this(ForkJoinPool.commonPool(), eventTypes);
+        this((D) null, eventTypes);
+    }
+
+    @SafeVarargs
+    public BaseEventManager(D dependent, T... eventTypes) {
+        this(dependent, ForkJoinPool.commonPool(), eventTypes);
     }
 
     @SafeVarargs
     public BaseEventManager(Executor executor, T... eventTypes) {
-        super(executor, eventTypes);
+        this(null, executor, eventTypes);
+    }
+
+    @SafeVarargs
+    public BaseEventManager(D dependent, Executor executor, T... eventTypes) {
+        super(dependent, executor, eventTypes);
     }
 
     @Override
-    public <XP extends P> BaseEventManager<I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
+    public <XP extends P> BaseEventManager<D, I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
         return Polyfill.uncheckedCast(accessors.computeIfAbsent(type.getName(), key -> new PumpAccessor<>(type)));
     }
 
