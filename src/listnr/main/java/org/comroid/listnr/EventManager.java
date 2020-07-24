@@ -3,6 +3,7 @@ package org.comroid.listnr;
 import org.comroid.common.info.Dependent;
 import org.comroid.listnr.impl.PipeAccessor;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
@@ -16,6 +17,8 @@ public interface EventManager<D, I extends EventPayload, T extends EventType<? s
     Span<EventManager<?, ?, ?, I>> getParents();
 
     Span<EventManager<?, P, ?, ?>> getChildren();
+
+    Pipe<?, ? extends T> getListeningTypes();
 
     Span<? extends T> getEventTypes();
 

@@ -14,8 +14,6 @@ import java.util.concurrent.ForkJoinPool;
 
 public class BaseEventManager<D, I extends EventPayload, T extends EventType<? super D, ? super I, ? extends P>, P extends EventPayload>
         extends AbstractEventManager<D, I, T, P> {
-    private final Map<String, PumpAccessor<? extends P>> accessors = TrieMap.ofString();
-
     @SafeVarargs
     public BaseEventManager(T... eventTypes) {
         this((D) null, eventTypes);
@@ -43,8 +41,14 @@ public class BaseEventManager<D, I extends EventPayload, T extends EventType<? s
 
     @SuppressWarnings("FieldCanBeLocal")
     private final class PumpAccessor<XP extends P> implements PipeAccessor<I, XP> {
+        private final EventType<D, I, XP> eventType;
         private final Pump<I, I> basePump;
         private final Pipe<?, XP> accessorPipe;
+
+        @Override
+        public EventType<?, I, ?> getEventType() {
+            return eventType;
+        }
 
         @Override
         public Pipe<I, I> getBasePump() {
@@ -57,6 +61,7 @@ public class BaseEventManager<D, I extends EventPayload, T extends EventType<? s
         }
 
         private PumpAccessor(@NotNull EventType<D, I, XP> eventType) {
+            this.eventType = eventType;
             this.basePump = Pump.create(executor);
             this.accessorPipe = basePump
                     .filter(eventType::triggeredBy)

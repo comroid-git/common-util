@@ -19,8 +19,6 @@ import static org.comroid.api.Polyfill.uncheckedCast;
 
 public class ChildEventManager<D, I extends EventPayload, T extends EventType<? super D, ? super I, ? extends P>, P extends EventPayload>
         extends AbstractEventManager<D, I, T, P> {
-    private final Map<String, PumpAccessor<? extends P>> accessors = TrieMap.ofString();
-
     @SafeVarargs
     protected ChildEventManager(EventManager<?, ?, ?, I>[] parents, T... eventTypes) {
         this((D) null, parents, eventTypes);
@@ -67,8 +65,14 @@ public class ChildEventManager<D, I extends EventPayload, T extends EventType<? 
 
     @SuppressWarnings("FieldCanBeLocal")
     private final class PumpAccessor<XP extends P> implements PipeAccessor<I, XP> {
+        private final EventType<D, I, XP> eventType;
         private final Pipe<I, I> basePipe;
         private final Pipe<?, XP> accessorPipe;
+
+        @Override
+        public EventType<?, I, ?> getEventType() {
+            return eventType;
+        }
 
         @Override
         public Pipe<I, I> getBasePump() {
@@ -81,6 +85,7 @@ public class ChildEventManager<D, I extends EventPayload, T extends EventType<? 
         }
 
         private PumpAccessor(Pipe<I, I> pipe, @NotNull EventType<D, I, XP> eventType) {
+            this.eventType = eventType;
             this.basePipe = pipe;
             this.accessorPipe = basePipe
                     .filter(eventType::triggeredBy)

@@ -9,6 +9,7 @@ import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pump.Pump;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.span.Span;
+import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public abstract class AbstractEventManager<D, I extends EventPayload, T extends 
         extends UUIDContainer
         implements EventManager<D, I, T, P> {
     protected final Executor executor;
+    protected final TrieMap<String, PipeAccessor<I, ? extends P>> accessors = TrieMap.ofString();
     private final Span<EventManager<?, ?, ?, I>> parents = new Span<>();
     private final Span<EventManager<?, P, ?, ?>> children = new Span<>();
     private final Span<? extends T> registeredTypes;
@@ -34,6 +36,14 @@ public abstract class AbstractEventManager<D, I extends EventPayload, T extends 
     @Override
     public final Span<EventManager<?, P, ?, ?>> getChildren() {
         return children;
+    }
+
+    @Override
+    public Pipe<?, ? extends T> getListeningTypes() {
+        return accessors.pipe()
+                .map(PipeAccessor::getEventType)
+                .map(Polyfill::<T>uncheckedCast)
+                .distinct();
     }
 
     @Override
