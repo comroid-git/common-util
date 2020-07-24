@@ -24,21 +24,10 @@ public final class OkHttp3WebSocket extends org.comroid.restless.socket.WebSocke
     private final Reference<WebSocket> iSocketRef;
 
     private OkHttp3WebSocket(SerializationAdapter<?, ?, ?> seriLib, CompletableFuture<WebSocket> socketFuture, Executor executor) {
-        super(new ListnrCore(executor));
+        super(executor);
 
         this.seriLib = seriLib;
         this.iSocketRef = Reference.later(socketFuture);
-    }
-
-    @SafeVarargs
-    public OkHttp3WebSocket(
-            SerializationAdapter<?, ?, ?> seriLib,
-            CompletableFuture<WebSocket> iSocketRef,
-            EventManager<? super WebSocketData, ? super WebSocketEvent<WebSocketPayload>, ? super WebSocketPayload>... parents
-    ) {
-        super(parents);
-        this.seriLib = seriLib;
-        this.iSocketRef = Reference.later(iSocketRef);
     }
 
     public static CompletableFuture<OkHttp3WebSocket> create(
@@ -83,32 +72,32 @@ public final class OkHttp3WebSocket extends org.comroid.restless.socket.WebSocke
     private final class OkListener extends WebSocketListener {
         @Override
         public void onOpen(@NotNull WebSocket webSocket, @NotNull Response response) {
-            publish(WebSocketEvent.OPEN, WebSocketData.empty(OkHttp3WebSocket.this, WebSocketEvent.OPEN));
+            publish(WebSocketData.empty(OkHttp3WebSocket.this, WebSocketEvent.OPEN));
         }
 
         @Override
         public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
-            publish(WebSocketEvent.DATA, WebSocketData.ofNode(OkHttp3WebSocket.this, seriLib.createUniNode(text)));
+            publish(WebSocketData.ofNode(OkHttp3WebSocket.this, seriLib.createUniNode(text)));
         }
 
         @Override
         public void onMessage(@NotNull WebSocket webSocket, @NotNull ByteString bytes) {
-            publish(WebSocketEvent.DATA, WebSocketData.ofNode(OkHttp3WebSocket.this, seriLib.createUniNode(bytes.utf8())));
+            publish(WebSocketData.ofNode(OkHttp3WebSocket.this, seriLib.createUniNode(bytes.utf8())));
         }
 
         @Override
         public void onFailure(@NotNull WebSocket webSocket, @NotNull Throwable throwable, @Nullable Response response) {
-            publish(WebSocketEvent.ERROR, WebSocketData.error(OkHttp3WebSocket.this, throwable));
+            publish(WebSocketData.error(OkHttp3WebSocket.this, throwable));
         }
 
         @Override
         public void onClosed(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
-            publish(WebSocketEvent.CLOSE, WebSocketData.close(OkHttp3WebSocket.this, code, reason));
+            publish(WebSocketData.close(OkHttp3WebSocket.this, code, reason));
         }
 
         @Override
         public void onClosing(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
-            publish(WebSocketEvent.CLOSE, WebSocketData.close(OkHttp3WebSocket.this, code, reason));
+            publish(WebSocketData.close(OkHttp3WebSocket.this, code, reason));
         }
     }
 }

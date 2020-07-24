@@ -1,11 +1,13 @@
 package org.comroid.restless.socket;
 
+import org.comroid.listnr.EventPayload;
 import org.comroid.restless.socket.event.WebSocketEvent;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniValueNode;
 import org.jetbrains.annotations.Nullable;
 
-public interface WebSocketData {
+@SuppressWarnings("rawtypes")
+public interface WebSocketData extends EventPayload {
     WebSocket getWebSocket();
 
     WebSocketEvent getType();

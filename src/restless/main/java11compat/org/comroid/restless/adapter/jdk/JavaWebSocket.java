@@ -28,21 +28,10 @@ public final class JavaWebSocket extends org.comroid.restless.socket.WebSocket {
     private final Reference<WebSocket> jSocketRef;
 
     private JavaWebSocket(SerializationAdapter<?, ?, ?> seriLib, CompletableFuture<WebSocket> socketFuture, Executor executor) {
-        super(new ListnrCore(executor));
+        super(executor);
 
         this.seriLib = seriLib;
         this.jSocketRef = Reference.later(socketFuture);
-    }
-
-    @SuppressWarnings("unchecked")
-    public JavaWebSocket(
-            SerializationAdapter<?, ?, ?> seriLib,
-            CompletableFuture<WebSocket> jSocketRef,
-            EventManager<? super WebSocketData, ? super WebSocketEvent<WebSocketPayload>, ? super WebSocketPayload>... parents) {
-        super(parents);
-
-        this.seriLib = seriLib;
-        this.jSocketRef = Reference.later(jSocketRef);
     }
 
     public static CompletableFuture<JavaWebSocket> create(
@@ -105,7 +94,7 @@ public final class JavaWebSocket extends org.comroid.restless.socket.WebSocket {
 
         @Override
         public void onOpen(WebSocket webSocket) {
-            publish(WebSocketEvent.OPEN, WebSocketData.empty(JavaWebSocket.this, WebSocketEvent.OPEN));
+            publish(WebSocketData.empty(JavaWebSocket.this, WebSocketEvent.OPEN));
             webSocket.request(1);
         }
 
@@ -123,27 +112,27 @@ public final class JavaWebSocket extends org.comroid.restless.socket.WebSocket {
 
         @Override
         public CompletionStage<?> onPing(WebSocket webSocket, ByteBuffer message) {
-            publish(WebSocketEvent.PING, WebSocketData.empty(JavaWebSocket.this, WebSocketEvent.PING));
+            publish(WebSocketData.empty(JavaWebSocket.this, WebSocketEvent.PING));
             webSocket.request(1);
             return null;
         }
 
         @Override
         public CompletionStage<?> onPong(WebSocket webSocket, ByteBuffer message) {
-            publish(WebSocketEvent.PONG, WebSocketData.empty(JavaWebSocket.this, WebSocketEvent.PONG));
+            publish(WebSocketData.empty(JavaWebSocket.this, WebSocketEvent.PONG));
             webSocket.request(1);
             return null;
         }
 
         @Override
         public void onError(WebSocket webSocket, Throwable error) {
-            publish(WebSocketEvent.ERROR, WebSocketData.error(JavaWebSocket.this, error));
+            publish(WebSocketData.error(JavaWebSocket.this, error));
             webSocket.request(1);
         }
 
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-            publish(WebSocketEvent.CLOSE, WebSocketData.close(JavaWebSocket.this, statusCode, reason));
+            publish(WebSocketData.close(JavaWebSocket.this, statusCode, reason));
             return Polyfill.infiniteFuture();
         }
 
@@ -153,7 +142,7 @@ public final class JavaWebSocket extends org.comroid.restless.socket.WebSocket {
 
             if (last) {
                 final UniNode node = seriLib.createUniNode(sb.toString());
-                publish(WebSocketEvent.DATA, WebSocketData.ofNode(JavaWebSocket.this, node));
+                publish(WebSocketData.ofNode(JavaWebSocket.this, node));
                 sb = new StringBuilder();
             }
 

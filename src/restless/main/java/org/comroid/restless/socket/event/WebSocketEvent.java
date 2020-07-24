@@ -1,6 +1,7 @@
 package org.comroid.restless.socket.event;
 
 import org.comroid.listnr.EventType;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.restless.socket.WebSocketData;
 
 import java.util.function.Function;
@@ -20,6 +21,11 @@ public interface WebSocketEvent<P extends WebSocketPayload> extends EventType<We
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public Processor<EventType<?, WebSocketData>> getCommonCause() {
+            return Processor.empty();
         }
 
         private Base(String name, Function<WebSocketData, P> remapper) {
