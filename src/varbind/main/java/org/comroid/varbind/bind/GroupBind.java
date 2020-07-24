@@ -5,6 +5,7 @@ import org.comroid.api.Polyfill;
 import org.comroid.mutatio.span.Span;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
+import org.comroid.util.StackTraceUtils;
 import org.comroid.varbind.container.DataContainer;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
@@ -174,6 +175,10 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         };
 
         return Invocable.ofConstructor(resultType, typesUnordered);
+    }
+
+    public <R extends T> GroupBind<R, D> rootGroup(String subGroupName) {
+        return subGroup(subGroupName, Polyfill.<Class<T>>uncheckedCast(StackTraceUtils.callerClass(0)));
     }
 
     public <R extends T> GroupBind<R, D> subGroup(String subGroupName) {
