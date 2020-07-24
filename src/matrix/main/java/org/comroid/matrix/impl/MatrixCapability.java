@@ -121,6 +121,11 @@ public final class MatrixCapability {
         }
 
         @Override
+        public V remove(X x, Y y) {
+            return remove(generateCoordinate(x, y));
+        }
+
+        @Override
         public String generateCoordinate(X x, Y y) {
             return String.format("%s-%s", wrapFormattable(x), wrapFormattable(y));
         }
@@ -201,6 +206,11 @@ public final class MatrixCapability {
         @Override
         public V computeIfAbsent(X x, Y y, Z z, Function<? super String, ? extends V> supplier) {
             return computeIfAbsent(generateCoordinate(x, y, z), supplier);
+        }
+
+        @Override
+        public V remove(X x, Y y, Z z) {
+            return remove(generateCoordinate(x, y, z));
         }
 
         @Override

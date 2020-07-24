@@ -87,6 +87,19 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
         return entries.computeIfAbsent(coordinate, key -> createEntry(key, supplier.apply(key))).get();
     }
 
+    @Override
+    public @Nullable V remove(String coordinate) {
+        final E entry = entries.get(coordinate);
+        V prev;
+
+        if (entry == null || (prev = entry.getValue()) == null)
+            return null;
+        if (entry.set(null))
+            return prev;
+        else throw new UnsupportedOperationException("Could not unset entry");
+    }
+
+
     @NotNull
     @Override
     public Iterator<E> iterator() {

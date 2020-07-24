@@ -36,6 +36,8 @@ public final class PartialMatrix<V, E extends Matrix.Entry<V>> extends AbstractM
 
         V computeIfAbsent(X x, Y y, Function<String, ? extends V> supplier);
 
+        V remove(X x, Y y);
+
         String generateCoordinate(X x, Y y);
     }
 
@@ -54,6 +56,8 @@ public final class PartialMatrix<V, E extends Matrix.Entry<V>> extends AbstractM
         V computeIfPresent(X x, Y y, Z z, BiFunction<String, ? super V, ? extends V> computor);
 
         V computeIfAbsent(X x, Y y, Z z, Function<? super String, ? extends V> supplier);
+
+        V remove(X x, Y y, Z z);
 
         String generateCoordinate(X x, Y y, Z z);
     }
