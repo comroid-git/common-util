@@ -6,7 +6,7 @@ import org.comroid.restless.socket.WebSocketData;
 
 import java.util.function.Function;
 
-public interface WebSocketEvent<P extends WebSocketPayload> extends EventType<WebSocketData, P> {
+public interface WebSocketEvent<P extends WebSocketPayload> extends EventType<Object, WebSocketData, P> {
     WebSocketEvent<WebSocketPayload.Open> OPEN = new Base<>("websocket-open", WebSocketPayload.Open::new);
     WebSocketEvent<WebSocketPayload.Data> DATA = new Base<>("websocket-data", WebSocketPayload.Data::new);
     WebSocketEvent<WebSocketPayload.Ping> PING = new Base<>("websocket-ping", WebSocketPayload.Ping::new);
@@ -24,7 +24,7 @@ public interface WebSocketEvent<P extends WebSocketPayload> extends EventType<We
         }
 
         @Override
-        public Processor<EventType<?, WebSocketData>> getCommonCause() {
+        public Processor<EventType<?, ?, WebSocketData>> getCommonCause() {
             return Processor.empty();
         }
 
@@ -39,7 +39,7 @@ public interface WebSocketEvent<P extends WebSocketPayload> extends EventType<We
         }
 
         @Override
-        public P createPayload(WebSocketData webSocketData) {
+        public P createPayload(WebSocketData webSocketData, Object nil) {
             return remapper.apply(webSocketData);
         }
 

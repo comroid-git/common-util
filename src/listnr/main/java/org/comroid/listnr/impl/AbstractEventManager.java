@@ -43,7 +43,7 @@ public abstract class AbstractEventManager<D, I extends EventPayload, T extends 
 
     @Nullable
     @Override
-    public final D getDependent() {
+    public D getDependent() {
         return dependent;
     }
 
