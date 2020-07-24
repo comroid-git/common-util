@@ -64,8 +64,6 @@ public abstract class AbstractEventManager<I extends EventPayload, T extends Eve
                         .toArray(CompletableFuture[]::new));
     }
 
-    protected abstract <XP extends P> PipeAccessor<I, XP> getPipeAccessor(EventType<I, XP> eventType);
-
     @SafeVarargs
     protected AbstractEventManager(Executor executor, T... eventTypes) {
         this.executor = executor;

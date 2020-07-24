@@ -38,7 +38,7 @@ public class ChildEventManager<I extends EventPayload, T extends EventType<? sup
     }
 
     @Override
-    protected <XP extends P> ChildEventManager<I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
+    public <XP extends P> ChildEventManager<I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
         final String key = type.getName();
 
         if (accessors.containsKey(key))

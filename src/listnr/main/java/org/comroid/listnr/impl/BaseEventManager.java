@@ -27,7 +27,7 @@ public class BaseEventManager<I extends EventPayload, T extends EventType<? supe
     }
 
     @Override
-    protected <XP extends P> BaseEventManager<I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
+    public <XP extends P> BaseEventManager<I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
         return Polyfill.uncheckedCast(accessors.computeIfAbsent(type.getName(), key -> new PumpAccessor<>(type)));
     }
 
