@@ -58,11 +58,15 @@ public final class UniObjectNode extends UniNode {
 
     @Override
     public boolean has(String fieldName) {
+        if (fieldName.isEmpty())
+            return true;
         return adapter.containsKey(fieldName);
     }
 
     @Override
     public @NotNull UniNode get(final String fieldName) {
+        if (fieldName.isEmpty())
+            return this;
         return makeValueNode(fieldName).orElseGet(UniValueNode::nullNode);
     }
 
