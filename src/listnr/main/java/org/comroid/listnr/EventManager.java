@@ -9,7 +9,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface EventManager<D, I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
+public interface EventManager<D, I extends EventPayload, T extends EventType<? super D, ? super I, ? extends P>, P extends EventPayload>
         extends Dependent<D> {
     UUID getUUID();
 
@@ -19,10 +19,10 @@ public interface EventManager<D, I extends EventPayload, T extends EventType<? s
 
     Span<? extends T> getEventTypes();
 
-    <XP extends P> Pipe<?, XP> eventPipe(EventType<I, XP> type);
+    <XP extends P> Pipe<?, XP> eventPipe(EventType<D, I, XP> type);
 
     CompletableFuture<?> publish(I payload);
 
     @Internal
-    <XP extends P> PipeAccessor<I, XP> getPipeAccessor(EventType<I, XP> eventType);
+    <XP extends P> PipeAccessor<I, XP> getPipeAccessor(EventType<D, I, XP> eventType);
 }

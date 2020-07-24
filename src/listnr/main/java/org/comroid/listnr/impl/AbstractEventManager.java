@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
-public abstract class AbstractEventManager<D, I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
+public abstract class AbstractEventManager<D, I extends EventPayload, T extends EventType<? super D, ? super I, ? extends P>, P extends EventPayload>
         extends UUIDContainer
         implements EventManager<D, I, T, P> {
     protected final Executor executor;
@@ -55,7 +55,7 @@ public abstract class AbstractEventManager<D, I extends EventPayload, T extends 
     }
 
     @Override
-    public final <XP extends P> Pipe<?, XP> eventPipe(EventType<I, XP> type) {
+    public final <XP extends P> Pipe<?, XP> eventPipe(EventType<D, I, XP> type) {
         return getPipeAccessor(type).getAccessorPipe();
     }
 

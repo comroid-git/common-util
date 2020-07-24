@@ -7,7 +7,7 @@ import org.comroid.listnr.EventType;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
-public class UnderlyingEventManager<D, I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
+public class UnderlyingEventManager<D, I extends EventPayload, T extends EventType<? super D, ? super I, ? extends P>, P extends EventPayload>
         extends AbstractEventManager<D, I, T, P> {
     private final EventManager<D, I, T, P> underlying;
 
@@ -30,7 +30,7 @@ public class UnderlyingEventManager<D, I extends EventPayload, T extends EventTy
     }
 
     @Override
-    public <XP extends P> PipeAccessor<I, XP> getPipeAccessor(EventType<I, XP> eventType) {
+    public <XP extends P> PipeAccessor<I, XP> getPipeAccessor(EventType<D, I, XP> eventType) {
         return underlying.getPipeAccessor(eventType);
     }
 }

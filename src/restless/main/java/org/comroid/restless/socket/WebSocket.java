@@ -10,7 +10,7 @@ import java.util.concurrent.Executor;
 
 import static org.comroid.restless.socket.event.WebSocketEvent.*;
 
-public abstract class WebSocket extends BaseEventManager<WebSocketData, WebSocketEvent<? extends WebSocketPayload>, WebSocketPayload> {
+public abstract class WebSocket extends BaseEventManager<Object, WebSocketData, WebSocketEvent<? extends WebSocketPayload>, WebSocketPayload> {
     public static final int MAX_MESSAGE_LENGTH = 2000;
 
     public WebSocket(Executor executor) {

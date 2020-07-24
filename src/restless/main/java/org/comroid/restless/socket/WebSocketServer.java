@@ -26,7 +26,7 @@ import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public final class WebSocketServer extends BaseEventManager<WebSocketData, WebSocketEvent<? extends WebSocketPayload.Data>, WebSocketPayload.Data> {
+public final class WebSocketServer extends BaseEventManager<Object, WebSocketData, WebSocketEvent<? extends WebSocketPayload.Data>, WebSocketPayload.Data> {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final BiFunction<WebSocketServer, Socket, ? extends SocketHandler> handlerCreator;
@@ -49,7 +49,7 @@ public final class WebSocketServer extends BaseEventManager<WebSocketData, WebSo
             InetAddress adress,
             int port
     ) throws IOException {
-        super(dependent, executor);
+        super(executor);
 
         this.seriLib = serializationAdapter;
         this.handlerCreator = socketHandlerCreator;
@@ -64,7 +64,7 @@ public final class WebSocketServer extends BaseEventManager<WebSocketData, WebSo
 
     @SuppressWarnings("FieldCanBeLocal")
     public static class SocketHandler
-            extends UnderlyingEventManager<WebSocketData, WebSocketEvent<? extends WebSocketPayload.Data>, WebSocketPayload.Data> {
+            extends UnderlyingEventManager<Object, WebSocketData, WebSocketEvent<? extends WebSocketPayload.Data>, WebSocketPayload.Data> {
         private final WebSocketServer socketServer;
         private final Socket socket;
         private final LoopManager loopManager;
@@ -127,7 +127,7 @@ public final class WebSocketServer extends BaseEventManager<WebSocketData, WebSo
         }
 
         public SocketHandler(WebSocketServer socketServer, Socket socket) {
-            super(dependent, socketServer);
+            super(socketServer);
 
             this.socketServer = socketServer;
             this.socket = socket;

@@ -17,7 +17,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import static org.comroid.api.Polyfill.uncheckedCast;
 
-public class ChildEventManager<D, I extends EventPayload, T extends EventType<? super I, ? extends P>, P extends EventPayload>
+public class ChildEventManager<D, I extends EventPayload, T extends EventType<? super D, ? super I, ? extends P>, P extends EventPayload>
         extends AbstractEventManager<D, I, T, P> {
     private final Map<String, PumpAccessor<? extends P>> accessors = TrieMap.ofString();
 
@@ -48,7 +48,7 @@ public class ChildEventManager<D, I extends EventPayload, T extends EventType<? 
     }
 
     @Override
-    public <XP extends P> ChildEventManager<D, I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<I, XP> type) {
+    public <XP extends P> ChildEventManager<D, I, T, P>.PumpAccessor<XP> getPipeAccessor(EventType<D, I, XP> type) {
         final String key = type.getName();
 
         if (accessors.containsKey(key))
@@ -80,11 +80,11 @@ public class ChildEventManager<D, I extends EventPayload, T extends EventType<? 
             return accessorPipe;
         }
 
-        private PumpAccessor(Pipe<I, I> pipe, @NotNull EventType<I, XP> eventType) {
+        private PumpAccessor(Pipe<I, I> pipe, @NotNull EventType<D, I, XP> eventType) {
             this.basePipe = pipe;
             this.accessorPipe = basePipe
                     .filter(eventType::triggeredBy)
-                    .map(eventType::createPayload);
+                    .map(input -> eventType.createPayload(input, getDependent()));
         }
 
         private <X> Pipe<?, X> castAccessor() {
