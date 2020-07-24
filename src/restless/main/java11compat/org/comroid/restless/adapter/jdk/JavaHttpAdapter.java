@@ -47,7 +47,7 @@ public final class JavaHttpAdapter implements HttpAdapter {
                     final String body = response.body();
 
                     if (body == null)
-                        return new REST.Response(response.statusCode(), null);
+                        return new REST.Response(response.statusCode());
 
                     final UniNode data = request.getREST()
                             .getSerializationAdapter()

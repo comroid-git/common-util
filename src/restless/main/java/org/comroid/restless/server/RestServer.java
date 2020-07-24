@@ -5,6 +5,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.comroid.common.io.FileHandle;
 import org.comroid.mutatio.span.Span;
 import org.comroid.restless.CommonHeaderNames;
 import org.comroid.restless.HTTPStatusCodes;
@@ -27,7 +28,7 @@ import static com.google.common.flogger.LazyArgs.lazy;
 import static org.comroid.restless.HTTPStatusCodes.*;
 
 public class RestServer implements Closeable {
-    private static final Response dummyResponse = new Response(0, null);
+    private static final Response dummyResponse = new Response(0);
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final AutoContextHandler autoContextHandler = new AutoContextHandler();
     private final HttpServer server;
@@ -69,6 +70,53 @@ public class RestServer implements Closeable {
     @Override
     public void close() {
         server.stop(5);
+    }
+
+    private void writeResponse(HttpExchange exchange, int statusCode) throws IOException {
+        writeResponse(exchange, statusCode, "");
+    }
+
+    private void writeResponse(HttpExchange exchange, int statusCode, String data) throws IOException {
+        exchange.sendResponseHeaders(statusCode, data.length());
+        final OutputStream osr = exchange.getResponseBody();
+        osr.write(data.getBytes());
+        osr.flush();
+    }
+
+    private UniObjectNode generateErrorNode(RestEndpointException reex) {
+        final UniObjectNode rsp = seriLib.createUniObjectNode();
+
+        rsp.put("code", ValueType.INTEGER, reex.getStatusCode());
+        rsp.put("description", ValueType.STRING, HTTPStatusCodes.toString(reex.getStatusCode()));
+        rsp.put("message", ValueType.STRING, reex.getSimpleMessage());
+
+        final Throwable cause = reex.getCause();
+        if (cause != null)
+            rsp.put("cause", ValueType.STRING, cause.toString());
+
+        return rsp;
+    }
+
+    private UniNode consumeBody(HttpExchange exchange) {
+        try (
+                InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
+                BufferedReader br = new BufferedReader(isr)
+        ) {
+            String data = br.lines().collect(Collectors.joining());
+
+            if (data.isEmpty())
+                return seriLib.createUniObjectNode();
+            else return seriLib.createUniNode(data);
+        } catch (Throwable t) {
+            logger.at(Level.SEVERE).log("Could not deserialize response");
+        }
+
+        return null;
+    }
+
+    private boolean supportedMimeType(List<String> targetMimes) {
+        return targetMimes.isEmpty() || targetMimes.stream()
+                .anyMatch(type -> type.contains(mimeType) || type.contains("*/*"));
     }
 
     private class AutoContextHandler implements HttpHandler {
@@ -198,15 +246,20 @@ public class RestServer implements Closeable {
                 throw lastException;
         }
 
-        private void handleResponse(HttpExchange exchange, String requestURI, ServerEndpoint sep, Headers responseHeaders, REST.Response response) throws IOException {
+        private void handleResponse(
+                HttpExchange exchange,
+                String requestURI,
+                ServerEndpoint sep,
+                Headers responseHeaders,
+                REST.Response response
+        ) throws IOException {
             if (response == null) {
                 writeResponse(exchange, OK);
                 return;
             }
 
             response.getHeaders().forEach(responseHeaders::add);
-            final UniNode responseBody = response.getBody();
-            final String data = unwrapData(sep, requestURI, responseBody);
+            final String data = unwrapData(sep, requestURI, response);
 
             writeResponse(exchange, response.getStatusCode(), data);
 
@@ -222,80 +275,38 @@ public class RestServer implements Closeable {
             );
         }
 
-        private String unwrapData(ServerEndpoint sep, String requestURI, UniNode responseBody) {
-            if (responseBody == null)
-                return "";
-            if (!sep.allowMemberAccess() || !sep.isMemberAccess(requestURI))
-                return responseBody.toString();
+        private String unwrapData(ServerEndpoint sep, String requestURI, Response response) {
+            return response.getBody()
+                    .map(responseBody -> {
+                        if (responseBody == null)
+                            return "";
+                        if (!sep.allowMemberAccess() || !sep.isMemberAccess(requestURI))
+                            return responseBody.toString();
 
-            String fractalName = requestURI.substring(requestURI.lastIndexOf("/") + 1);
+                        String fractalName = requestURI.substring(requestURI.lastIndexOf("/") + 1);
 
-            if (fractalName.matches("\\d+")) {
-                // numeric fractal
-                final int fractalNum = Integer.parseInt(fractalName);
+                        if (fractalName.matches("\\d+")) {
+                            // numeric fractal
+                            final int fractalNum = Integer.parseInt(fractalName);
 
-                if (!responseBody.has(fractalNum))
-                    fractalName = null;
+                            if (!responseBody.has(fractalNum))
+                                fractalName = null;
 
-                if (fractalName != null)
-                    return responseBody.get(fractalNum).toString();
-            } else {
-                // string fractal
-                if (!responseBody.has(fractalName))
-                    fractalName = null;
+                            if (fractalName != null)
+                                return responseBody.get(fractalNum).toString();
+                        } else {
+                            // string fractal
+                            if (!responseBody.has(fractalName))
+                                fractalName = null;
 
-                if (fractalName != null)
-                    return responseBody.get(fractalName).toString();
-            }
+                            if (fractalName != null)
+                                return responseBody.get(fractalName).toString();
+                        }
 
-            return responseBody.toString();
-        }
-
-        private void writeResponse(HttpExchange exchange, int statusCode) throws IOException {
-            writeResponse(exchange, statusCode, "");
-        }
-
-        private void writeResponse(HttpExchange exchange, int statusCode, String data) throws IOException {
-            exchange.sendResponseHeaders(statusCode, data.length());
-            final OutputStream osr = exchange.getResponseBody();
-            osr.write(data.getBytes());
-            osr.flush();
-        }
-
-        private UniObjectNode generateErrorNode(RestEndpointException reex) {
-            final UniObjectNode rsp = seriLib.createUniObjectNode();
-
-            rsp.put("code", ValueType.INTEGER, reex.getStatusCode());
-            rsp.put("description", ValueType.STRING, HTTPStatusCodes.toString(reex.getStatusCode()));
-            rsp.put("message", ValueType.STRING, reex.getSimpleMessage());
-
-            final Throwable cause = reex.getCause();
-            if (cause != null)
-                rsp.put("cause", ValueType.STRING, cause.toString());
-
-            return rsp;
-        }
-
-        private UniNode consumeBody(HttpExchange exchange) {
-            try (
-                    InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
-                    BufferedReader br = new BufferedReader(isr)
-            ) {
-                String data = br.lines().collect(Collectors.joining());
-
-                if (data.isEmpty())
-                    return seriLib.createUniObjectNode();
-                else return seriLib.createUniNode(data);
-            } catch (Throwable t) {
-                logger.at(Level.SEVERE).log("Could not deserialize response");
-            }
-
-            return null;
-        }
-
-        private boolean supportedMimeType(List<String> targetMimes) {
-            return targetMimes.isEmpty() || targetMimes.stream()
-                    .anyMatch(type -> type.contains(mimeType) || type.contains("*/*"));
+                        return responseBody.toString();
+                    })
+                    .or(() -> response.getFile().map(FileHandle::getContent).get())
+                    .orElse("");
         }
     }
 }
