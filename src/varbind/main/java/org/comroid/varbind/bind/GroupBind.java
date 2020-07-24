@@ -178,7 +178,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     }
 
     public <R extends T> GroupBind<R, D> rootGroup(String subGroupName) {
-        return subGroup(subGroupName, Polyfill.<Class<T>>uncheckedCast(StackTraceUtils.callerClass(0)));
+        return subGroup(subGroupName, Polyfill.<Class<R>>uncheckedCast(StackTraceUtils.callerClass(0)));
     }
 
     public <R extends T> GroupBind<R, D> subGroup(String subGroupName) {
