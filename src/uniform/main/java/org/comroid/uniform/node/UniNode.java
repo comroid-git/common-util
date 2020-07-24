@@ -336,6 +336,10 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return null;
     }
 
+    public final String getMimeType() {
+        return serializationAdapter.getMimeType();
+    }
+
     public enum Type {
         OBJECT,
         ARRAY,
