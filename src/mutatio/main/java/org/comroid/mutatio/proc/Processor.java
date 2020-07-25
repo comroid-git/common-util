@@ -82,25 +82,25 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         }, Function.identity());
     }
 
-    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<R>> mapper) {
+    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper) {
         return flatMap(mapper, null);
     }
 
-    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<R>> mapper, Function<R, T> backwardsConverter) {
+    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper, Function<R, T> backwardsConverter) {
         return new Support.ReferenceFlatMapped<>(this, mapper, backwardsConverter);
     }
 
-    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<R>> mapper) {
+    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper) {
         return flatMapOptional(mapper, null);
     }
 
-    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<R>> mapper, Function<R, T> backwardsConverter) {
+    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper, Function<R, T> backwardsConverter) {
         return flatMap(mapper
                 .andThen(Optional::get)
                 .andThen(Reference::constant), backwardsConverter);
     }
 
-    default Processor<T> or(final Supplier<T> other) {
+    default Processor<T> or(final Supplier<? extends T> other) {
         return new Support.Or<>(this, other);
     }
 
@@ -217,11 +217,11 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         }
 
         public static final class ReferenceFlatMapped<I, O> extends Base<I, O> {
-            private final Function<? super I, ? extends Reference<O>> remapper;
+            private final Function<? super I, ? extends Reference<? extends O>> remapper;
 
             public ReferenceFlatMapped(
                     Reference<I> base,
-                    Function<? super I, ? extends Reference<O>> remapper,
+                    Function<? super I, ? extends Reference<? extends O>> remapper,
                     Function<O, I> backwardsConverter
             ) {
                 super(base, backwardsConverter);
@@ -240,9 +240,9 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         }
 
         public static final class Or<T> extends Base<T, T> {
-            private final Supplier<T> other;
+            private final Supplier<? extends T> other;
 
-            public Or(Reference<T> base, Supplier<T> other) {
+            public Or(Reference<T> base, Supplier<? extends T> other) {
                 super(base, Function.identity());
 
                 this.other = other;
