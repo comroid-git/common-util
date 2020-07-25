@@ -137,6 +137,27 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
                         .orElseThrow(() -> new NoSuchElementException("No Constructor in " + targetBind))));
     }
 
+    @Contract(value = "_,_,_ -> this", mutates = "this")
+    public <R extends DataContainer<? extends DPND>, ID> BindBuilder<UniObjectNode, DPND, R, FINAL> andProvide(
+            VarBind<?, ?, ?, ID> idBind,
+            BiFunction<ID, DPND, R> resolver,
+            GroupBind<R, DPND> targetBind
+    ) {
+        return uncheckedCast(
+                andResolve((obj, dpnd) -> {
+                    if (!(obj instanceof UniObjectNode))
+                        throw new IllegalStateException();
+                    final ID id = idBind.getFrom((UniObjectNode) obj);
+                    final R firstResult = resolver.apply(id, dpnd);
+
+                    if (firstResult == null)
+                        return targetBind.getConstructor()
+                                .map(constr -> constr.autoInvoke(obj, dpnd, id))
+                                .orElseThrow(() -> new NoSuchElementException("Could not instantiate " + targetBind));
+                    return firstResult;
+                }));
+    }
+
     @Contract(value = "-> this", mutates = "this")
     public BindBuilder<EXTR, DPND, REMAP, REMAP> onceEach() {
         this.collectionProvider = null;
