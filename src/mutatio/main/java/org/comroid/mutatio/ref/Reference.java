@@ -91,6 +91,10 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return Objects.requireNonNull(get(), message);
     }
 
+    default @NotNull T requireNonNull(Supplier<String> messageSupplier) throws NullPointerException {
+        return Objects.requireNonNull(get(), messageSupplier);
+    }
+
     default @NotNull T orElse(T other) {
         if (isNull())
             return other;
