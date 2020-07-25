@@ -2,23 +2,22 @@ package org.comroid.varbind.bind;
 
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
+import org.comroid.common.ref.Named;
 import org.comroid.mutatio.span.Span;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.util.StackTraceUtils;
 import org.comroid.varbind.container.DataContainer;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class GroupBind<T extends DataContainer<? extends D>, D> {
-    private static final BiFunction<UniObjectNode, String, UniObjectNode> objectNodeExtractor = (node, sub) -> node.get(sub)
-            .asObjectNode();
+public final class GroupBind<T extends DataContainer<? extends D>, D> implements Iterable<GroupBind<? extends T, D>>, Named {
     final List<? extends VarBind<?, D, ?, ?>> children = new ArrayList<>();
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final String groupName;
@@ -34,6 +33,7 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
         return Optional.ofNullable(constructor);
     }
 
+    @Override
     public String getName() {
         return groupName;
     }
@@ -206,5 +206,11 @@ public final class GroupBind<T extends DataContainer<? extends D>, D> {
     @Internal
     public void addChild(VarBind<?, ? super D, ?, ?> child) {
         children.add(Polyfill.uncheckedCast(child));
+    }
+
+    @NotNull
+    @Override
+    public Iterator<GroupBind<? extends T, D>> iterator() {
+        return subgroups.iterator();
     }
 }
