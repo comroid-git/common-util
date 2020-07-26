@@ -131,6 +131,14 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return remapper.apply(get());
     }
 
+    default <R> @Nullable R into(Class<R> type) {
+        final T it = get();
+
+        if (type.isInstance(it))
+            return type.cast(it);
+        return null;
+    }
+
     default boolean contentEquals(T other) {
         if (other == null)
             return isNull();
@@ -207,6 +215,22 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
 
     default Reference<T> rebind(Supplier<T> behind) {
         return new Support.Rebound<>(this::set, behind);
+    }
+
+    default Processor<T> filter(Predicate<? super T> predicate) {
+        return new Processor.Support.Filtered<>(this, predicate);
+    }
+
+    default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
+        return new Processor.Support.Remapped<>(this, mapper, null);
+    }
+
+    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper) {
+        return new Processor.Support.ReferenceFlatMapped<>(this, mapper, null);
+    }
+
+    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper) {
+        return flatMap(mapper.andThen(opt -> opt.map(Reference::constant).orElseGet(Reference::empty)));
     }
 
     @Deprecated

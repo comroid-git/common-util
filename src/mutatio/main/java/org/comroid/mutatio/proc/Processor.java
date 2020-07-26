@@ -63,10 +63,12 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         get();
     }
 
+    @Override
     default Processor<T> filter(Predicate<? super T> predicate) {
         return new Support.Filtered<>(this, predicate);
     }
 
+    @Override
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
         return map(mapper, null);
     }
@@ -82,6 +84,7 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         }, Function.identity());
     }
 
+    @Override
     default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper) {
         return flatMap(mapper, null);
     }
@@ -90,6 +93,7 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return new Support.ReferenceFlatMapped<>(this, mapper, backwardsConverter);
     }
 
+    @Override
     default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper) {
         return flatMapOptional(mapper, null);
     }
@@ -111,6 +115,11 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
                 .map(Polyfill::<Reference<T>>uncheckedCast)
                 .map(ref -> ref.rebind(this))
                 .orElseGet(() -> into(Reference::create));
+    }
+
+    @FunctionalInterface
+    interface Advancer<I, O> {
+        Processor<O> advance(Processor<I> ref);
     }
 
     @Internal

@@ -5,6 +5,7 @@ import org.comroid.api.Polyfill;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.uniform.cache.BasicCache;
 import org.comroid.uniform.cache.Cache;
+import org.comroid.uniform.cache.CacheReference;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
@@ -19,7 +20,7 @@ public abstract class DataContainerCache<K, V extends DataContainer<D>, D> exten
     protected final VarBind<?, D, ?, K> idBind;
     protected final D dependencyObject;
 
-    public DataContainerCache(int largeThreshold, Map<K, Reference<K, V>> map, VarBind<?, ? super D, ?, K> idBind, D dependencyObject) {
+    public DataContainerCache(int largeThreshold, Map<K, CacheReference<K, V>> map, VarBind<?, ? super D, ?, K> idBind, D dependencyObject) {
         super(largeThreshold, map);
         this.idBind = Polyfill.uncheckedCast(idBind);
         this.dependencyObject = dependencyObject;
