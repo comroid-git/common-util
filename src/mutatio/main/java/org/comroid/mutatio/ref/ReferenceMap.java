@@ -18,6 +18,16 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface ReferenceMap<K, V, REF extends Reference<V>> extends Pipeable<V> {
+    static <K, V, REF extends Reference<V>> ReferenceMap<K, V, REF> create(
+            Function<? extends Reference<V>, REF> refUnwrapper
+    ) {
+        return new ReferenceMap.Support.Basic<>(refUnwrapper);
+    }
+
+    default boolean put(K key, V value) {
+        return getReference(key, value != null).set(value);
+    }
+
     default REF getReference(K key) {
         return getReference(key, false);
     }
@@ -75,8 +85,6 @@ public interface ReferenceMap<K, V, REF extends Reference<V>> extends Pipeable<V
                 .mapFirst(Map.Entry::getKey);
     }
 
-    default <R> Processor<R> accessor(String key, Processor.Advancer<? super V, ? extends R> advancer);
-
     /**
      * @return The new value if it could be set, else the previous value.
      */
@@ -106,4 +114,60 @@ public interface ReferenceMap<K, V, REF extends Reference<V>> extends Pipeable<V
     }
 
     void forEach(BiConsumer<K, V> action);
+
+    final class Support {
+        public static abstract class Abstract<K, V, REF extends Reference<V>> implements ReferenceMap<K, V, REF> {
+            private final Function<? extends Reference<V>, REF> refUnwrapper;
+
+            protected Abstract(Function<? extends Reference<V>, REF> refUnwrapper) {
+                this.refUnwrapper = refUnwrapper;
+            }
+
+            @Override
+            public REF getReference(K key, boolean createIfAbsent) {
+                return null;
+            }
+
+            @Override
+            public ReferenceIndex<Map.Entry<K, V>> entryIndex() {
+                return null;
+            }
+
+            @Override
+            public int size() {
+                return 0;
+            }
+
+            @Override
+            public boolean containsKey(K key) {
+                return false;
+            }
+
+            @Override
+            public boolean containsValue(V value) {
+                return false;
+            }
+
+            @Override
+            public Stream<REF> stream(Predicate<K> filter) {
+                return null;
+            }
+
+            @Override
+            public Pipe<?, REF> pipe(Predicate<K> filter) {
+                return null;
+            }
+
+            @Override
+            public void forEach(BiConsumer<K, V> action) {
+
+            }
+        }
+
+        public static class Basic<K, V, REF extends Reference<V>> extends Abstract<K, V, REF> {
+            public <V, REF extends Reference<V>> Basic(Function<? extends Reference<V>, REF> refUnwrapper) {
+                super(refUnwrapper);
+            }
+        }
+    }
 }

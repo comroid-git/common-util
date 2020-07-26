@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class BasicCache<K, V> implements Cache<K, V> {
+public class BasicCache<K, V> extends AbstractCache<K, V> {
     public static final int DEFAULT_LARGE_THRESHOLD = 250;
     private final @Nullable Provider.Now<V> emptyValueProvider;
     private final Map<K, CacheReference<K, V>> cache;
@@ -41,6 +41,7 @@ public class BasicCache<K, V> implements Cache<K, V> {
     protected BasicCache(int largeThreshold,
                          Map<K, CacheReference<K, V>> map,
                          @Nullable Provider.Now<V> emptyValueProvider) {
+        super(cache);
         this.largeThreshold = largeThreshold;
         this.cache = map;
         this.emptyValueProvider = emptyValueProvider;

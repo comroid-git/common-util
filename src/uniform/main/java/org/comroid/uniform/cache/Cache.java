@@ -2,14 +2,17 @@ package org.comroid.uniform.cache;
 
 import org.comroid.api.Polyfill;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.ReferenceMap;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
-public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap<K, V, CacheReference<K, V>> {
+public interface Cache<K, V> extends Iterable<CacheReference<K, V>>, ReferenceMap<K, V, CacheReference<K, V>> {
     boolean large();
+
+    <R> Processor<R> accessor(K key, String name, Processor.Advancer<V, ? extends R> advancer);
 
     @Override
     default Pipe<?, V> pipe() {

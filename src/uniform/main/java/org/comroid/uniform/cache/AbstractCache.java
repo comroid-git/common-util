@@ -1,27 +1,38 @@
 package org.comroid.uniform.cache;
 
+import org.comroid.api.Polyfill;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
+import org.comroid.mutatio.ref.ReferenceMap;
+import org.comroid.trie.TrieMap;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public abstract class AbstractCache<K, V> implements Cache<K, V> {
-    private final Reference<Boolean> isLarge;
+    private final ReferenceMap<K, V, CacheReference<K, V>> cache;
 
-    @Override
-    public boolean large() {
-        return isLarge.requireNonNull();
+    protected AbstractCache() {
+        this(ReferenceMap.create());
     }
+
+    protected AbstractCache(ReferenceMap<K, V, CacheReference<K, V>> cache) {
+        this.cache = cache;
+    }
+
+    protected abstract CacheReference<K, V> advanceIntoCacheRef(Reference<V> reference);
 
     @NotNull
     @Override
-    public Iterator<Map.Entry<K, V>> iterator() {
-        return null;
+    public Iterator<CacheReference<K, V>> iterator() {
+        return a;
     }
 
     @Override
@@ -36,7 +47,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 
     @Override
     public int size() {
-        return 0;
+        return cache.size();
     }
 
     @Override
@@ -51,11 +62,11 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 
     @Override
     public Stream<CacheReference<K, V>> stream(Predicate<K> filter) {
-        return null;
+        return cache.stream(filter);
     }
 
     @Override
     public Pipe<?, CacheReference<K, V>> pipe(Predicate<K> filter) {
-        return null;
+        return cache.stream(filter);
     }
 }
