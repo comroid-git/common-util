@@ -31,17 +31,17 @@ public final class NGinXFSNode extends DataContainerBase<Void> {
         @RootBind
         GroupBind<NGinXFSNode, Void> ROOT
                 = new GroupBind<>(FastJSONLib.fastJsonLib, "fsnode", NGinXFSNode.class);
-        VarBind<String, Void, String, String> Name = ROOT.createBind("name")
+        VarBind<Object, String, String, String> Name = ROOT.createBind("name")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
                 .onceEach()
                 .build();
-        VarBind<String, Void, String, String> Type = ROOT.createBind("type")
+        VarBind<Object, String, String, String> Type = ROOT.createBind("type")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
                 .onceEach()
                 .build();
-        VarBind<String, Void, String, String> MTime = ROOT.createBind("mtime")
+        VarBind<Object, String, String, String> MTime = ROOT.createBind("mtime")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
                 .onceEach()

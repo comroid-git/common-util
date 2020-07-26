@@ -36,91 +36,91 @@ public final class Message extends DataContainerBase<DiscordAPI> {
     public interface Binds {
         @RootBind
         GroupBind<Message, DiscordAPI> GROUP = new GroupBind<>(fastJsonLib, "message", Message.class);
-        VarBind<String, DiscordAPI, URL, ArrayList<URL>> ATTACHMENTS
+        VarBind<Object, String, URL, ArrayList<URL>> ATTACHMENTS
                 = GROUP.createBind("attachments")
                 .extractAs(ValueType.STRING)
                 .andRemap(Polyfill::url)
                 .intoCollection(ArrayList::new)
                 .build();
-        VarBind<UniObjectNode, DiscordAPI, Embed, ArrayList<Embed>> EMBEDS
+        VarBind<Object, UniObjectNode, Embed, ArrayList<Embed>> EMBEDS
                 = GROUP.createBind("embeds")
                 .extractAsObject()
                 .andConstruct(Embed.Binds.GROUP)
                 .intoCollection(ArrayList::new)
                 .build();
-        VarBind<String, DiscordAPI, String, String> EDITED_TIMESTAMP
+        VarBind<Object, String, String, String> EDITED_TIMESTAMP
                 = GROUP.createBind("edited_timestamp")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
                 .onceEach()
                 .build();
-        VarBind<UniObjectNode, DiscordAPI, User, User> AUTHOR
+        VarBind<Object, UniObjectNode, User, User> AUTHOR
                 = GROUP.createBind("author")
                 .extractAsObject()
                 .andConstruct(User.Binds.GROUP)
                 .onceEach()
                 .build();
-        VarBind<String, DiscordAPI, String, String> CONTENT
+        VarBind<Object, String, String, String> CONTENT
                 = GROUP.createBind("content")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
                 .onceEach()
                 .build();
-        VarBind<Long, DiscordAPI, Channel, Channel> CHANNEL
+        VarBind<Object, Long, Channel, Channel> CHANNEL
                 = GROUP.createBind("channel_id")
                 .extractAs(ValueType.LONG)
                 .andResolve((id, api) -> api.getChannelById(id))
                 .onceEach()
                 .build();
-        VarBind<Long, DiscordAPI, Long, Long> ID
+        VarBind<Object, Long, Long, Long> ID
                 = GROUP.createBind("id")
                 .extractAs(ValueType.LONG)
                 .asIdentities()
                 .onceEach()
                 .build();
-        VarBind<UniObjectNode, DiscordAPI, Role, ArrayList<Role>> MENTIONED_ROLES
+        VarBind<Object, UniObjectNode, Role, ArrayList<Role>> MENTIONED_ROLES
                 = GROUP.createBind("mentioned_roles")
                 .extractAsObject()
                 .andConstruct(Role.Binds.GROUP)
                 .intoCollection(ArrayList::new)
                 .build();
-        VarBind<UniObjectNode, DiscordAPI, User, ArrayList<User>> MENTIONED_USERS
+        VarBind<Object, UniObjectNode, User, ArrayList<User>> MENTIONED_USERS
                 = GROUP.createBind("mentions")
                 .extractAsObject()
                 .andConstruct(User.Binds.GROUP)
                 .intoCollection(ArrayList::new)
                 .build();
-        VarBind<Boolean, DiscordAPI, Boolean, Boolean> MENTIONS_EVERYONE
+        VarBind<Object, Boolean, Boolean, Boolean> MENTIONS_EVERYONE
                 = GROUP.createBind("mention_everyone")
                 .extractAs(ValueType.BOOLEAN)
                 .asIdentities()
                 .onceEach()
                 .build();
-        VarBind<Boolean, DiscordAPI, Boolean, Boolean> PINNED
+        VarBind<Object, Boolean, Boolean, Boolean> PINNED
                 = GROUP.createBind("pinned")
                 .extractAs(ValueType.BOOLEAN)
                 .asIdentities()
                 .onceEach()
                 .build();
-        VarBind<UniObjectNode, DiscordAPI, Reaction, ArrayList<Reaction>> REACTIONS
+        VarBind<Object, UniObjectNode, Reaction, ArrayList<Reaction>> REACTIONS
                 = GROUP.createBind("reactions")
                 .extractAsObject()
                 .andResolve((data, api) -> api.parseReaction(data))
                 .intoCollection(ArrayList::new)
                 .build();
-        VarBind<String, DiscordAPI, String, String> TIMESTAMP
+        VarBind<Object, String, String, String> TIMESTAMP
                 = GROUP.createBind("timestamp")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
                 .onceEach()
                 .build(); // todo Instant parsing
-        VarBind<Boolean, DiscordAPI, Boolean, Boolean> TTS
+        VarBind<Object, Boolean, Boolean, Boolean> TTS
                 = GROUP.createBind("tts")
                 .extractAs(ValueType.BOOLEAN)
                 .asIdentities()
                 .onceEach()
                 .build();
-        VarBind<Integer, DiscordAPI, Type, Type> TYPE
+        VarBind<Object, Integer, Type, Type> TYPE
                 = GROUP.createBind("type")
                 .extractAs(ValueType.INTEGER)
                 .andRemap(Type::new)

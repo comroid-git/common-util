@@ -8,13 +8,14 @@ import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;
+import org.comroid.varbind.container.DataContainer;
 
 public final class PartialBind {
     public interface BindFragment extends TypeFragment<BindFragment>, Specifiable<BindFragment> {
     }
 
     @Partial
-    public interface Base<EXTR, DPND, REMAP, FINAL> extends BindFragment {
+    public interface Base<MEMBEROF extends DataContainer<?>, EXTR, REMAP, FINAL> extends BindFragment {
         String getFieldName();
 
         boolean isRequired();
@@ -23,23 +24,23 @@ public final class PartialBind {
             return getFrom(null, node);
         }
 
-        default FINAL getFrom(DPND dependencyObject, UniObjectNode node) {
+        default FINAL getFrom(final MEMBEROF dependencyObject, UniObjectNode node) {
             return process(dependencyObject, as(Extractor.class)
                     .map(Polyfill::<Extractor<EXTR>>uncheckedCast)
                     .orElseThrow(AssertionError::new)
                     .extract(node));
         }
 
-        default Span<REMAP> remapAll(final DPND dependency, Span<EXTR> from) {
+        default Span<REMAP> remapAll(final MEMBEROF dependency, Span<EXTR> from) {
             return from.pipe()
                     .map(each -> as(Remapper.class)
-                            .map(Polyfill::<Remapper<EXTR, DPND, REMAP>>uncheckedCast)
+                            .map(Polyfill::<Remapper<Object, EXTR, REMAP>>uncheckedCast)
                             .orElseThrow(AssertionError::new)
-                            .remap(each, dependency))
+                            .remap(dependency, each))
                     .span();
         }
 
-        default FINAL process(final DPND dependency, Span<EXTR> from) {
+        default FINAL process(final MEMBEROF dependency, Span<EXTR> from) {
             return as(Finisher.class)
                     .map(Polyfill::<Finisher<REMAP, FINAL>>uncheckedCast)
                     .orElseThrow(AssertionError::new)
@@ -48,8 +49,8 @@ public final class PartialBind {
     }
 
     @Partial
-    public interface Grouped<DPND> extends BindFragment {
-        GroupBind<?, DPND> getGroup();
+    public interface Grouped<MEMBEROF extends DataContainer<? super MEMBEROF>> extends BindFragment {
+        GroupBind<MEMBEROF> getGroup();
     }
 
     @Partial
@@ -58,8 +59,8 @@ public final class PartialBind {
     }
 
     @Partial
-    public interface Remapper<EXTR, DPND, REMAP> extends BindFragment {
-        REMAP remap(EXTR from, DPND dependency);
+    public interface Remapper<MEMBEROF, EXTR, REMAP> extends BindFragment {
+        REMAP remap(MEMBEROF it, EXTR from);
     }
 
     @Partial
