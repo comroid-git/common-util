@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -40,14 +41,22 @@ public class TrieMapTest {
     // amount of calls made
     // multiplied by
     // 75 as the maximum average timeout
-    @Test(timeout = (TEST_SIZE / 50) * 150)
+    @Test
     public void testPerformance() {
-        System.out.printf("Starting TrieMap performance test at %d with %d ms timeout\n", nanoTime(), (TEST_SIZE / 50) * 75);
+        runPerformanceTest(trie);
+        runPerformanceTest(new ConcurrentHashMap<>(trie));
+    }
+
+    private void runPerformanceTest(Map<String, UUID> map) {
+        System.out.printf("Starting %s performance test at %d with %d ms timeout\n",
+                map.getClass().getSimpleName(),
+                nanoTime(),
+                (TEST_SIZE / 50) * 75);
 
         IntStream.range(0, TEST_SIZE / 50)
                 .sequential()
                 .mapToLong(x -> nanoTime())
-                .peek(x -> assertions())
+                .peek(x -> assertions(map))
                 .map(x -> nanoTime() - x)
                 .map(TimeUnit.NANOSECONDS::toMillis)
                 .mapToObj(x -> {
@@ -58,21 +67,21 @@ public class TrieMapTest {
                 .forEachOrdered(System.out::println);
     }
 
-    private void assertions() {
-        Assert.assertEquals(TEST_SIZE, trie.size());
+    private void assertions(Map<String, UUID> test) {
+        Assert.assertEquals(TEST_SIZE, test.size());
 
-        final int equal = trie.biPipe()
-                .filter((str, id) -> id.toString().equals(str))
-                .span()
-                .size();
-        Assert.assertEquals(trie.size(), equal);
+        final long equal = test.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().toString().equals(entry.getKey()))
+                .count();
+        Assert.assertEquals(test.size(), equal);
 
         ids.forEach(uuid -> {
             final String str = uuid.toString();
 
-            Assert.assertTrue(trie.containsKey(str));
+            Assert.assertTrue(test.containsKey(str));
 
-            final UUID value = trie.get(str);
+            final UUID value = test.get(str);
 
             Assert.assertEquals(uuid, value);
         });
