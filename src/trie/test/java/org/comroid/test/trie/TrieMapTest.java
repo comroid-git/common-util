@@ -35,7 +35,7 @@ public class TrieMapTest {
 
     @Test
     public void testBasic() {
-        assertions();
+        assertions(trie);
     }
 
     // amount of calls made
