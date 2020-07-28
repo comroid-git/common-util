@@ -67,6 +67,10 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return new Support.Filtered<>(this, predicate);
     }
 
+    default <R> Processor<R> map(Class<R> type) {
+        return filter(type::isInstance).map(type::cast);
+    }
+
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
         return map(mapper, null);
     }
