@@ -127,7 +127,7 @@ public class FixedSizeThreadPoolTest {
         }
     }
 
-    public class SomeTask extends UUIDContainer implements Runnable {
+    public class SomeTask extends UUIDContainer.Base implements Runnable {
         @Override
         public void run() {
             System.out.printf("Running Task %s", getUUID());

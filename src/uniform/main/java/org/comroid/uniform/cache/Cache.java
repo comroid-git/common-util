@@ -3,6 +3,7 @@ package org.comroid.uniform.cache;
 import org.comroid.api.Polyfill;
 import org.comroid.api.Provider;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.ReferenceMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,28 +52,21 @@ public interface Cache<K, V> extends Iterable<Map.Entry<K, V>>, ReferenceMap<K, 
         forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
     }
 
-    class Reference<K, V> extends org.comroid.mutatio.ref.Reference.Support.Base<V> {
+    class Reference<K, V> extends KeyedReference.Basic<K, V> {
         public final AtomicReference<V> reference = new AtomicReference<>(null);
         private final org.comroid.mutatio.ref.Reference<CompletableFuture<V>> firstValueFuture
                 = org.comroid.mutatio.ref.Reference.create();
         private final Object lock = Polyfill.selfawareLock();
-        private final K key;
-
-        public @NotNull K getKey() {
-            return key;
-        }
 
         public Reference(K key) {
-            super(true);
+            super(true, key, null);
 
-            this.key = key;
             this.firstValueFuture.update(new CompletableFuture<>());
         }
 
         public Reference(K key, V initValue) {
-            super(true);
+            super(true, key, initValue);
 
-            this.key = key;
             this.firstValueFuture.outdate();
         }
 

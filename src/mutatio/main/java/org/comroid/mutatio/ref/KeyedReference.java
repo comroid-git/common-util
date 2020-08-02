@@ -22,7 +22,7 @@ public interface KeyedReference<K, V> extends Reference<V>, Map.Entry<K, V> {
         return new Basic<>(mutable, key, initialValue);
     }
 
-    final class Basic<K, V> extends Reference.Support.Base<V> implements KeyedReference<K, V> {
+    class Basic<K, V> extends Reference.Support.Base<V> implements KeyedReference<K, V> {
         private final K key;
         private final Reference<V> valueHolder;
 
@@ -36,7 +36,7 @@ public interface KeyedReference<K, V> extends Reference<V>, Map.Entry<K, V> {
             return get();
         }
 
-        private Basic(boolean mutable, K key, @Nullable V initialValue) {
+        protected Basic(boolean mutable, K key, @Nullable V initialValue) {
             super(mutable);
 
             this.key = key;

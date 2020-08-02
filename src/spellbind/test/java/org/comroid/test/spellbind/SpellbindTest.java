@@ -115,7 +115,7 @@ public class SpellbindTest {
         };
     }
 
-    public static class ImplementingClass extends UUIDContainer implements MainInterface {
+    public static class ImplementingClass extends UUIDContainer.Base implements MainInterface {
         @Override
         public int getValue() {
             return 42;

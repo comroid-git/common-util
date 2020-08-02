@@ -21,7 +21,7 @@ public final class StagedBind {
         return new FragmentProviders.DependentTwoStage<>();
     }
 
-    public static final class OneStage<T> extends UUIDContainer implements PartialBind.Remapper<Object, T, T> {
+    public static final class OneStage<T> extends UUIDContainer.Base implements PartialBind.Remapper<Object, T, T> {
         private static final Invocable<? super OneStage<?>> constructor = Invocable.ofConstructor(OneStage.class);
 
         @Override
@@ -30,7 +30,7 @@ public final class StagedBind {
         }
     }
 
-    public static final class TwoStage<T, R> extends UUIDContainer implements PartialBind.Remapper<Object, T, R> {
+    public static final class TwoStage<T, R> extends UUIDContainer.Base implements PartialBind.Remapper<Object, T, R> {
         private static final Invocable<? super TwoStage<?, ?>> constructor = Invocable.ofConstructor(TwoStage.class);
         private final Function<T, R> remapper;
 
@@ -44,7 +44,7 @@ public final class StagedBind {
         }
     }
 
-    public static final class DependentTwoStage<T, D, R> extends UUIDContainer implements PartialBind.Remapper<D, T, R> {
+    public static final class DependentTwoStage<T, D, R> extends UUIDContainer.Base implements PartialBind.Remapper<D, T, R> {
         private static final Invocable<? super DependentTwoStage<?, ?, ?>> constructor = Invocable.ofConstructor(DependentTwoStage.class);
         private final BiFunction<T, D, R> resolver;
 

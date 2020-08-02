@@ -19,7 +19,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 public abstract class AbstractEventManager<D, I extends EventPayload, T extends EventType<? super D, ? super I, ? extends P>, P extends EventPayload>
-        extends UUIDContainer
+        extends UUIDContainer.Base
         implements EventManager<D, I, T, P> {
     protected final Executor executor;
     protected final TrieMap<String, PipeAccessor<I, ? extends P>> accessors = TrieMap.ofString();

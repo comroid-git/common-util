@@ -4,10 +4,7 @@ import org.comroid.common.os.OSBasedFileMover;
 import org.comroid.common.ref.Named;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +47,14 @@ public final class FileHandle extends File implements Named {
 
     public String getContent() {
         return String.join("", getLines());
+    }
+
+    public void setContent(String content) {
+        try (FileWriter writer = new FileWriter(this, false)) {
+            writer.write(content);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public FileHandle(File file) {

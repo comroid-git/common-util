@@ -1,4 +1,4 @@
-package org.comroid.api;
+package org.comroid.common;
 
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.jetbrains.annotations.Nullable;
@@ -9,14 +9,19 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface Disposable extends AutoCloseable {
-    Collection<? extends AutoCloseable> getChildren();
+public interface Disposable extends AutoCloseable, PropertyHolder {
+    default Set<? super AutoCloseable> getCloseables() {
+        //noinspection unchecked
+        return ((Set<? super AutoCloseable>) getPropertyCache().computeIfAbsent("disposable-children", HashSet::new));
+    }
 
-    void addChildren(AutoCloseable child);
+    default void addChildren(AutoCloseable child) {
+        getCloseables().add(child);
+    }
 
     @OverrideOnly
     @SuppressWarnings("RedundantThrows")
-    default void closeContainer() throws Exception {
+    default void closeSelf() throws Exception {
     }
 
     @Override
@@ -26,8 +31,8 @@ public interface Disposable extends AutoCloseable {
 
     default List<? extends Throwable> dispose() {
         return Collections.unmodifiableList(Stream.concat(
-                Stream.<AutoCloseable>of(this::closeContainer),
-                getChildren().stream()
+                getCloseables().stream().map(AutoCloseable.class::cast),
+                Stream.of(this::closeSelf)
         )
                 .map(closeable -> {
                     try {
@@ -50,38 +55,6 @@ public interface Disposable extends AutoCloseable {
         }
 
         throw new MultipleExceptions(throwables);
-    }
-
-    interface Container extends Disposable {
-        Disposable getUnderlyingDisposable();
-
-        @Override
-        default Collection<? extends AutoCloseable> getChildren() {
-            return getUnderlyingDisposable().getChildren();
-        }
-
-        @Override
-        default void addChildren(AutoCloseable child) {
-            getUnderlyingDisposable().addChildren(child);
-        }
-    }
-
-    class Basic implements Disposable {
-        private final List<AutoCloseable> children = new ArrayList<>();
-
-        @Override
-        public List<AutoCloseable> getChildren() {
-            return children;
-        }
-
-        @Override
-        public void addChildren(AutoCloseable child) {
-            if (child == this) {
-                throw new IllegalArgumentException("Disposable cannot contain itself!");
-            }
-
-            children.add(child);
-        }
     }
 
     final class MultipleExceptions extends RuntimeException {

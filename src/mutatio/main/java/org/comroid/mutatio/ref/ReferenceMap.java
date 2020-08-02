@@ -35,7 +35,7 @@ public interface ReferenceMap<K, V, REF extends KeyedReference<K, V>> extends Pi
     @Contract("null, _ -> fail; !null, false -> _; !null, true -> !null")
     @Nullable REF getReference(K key, boolean createIfAbsent);
 
-    ReferenceIndex<Map.Entry<K, V>> entryIndex();
+    ReferenceIndex<? extends Map.Entry<K, V>> entryIndex();
 
     default V get(K key) {
         return getReference(key).get();

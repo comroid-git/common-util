@@ -1,12 +1,11 @@
 package org.comroid.varbind;
 
 import com.google.common.flogger.FluentLogger;
-import org.comroid.api.Disposable;
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
+import org.comroid.common.Disposable;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
-import org.comroid.trie.TrieMap;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -17,17 +16,18 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class FileCache<K, V extends DataContainer<V>, D>
         extends DataContainerCache<K, V, D>
-        implements FileProcessor, Disposable.Container {
+        implements FileProcessor, Disposable {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private final Disposable disposable = new Disposable.Basic();
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final FileHandle file;
+    private final UUID uuid = UUID.randomUUID();
 
     @Override
     public FileHandle getFile() {
@@ -35,8 +35,8 @@ public class FileCache<K, V extends DataContainer<V>, D>
     }
 
     @Override
-    public Disposable getUnderlyingDisposable() {
-        return disposable;
+    public UUID getUUID() {
+        return uuid;
     }
 
     public FileCache(
@@ -58,9 +58,7 @@ public class FileCache<K, V extends DataContainer<V>, D>
             boolean keyCaching,
             D dependencyObject
     ) {
-        super(largeThreshold, converter == null
-                ? new ConcurrentHashMap<>()
-                : new TrieMap.Basic<>(converter, keyCaching), idBind, dependencyObject);
+        super(largeThreshold, new ConcurrentHashMap<>(), idBind);
 
         this.seriLib = seriLib;
         this.file = file;
