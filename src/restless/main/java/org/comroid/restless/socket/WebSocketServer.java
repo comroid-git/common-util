@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger;
 import org.comroid.dreadpool.loop.Infinite;
 import org.comroid.dreadpool.loop.manager.LoopManager;
 import org.comroid.listnr.AbstractEventManager;
+import org.comroid.listnr.EventType;
 import org.comroid.listnr.ListnrCore;
 import org.comroid.mutatio.span.Span;
 import org.comroid.restless.REST;
@@ -18,6 +19,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -33,6 +36,11 @@ public final class WebSocketServer extends AbstractEventManager<WebSocketData, W
     private final BiFunction<WebSocketServer, Socket, ? extends SocketHandler> handlerCreator;
     private final ServerSocket socket;
     private final Span<SocketHandler> handlers = new Span<>();
+
+    @Override
+    public Collection<? extends EventType<? extends WebSocketData, ? extends WebSocketPayload.Data>> getEventTypes() {
+        return Collections.singleton(WebSocketEvent.DATA);
+    }
 
     public WebSocketServer(
             SerializationAdapter<?, ?, ?> serializationAdapter,
@@ -127,6 +135,11 @@ public final class WebSocketServer extends AbstractEventManager<WebSocketData, W
 
         public CompletableFuture<List> getInitialHeaders() {
             return initialHeaders;
+        }
+
+        @Override
+        public Collection<? extends EventType<? extends WebSocketData, ? extends WebSocketPayload.Data>> getEventTypes() {
+            return Collections.singleton(WebSocketEvent.DATA);
         }
 
         public SocketHandler(WebSocketServer socketServer, Socket socket) {
