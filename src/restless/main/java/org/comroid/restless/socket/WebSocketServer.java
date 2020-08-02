@@ -3,8 +3,9 @@ package org.comroid.restless.socket;
 import com.google.common.flogger.FluentLogger;
 import org.comroid.dreadpool.loop.Infinite;
 import org.comroid.dreadpool.loop.manager.LoopManager;
-import org.comroid.listnr.impl.BaseEventManager;
-import org.comroid.listnr.impl.UnderlyingEventManager;
+import org.comroid.listnr.AbstractEventManager;
+import org.comroid.listnr.EventType;
+import org.comroid.listnr.ListnrCore;
 import org.comroid.mutatio.span.Span;
 import org.comroid.restless.REST;
 import org.comroid.restless.REST.Header.List;
@@ -18,6 +19,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -26,12 +29,18 @@ import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public final class WebSocketServer extends BaseEventManager<Object, WebSocketData, WebSocketEvent<? extends WebSocketPayload.Data>, WebSocketPayload.Data> {
+public final class WebSocketServer extends AbstractEventManager<WebSocketData, WebSocketEvent<WebSocketPayload.Data>, WebSocketPayload.Data> {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final SerializationAdapter<?, ?, ?> seriLib;
+    private final Executor executor;
     private final BiFunction<WebSocketServer, Socket, ? extends SocketHandler> handlerCreator;
     private final ServerSocket socket;
     private final Span<SocketHandler> handlers = new Span<>();
+
+    @Override
+    public Collection<? extends EventType<? extends WebSocketData, ? extends WebSocketPayload.Data>> getEventTypes() {
+        return Collections.singleton(WebSocketEvent.DATA);
+    }
 
     public WebSocketServer(
             SerializationAdapter<?, ?, ?> serializationAdapter,
@@ -49,9 +58,10 @@ public final class WebSocketServer extends BaseEventManager<Object, WebSocketDat
             InetAddress adress,
             int port
     ) throws IOException {
-        super(executor);
+        super(new ListnrCore(executor));
 
         this.seriLib = serializationAdapter;
+        this.executor = executor;
         this.handlerCreator = socketHandlerCreator;
         this.socket = new ServerSocket(port, 0, adress);
 
@@ -64,7 +74,7 @@ public final class WebSocketServer extends BaseEventManager<Object, WebSocketDat
 
     @SuppressWarnings("FieldCanBeLocal")
     public static class SocketHandler
-            extends UnderlyingEventManager<Object, WebSocketData, WebSocketEvent<? extends WebSocketPayload.Data>, WebSocketPayload.Data> {
+            extends AbstractEventManager<WebSocketData, WebSocketEvent<WebSocketPayload.Data>, WebSocketPayload.Data> {
         private final WebSocketServer socketServer;
         private final Socket socket;
         private final LoopManager loopManager;
@@ -81,7 +91,7 @@ public final class WebSocketServer extends BaseEventManager<Object, WebSocketDat
                     final UniNode node = socketServer.seriLib.createUniNode(message);
                     final WebSocketData data = WebSocketData.ofNode(null, node);
 
-                    publish(data);
+                    publish(WebSocketEvent.DATA, data);
                 } catch (IOException e) {
                     logger.at(Level.SEVERE).withCause(e).log();
                     loopManager.close();
@@ -116,14 +126,20 @@ public final class WebSocketServer extends BaseEventManager<Object, WebSocketDat
                 }
             }
         };
-        private final CompletableFuture<REST.Header.List> initialHeaders;
 
         public Socket getSocket() {
             return socket;
         }
 
+        private final CompletableFuture<REST.Header.List> initialHeaders;
+
         public CompletableFuture<List> getInitialHeaders() {
             return initialHeaders;
+        }
+
+        @Override
+        public Collection<? extends EventType<? extends WebSocketData, ? extends WebSocketPayload.Data>> getEventTypes() {
+            return Collections.singleton(WebSocketEvent.DATA);
         }
 
         public SocketHandler(WebSocketServer socketServer, Socket socket) {
