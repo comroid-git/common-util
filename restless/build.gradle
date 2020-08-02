@@ -56,12 +56,12 @@ dependencies {
     java11compatImplementation project(':common-util:varbind')
 
     // websocket dependencies
-    compileOnly project(':common-util:listnr')
-    java8compatCompileOnly project(':common-util:listnr')
-    java11compatCompileOnly project(':common-util:listnr')
-    compileOnly project(':common-util:dreadpool')
-    java8compatCompileOnly project(':common-util:dreadpool')
-    java11compatCompileOnly project(':common-util:dreadpool')
+    api project(':common-util:listnr')
+    java8compatImplementation project(':common-util:listnr')
+    java11compatImplementation project(':common-util:listnr')
+    api project(':common-util:dreadpool')
+    java8compatImplementation project(':common-util:dreadpool')
+    java11compatImplementation project(':common-util:dreadpool')
 
     // http adapter dependencies
     java8compatCompileOnly 'com.squareup.okhttp3:okhttp:4.7.2'
