@@ -8,22 +8,13 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
 public interface EndpointHandler {
     default boolean supports(REST.Method method) {
-        switch (method) {
-            case GET:
-                return isReimplemented("executeGET");
-            case PUT:
-                return isReimplemented("executePUT");
-            case POST:
-                return isReimplemented("executePOST");
-            case PATCH:
-                return isReimplemented("executePATCH");
-            case DELETE:
-                return isReimplemented("executeDELETE");
-            case HEAD:
-                return isReimplemented("executeHEAD");
+        try {
+            return !getClass().getMethod("execute" + method.name(), Headers.class, String[].class, UniNode.class)
+                    .getDeclaringClass()
+                    .equals(EndpointHandler.class);
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
         }
-
-        throw new AssertionError("No such method: " + method);
     }
 
     default REST.Response executeMethod(
@@ -32,6 +23,9 @@ public interface EndpointHandler {
             String[] urlParams,
             UniNode body
     ) throws RestEndpointException {
+        if (!supports(method))
+            throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: " + method.name());
+
         switch (method) {
             case GET:
                 return executeGET(headers, urlParams, body);
@@ -96,16 +90,5 @@ public interface EndpointHandler {
             UniNode body
     ) throws RestEndpointException {
         throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: HEAD");
-    }
-
-    @Internal
-    default boolean isReimplemented(String methodName) {
-        try {
-            return !getClass().getMethod(methodName, Headers.class, String[].class, UniNode.class)
-                    .getDeclaringClass()
-                    .equals(EndpointHandler.class);
-        } catch (NoSuchMethodException e) {
-            throw new AssertionError(e);
-        }
     }
 }
