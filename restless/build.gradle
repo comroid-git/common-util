@@ -64,7 +64,7 @@ dependencies {
     java11compatCompileOnly project(':dreadpool')
 
     // http adapter dependencies
-    java8compatCompileOnly 'com.squareup.okhttp3:okhttp:4.7.2'
+    java8compatCompileOnly 'com.squareup.okhttp3:okhttp:4.8.1'
 
     implementation 'com.google.flogger:flogger:0.5.1'
     java8compatImplementation 'com.google.flogger:flogger:0.5.1'
@@ -74,7 +74,7 @@ dependencies {
     testImplementation sourceSets.java11compat.output.classesDirs
     testRuntimeOnly project(':listnr')
     testRuntimeOnly project(':dreadpool')
-    testRuntimeOnly 'com.squareup.okhttp3:okhttp:4.5.0'
+    testRuntimeOnly 'com.squareup.okhttp3:okhttp:4.8.1'
     testImplementation 'com.alibaba:fastjson:1.2.71'
 }
 
