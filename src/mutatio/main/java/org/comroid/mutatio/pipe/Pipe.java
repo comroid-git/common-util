@@ -1,7 +1,7 @@
 package org.comroid.mutatio.pipe;
 
-import org.comroid.api.Disposable;
 import org.comroid.api.Polyfill;
+import org.comroid.api.ThrowingRunnable;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.pump.BasicPump;
 import org.comroid.mutatio.pump.Pump;
@@ -17,7 +17,7 @@ import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, Disposable {
+public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, AutoCloseable {
     StageAdapter<I, O> getAdapter();
 
     default boolean isSorted() {
@@ -188,7 +188,7 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, D
 
         final OnceCompletingStage stage = new OnceCompletingStage();
         final Pipe<O, O> resulting = addStage(stage);
-        stage.future.thenRun(resulting::close);
+        stage.future.thenRun(ThrowingRunnable.handling(resulting::close, null));
 
         return stage.future;
     }

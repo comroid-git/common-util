@@ -1,6 +1,7 @@
 package org.comroid.mutatio.pipe;
 
 import org.comroid.api.Polyfill;
+import org.comroid.api.ThrowingRunnable;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 
@@ -22,7 +23,6 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
         return adapter;
     }
 
-    @Override
     public final Collection<? extends AutoCloseable> getChildren() {
         return Collections.unmodifiableList(children);
     }
@@ -46,7 +46,6 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
         this.autoEmptyLimit = autoEmptyLimit;
     }
 
-    @Override
     public final void addChildren(AutoCloseable child) {
         children.add(child);
     }
@@ -93,5 +92,11 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     @Override
     public Reference<T> getReference(int index) {
         return accessors.computeIfAbsent(index, key -> adapter.advance(refs.getReference(index)));
+    }
+
+    @Override
+    public void close() throws Exception {
+        for (AutoCloseable child : getChildren())
+            child.close();
     }
 }
