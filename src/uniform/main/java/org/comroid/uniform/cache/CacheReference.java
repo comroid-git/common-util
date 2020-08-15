@@ -2,6 +2,8 @@ package org.comroid.uniform.cache;
 
 import org.comroid.api.Polyfill;
 import org.comroid.api.Provider;
+import org.comroid.mutatio.ref.KeyedReference;
+import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,15 +11,24 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CacheReference<K, V> extends org.comroid.mutatio.ref.Reference.Support.Base<V> {
+public class CacheReference<K, V> extends Reference.Support.Base<V> implements KeyedReference<K, V> {
     public final AtomicReference<V> reference = new AtomicReference<>(null);
-    private final org.comroid.mutatio.ref.Reference<CompletableFuture<V>> firstValueFuture
-            = org.comroid.mutatio.ref.Reference.create();
+    private final org.comroid.mutatio.ref.Reference<CompletableFuture<V>> firstValueFuture = Reference.create();
     private final Object lock = Polyfill.selfawareLock();
     private final K key;
 
     public @NotNull K getKey() {
         return key;
+    }
+
+    @Override
+    public V getValue() {
+        return null;
+    }
+
+    @Override
+    public V setValue(V value) {
+        return null;
     }
 
     public CacheReference(K key) {

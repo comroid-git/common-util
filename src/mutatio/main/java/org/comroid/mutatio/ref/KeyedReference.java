@@ -1,11 +1,15 @@
 package org.comroid.mutatio.ref;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 public interface KeyedReference<K, V> extends Reference<V>, Map.Entry<K, V> {
+    @Override
+    default V getValue() {
+        return get();
+    }
+
     static <K, V> KeyedReference<K, V> create(K key) {
         return create(key, null);
     }
@@ -20,6 +24,15 @@ public interface KeyedReference<K, V> extends Reference<V>, Map.Entry<K, V> {
 
     static <K, V> KeyedReference<K, V> create(boolean mutable, K key, @Nullable V initialValue) {
         return new Basic<>(mutable, key, initialValue);
+    }
+
+    @Override
+    default V setValue(V value) {
+        V rtrn = null;
+        if (isUpToDate())
+            rtrn = get();
+        set(value);
+        return rtrn;
     }
 
     class Basic<K, V> extends Reference.Support.Base<V> implements KeyedReference<K, V> {
