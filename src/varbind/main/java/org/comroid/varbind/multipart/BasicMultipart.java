@@ -7,7 +7,7 @@ import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.varbind.bind.GroupBind;
 
 public final class BasicMultipart {
-    public static <EXTR, DPND, REMAP, FINAL> TypeFragmentProvider<PartialBind.Base<EXTR, DPND, REMAP, FINAL>> baseProvider() {
+    public static <EXTR, DPND, REMAP, FINAL> TypeFragmentProvider<PartialBind.Base<Object, EXTR, REMAP, FINAL>> baseProvider() {
         return new FragmentProviders.Base<>();
     }
 
@@ -15,7 +15,7 @@ public final class BasicMultipart {
         return new FragmentProviders.Grouped<>();
     }
 
-    public static final class Base<EXTR, DPND, REMAP, FINAL> extends UUIDContainer implements PartialBind.Base<EXTR, DPND, REMAP, FINAL> {
+    public static final class Base<EXTR, DPND, REMAP, FINAL> extends UUIDContainer implements PartialBind.Base<Object, EXTR, REMAP, FINAL> {
         private static final Invocable<? super Base<?, ?, ?, ?>> constructor = Invocable.ofConstructor(Base.class);
         private final String fieldName;
         private final boolean required;
@@ -51,14 +51,14 @@ public final class BasicMultipart {
     }
 
     private static final class FragmentProviders {
-        private static final class Base<EXTR, DPND, REMAP, FINAL> implements TypeFragmentProvider<PartialBind.Base<EXTR, DPND, REMAP, FINAL>> {
+        private static final class Base<EXTR, DPND, REMAP, FINAL> implements TypeFragmentProvider<PartialBind.Base<Object, EXTR, REMAP, FINAL>> {
             @Override
-            public Class<PartialBind.Base<EXTR, DPND, REMAP, FINAL>> getInterface() {
+            public Class<PartialBind.Base<Object, EXTR, REMAP, FINAL>> getInterface() {
                 return Polyfill.uncheckedCast(PartialBind.Base.class);
             }
 
             @Override
-            public Invocable.TypeMap<? extends PartialBind.Base<EXTR, DPND, REMAP, FINAL>> getInstanceSupplier() {
+            public Invocable.TypeMap<? extends PartialBind.Base<Object, EXTR, REMAP, FINAL>> getInstanceSupplier() {
                 return Polyfill.uncheckedCast(BasicMultipart.Base.constructor.typeMapped());
             }
         }

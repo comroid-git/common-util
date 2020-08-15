@@ -22,14 +22,14 @@ import java.util.stream.Stream;
 
 import static org.comroid.api.Polyfill.uncheckedCast;
 
-public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarBind<EXTR, DPND, REMAP, FINAL>> {
+public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarBind<Object, EXTR, REMAP, FINAL>> {
     private final GroupBind<?, DPND> groupBind;
     private final String fieldName;
 
-    private final TypeFragmentProvider<PartialBind.Base<EXTR, DPND, REMAP, FINAL>> baseProvider = BasicMultipart.baseProvider();
+    private final TypeFragmentProvider<PartialBind.Base<Object, EXTR, REMAP, FINAL>> baseProvider = BasicMultipart.baseProvider();
     private final TypeFragmentProvider<PartialBind.Grouped<DPND>> groupedProvider = BasicMultipart.groupedProvider();
     private TypeFragmentProvider<PartialBind.Extractor<EXTR>> extractorProvider = null;
-    private TypeFragmentProvider<PartialBind.Remapper<EXTR, DPND, REMAP>> remapperProvider = null;
+    private TypeFragmentProvider<PartialBind.Remapper<Object, EXTR, REMAP>> remapperProvider = null;
     private TypeFragmentProvider<PartialBind.Finisher<REMAP, FINAL>> finisherProvider = null;
     private boolean required = false;
     private ValueType<? extends EXTR> valueType = null;
@@ -139,7 +139,7 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
 
     @Contract(value = "_,_,_ -> this", mutates = "this")
     public <R extends DataContainer<? extends DPND>, ID> BindBuilder<UniObjectNode, DPND, R, FINAL> andProvide(
-            VarBind<?, ?, ?, ID> idBind,
+            VarBind<Object, ?, ?, ID> idBind,
             BiFunction<ID, DPND, R> resolver,
             GroupBind<R, DPND> targetBind
     ) {
@@ -175,17 +175,17 @@ public final class BindBuilder<EXTR, DPND, REMAP, FINAL> implements Builder<VarB
     }
 
     @Override
-    public VarBind<EXTR, DPND, REMAP, FINAL> build() {
-        final PartialBind.Base<EXTR, DPND, REMAP, FINAL> core = baseProvider.getInstanceSupplier().autoInvoke(fieldName, required);
-        final SpellCore.Builder<VarBind<EXTR, DPND, REMAP, FINAL>> builder = SpellCore
-                .<VarBind<EXTR, DPND, REMAP, FINAL>>builder(uncheckedCast(VarBind.class), core)
+    public VarBind<Object, EXTR, REMAP, FINAL> build() {
+        final PartialBind.Base<Object, EXTR, REMAP, FINAL> core = baseProvider.getInstanceSupplier().autoInvoke(fieldName, required);
+        final SpellCore.Builder<VarBind<Object, EXTR, REMAP, FINAL>> builder = SpellCore
+                .<VarBind<Object, EXTR, REMAP, FINAL>>builder(uncheckedCast(VarBind.class), core)
                 .addFragment(groupedProvider)
                 .addFragment(Objects.requireNonNull(extractorProvider, "No extractor definition provided"))
                 .addFragment(Objects.requireNonNull(remapperProvider, "No remapper defintion provided"))
                 .addFragment(Objects.requireNonNull(finisherProvider, "No finisher definition provided"))
                 .setClassLoader(classLoader);
 
-        final VarBind<EXTR, DPND, REMAP, FINAL> bind = builder.build(Stream
+        final VarBind<Object, EXTR, REMAP, FINAL> bind = builder.build(Stream
                 .of(groupBind, fieldName, required, valueType, remapper, resolver, collectionProvider)
                 .filter(Objects::nonNull)
                 .toArray()
