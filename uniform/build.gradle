@@ -58,7 +58,8 @@ dependencies {
     java11compatImplementation 'com.google.flogger:flogger:0.5.1'
 
     java8compatCompileOnly 'com.alibaba:fastjson:1.2.71'
-    java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
+    java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.11.2'
+    java8compatCompileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.11.2'
     java8compatCompileOnly 'org.json:json:20200518'
 
     testImplementation sourceSets.java8compat.output.classesDirs
