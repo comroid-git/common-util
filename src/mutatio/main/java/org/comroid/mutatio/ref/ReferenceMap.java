@@ -3,6 +3,7 @@ package org.comroid.mutatio.ref;
 import org.comroid.mutatio.pipe.BiPipe;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.Pipeable;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.pump.Pump;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -11,10 +12,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public interface ReferenceMap<K, V, REF extends KeyedReference<K, V>> extends Pipeable<V> {
+    static <K, V, REF extends KeyedReference<K, V>> ReferenceMap<K, V, REF> create(
+            Function<? extends Reference<V>, REF> refUnwrapper
+    ) {
+        return new ReferenceMap.Support.Basic<>(refUnwrapper);
+    }
+
+    default boolean put(K key, V value) {
+        return getReference(key, value != null).set(value);
+    }
+
     default REF getReference(K key) {
         return getReference(key, false);
     }
@@ -53,23 +67,37 @@ public interface ReferenceMap<K, V, REF extends KeyedReference<K, V>> extends Pi
         return getReference(key).requireNonNull(message);
     }
 
+    int size();
+
+    boolean containsKey(K key);
+
+    boolean containsValue(V value);
+
+    default Stream<? extends V> stream() {
+        return stream(any -> true).map(Reference::get);
+    }
+
+    Stream<REF> stream(Predicate<K> filter);
+
     @Override
-    default Pipe<?, V> pipe() {
+    default Pipe<?, ? extends V> pipe() {
         return entryIndex()
                 .pipe()
                 .map(Map.Entry::getValue);
     }
 
-    default BiPipe<?, ?, K, V> biPipe() {
+    Pipe<?, REF> pipe(Predicate<K> filter);
+
+    @Override
+    default Pump<?, ? extends V> pump(Executor executor) {
+        return pipe().pump(executor);
+    }
+
+    default BiPipe<?, ?, ? extends K, ? extends V> biPipe() {
         return entryIndex()
                 .pipe()
                 .bi(Map.Entry::getValue)
                 .mapFirst(Map.Entry::getKey);
-    }
-
-    @Override
-    default Pump<?, V> pump(Executor executor) {
-        return pipe().pump(executor);
     }
 
     /**
@@ -100,4 +128,61 @@ public interface ReferenceMap<K, V, REF extends KeyedReference<K, V>> extends Pi
         return getReference(key, true).computeIfAbsent(supplier);
     }
 
+    void forEach(BiConsumer<K, V> action);
+
+    final class Support {
+        public static abstract class Abstract<K, V, REF extends KeyedReference<K, V>> implements ReferenceMap<K, V, REF> {
+            private final Function<? extends Reference<V>, REF> refUnwrapper;
+
+            protected Abstract(Function<? extends Reference<V>, REF> refUnwrapper) {
+                this.refUnwrapper = refUnwrapper;
+            }
+
+            @Override
+            public REF getReference(K key, boolean createIfAbsent) {
+                return null;
+            }
+
+            @Override
+            public ReferenceIndex<Map.Entry<K, V>> entryIndex() {
+                return null;
+            }
+
+            @Override
+            public int size() {
+                return 0;
+            }
+
+            @Override
+            public boolean containsKey(K key) {
+                return false;
+            }
+
+            @Override
+            public boolean containsValue(V value) {
+                return false;
+            }
+
+            @Override
+            public Stream<REF> stream(Predicate<K> filter) {
+                return null;
+            }
+
+            @Override
+            public Pipe<?, REF> pipe(Predicate<K> filter) {
+                return null;
+            }
+
+            @Override
+            public void forEach(BiConsumer<K, V> action) {
+
+            }
+        }
+
+        public static class Basic<K, V, REF extends KeyedReference<K, V>> extends Abstract<K, V, REF> {
+            public Basic(Function<? extends Reference<V>, REF> refUnwrapper) {
+                super(refUnwrapper);
+            }
+        }
+    }
 }

@@ -336,6 +336,12 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
         }
     }
 
+    public final @NotNull T requireSingle() {
+        if (!isSingle())
+            throw new AssertionError("Span does not hold exactly one element!");
+        return requireNonNull();
+    }
+
     @Override
     public @NotNull T requireNonNull() throws NullPointerException {
         return requireNonNull("No iterable value present");

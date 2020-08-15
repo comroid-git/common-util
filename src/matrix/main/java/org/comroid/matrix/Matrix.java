@@ -6,6 +6,7 @@ import org.comroid.common.info.Valued;
 import org.comroid.common.ref.Named;
 import org.comroid.matrix.impl.PartialMatrix;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceMap;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeFragment<Matrix<V, E>> {
+public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeFragment<Matrix<V, E>>, ReferenceMap<String, V, E> {
     static <V, E extends Matrix.Entry<V>> TypeFragmentProvider<Matrix<V, E>> fragmentProvider() {
         return new TypeFragmentProvider<Matrix<V, E>>() {
             @Override

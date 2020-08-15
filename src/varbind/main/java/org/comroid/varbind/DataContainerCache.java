@@ -6,6 +6,7 @@ import org.comroid.common.info.Dependent;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.uniform.cache.BasicCache;
 import org.comroid.uniform.cache.Cache;
+import org.comroid.uniform.cache.CacheReference;
 import org.comroid.uniform.node.UniObjectNode;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
@@ -30,7 +31,7 @@ public abstract class DataContainerCache<K, V extends DataContainer<V>, D>
 
     public DataContainerCache(
             int largeThreshold,
-            Map<K, Reference<K, V>> map,
+            Map<K, CacheReference<K, V>> map,
             VarBind<? super V, ?, ?, K> idBind
     ) {
         this(largeThreshold, map, idBind, null);
@@ -38,8 +39,8 @@ public abstract class DataContainerCache<K, V extends DataContainer<V>, D>
 
     public DataContainerCache(
             int largeThreshold,
-            Map<K, Reference<K, V>> map,
-            VarBind<? super V, ?, ?, K> idBind,
+            Map<K, CacheReference<K, V>> map,
+            VarBind<?, ? super D, ?, K> idBind,
             @Nullable D dependencyObject
     ) {
         super(largeThreshold, map);
