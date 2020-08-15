@@ -4,6 +4,7 @@ import org.comroid.mutatio.pipe.BiPipe;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.Pipeable;
 import org.comroid.mutatio.pump.Pump;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,12 +14,26 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface ReferenceMap<K, V, REF extends Reference<V>> extends Pipeable<V> {
+public interface ReferenceMap<K, V, REF extends KeyedReference<K, V>> extends Pipeable<V> {
     default REF getReference(K key) {
         return getReference(key, false);
     }
 
-    REF getReference(K key, boolean createIfAbsent);
+    /**
+     * Gets a reference to the value at the specified key in the map.
+     * As described by the {@linkplain Contract method contract}; this method will
+     * <ul>
+     *     <li>Fail, if the first parameter is {@code null}</li>
+     *     <li>Return a {@link Nullable} Reference, if the second parameter is {@code false}</li>
+     *     <li>Return q {@link NotNull} Reference, if the second parameter is {@code true}</li>
+     * </ul>
+     *
+     * @param key The key to look at.
+     * @param createIfAbsent Whether to create the reference if its non-existent
+     * @return A {@link Reference}, or {@code null}
+     */
+    @Contract("null, _ -> fail; !null, false -> _; !null, true -> !null")
+    @Nullable REF getReference(K key, boolean createIfAbsent);
 
     ReferenceIndex<Map.Entry<K, V>> entryIndex();
 
