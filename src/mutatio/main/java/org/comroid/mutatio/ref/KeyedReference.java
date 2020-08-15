@@ -49,7 +49,14 @@ public interface KeyedReference<K, V> extends Reference<V>, Map.Entry<K, V> {
             return get();
         }
 
-        protected Basic(boolean mutable, K key, @Nullable V initialValue) {
+        public Basic(K key, Reference<V> valueHolder) {
+            super(valueHolder.isMutable());
+
+            this.key = key;
+            this.valueHolder = valueHolder;
+        }
+
+        public Basic(boolean mutable, K key, @Nullable V initialValue) {
             super(mutable);
 
             this.key = key;
