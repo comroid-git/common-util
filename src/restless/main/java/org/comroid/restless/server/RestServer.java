@@ -38,6 +38,30 @@ public class RestServer implements Closeable {
     private final String baseUrl;
     private final REST.Header.List commonHeaders = new REST.Header.List();
 
+    public HttpServer getServer() {
+        return server;
+    }
+
+    public Span<ServerEndpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    public SerializationAdapter getSerializationAdapter() {
+        return seriLib;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public REST.Header.List getCommonHeaders() {
+        return commonHeaders;
+    }
+
     public RestServer(
             SerializationAdapter seriLib,
             Executor executor,
@@ -97,21 +121,19 @@ public class RestServer implements Closeable {
         return rsp;
     }
 
-    private UniNode consumeBody(HttpExchange exchange) {
+    private String consumeBody(HttpExchange exchange) {
+        String str = null;
+
         try (
                 InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
                 BufferedReader br = new BufferedReader(isr)
         ) {
-            String data = br.lines().collect(Collectors.joining());
-
-            if (data.isEmpty())
-                return seriLib.createUniObjectNode();
-            else return seriLib.createUniNode(data);
+            str = br.lines().collect(Collectors.joining());
         } catch (Throwable t) {
-            logger.at(Level.SEVERE).log("Could not deserialize response");
+            logger.at(Level.SEVERE).log("Could not read response");
         }
 
-        return null;
+        return str;
     }
 
     private boolean supportedMimeType(List<String> targetMimes) {
@@ -164,10 +186,10 @@ public class RestServer implements Closeable {
                         ));
                     }
 
-                    UniNode node = consumeBody(exchange);
+                    String body = consumeBody(exchange);
 
                     logger.at(Level.INFO).log("Looking for matching endpoint...");
-                    forwardToEndpoint(exchange, requestURI, requestMethod, responseHeaders, requestHeaders, node);
+                    forwardToEndpoint(exchange, requestURI, requestMethod, responseHeaders, requestHeaders, body);
                 } catch (Throwable t) {
                     if (t instanceof RestEndpointException)
                         throw (RestEndpointException) t;
@@ -196,7 +218,7 @@ public class RestServer implements Closeable {
                 REST.Method requestMethod,
                 Headers responseHeaders,
                 Headers requestHeaders,
-                UniNode requestBody) throws RestEndpointException, IOException {
+                String requestBody) throws RestEndpointException, IOException {
             final Iterator<ServerEndpoint> iter = endpoints.pipe()
                     // endpoints that accept the request uri
                     .filter(endpoint -> endpoint.test(requestURI))
@@ -225,7 +247,7 @@ public class RestServer implements Closeable {
 
                     try {
                         logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
-                        response = endpoint.executeMethod(requestMethod, requestHeaders, args, requestBody);
+                        response = endpoint.executeMethod(RestServer.this, requestMethod, requestHeaders, args, requestBody);
                     } catch (RestEndpointException reex) {
                         lastException = reex;
                     }

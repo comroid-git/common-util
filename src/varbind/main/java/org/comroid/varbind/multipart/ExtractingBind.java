@@ -25,7 +25,7 @@ public final class ExtractingBind {
         return new FragmentProviders.ToUniArray();
     }
 
-    public static final class ToValueType<E extends Serializable> extends UUIDContainer implements PartialBind.Extractor<E> {
+    public static final class ToValueType<E extends Serializable> extends UUIDContainer.Base implements PartialBind.Extractor<E> {
         private static final Invocable<? super ToValueType<?>> constructor = Invocable.ofConstructor(ToValueType.class);
 
         private final ValueType<E> valueType;
@@ -55,7 +55,7 @@ public final class ExtractingBind {
         }
     }
 
-    public static final class ToUniObject extends UUIDContainer implements PartialBind.Extractor<UniObjectNode> {
+    public static final class ToUniObject extends UUIDContainer.Base implements PartialBind.Extractor<UniObjectNode> {
         private static final Invocable<? super ToUniObject> constructor = Invocable.ofConstructor(ToUniObject.class);
 
         @Override
@@ -76,7 +76,7 @@ public final class ExtractingBind {
         }
     }
 
-    public static final class ToUniArray extends UUIDContainer implements PartialBind.Extractor<UniArrayNode> {
+    public static final class ToUniArray extends UUIDContainer.Base implements PartialBind.Extractor<UniArrayNode> {
         private static final Invocable<? super ToUniArray> constructor = Invocable.ofConstructor(ToUniArray.class);
 
         @Override

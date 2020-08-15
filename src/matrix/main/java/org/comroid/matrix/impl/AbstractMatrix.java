@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDContainer implements Matrix<V, E> {
+public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDContainer.Base implements Matrix<V, E> {
     private final Map<String, E> entries;
 
     protected AbstractMatrix() {

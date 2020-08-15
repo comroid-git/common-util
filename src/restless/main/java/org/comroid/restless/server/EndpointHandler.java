@@ -8,43 +8,40 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
 public interface EndpointHandler {
     default boolean supports(REST.Method method) {
-        switch (method) {
-            case GET:
-                return isReimplemented("executeGET");
-            case PUT:
-                return isReimplemented("executePUT");
-            case POST:
-                return isReimplemented("executePOST");
-            case PATCH:
-                return isReimplemented("executePATCH");
-            case DELETE:
-                return isReimplemented("executeDELETE");
-            case HEAD:
-                return isReimplemented("executeHEAD");
+        try {
+            return !getClass().getMethod("execute" + method.name(), Headers.class, String[].class, UniNode.class)
+                    .getDeclaringClass()
+                    .equals(EndpointHandler.class);
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
         }
-
-        throw new AssertionError("No such method: " + method);
     }
 
     default REST.Response executeMethod(
+            RestServer server,
             REST.Method method,
             Headers headers,
             String[] urlParams,
-            UniNode body
+            String body
     ) throws RestEndpointException {
+        if (!supports(method))
+            throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: " + method.name());
+
+        final UniNode data = server.getSerializationAdapter().createUniNode(body);
+
         switch (method) {
             case GET:
-                return executeGET(headers, urlParams, body);
+                return executeGET(headers, urlParams, data);
             case PUT:
-                return executePUT(headers, urlParams, body);
+                return executePUT(headers, urlParams, data);
             case POST:
-                return executePOST(headers, urlParams, body);
+                return executePOST(headers, urlParams, data);
             case PATCH:
-                return executePATCH(headers, urlParams, body);
+                return executePATCH(headers, urlParams, data);
             case DELETE:
-                return executeDELETE(headers, urlParams, body);
+                return executeDELETE(headers, urlParams, data);
             case HEAD:
-                return executeHEAD(headers, urlParams, body);
+                return executeHEAD(headers, urlParams, data);
         }
 
         throw new AssertionError("No such method: " + method);
@@ -96,16 +93,5 @@ public interface EndpointHandler {
             UniNode body
     ) throws RestEndpointException {
         throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: HEAD");
-    }
-
-    @Internal
-    default boolean isReimplemented(String methodName) {
-        try {
-            return !getClass().getMethod(methodName, Headers.class, String[].class, UniNode.class)
-                    .getDeclaringClass()
-                    .equals(EndpointHandler.class);
-        } catch (NoSuchMethodException e) {
-            throw new AssertionError(e);
-        }
     }
 }
