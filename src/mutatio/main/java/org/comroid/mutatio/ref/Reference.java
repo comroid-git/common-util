@@ -290,6 +290,10 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
 
             @Override
             public void rebind(Supplier<T> behind) {
+                if (behind == this || (behind instanceof Processor
+                        && ((Processor<T>) behind).upstream().noneMatch(this::equals)))
+                    throw new IllegalArgumentException("Cannot rebind behind itself");
+
                 this.overriddenSupplier = behind;
                 outdate();
             }

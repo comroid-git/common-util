@@ -113,17 +113,6 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return new Support.Or<>(this, other);
     }
 
-    @Deprecated
-    default Reference<T> snapshot() {
-        final Optional<Reference<T>> ref = upstream()
-                .filter(Reference::isMutable)
-                .findAny()
-                .map(Polyfill::uncheckedCast);
-
-        ref.ifPresent(r -> r.rebind(this));
-        return ref.orElseGet(() -> into(Reference::create));
-    }
-
     @FunctionalInterface
     interface Advancer<I, O> {
         Processor<O> advance(Processor<I> ref);

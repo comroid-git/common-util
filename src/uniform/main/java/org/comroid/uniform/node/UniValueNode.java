@@ -215,7 +215,7 @@ public class UniValueNode<T> extends UniNode {
             super(null, new UniValueNode.Adapter<Void>() {
                 @Override
                 public Object getBaseNode() {
-                    return instance;
+                    return "null";
                 }
 
                 @Override
@@ -230,7 +230,7 @@ public class UniValueNode<T> extends UniNode {
 
                 @Override
                 public String toString() {
-                    return null;
+                    return "null";
                 }
             });
         }

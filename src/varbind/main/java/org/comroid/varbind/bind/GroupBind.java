@@ -186,7 +186,7 @@ public final class GroupBind<T extends DataContainer<? super T>> implements Iter
     }
 
     public <R extends T> GroupBind<R> rootGroup(String subGroupName) {
-        return subGroup(subGroupName, Polyfill.<Class<R>>uncheckedCast(StackTraceUtils.callerClass(0)));
+        return subGroup(subGroupName, Polyfill.<Class<R>>uncheckedCast(StackTraceUtils.callerClass(1)));
     }
 
     public <R extends T> GroupBind<R> subGroup(String subGroupName) {

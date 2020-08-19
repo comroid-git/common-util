@@ -314,11 +314,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
                     } catch (IllegalArgumentException ignored) {
                     }
 
-                    final UniValueNode.Adapter.ViaString adapter
-                            = new UniValueNode.Adapter.ViaString(base
-                            .process()
-                            .map(String::valueOf)
-                            .snapshot());
+                    final UniValueNode.Adapter.ViaString adapter = new UniValueNode.Adapter.ViaString(base);
                     return new UniValueNode<>(serializationAdapter, adapter);
                 }));
     }
@@ -339,6 +335,10 @@ public abstract class UniNode implements Specifiable<UniNode> {
 
     public final String getMimeType() {
         return serializationAdapter.getMimeType();
+    }
+
+    public boolean isNotNull() {
+        return !isNull();
     }
 
     public enum Type {

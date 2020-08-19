@@ -172,6 +172,7 @@ public final class ReflectionHelper {
         for (int i = 0; i < typesOrdered.length; i++) {
             int finalli = i;
             yields[i] = Stream.of(args)
+                    .filter(Objects::nonNull)
                     .filter(it -> typeCompat(typesOrdered[finalli], it.getClass()))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(

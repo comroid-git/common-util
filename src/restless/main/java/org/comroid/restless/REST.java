@@ -24,7 +24,10 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -36,12 +39,13 @@ import java.util.logging.Level;
 
 import static org.comroid.mutatio.proc.Processor.ofConstant;
 
-public final class REST {
+public final class REST<D> {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final HttpAdapter httpAdapter;
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Ratelimiter ratelimiter;
     private final Executor executor;
+    private final D dependency;
 
     public HttpAdapter getHttpAdapter() {
         return httpAdapter;
@@ -63,16 +67,35 @@ public final class REST {
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter
     ) {
-        this(httpAdapter, serializationAdapter, ForkJoinPool.commonPool(), null);
+        this(httpAdapter, serializationAdapter, (D) null);
     }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            D dependency
+            ) {
+        this(httpAdapter, serializationAdapter, dependency, ForkJoinPool.commonPool());
+    }
+
     public REST(
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             Executor requestExecutor
     ) {
+        this(httpAdapter, serializationAdapter, null, requestExecutor);
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            D dependency,
+            Executor requestExecutor
+    ) {
         this(
                 httpAdapter,
                 serializationAdapter,
+                dependency,
                 requestExecutor,
                 Ratelimiter.INSTANT
         );
@@ -84,9 +107,20 @@ public final class REST {
             ScheduledExecutorService scheduledExecutorService,
             RatelimitedEndpoint... pool
     ) {
+        this(httpAdapter, serializationAdapter, null, scheduledExecutorService, pool);
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            D dependency,
+            ScheduledExecutorService scheduledExecutorService,
+            RatelimitedEndpoint... pool
+    ) {
         this(
                 httpAdapter,
                 serializationAdapter,
+                dependency,
                 scheduledExecutorService,
                 Ratelimiter.ofPool(scheduledExecutorService, pool)
         );
@@ -98,8 +132,19 @@ public final class REST {
             Executor requestExecutor,
             Ratelimiter ratelimiter
     ) {
+        this(httpAdapter, serializationAdapter, null, requestExecutor, ratelimiter);
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            D dependency,
+            Executor requestExecutor,
+            Ratelimiter ratelimiter
+    ) {
         this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
+        this.dependency = dependency;
         this.executor = Objects.requireNonNull(requestExecutor, "RequestExecutor");
         this.ratelimiter = Objects.requireNonNull(ratelimiter, "Ratelimiter");
     }
@@ -481,7 +526,7 @@ public final class REST {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
-                        return Span.singleton(tProducer.autoInvoke(node.asObjectNode()));
+                        return Span.singleton(tProducer.autoInvoke(dependency, node.asObjectNode()));
                     case ARRAY:
                         return node.asArrayNode()
                                 .asNodeList()

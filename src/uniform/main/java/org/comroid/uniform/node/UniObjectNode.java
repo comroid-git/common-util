@@ -67,7 +67,9 @@ public final class UniObjectNode extends UniNode {
     public @NotNull UniNode get(final String fieldName) {
         if (fieldName.isEmpty())
             return this;
-        return makeValueNode(fieldName).orElseGet(UniValueNode::nullNode);
+        return makeValueNode(fieldName)
+                .filter(UniNode::isNotNull)
+                .orElseGet(UniValueNode::nullNode);
     }
 
     private Processor<UniNode> makeValueNode(String fieldName) {
