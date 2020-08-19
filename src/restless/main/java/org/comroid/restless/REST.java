@@ -36,12 +36,11 @@ import java.util.logging.Level;
 
 import static org.comroid.mutatio.proc.Processor.ofConstant;
 
-public final class REST<D> {
+public final class REST {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final HttpAdapter httpAdapter;
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Ratelimiter ratelimiter;
-    private final @Nullable D dependencyObject;
     private final Executor executor;
 
     public HttpAdapter getHttpAdapter() {
@@ -56,10 +55,6 @@ public final class REST<D> {
         return ratelimiter;
     }
 
-    public Optional<D> getDependencyObject() {
-        return Optional.ofNullable(dependencyObject);
-    }
-
     public final Executor getExecutor() {
         return executor;
     }
@@ -70,27 +65,16 @@ public final class REST<D> {
     ) {
         this(httpAdapter, serializationAdapter, ForkJoinPool.commonPool(), null);
     }
-
     public REST(
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
-            @Nullable D dependencyObject
-    ) {
-        this(httpAdapter, serializationAdapter, ForkJoinPool.commonPool(), dependencyObject);
-    }
-
-    public REST(
-            HttpAdapter httpAdapter,
-            SerializationAdapter<?, ?, ?> serializationAdapter,
-            Executor requestExecutor,
-            @Nullable D dependencyObject
+            Executor requestExecutor
     ) {
         this(
                 httpAdapter,
                 serializationAdapter,
                 requestExecutor,
-                Ratelimiter.INSTANT,
-                dependencyObject
+                Ratelimiter.INSTANT
         );
     }
 
@@ -98,15 +82,13 @@ public final class REST<D> {
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             ScheduledExecutorService scheduledExecutorService,
-            @Nullable D dependencyObject,
             RatelimitedEndpoint... pool
     ) {
         this(
                 httpAdapter,
                 serializationAdapter,
                 scheduledExecutorService,
-                Ratelimiter.ofPool(scheduledExecutorService, pool),
-                dependencyObject
+                Ratelimiter.ofPool(scheduledExecutorService, pool)
         );
     }
 
@@ -114,25 +96,23 @@ public final class REST<D> {
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             Executor requestExecutor,
-            Ratelimiter ratelimiter,
-            @Nullable D dependencyObject
+            Ratelimiter ratelimiter
     ) {
         this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
         this.executor = Objects.requireNonNull(requestExecutor, "RequestExecutor");
         this.ratelimiter = Objects.requireNonNull(ratelimiter, "Ratelimiter");
-        this.dependencyObject = dependencyObject;
     }
 
     public Request<UniObjectNode> request() {
         return new Request<>(Invocable.paramReturning(UniObjectNode.class));
     }
 
-    public <T extends DataContainer<? extends D>> Request<T> request(Class<T> type) {
+    public <T extends DataContainer<? super T>> Request<T> request(Class<T> type) {
         return request(DataContainerBase.findRootBind(type));
     }
 
-    public <T extends DataContainer<? extends D>> Request<T> request(GroupBind<T, D> group) {
+    public <T extends DataContainer<? super T>> Request<T> request(GroupBind<T> group) {
         //noinspection unchecked
         return request((Invocable<T>) Polyfill.uncheckedCast(group.getConstructor()
                 .orElseThrow(() -> new NoSuchElementException("No constructor applied to GroupBind"))));
@@ -416,7 +396,7 @@ public final class REST<D> {
             return headers;
         }
 
-        public REST<D> getREST() {
+        public REST getREST() {
             return REST.this;
         }
 
@@ -501,13 +481,13 @@ public final class REST<D> {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
-                        return Span.singleton(tProducer.autoInvoke(dependencyObject, node.asObjectNode()));
+                        return Span.singleton(tProducer.autoInvoke(node.asObjectNode()));
                     case ARRAY:
                         return node.asArrayNode()
                                 .asNodeList()
                                 .stream()
                                 .map(UniNode::asObjectNode)
-                                .map(sub -> tProducer.autoInvoke(dependencyObject, sub))
+                                .map(tProducer::autoInvoke)
                                 .collect(Span.collector());
                     case VALUE:
                         throw new AssertionError("Cannot deserialize from UniValueNode");
@@ -538,7 +518,7 @@ public final class REST<D> {
         }
 
         public final <ID> CompletableFuture<Span<T>> execute$autoCache(
-                VarBind<Object, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache
+                VarBind<?, Object, ?, ID> identifyBind, Cache<ID, ? super T> cache
         ) {
             return execute$body().thenApply(node -> {
                 if (node.isObjectNode()) {
@@ -555,7 +535,7 @@ public final class REST<D> {
             });
         }
 
-        private <ID> T cacheProduce(VarBind<Object, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
+        private <ID> T cacheProduce(VarBind<?, Object, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
             ID id = identifyBind.getFrom(obj);
 
             if (id == null) {
@@ -566,11 +546,11 @@ public final class REST<D> {
                 //noinspection unchecked
                 cache.getReference(id, false) // should be present
                         .compute(old -> (T) (
-                                (DataContainer<D>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
+                                (DataContainer<?>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
                         ).updateFrom(obj));
             } else {
                 cache.getReference(id, true)
-                        .set(tProducer.autoInvoke(dependencyObject, obj));
+                        .set(tProducer.autoInvoke(obj));
             }
 
             //noinspection unchecked

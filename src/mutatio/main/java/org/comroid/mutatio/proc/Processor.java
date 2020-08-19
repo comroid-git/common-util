@@ -109,7 +109,7 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
                 .andThen(Reference::constant), backwardsConverter);
     }
 
-    default Processor<T> or(final Supplier<? extends T> other) {
+    default Processor<T> or(final Supplier<T> other) {
         return new Support.Or<>(this, other);
     }
 
@@ -256,9 +256,9 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         }
 
         public static final class Or<T> extends Base<T, T> {
-            private final Supplier<? extends T> other;
+            private final Supplier<T> other;
 
-            public Or(Reference<T> base, Supplier<? extends T> other) {
+            public Or(Reference<T> base, Supplier<T> other) {
                 super(base, Function.identity());
 
                 this.other = other;

@@ -46,6 +46,18 @@ public final class FileHandle extends File implements Named {
     }
 
     public String getContent() {
+        return getContent(false);
+    }
+
+    public String getContent(boolean createIfAbsent) {
+        if (!exists() && createIfAbsent) {
+            try {
+                createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         return String.join("", getLines());
     }
 
