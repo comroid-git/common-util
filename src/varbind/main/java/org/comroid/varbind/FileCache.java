@@ -1,12 +1,11 @@
 package org.comroid.varbind;
 
 import com.google.common.flogger.FluentLogger;
-import org.comroid.api.Disposable;
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
+import org.comroid.common.Disposable;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
-import org.comroid.trie.TrieMap;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -17,17 +16,18 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class FileCache<K, V extends DataContainer<D>, D>
+public class FileCache<K, V extends DataContainer<V>, D>
         extends DataContainerCache<K, V, D>
-        implements FileProcessor, Disposable.Container {
+        implements FileProcessor, Disposable {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private final Disposable disposable = new Disposable.Basic();
     private final SerializationAdapter<?, ?, ?> seriLib;
     private final FileHandle file;
+    private final UUID uuid = UUID.randomUUID();
 
     @Override
     public FileHandle getFile() {
@@ -35,13 +35,13 @@ public class FileCache<K, V extends DataContainer<D>, D>
     }
 
     @Override
-    public Disposable getUnderlyingDisposable() {
-        return disposable;
+    public UUID getUUID() {
+        return uuid;
     }
 
     public FileCache(
             SerializationAdapter<?, ?, ?> seriLib,
-            VarBind<?, ? super D, ?, K> idBind,
+            VarBind<? super V, ?, ?, K> idBind,
             FileHandle file,
             int largeThreshold,
             D dependencyObject
@@ -51,16 +51,14 @@ public class FileCache<K, V extends DataContainer<D>, D>
 
     public FileCache(
             SerializationAdapter<?, ?, ?> seriLib,
-            VarBind<?, ? super D, ?, K> idBind,
+            VarBind<? super V, ?, ?, K> idBind,
             Junction<K, String> converter,
             FileHandle file,
             int largeThreshold,
             boolean keyCaching,
             D dependencyObject
     ) {
-        super(largeThreshold, converter == null
-                ? new ConcurrentHashMap<>()
-                : new TrieMap.Basic<>(converter, keyCaching), idBind, dependencyObject);
+        super(largeThreshold, new ConcurrentHashMap<>(), idBind);
 
         this.seriLib = seriLib;
         this.file = file;
@@ -72,71 +70,74 @@ public class FileCache<K, V extends DataContainer<D>, D>
         }
     }
 
-    public boolean add(V value) {
-        final K key = value.requireNonNull(idBind);
-
-        set(key, value);
-
-        return true;
-    }
-
     @Override
-    public synchronized void storeData() throws IOException {
-        final UniArrayNode array = seriLib.createUniArrayNode(null);
+    public synchronized int storeData() throws IOException {
+        final UniArrayNode data = seriLib.createUniArrayNode(null);
 
         stream().filter(ref -> !ref.isNull())
                 .forEach(ref -> {
                     final V it = ref.get();
 
                     if (it == null) {
-                        array.addNull();
+                        data.addNull();
                         return;
                     }
 
-                    it.toObjectNode(array.addObject());
+                    it.toObjectNode(data.addObject());
                 });
 
-        final FileWriter writer = new FileWriter(file, false);
-        writer.write(array.toString());
-        writer.close();
+        try (
+                final FileWriter writer = new FileWriter(file, false)
+        ) {
+            writer.write(data.toString());
+        }
+
+        return data.size();
     }
 
     @Override
-    public synchronized void reloadData() throws IOException {
-        final BufferedReader reader = new BufferedReader(new FileReader(file));
-        final String str = reader.lines().collect(Collectors.joining());
+    public synchronized int reloadData() throws IOException {
+        UniArrayNode data = seriLib.createUniArrayNode();
 
-        if (str.isEmpty()) {
-            reader.close();
-            return;
+        try (
+                final BufferedReader reader = new BufferedReader(new FileReader(file))
+        ) {
+            final String str = reader.lines().collect(Collectors.joining());
+
+            if (str.isEmpty()) {
+                reader.close();
+                return 0;
+            }
+
+            final UniNode uniNode = seriLib.createUniNode(str);
+            if (!uniNode.isArrayNode())
+                throw new IllegalArgumentException("Data is not an array");
+
+            data = uniNode.asArrayNode();
+        } catch (Throwable t) {
+            throw new IOException("Could not read data", t);
+        } finally {
+            data.asNodeList().stream()
+                    .filter(UniNode::isObjectNode)
+                    .map(UniNode::asObjectNode)
+                    .forEach(node -> {
+                        final K id = idBind.getFrom(node);
+
+                        if (containsKey(id)) {
+                            getReference(id, false).requireNonNull().updateFrom(node);
+                        } else {
+                            final Object generated = tryConstruct(node).orElse(null);
+
+                            if (generated == null) {
+                                logger.at(Level.WARNING).log("Skipped generation; no suitable constructor could be found. Data: %s", node);
+                                return;
+                            }
+
+                            getReference(id, true).set(Polyfill.uncheckedCast(generated));
+                        }
+                    });
         }
 
-        final UniNode uniNode = seriLib.createUniNode(str);
-        if (!uniNode.isArrayNode())
-            return;
-
-        final UniArrayNode data = uniNode.asArrayNode();
-
-        data.asNodeList().stream()
-                .filter(UniNode::isObjectNode)
-                .map(UniNode::asObjectNode)
-                .forEach(node -> {
-                    final K id = idBind.getFrom(node);
-
-                    if (containsKey(id)) {
-                        getReference(id, false).requireNonNull().updateFrom(node);
-                    } else {
-                        final Object generated = tryConstruct(node).orElse(null);
-
-                        if (generated == null) {
-                            logger.at(Level.WARNING).log("Skipped generation; no suitable constructor could be found. Data: %s", node);
-                            return;
-                        }
-
-                        getReference(id, true).set(Polyfill.uncheckedCast(generated));
-                    }
-                });
-        reader.close();
+        return data.size();
     }
-
 }

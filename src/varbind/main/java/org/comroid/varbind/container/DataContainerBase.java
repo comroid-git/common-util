@@ -1,7 +1,7 @@
 package org.comroid.varbind.container;
 
+import org.comroid.api.SelfDeclared;
 import org.comroid.mutatio.proc.Processor;
-import org.comroid.mutatio.ref.OutdateableReference;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.span.Span;
 import org.comroid.trie.TrieMap;
@@ -27,27 +27,21 @@ import static java.util.Collections.unmodifiableSet;
 import static org.comroid.api.Polyfill.uncheckedCast;
 
 @SuppressWarnings("unchecked")
-public class DataContainerBase<DEP> implements DataContainer<DEP> {
-    private final GroupBind<? extends DataContainer<DEP>, DEP> rootBind;
-    private final Map<String, Span<VarBind<?, ? super DEP, ?, ?>>> binds = TrieMap.ofString();
+public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared<? super S>> implements DataContainer<S> {
+    private final GroupBind<S> rootBind;
+    private final Map<String, Span<VarBind<? super S, ?, ?, ?>>> binds = TrieMap.ofString();
     private final Map<String, Reference<Span<Object>>> vars = TrieMap.ofString();
     private final Map<String, Reference<Object>> computed = TrieMap.ofString();
-    private final DEP dependencyObject;
-    private final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet;
-    private final Class<? extends DataContainer<DEP>> myType;
+    private final Set<VarBind<? super S, Object, ?, Object>> initiallySet;
+    private final Class<? extends S> myType;
 
     @Override
-    public final GroupBind<?, DEP> getRootBind() {
+    public final GroupBind<S> getRootBind() {
         return rootBind;
     }
 
     @Override
-    public final DEP getDependent() {
-        return dependencyObject;
-    }
-
-    @Override
-    public Class<? extends DataContainer<? super DEP>> getRepresentedType() {
+    public Class<? extends S> getRepresentedType() {
         return myType;
     }
 
@@ -58,40 +52,30 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     public DataContainerBase(
-            @Nullable UniObjectNode initialData, @Nullable DEP dependencyObject
-    ) {
-        this(initialData, dependencyObject, null);
-    }
-
-    public DataContainerBase(
             @Nullable UniObjectNode initialData,
-            @Nullable DEP dependencyObject,
-            @Nullable Class<? extends DataContainer<DEP>> containingClass
+            @Nullable Class<? extends DataContainer<? super S>> containingClass
     ) {
-        this.myType = containingClass == null ? (Class<? extends DataContainer<DEP>>) getClass() : containingClass;
+        this.myType = (Class<? extends S>) (containingClass == null ? getClass() : containingClass);
         this.rootBind = findRootBind(myType);
         this.initiallySet = unmodifiableSet(updateVars(initialData));
-        this.dependencyObject = dependencyObject;
     }
 
     DataContainerBase(
-            Map<VarBind<Object, DEP, ?, Object>, Object> initialValues,
-            DEP dependencyObject,
-            Class<? extends DataContainer<DEP>> containingClass
+            Map<VarBind<? super S, Object, ?, Object>, Object> initialValues,
+            Class<? extends DataContainer<? super S>> containingClass
     ) {
-        this.myType = containingClass == null ? (Class<? extends DataContainer<DEP>>) getClass() : containingClass;
+        this.myType = (Class<? extends S>) (containingClass == null ? getClass() : containingClass);
         this.rootBind = findRootBind(myType);
         this.initiallySet = unmodifiableSet(initialValues.keySet());
-        this.dependencyObject = dependencyObject;
         initialValues.forEach((bind, value) -> getExtractionReference(bind).set(Span.singleton(value)));
     }
 
     @Internal
-    public static <T extends DataContainer<? extends D>, D> GroupBind<T, D> findRootBind(Class<T> inClass) {
+    public static <T extends DataContainer<? super T>> GroupBind<T> findRootBind(Class<? extends T> inClass) {
         final Location location = ReflectionHelper.findAnnotation(Location.class, inClass, ElementType.TYPE).orElse(null);
 
-        final Iterator<GroupBind<T, D>> groups = ReflectionHelper
-                .<GroupBind<T, D>>collectStaticFields(
+        final Iterator<GroupBind<T>> groups = ReflectionHelper
+                .<GroupBind<T>>collectStaticFields(
                         uncheckedCast(GroupBind.class),
                         location == null ? inClass : location.value(),
                         true,
@@ -102,7 +86,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         return groups.next();
     }
 
-    private Set<VarBind<Object, ? super DEP, ?, Object>> updateVars(
+    private Set<VarBind<? super S, Object, ?, Object>> updateVars(
             @Nullable UniObjectNode data
     ) {
         if (data == null) {
@@ -112,12 +96,12 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         if (!getRootBind().isValidData(data))
             throw new IllegalArgumentException("Data is invalid");
 
-        final HashSet<VarBind<Object, ? super DEP, ?, Object>> changed = new HashSet<>();
+        final HashSet<VarBind<? super S, Object, ?, Object>> changed = new HashSet<>();
 
         getRootBind().streamAllChildren()
-                .map(it -> (VarBind<Object, ? super DEP, ?, Object>) it)
+                .map(it -> (VarBind<? super S, Object, ?, Object>) it)
                 .filter(bind -> data.has(bind.getFieldName()))
-                .map(it -> (VarBind<Object, Object, Object, Object>) it)
+                .map(it -> (VarBind<? super S, Object, Object, Object>) it)
                 .forEach(bind -> {
                     Span<Object> extract = bind.extract(data);
 
@@ -131,12 +115,12 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     @Override
-    public final Set<VarBind<Object, ?, ?, Object>> updateFrom(UniObjectNode node) {
+    public final Set<VarBind<? super S, Object, ?, Object>> updateFrom(UniObjectNode node) {
         return unmodifiableSet(updateVars(node));
     }
 
     @Override
-    public final Set<VarBind<Object, ? super DEP, ?, Object>> initiallySet() {
+    public final Set<VarBind<? super S, Object, ?, Object>> initiallySet() {
         return initiallySet;
     }
 
@@ -152,7 +136,7 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
         }
 
         // any stage in the groupbind tree
-        Processor<GroupBind<?, DEP>> parentGroup = Processor.ofConstant(getRootBind());
+        Processor<GroupBind<? super S>> parentGroup = Processor.ofConstant(getRootBind());
 
         // find the topmost parent
         while (parentGroup.requireNonNull()
@@ -209,14 +193,14 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
 
     private UniNode applyValueToNode(UniObjectNode applyTo, String key, Object it) {
         if (it instanceof DataContainer)
-            return ((DataContainer<DEP>) it).toObjectNode(applyTo.putObject(key));
+            return ((DataContainer<? super S>) it).toObjectNode(applyTo.putObject(key));
         else if (it instanceof UniNode)
             return applyTo.putObject(key).copyFrom((UniNode) it);
         else return applyTo.put(key, ValueType.STRING, String.valueOf(it));
     }
 
     @Override
-    public <R, T> @Nullable R put(VarBind<T, ? super DEP, ?, R> bind, Function<R, T> parser, R value) {
+    public <R, T> @Nullable R put(VarBind<? super S, T, ?, R> bind, Function<R, T> parser, R value) {
         final T apply = parser.apply(value);
         final R prev = getComputedReference(bind).get();
 
@@ -244,31 +228,31 @@ public class DataContainerBase<DEP> implements DataContainer<DEP> {
     }
 
     @Override
-    public <T, E> Reference<T> getComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
+    public <T, E> Reference<T> getComputedReference(VarBind<? super S, E, ?, T> bind) {
         return uncheckedCast(computed.computeIfAbsent(cacheBind(bind),
                 key -> uncheckedCast(new ComputedReference<>(bind))));
     }
 
     @Override
-    public <T> String cacheBind(VarBind<?, ? super DEP, ?, ?> bind) {
+    public <T> String cacheBind(VarBind<? super S, ?, ?, ?> bind) {
         final String fieldName = bind.getFieldName();
-        final Span<VarBind<?, ? super DEP, ?, ?>> span = binds.computeIfAbsent(fieldName, key -> new Span<>());
+        final Span<VarBind<? super S, ?, ?, ?>> span = binds.computeIfAbsent(fieldName, key -> new Span<>());
 
         span.add(bind);
         return fieldName;
     }
 
     public class ComputedReference<T, E> extends Reference.Support.Base<T> {
-        private final VarBind<E, ? super DEP, ?, T> bind;
+        private final VarBind<? super S, E, ?, T> bind;
         private final Processor<T> accessor;
 
-        public ComputedReference(VarBind<E, ? super DEP, ?, T> bind) {
+        public ComputedReference(VarBind<? super S, E, ?, T> bind) {
             super(false); // todo Implement reverse binding
 
             this.bind = bind;
             this.accessor = getExtractionReference(bind)
                     .process()
-                    .map(extr -> this.bind.process(getDependent(), extr));
+                    .map(extr -> this.bind.process(self(), extr));
         }
 
         @Override

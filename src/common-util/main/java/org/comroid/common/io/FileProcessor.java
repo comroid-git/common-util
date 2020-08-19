@@ -1,15 +1,15 @@
 package org.comroid.common.io;
 
-import org.comroid.api.Disposable;
+import org.comroid.common.Disposable;
 
 import java.io.IOException;
 
 public interface FileProcessor extends Disposable {
     FileHandle getFile();
 
-    void storeData() throws IOException;
+    int storeData() throws IOException;
 
-    void reloadData() throws IOException;
+    int reloadData() throws IOException;
 
     @Override
     default void close() throws MultipleExceptions {

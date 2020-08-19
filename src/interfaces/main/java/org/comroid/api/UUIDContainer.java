@@ -2,14 +2,19 @@ package org.comroid.api;
 
 import java.util.UUID;
 
-public class UUIDContainer {
-    private final UUID id = UUID.randomUUID();
+public interface UUIDContainer {
+    UUID getUUID();
 
-    public UUID getUUID() {
-        return id;
+    class Base implements UUIDContainer {
+        private final UUID id = UUID.randomUUID();
+
+        @Override
+        public UUID getUUID() {
+            return id;
+        }
     }
 
-    public static abstract class Seeded extends UUIDContainer {
+    abstract class Seeded implements UUIDContainer {
         private final UUID id = UUID.nameUUIDFromBytes(idSeed().getBytes());
 
         @Override

@@ -538,7 +538,7 @@ public final class REST<D> {
         }
 
         public final <ID> CompletableFuture<Span<T>> execute$autoCache(
-                VarBind<?, ? super D, ?, ID> identifyBind, Cache<ID, ? super T> cache
+                VarBind<Object, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache
         ) {
             return execute$body().thenApply(node -> {
                 if (node.isObjectNode()) {
@@ -555,7 +555,7 @@ public final class REST<D> {
             });
         }
 
-        private <ID> T cacheProduce(VarBind<?, ? super D, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
+        private <ID> T cacheProduce(VarBind<Object, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
             ID id = identifyBind.getFrom(obj);
 
             if (id == null) {

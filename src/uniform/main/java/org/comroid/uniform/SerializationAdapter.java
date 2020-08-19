@@ -36,10 +36,6 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
         this.arrayType = arrayType;
     }
 
-    public static SerializationAdapter<?, ?, ?> autodetect() {
-        throw new UnsupportedOperationException();
-    }
-
     public final UniNode readFile(FileHandle file) {
         return createUniNode(file.getContent());
     }
@@ -57,12 +53,10 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     public <TAR extends BAS> DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR> typeOf(
             TAR node
     ) {
-        if (objectType.typeClass()
-                .isInstance(node)) {
+        if (objectType.typeClass().isInstance(node)) {
             return (DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR>) objectType;
         }
-        if (arrayType.typeClass()
-                .isInstance(node)) {
+        if (arrayType.typeClass().isInstance(node)) {
             return (DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR>) arrayType;
         }
 

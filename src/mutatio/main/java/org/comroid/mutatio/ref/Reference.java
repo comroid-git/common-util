@@ -131,6 +131,14 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return remapper.apply(get());
     }
 
+    default <R> @Nullable R into(Class<R> type) {
+        final T it = get();
+
+        if (type.isInstance(it))
+            return type.cast(it);
+        return null;
+    }
+
     default boolean contentEquals(T other) {
         if (other == null)
             return isNull();
@@ -205,8 +213,22 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return get();
     }
 
-    default Reference<T> rebind(Supplier<T> behind) {
-        return new Support.Rebound<>(this::set, behind);
+    void rebind(Supplier<T> behind);
+
+    default Processor<T> filter(Predicate<? super T> predicate) {
+        return new Processor.Support.Filtered<>(this, predicate);
+    }
+
+    default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
+        return new Processor.Support.Remapped<>(this, mapper, null);
+    }
+
+    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper) {
+        return new Processor.Support.ReferenceFlatMapped<>(this, mapper, null);
+    }
+
+    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper) {
+        return flatMap(mapper.andThen(opt -> opt.map(Reference::constant).orElseGet(Reference::empty)));
     }
 
     @Deprecated
@@ -220,6 +242,7 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         public static abstract class Base<T> extends CachedValue.Abstract<T> implements Reference<T> {
             protected final AtomicReference<T> atom = new AtomicReference<>();
             private final boolean mutable;
+            private Supplier<T> overriddenSupplier = null;
 
             @Override
             public boolean isMutable() {
@@ -249,7 +272,7 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
                 if (isUpToDate())
                     return atom.get();
                 return atom.updateAndGet(old -> {
-                    final T value = doGet();
+                    final T value = overriddenSupplier != null ? overriddenSupplier.get() : doGet();
                     update(value);
                     return value;
                 });
@@ -266,10 +289,18 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
             }
 
             @Override
+            public void rebind(Supplier<T> behind) {
+                this.overriddenSupplier = behind;
+                outdate();
+            }
+
+            @Override
             public String toString() {
                 return String.format("Reference{atom=%s, mutable=%s, outdated=%s}", atom, mutable, isOutdated());
             }
         }
+
+
 
         public static class Default<T> extends Base<T> {
             protected Default(boolean mutable, T initialValue) {
@@ -286,6 +317,7 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
             @Override
             protected boolean doSet(T value) {
                 atom.set(value);
+                outdate();
                 return true;
             }
         }
@@ -302,6 +334,11 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
             }
 
             @Override
+            public boolean isOutdated() {
+                return true;
+            }
+
+            @Override
             protected T doGet() {
                 return getter.get();
             }
@@ -309,6 +346,7 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
             @Override
             protected boolean doSet(T value) {
                 setter.accept(value);
+                outdate();
                 return true;
             }
         }
@@ -322,6 +360,11 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
 
                 this.condition = condition;
                 this.supplier = supplier;
+            }
+
+            @Override
+            public boolean isOutdated() {
+                return true;
             }
 
             @Override

@@ -1,31 +1,21 @@
 package org.comroid.listnr;
 
-import org.comroid.common.info.Dependent;
-import org.comroid.listnr.impl.PipeAccessor;
 import org.comroid.mutatio.pipe.Pipe;
-import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.span.Span;
-import org.jetbrains.annotations.ApiStatus.Internal;
 
+import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
-public interface EventManager<D, I extends EventPayload, T extends EventType<? super D, ? super I, ? extends P>, P extends EventPayload>
-        extends Dependent<D> {
+public interface EventManager<I, T extends EventType<? super I, ? extends P>, P extends EventPayload> {
     UUID getUUID();
 
-    Span<EventManager<?, ?, ?, I>> getParents();
+    Span<EventManager<? super I, ? super T, ? super P>> getChildren();
 
-    Span<EventManager<?, P, ?, ?>> getChildren();
+    ListnrCore listnr();
 
-    Pipe<?, ? extends T> getListeningTypes();
+    <XP extends P> Pipe<?, XP> eventPipe(EventType<I, XP> type);
 
-    Span<? extends T> getEventTypes();
+    <XP extends P> void publish(EventType<I, XP> type, I payload);
 
-    <XP extends P> Pipe<?, XP> eventPipe(EventType<D, I, XP> type);
-
-    CompletableFuture<?> publish(I payload);
-
-    @Internal
-    <XP extends P> PipeAccessor<I, XP> getPipeAccessor(EventType<D, I, XP> eventType);
+    Collection<? extends EventType<? extends I, ? extends P>> getEventTypes();
 }

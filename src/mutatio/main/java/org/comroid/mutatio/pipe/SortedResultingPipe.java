@@ -5,6 +5,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class SortedResultingPipe<T> extends BasicPipe<T, T> implements Pipe<T, T> {
     private final Comparator<? super T> comparator;
@@ -38,8 +40,10 @@ public class SortedResultingPipe<T> extends BasicPipe<T, T> implements Pipe<T, T
             @Nullable
             @Override
             public T doGet() {
-                final List<T> sorted = refs.unwrap();
-                sorted.sort(comparator);
+                final List<T> sorted = refs.stream()
+                        .filter(Objects::nonNull)
+                        .sorted(comparator)
+                        .collect(Collectors.toList());
                 if (accessedIndex < sorted.size()) {
                     T v;
                     if ((v = sorted.get(accessedIndex)) != null)

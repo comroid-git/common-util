@@ -19,7 +19,7 @@ public final class FinishedBind {
         return new FragmentProviders.IntoCollection<>();
     }
 
-    public static final class SingleResult<R> extends UUIDContainer implements PartialBind.Finisher<R, R> {
+    public static final class SingleResult<R> extends UUIDContainer.Base implements PartialBind.Finisher<R, R> {
         private static final Invocable<? super SingleResult<?>> constructor = Invocable.ofConstructor(SingleResult.class);
 
         @Override
@@ -35,7 +35,7 @@ public final class FinishedBind {
         }
     }
 
-    public static class IntoCollection<R, C extends Collection<R>> extends UUIDContainer implements PartialBind.Finisher<R, C> {
+    public static class IntoCollection<R, C extends Collection<R>> extends UUIDContainer.Base implements PartialBind.Finisher<R, C> {
         private static final Invocable<? super IntoCollection<?, ?>> constructor = Invocable.ofConstructor(IntoCollection.class);
 
         private final Supplier<C> collectionSupplier;

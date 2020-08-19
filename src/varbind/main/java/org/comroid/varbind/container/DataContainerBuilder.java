@@ -12,7 +12,7 @@ import java.util.Objects;
 
 public abstract class DataContainerBuilder<S extends DataContainerBuilder<S, T, D>, T extends DataContainer<D>, D>
         implements Builder<T>, SelfDeclared<S> {
-    private final Map<VarBind<Object, D, ?, Object>, Object> values = new HashMap<>();
+    private final Map<VarBind<Object, Object, ?, Object>, Object> values = new HashMap<>();
     private final Class<T> type;
     private final @Nullable D dependencyObject;
 
@@ -21,7 +21,7 @@ public abstract class DataContainerBuilder<S extends DataContainerBuilder<S, T, 
         this.dependencyObject = dependencyObject;
     }
 
-    public final <V> S with(VarBind<V, ? super D, ?, ?> bind, V value) {
+    public final <V> S with(VarBind<Object, V, ?, ?> bind, V value) {
         values.put(Polyfill.uncheckedCast(bind), value);
 
         return Polyfill.uncheckedCast(this);

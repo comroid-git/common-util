@@ -1,9 +1,6 @@
 package org.comroid.spellbind;
 
-import org.comroid.api.Invocable;
-import org.comroid.api.Junction;
-import org.comroid.api.Polyfill;
-import org.comroid.api.UUIDContainer;
+import org.comroid.api.*;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.trie.TrieMap;
@@ -16,12 +13,13 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SpellCore<T extends TypeFragment<? super T>>
-        extends UUIDContainer
+        extends UUIDContainer.Base
         implements TypeFragment<T>, InvocationHandler {
-    static final Map<UUID, SpellCore<?>> coreInstances = new TrieMap.Basic<>(Junction.of(UUID::toString, UUID::fromString), false);
+    static final Map<UUID, SpellCore<?>> coreInstances = new ConcurrentHashMap<>();
     private final CompletableFuture<T> proxyFuture = new CompletableFuture<>();
     private final Object base;
     private final Map<String, Invocable<?>> methods;
@@ -32,7 +30,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
     }
 
     public static <T extends TypeFragment<? super T>> Builder<T> builder(Class<T> mainInterface) {
-        class Local extends UUIDContainer implements TypeFragment<T> {
+        class Local extends Base implements TypeFragment<T> {
         }
 
         return builder(mainInterface, new Local());

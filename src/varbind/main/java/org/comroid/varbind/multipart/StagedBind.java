@@ -21,16 +21,16 @@ public final class StagedBind {
         return new FragmentProviders.DependentTwoStage<>();
     }
 
-    public static final class OneStage<T> extends UUIDContainer implements PartialBind.Remapper<T, Object, T> {
+    public static final class OneStage<T> extends UUIDContainer.Base implements PartialBind.Remapper<Object, T, T> {
         private static final Invocable<? super OneStage<?>> constructor = Invocable.ofConstructor(OneStage.class);
 
         @Override
-        public T remap(T from, Object dependency) {
+        public T remap(Object dependency, T from) {
             return from;
         }
     }
 
-    public static final class TwoStage<T, R> extends UUIDContainer implements PartialBind.Remapper<T, Object, R> {
+    public static final class TwoStage<T, R> extends UUIDContainer.Base implements PartialBind.Remapper<Object, T, R> {
         private static final Invocable<? super TwoStage<?, ?>> constructor = Invocable.ofConstructor(TwoStage.class);
         private final Function<T, R> remapper;
 
@@ -39,12 +39,12 @@ public final class StagedBind {
         }
 
         @Override
-        public R remap(T from, Object dependency) {
+        public R remap(Object dependency, T from) {
             return remapper.apply(from);
         }
     }
 
-    public static final class DependentTwoStage<T, D, R> extends UUIDContainer implements PartialBind.Remapper<T, D, R> {
+    public static final class DependentTwoStage<T, D, R> extends UUIDContainer.Base implements PartialBind.Remapper<D, T, R> {
         private static final Invocable<? super DependentTwoStage<?, ?, ?>> constructor = Invocable.ofConstructor(DependentTwoStage.class);
         private final BiFunction<T, D, R> resolver;
 
@@ -53,7 +53,7 @@ public final class StagedBind {
         }
 
         @Override
-        public R remap(T from, D dependency) {
+        public R remap(D dependency, T from) {
             if (dependency == null)
                 throw new NullPointerException("Dependency Object is null");
 
@@ -62,30 +62,30 @@ public final class StagedBind {
     }
 
     private static final class FragmentProviders {
-        private interface RemapperProvider<T, D, R> extends TypeFragmentProvider<PartialBind.Remapper<T, D, R>> {
+        private interface RemapperProvider<T, D, R> extends TypeFragmentProvider<PartialBind.Remapper<D, T, R>> {
             @Override
-            default Class<PartialBind.Remapper<T, D, R>> getInterface() {
+            default Class<PartialBind.Remapper<D, T, R>> getInterface() {
                 return Polyfill.uncheckedCast(PartialBind.Remapper.class);
             }
         }
 
         private static final class OneStage<T> implements RemapperProvider<T, Object, T> {
             @Override
-            public Invocable.TypeMap<? extends PartialBind.Remapper<T, Object, T>> getInstanceSupplier() {
+            public Invocable.TypeMap<? extends PartialBind.Remapper<Object, T, T>> getInstanceSupplier() {
                 return Polyfill.uncheckedCast(StagedBind.OneStage.constructor.typeMapped());
             }
         }
 
         private static final class TwoStage<T, R> implements RemapperProvider<T, Object, R> {
             @Override
-            public Invocable.TypeMap<? extends PartialBind.Remapper<T, Object, R>> getInstanceSupplier() {
+            public Invocable.TypeMap<? extends PartialBind.Remapper<Object, T, R>> getInstanceSupplier() {
                 return Polyfill.uncheckedCast(StagedBind.TwoStage.constructor.typeMapped());
             }
         }
 
         private static final class DependentTwoStage<T, D, R> implements RemapperProvider<T, D, R> {
             @Override
-            public Invocable.TypeMap<? extends PartialBind.Remapper<T, D, R>> getInstanceSupplier() {
+            public Invocable.TypeMap<? extends PartialBind.Remapper<D, T, R>> getInstanceSupplier() {
                 return Polyfill.uncheckedCast(StagedBind.DependentTwoStage.constructor.typeMapped());
             }
         }
