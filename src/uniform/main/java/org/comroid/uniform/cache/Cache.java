@@ -8,7 +8,7 @@ import org.comroid.mutatio.ref.ReferenceMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
-public interface Cache<K, V> extends Iterable<CacheReference<K, V>>, ReferenceMap<K, V, CacheReference<K, V>> {
+public interface Cache<K, V> extends Iterable<CacheReference<K, V>>, ReferenceMap<K, V> {
     <R> Processor<R> accessor(K key, String name, Processor.Advancer<V, ? extends R> advancer);
 
     @Override

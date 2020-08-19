@@ -4,7 +4,6 @@ import org.comroid.api.SelfDeclared;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.span.Span;
-import org.comroid.trie.TrieMap;
 import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -20,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.ElementType;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
@@ -29,10 +29,10 @@ import static org.comroid.api.Polyfill.uncheckedCast;
 @SuppressWarnings("unchecked")
 public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared<? super S>> implements DataContainer<S> {
     private final GroupBind<S> rootBind;
-    private final Map<String, Span<VarBind<? super S, ?, ?, ?>>> binds = TrieMap.ofString();
-    private final Map<String, Reference<Span<Object>>> vars = TrieMap.ofString();
-    private final Map<String, Reference<Object>> computed = TrieMap.ofString();
-    private final Set<VarBind<? super S, Object, ?, Object>> initiallySet;
+    private final Map<String, Span<VarBind<? extends S, ?, ?, ?>>> binds = new ConcurrentHashMap<>();
+    private final Map<String, Reference<Span<Object>>> vars = new ConcurrentHashMap<>();
+    private final Map<String, Reference<Object>> computed = new ConcurrentHashMap<>();
+    private final Set<VarBind<? extends S, Object, ?, Object>> initiallySet;
     private final Class<? extends S> myType;
 
     @Override
@@ -61,7 +61,7 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
     }
 
     DataContainerBase(
-            Map<VarBind<? super S, Object, ?, Object>, Object> initialValues,
+            Map<VarBind<? extends S, Object, ?, Object>, Object> initialValues,
             Class<? extends DataContainer<? super S>> containingClass
     ) {
         this.myType = (Class<? extends S>) (containingClass == null ? getClass() : containingClass);
@@ -86,7 +86,7 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
         return groups.next();
     }
 
-    private Set<VarBind<? super S, Object, ?, Object>> updateVars(
+    private Set<VarBind<? extends S, Object, ?, Object>> updateVars(
             @Nullable UniObjectNode data
     ) {
         if (data == null) {
@@ -96,12 +96,12 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
         if (!getRootBind().isValidData(data))
             throw new IllegalArgumentException("Data is invalid");
 
-        final HashSet<VarBind<? super S, Object, ?, Object>> changed = new HashSet<>();
+        final HashSet<VarBind<? extends S, Object, ?, Object>> changed = new HashSet<>();
 
         getRootBind().streamAllChildren()
-                .map(it -> (VarBind<? super S, Object, ?, Object>) it)
+                .map(it -> (VarBind<? extends S, Object, ?, Object>) it)
                 .filter(bind -> data.has(bind.getFieldName()))
-                .map(it -> (VarBind<? super S, Object, Object, Object>) it)
+                .map(it -> (VarBind<? extends S, Object, Object, Object>) it)
                 .forEach(bind -> {
                     Span<Object> extract = bind.extract(data);
 
@@ -115,12 +115,12 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
     }
 
     @Override
-    public final Set<VarBind<? super S, Object, ?, Object>> updateFrom(UniObjectNode node) {
+    public final Set<VarBind<? extends S, Object, ?, Object>> updateFrom(UniObjectNode node) {
         return unmodifiableSet(updateVars(node));
     }
 
     @Override
-    public final Set<VarBind<? super S, Object, ?, Object>> initiallySet() {
+    public final Set<VarBind<? extends S, Object, ?, Object>> initiallySet() {
         return initiallySet;
     }
 
@@ -200,7 +200,7 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
     }
 
     @Override
-    public <R, T> @Nullable R put(VarBind<? super S, T, ?, R> bind, Function<R, T> parser, R value) {
+    public <R, T> @Nullable R put(VarBind<? extends S, T, ?, R> bind, Function<R, T> parser, R value) {
         final T apply = parser.apply(value);
         final R prev = getComputedReference(bind).get();
 
@@ -228,31 +228,31 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
     }
 
     @Override
-    public <T, E> Reference<T> getComputedReference(VarBind<? super S, E, ?, T> bind) {
+    public <T, E> Reference<T> getComputedReference(VarBind<? extends S, E, ?, T> bind) {
         return uncheckedCast(computed.computeIfAbsent(cacheBind(bind),
                 key -> uncheckedCast(new ComputedReference<>(bind))));
     }
 
     @Override
-    public <T> String cacheBind(VarBind<? super S, ?, ?, ?> bind) {
+    public <T> String cacheBind(VarBind<? extends S, ?, ?, ?> bind) {
         final String fieldName = bind.getFieldName();
-        final Span<VarBind<? super S, ?, ?, ?>> span = binds.computeIfAbsent(fieldName, key -> new Span<>());
+        final Span<VarBind<? extends S, ?, ?, ?>> span = binds.computeIfAbsent(fieldName, key -> new Span<>());
 
         span.add(bind);
         return fieldName;
     }
 
     public class ComputedReference<T, E> extends Reference.Support.Base<T> {
-        private final VarBind<? super S, E, ?, T> bind;
+        private final VarBind<S, E, ?, T> bind;
         private final Processor<T> accessor;
 
-        public ComputedReference(VarBind<? super S, E, ?, T> bind) {
+        public ComputedReference(VarBind<? extends S, E, ?, T> bind) {
             super(false); // todo Implement reverse binding
 
-            this.bind = bind;
+            this.bind = uncheckedCast(bind);
             this.accessor = getExtractionReference(bind)
                     .process()
-                    .map(extr -> this.bind.process(self(), extr));
+                    .map(extr -> this.bind.process(DataContainerBase.this.self(), extr));
         }
 
         @Override

@@ -283,6 +283,11 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
     }
 
     @Override
+    public void rebind(Supplier<T> behind) {
+        throw new UnsupportedOperationException("Cannot rebind Span");
+    }
+
+    @Override
     public Reference<T> getReference(int index) {
         return storage.getReference(index);
     }

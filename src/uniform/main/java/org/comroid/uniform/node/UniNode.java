@@ -17,14 +17,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Type type;
-    private final Map<String, Reference<String>> baseAccessors = TrieMap.ofString();
-    private final Map<String, Processor<UniNode>> wrappedAccessors = TrieMap.ofString();
+    private final Map<String, Reference<String>> baseAccessors = new ConcurrentHashMap<>();
+    private final Map<String, Processor<UniNode>> wrappedAccessors = new ConcurrentHashMap<>();
 
     public String getSerializedString() {
         return toString();

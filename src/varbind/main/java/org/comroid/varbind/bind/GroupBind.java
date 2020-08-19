@@ -166,12 +166,13 @@ public final class GroupBind<T extends DataContainer<? super T>> implements Iter
         return streamAllChildren().allMatch(bind -> data.has(bind.getFieldName()) || !bind.isRequired());
     }
 
-    public Stream<VarBind<? super T, ?, ?, ?>> streamAllChildren() {
+    public Stream<? extends VarBind<? super T, ?, ?, ?>> streamAllChildren() {
         return Stream.concat(
                 getParents().stream()
                         .flatMap(GroupBind::streamAllChildren),
-                children.stream()
-        ).distinct();
+                children.stream())
+                .map(Polyfill::<VarBind<? super T, ?, ?, ?>>uncheckedCast)
+                .distinct();
     }
 
     public Invocable<? super T> autoConstructor(

@@ -6,6 +6,7 @@ import org.comroid.api.Polyfill;
 import org.comroid.common.Disposable;
 import org.comroid.common.io.FileHandle;
 import org.comroid.common.io.FileProcessor;
+import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -74,7 +75,10 @@ public class FileCache<K, V extends DataContainer<V>, D>
     public synchronized int storeData() throws IOException {
         final UniArrayNode data = seriLib.createUniArrayNode(null);
 
-        stream().filter(ref -> !ref.isNull())
+        entryIndex()
+                .stream()
+                .map(Polyfill::<KeyedReference<K, V>>uncheckedCast)
+                .filter(ref -> !ref.isNull())
                 .forEach(ref -> {
                     final V it = ref.get();
 

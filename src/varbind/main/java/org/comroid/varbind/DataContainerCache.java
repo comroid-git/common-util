@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-public abstract class DataContainerCache<K, V extends DataContainer<V>, D>
+public abstract class DataContainerCache<K, V extends DataContainer<? super V>, D>
         extends BasicCache<K, V>
         implements Cache<K, V>, Dependent<D> {
     protected final VarBind<? super V, ?, ?, K> idBind;
@@ -40,7 +40,7 @@ public abstract class DataContainerCache<K, V extends DataContainer<V>, D>
     public DataContainerCache(
             int largeThreshold,
             Map<K, CacheReference<K, V>> map,
-            VarBind<?, ? super D, ?, K> idBind,
+            VarBind<? super V, ?, ?, K> idBind,
             @Nullable D dependencyObject
     ) {
         super(largeThreshold, map);
@@ -50,13 +50,13 @@ public abstract class DataContainerCache<K, V extends DataContainer<V>, D>
     }
 
     public boolean add(V value) {
-        final K key = value.requireNonNull(idBind);
+        final K key = value.requireNonNull(Polyfill.uncheckedCast(idBind));
 
         return set(key, value);
     }
 
     public boolean remove(V value) {
-        final K key = value.requireNonNull(idBind);
+        final K key = value.requireNonNull(Polyfill.uncheckedCast(idBind));
 
         return containsKey(key) && set(key, null);
     }

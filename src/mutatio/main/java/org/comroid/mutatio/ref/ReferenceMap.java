@@ -25,8 +25,8 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
         return create(new ConcurrentHashMap<>());
     }
 
-    static <K, V> ReferenceMap<K, V> create(Map<K, Reference<V>> refMap) {
-        return new ReferenceMap.Support.Basic<>(refMap);
+    static <K, V> ReferenceMap<K, V> create(Map<K, KeyedReference<K, V>> refMap) {
+        return new ReferenceMap.Support.Basic<K, V>(refMap);
     }
 
     default boolean put(K key, V value) {

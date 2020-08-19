@@ -14,7 +14,7 @@ public class UniValueNode<T> extends UniNode {
         return asRaw(null);
     }
 
-    protected UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
+    public UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
         super(serializationAdapter, Type.VALUE);
 
         this.adapter = adapter;

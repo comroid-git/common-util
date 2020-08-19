@@ -2,6 +2,9 @@ package org.comroid.varbind.bind;
 
 import org.comroid.api.Builder;
 import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
+import org.comroid.common.info.MessageSupplier;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.spellbind.SpellCore;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.uniform.ValueType;
@@ -34,7 +37,7 @@ public final class BindBuilder<SELF extends DataContainer<? super SELF>, EXTR, R
     private boolean required = false;
     private ValueType<? extends EXTR> valueType = null;
     private Function<EXTR, REMAP> remapper = null;
-    private BiFunction<EXTR, Object, REMAP> resolver = null;
+    private BiFunction<SELF, EXTR, REMAP> resolver = null;
     private Supplier<? extends Collection<REMAP>> collectionProvider = null;
     private ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 
@@ -121,7 +124,7 @@ public final class BindBuilder<SELF extends DataContainer<? super SELF>, EXTR, R
     }
 
     @Contract(value = "_ -> this", mutates = "this")
-    public <R> BindBuilder<SELF, EXTR, R, FINAL> andResolve(BiFunction<EXTR, Object, R> resolver) {
+    public <R> BindBuilder<SELF, EXTR, R, FINAL> andResolve(BiFunction<SELF, EXTR, R> resolver) {
         this.remapper = null;
         this.resolver = uncheckedCast(resolver);
         this.remapperProvider = uncheckedCast((Object) StagedBind.dependentTwoStageProvider());
@@ -130,31 +133,56 @@ public final class BindBuilder<SELF extends DataContainer<? super SELF>, EXTR, R
     }
 
     @Contract(value = "_ -> this", mutates = "this")
-    public <R extends DataContainer<? extends Object>> BindBuilder<SELF, UniObjectNode, R, FINAL> andConstruct(GroupBind<SELF> targetBind) {
+    public <R extends DataContainer<? super R>> BindBuilder<SELF, UniObjectNode, R, FINAL> andConstruct(GroupBind<R> targetBind) {
         return uncheckedCast(
                 andResolve(targetBind.getConstructor()
-                        .map(Invocable::<EXTR, Object>biFunction)
+                        .map(Invocable::<SELF, EXTR>biFunction)
                         .orElseThrow(() -> new NoSuchElementException("No Constructor in " + targetBind))));
     }
 
     @Contract(value = "_,_,_ -> this", mutates = "this")
-    public <R extends DataContainer<? extends Object>, ID> BindBuilder<SELF, UniObjectNode, R, FINAL> andProvide(
-            VarBind<SELF, ?, ?, ID> idBind,
-            BiFunction<ID, Object, R> resolver,
-            GroupBind<SELF> targetBind
+    public <R extends DataContainer<? super R>, ID> BindBuilder<SELF, UniObjectNode, R, FINAL> andProvide(
+            VarBind<? super R, ?, ?, ID> idBind,
+            BiFunction<SELF, ID, R> resolver,
+            GroupBind<R> targetBind
     ) {
         return uncheckedCast(
-                andResolve((obj, dpnd) -> {
-                    if (!(obj instanceof UniObjectNode))
-                        throw new IllegalStateException();
-                    final ID id = idBind.getFrom((UniObjectNode) obj);
-                    final R firstResult = resolver.apply(id, dpnd);
+                andResolve((self, data) -> {
+                    if (!(data instanceof UniObjectNode))
+                        throw new IllegalStateException("cannot provide without uninode parameter");
+                    final ID id = idBind.getFrom(((UniObjectNode) data).asObjectNode());
+                    final R firstResult = resolver.apply(self, id);
 
                     if (firstResult == null)
                         return targetBind.getConstructor()
-                                .map(constr -> constr.autoInvoke(obj, dpnd, id))
+                                .map(constr -> constr.autoInvoke(self, data, id))
                                 .orElseThrow(() -> new NoSuchElementException("Could not instantiate " + targetBind));
+
+                    firstResult.updateFrom((UniObjectNode) data);
                     return firstResult;
+                }));
+    }
+
+    @Contract(value = "_,_,_ -> this", mutates = "this")
+    public <R extends DataContainer<? super R>, ID> BindBuilder<SELF, UniObjectNode, R, FINAL> andProvideRef(
+            VarBind<? super R, ?, ?, ID> idBind,
+            BiFunction<SELF, ID, Reference<R>> resolver,
+            GroupBind<R> targetBind
+    ) {
+        return uncheckedCast(
+                andResolve((self, data) -> {
+                    if (!(data instanceof UniObjectNode))
+                        throw new IllegalStateException("cannot provide without uninode parameter");
+                    final ID id = idBind.getFrom(((UniObjectNode) data).asObjectNode());
+
+                    return resolver.apply(self, id)
+                            .process()
+                            .peek(it -> it.updateFrom((UniObjectNode) data))
+                            .or(() -> targetBind.getConstructor()
+                                    .map(constr -> constr.autoInvoke(self, data, id))
+                                    .map(Polyfill::<R>uncheckedCast)
+                                    .orElse(null))
+                            .requireNonNull(MessageSupplier.format("Could not instantiate %s", targetBind));
                 }));
     }
 

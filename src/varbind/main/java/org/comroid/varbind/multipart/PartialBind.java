@@ -15,7 +15,7 @@ public final class PartialBind {
     }
 
     @Partial
-    public interface Base<MEMBEROF extends DataContainer<?>, EXTR, REMAP, FINAL> extends BindFragment {
+    public interface Base<MEMBEROF extends DataContainer<? super MEMBEROF>, EXTR, REMAP, FINAL> extends BindFragment {
         String getFieldName();
 
         boolean isRequired();

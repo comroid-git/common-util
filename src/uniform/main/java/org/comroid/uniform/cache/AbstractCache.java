@@ -1,12 +1,14 @@
 package org.comroid.uniform.cache;
 
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.ref.ReferenceMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -14,10 +16,10 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     private final ReferenceMap<K, V> cache;
 
     protected AbstractCache() {
-        this(ReferenceMap.create(refMap));
+        this(ReferenceMap.create(new ConcurrentHashMap<>()));
     }
 
-    protected AbstractCache(ReferenceMap<K, V, CacheReference<K, V>> cache) {
+    protected AbstractCache(ReferenceMap<K, V> cache) {
         this.cache = cache;
     }
 
@@ -39,17 +41,17 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public final Stream<CacheReference<K, V>> stream(Predicate<K> filter) {
+    public final Stream<KeyedReference<K, V>> stream(Predicate<K> filter) {
         return cache.stream(filter);
     }
 
     @Override
-    public Pipe<?, CacheReference<K, V>> pipe(Predicate<K> filter) {
+    public Pipe<?, KeyedReference<K, V>> pipe(Predicate<K> filter) {
         return cache.pipe(filter);
     }
 
     @Override
-    public @NotNull CacheReference<K, V> getReference(K key, boolean createIfAbsent) { // todo lol why is this suggestion here
+    public @NotNull KeyedReference<K, V> getReference(K key, boolean createIfAbsent) { // todo lol why is this suggestion here
         return Objects.requireNonNull(cache.getReference(key, createIfAbsent), "please contact the developer");
     }
 

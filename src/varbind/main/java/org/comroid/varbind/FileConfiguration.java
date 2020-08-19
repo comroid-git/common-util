@@ -12,11 +12,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 public class FileConfiguration extends DataContainerBase<FileConfiguration> implements FileProcessor {
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final FileHandle file;
-    private final Collection<AutoCloseable> children = new ArrayList<>();
+    private final UUID uuid = UUID.randomUUID();
 
     @Override
     public final FileHandle getFile() {
@@ -24,8 +25,8 @@ public class FileConfiguration extends DataContainerBase<FileConfiguration> impl
     }
 
     @Override
-    public Collection<? extends AutoCloseable> getChildren() {
-        return children;
+    public UUID getUUID() {
+        return uuid;
     }
 
     public FileConfiguration(
@@ -46,11 +47,6 @@ public class FileConfiguration extends DataContainerBase<FileConfiguration> impl
         this.file = file;
 
         reloadData();
-    }
-
-    @Override
-    public void addChildren(AutoCloseable child) {
-        children.add(child);
     }
 
     @Override

@@ -104,7 +104,7 @@ public class SpellCore<T extends TypeFragment<? super T>>
         }
 
         public T build(Object... args) {
-            final TrieMap<String, Invocable<?>> methods = TrieMap.ofString();
+            final Map<String, Invocable<?>> methods = new ConcurrentHashMap<>();
 
             scanMethods(methods, base);
 

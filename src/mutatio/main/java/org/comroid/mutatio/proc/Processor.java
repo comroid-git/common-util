@@ -74,11 +74,7 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
 
     @Override
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
-        return flatMap(mapper, null);
-    }
-
-    default <R> Processor<R> flatMap(Function<? super T, ? extends R> mapper, Function<R, T> backwardsConverter) {
-        return new Support.Remapped<>(this, mapper, backwardsConverter);
+        return new Support.Remapped<>(this, mapper, null);
     }
 
     default Processor<T> peek(Consumer<? super T> action) {
@@ -86,6 +82,11 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
             action.accept(it);
             return it;
         }, Function.identity());
+    }
+
+    @Override
+    default Processor<T> process() {
+        return this;
     }
 
     @Override
@@ -112,13 +113,15 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return new Support.Or<>(this, other);
     }
 
+    @Deprecated
     default Reference<T> snapshot() {
-        return upstream()
+        final Optional<Reference<T>> ref = upstream()
                 .filter(Reference::isMutable)
                 .findAny()
-                .map(Polyfill::<Reference<T>>uncheckedCast)
-                .map(ref -> ref.rebind(this))
-                .orElseGet(() -> into(Reference::create));
+                .map(Polyfill::uncheckedCast);
+
+        ref.ifPresent(r -> r.rebind(this));
+        return ref.orElseGet(() -> into(Reference::create));
     }
 
     @FunctionalInterface

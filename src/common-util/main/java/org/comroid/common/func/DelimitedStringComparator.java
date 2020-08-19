@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 public class DelimitedStringComparator implements Comparator<String> {
@@ -41,7 +42,7 @@ public class DelimitedStringComparator implements Comparator<String> {
     }
 
     public static final class StringBox implements Comparable<String> {
-        private static final Map<String, StringBox> boxCache = TrieMap.ofString();
+        private static final Map<String, StringBox> boxCache = new ConcurrentHashMap<>();
         private final String inside;
 
         private StringBox(String inside) {

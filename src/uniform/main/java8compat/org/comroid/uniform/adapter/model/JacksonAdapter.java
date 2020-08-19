@@ -59,7 +59,7 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
             if (node.isObject())
                 return createUniObjectNode((ObjectNode) node);
             if (node.isValueNode())
-                return createValueNode(null, (ValueNode) node);
+                return createValueNode((ValueNode) node);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(String.format("Invalid %s data: \n%s", mimeType, data), e);
         }
@@ -78,14 +78,14 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
 
             @Override
             protected boolean doSet(String value) {
-                return base.set;
+                return false; // todo
             }
         }));
     }
 
     @Override
     public UniObjectNode createUniObjectNode(ObjectNode node) {
-        new UniObjectNode(this, new UniObjectNode.Adapter<ObjectNode>(node) {
+        return new UniObjectNode(this, new UniObjectNode.Adapter<ObjectNode>(node) {
             @Override
             public Object put(String key, Object value) {
                 return baseNode.put(key, String.valueOf(value));
@@ -93,9 +93,12 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
 
             @Override
             public @NotNull Set<Entry<String, Object>> entrySet() {
+                /*
                 return StreamSupport.stream(baseNode.spliterator(), false)
                         .map(node -> new )
                         .collect(Collectors.toSet());
+                 */
+                return null; // todo
             }
         });
     }

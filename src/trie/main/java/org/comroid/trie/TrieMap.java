@@ -12,15 +12,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface TrieMap<K, V> extends ReferenceMap<K, V, KeyedReference<K,V>>, Map<K, V> {
+public interface TrieMap<K, V> extends ReferenceMap<K, V> {
     Junction<K, String> getKeyConverter();
 
-    @Override
     default boolean isEmpty() {
         return size() == 0;
     }
@@ -33,7 +33,6 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, KeyedReference<K,V>>, 
         return new TrieArrayMap<>(parser);
     }
 
-    @Override
     default void putAll(@NotNull Map<? extends K, ? extends V> map) {
         map.forEach(this::put);
     }
@@ -46,13 +45,11 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, KeyedReference<K,V>>, 
     }
 
     @NotNull
-    @Override
     default Set<Entry<K, V>> entrySet() {
         return Collections.unmodifiableSet(new HashSet<>(entryIndex().unwrap()));
     }
 
     @NotNull
-    @Override
     default Set<K> keySet() {
         //noinspection SimplifyStreamApiCallChains
         return Collections.unmodifiableSet(entrySet()
@@ -62,7 +59,6 @@ public interface TrieMap<K, V> extends ReferenceMap<K, V, KeyedReference<K,V>>, 
     }
 
     @NotNull
-    @Override
     default Collection<V> values() {
         return entryIndex().pipe()
                 .map(Entry::getValue)

@@ -2,13 +2,19 @@ package org.comroid.trie;
 
 import org.comroid.api.Junction;
 import org.comroid.api.Polyfill;
+import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public final class TrieArrayMap<K, V> extends TrieStage<K, V> implements TrieMap<K, V> {
     private final Junction<K, String> converter;
@@ -52,6 +58,21 @@ public final class TrieArrayMap<K, V> extends TrieStage<K, V> implements TrieMap
     }
 
     @Override
+    public Stream<KeyedReference<K, V>> stream(Predicate<K> filter) {
+        return null;
+    }
+
+    @Override
+    public Pipe<?, KeyedReference<K, V>> pipe(Predicate<K> filter) {
+        return null;
+    }
+
+    @Override
+    public void forEach(BiConsumer<K, V> action) {
+
+    }
+
+    @Override
     public boolean containsKey(Object key) {
         return getReference(Polyfill.uncheckedCast(key), false) != null;
     }
@@ -61,13 +82,11 @@ public final class TrieArrayMap<K, V> extends TrieStage<K, V> implements TrieMap
         return false;//todo
     }
 
-    @Nullable
     @Override
-    public V put(K key, V value) {
-        return getReference(key, true).setValue(value);
+    public boolean put(K key, V value) {
+        return getReference(key, true).setValue(value) != value;
     }
 
-    @Override
     public V remove(Object key) {
         final KeyedReference<K, V> ref = getReference(Polyfill.uncheckedCast(key), false);
 

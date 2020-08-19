@@ -21,34 +21,34 @@ public interface DataContainer<S extends DataContainer<? super S> & SelfDeclared
 
     Class<? extends S> getRepresentedType();
 
-    Set<VarBind<? super S, Object, ?, Object>> updateFrom(UniObjectNode node);
+    Set<VarBind<? extends S, Object, ?, Object>> updateFrom(UniObjectNode node);
 
-    Set<VarBind<? super S, Object, ?, Object>> initiallySet();
+    Set<VarBind<? extends S, Object, ?, Object>> initiallySet();
 
     <T> Optional<Reference<T>> getByName(String name);
 
     @Deprecated
-    default <T> @NotNull Reference<T> ref(VarBind<? super S, ?, ?, T> bind) {
+    default <T> @NotNull Reference<T> ref(VarBind<? extends S, ?, ?, T> bind) {
         return getComputedReference(bind);
     }
 
-    default <T> @Nullable T get(VarBind<? super S, ?, ?, T> bind) {
+    default <T> @Nullable T get(VarBind<? extends S, ?, ?, T> bind) {
         return getComputedReference(bind).get();
     }
 
-    default <T> @NotNull Optional<T> wrap(VarBind<? super S, ?, ?, T> bind) {
+    default <T> @NotNull Optional<T> wrap(VarBind<? extends S, ?, ?, T> bind) {
         return getComputedReference(bind).wrap();
     }
 
-    default @NotNull <T> T requireNonNull(VarBind<? super S, ?, ?, T> bind) {
+    default @NotNull <T> T requireNonNull(VarBind<? extends S, ?, ?, T> bind) {
         return getComputedReference(bind).requireNonNull("No value for property " + bind.getFieldName());
     }
 
-    default @NotNull <T> T requireNonNull(VarBind<? super S, ?, ?, T> bind, String message) {
+    default @NotNull <T> T requireNonNull(VarBind<? extends S, ?, ?, T> bind, String message) {
         return getComputedReference(bind).requireNonNull(message);
     }
 
-    default @NotNull <T> Processor<T> process(VarBind<? super S, ?, ?, T> bind) {
+    default @NotNull <T> Processor<T> process(VarBind<? extends S, ?, ?, T> bind) {
         return getComputedReference(bind).process();
     }
 
@@ -58,22 +58,22 @@ public interface DataContainer<S extends DataContainer<? super S> & SelfDeclared
 
     UniObjectNode toObjectNode(UniObjectNode node);
 
-    default <T> @Nullable T put(VarBind<? super S, T, ?, T> bind, T value) {
+    default <T> @Nullable T put(VarBind<? extends S, T, ?, T> bind, T value) {
         return put(bind, Function.identity(), value);
     }
 
-    <T, X> @Nullable T put(VarBind<? super S, X, ?, T> bind, Function<T, X> parser, T value);
+    <T, X> @Nullable T put(VarBind<? extends S, X, ?, T> bind, Function<T, X> parser, T value);
 
     <E> Reference<Span<E>> getExtractionReference(String fieldName);
 
-    default <E> Reference<Span<E>> getExtractionReference(VarBind<? super S, E, ?, ?> bind) {
+    default <E> Reference<Span<E>> getExtractionReference(VarBind<? extends S, E, ?, ?> bind) {
         return getExtractionReference(cacheBind(bind));
     }
 
-    <T, E> Reference<T> getComputedReference(VarBind<? super S, E, ?, T> bind);
+    <T, E> Reference<T> getComputedReference(VarBind<? extends S, E, ?, T> bind);
 
     @Internal
-    <T> String cacheBind(VarBind<? super S, ?, ?, ?> bind);
+    <T> String cacheBind(VarBind<? extends S, ?, ?, ?> bind);
 
     interface Underlying<S extends DataContainer<? super S> & SelfDeclared<? super S>> extends DataContainer<S> {
         DataContainer<S> getUnderlyingVarCarrier();
@@ -89,12 +89,12 @@ public interface DataContainer<S extends DataContainer<? super S> & SelfDeclared
         }
 
         @Override
-        default Set<VarBind<? super S, Object, ?, Object>> updateFrom(UniObjectNode node) {
+        default Set<VarBind<? extends S, Object, ?, Object>> updateFrom(UniObjectNode node) {
             return getUnderlyingVarCarrier().updateFrom(node);
         }
 
         @Override
-        default Set<VarBind<? super S, Object, ?, Object>> initiallySet() {
+        default Set<VarBind<? extends S, Object, ?, Object>> initiallySet() {
             return getUnderlyingVarCarrier().initiallySet();
         }
 
@@ -109,7 +109,7 @@ public interface DataContainer<S extends DataContainer<? super S> & SelfDeclared
         }
 
         @Override
-        default <T, E> @Nullable T put(VarBind<? super S, E, ?, T> bind, Function<T, E> parser, T value) {
+        default <T, E> @Nullable T put(VarBind<? extends S, E, ?, T> bind, Function<T, E> parser, T value) {
             return getUnderlyingVarCarrier().put(bind, parser, value);
         }
 
@@ -119,12 +119,12 @@ public interface DataContainer<S extends DataContainer<? super S> & SelfDeclared
         }
 
         @Override
-        default <T, E> Reference<T> getComputedReference(VarBind<? super S, E, ?, T> bind) {
+        default <T, E> Reference<T> getComputedReference(VarBind<? extends S, E, ?, T> bind) {
             return getUnderlyingVarCarrier().getComputedReference(bind);
         }
 
         @Override
-        default <T> String cacheBind(VarBind<? super S, ?, ?, ?> bind) {
+        default <T> String cacheBind(VarBind<? extends S, ?, ?, ?> bind) {
             return getUnderlyingVarCarrier().cacheBind(bind);
         }
     }
