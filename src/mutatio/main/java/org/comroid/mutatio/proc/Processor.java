@@ -1,6 +1,5 @@
 package org.comroid.mutatio.proc;
 
-import org.comroid.api.Polyfill;
 import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
@@ -251,6 +250,11 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
                 super(base, Function.identity());
 
                 this.other = other;
+            }
+
+            @Override
+            public boolean isOutdated() {
+                return true;
             }
 
             @Override

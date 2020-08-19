@@ -30,7 +30,7 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
     }
 
     default boolean put(K key, V value) {
-        return getReference(key, value != null).set(value);
+        return getReference(key, true).set(value);
     }
 
     default KeyedReference<K, V> getReference(K key) {

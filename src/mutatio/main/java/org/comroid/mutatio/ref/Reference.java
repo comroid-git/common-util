@@ -283,9 +283,7 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
                 if (isImmutable())
                     return false;
 
-                final boolean updated = update(value) == value;
-                final boolean set = doSet(value);
-                return set & updated;
+                return doSet(value) & (update(value) == value);
             }
 
             @Override

@@ -57,7 +57,7 @@ public interface BiProcessor<A, B> extends Processor<Pair<A, B>> {
     }
 
     default <R> Reference<R> merge(BiFunction<A, B, R> mergeFunction) {
-        return Reference.conditional(getParent().get()::isUpToDate, () -> {
+        return Reference.provided(() -> {
             final Pair<A, B> pair = get();
 
             if (pair == null) return null;
