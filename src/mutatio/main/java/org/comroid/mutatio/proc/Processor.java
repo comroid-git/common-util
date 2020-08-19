@@ -67,15 +67,15 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return new Support.Filtered<>(this, predicate);
     }
 
-    default <R> Processor<R> map(Class<R> type) {
+    default <R> Processor<R> flatMap(Class<R> type) {
         return filter(type::isInstance).map(type::cast);
     }
 
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
-        return map(mapper, null);
+        return flatMap(mapper, null);
     }
 
-    default <R> Processor<R> map(Function<? super T, ? extends R> mapper, Function<R, T> backwardsConverter) {
+    default <R> Processor<R> flatMap(Function<? super T, ? extends R> mapper, Function<R, T> backwardsConverter) {
         return new Support.Remapped<>(this, mapper, backwardsConverter);
     }
 

@@ -267,7 +267,7 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
 
             @Override
             public String toString() {
-                return String.format("ReferenceBase{atom=%s, mutable=%s, outdated=%s}", atom, mutable, isOutdated());
+                return String.format("Reference{atom=%s, mutable=%s, outdated=%s}", atom, mutable, isOutdated());
             }
         }
 
