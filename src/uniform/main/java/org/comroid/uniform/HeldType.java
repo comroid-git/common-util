@@ -6,5 +6,5 @@ import org.comroid.common.ref.Named;
 public interface HeldType<R> extends Named {
     Junction<String, R> getConverter();
 
-    <T> T convert(R value, ValueType<T> toType);
+    <T> T convert(R value, HeldType<T> toType);
 }

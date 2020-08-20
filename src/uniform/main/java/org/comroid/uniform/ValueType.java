@@ -48,8 +48,8 @@ public final class ValueType<R> implements HeldType<R> {
     }
 
     @Override
-    public <T> T convert(R value, ValueType<T> toType) {
-        return toType.converter.forward(value.toString());
+    public <T> T convert(R value, HeldType<T> toType) {
+        return toType.getConverter().forward(value.toString());
     }
 
     @Override
