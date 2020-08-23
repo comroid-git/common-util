@@ -11,6 +11,7 @@ import org.comroid.common.exception.AssertionException;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
+import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
 import org.comroid.uniform.node.UniObjectNode;
@@ -18,12 +19,9 @@ import org.comroid.uniform.node.UniValueNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, ObjectNode, ArrayNode> {
     private final ObjectMapper objectMapper;
@@ -71,14 +69,14 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
     }
 
     private UniValueNode<String> createValueNode(ValueNode dataString) {
-        return new UniValueNode<>(this, new UniValueNode.Adapter.ViaString(new Reference.Support.Base<String>(false) {
+        return new UniValueNode<>(this, new Reference.Support.Base<String>(false) {
             private final ValueNode base = dataString;
 
             @Override
             protected String doGet() {
                 return base.asText();
             }
-        }));
+        }, ValueType.STRING);
     }
 
     @Override

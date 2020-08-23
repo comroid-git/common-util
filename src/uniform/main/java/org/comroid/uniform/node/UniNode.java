@@ -5,7 +5,6 @@ import org.comroid.api.Specifiable;
 import org.comroid.common.info.MessageSupplier;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
-import org.comroid.trie.TrieMap;
 import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.HeldType;
 import org.comroid.uniform.SerializationAdapter;
@@ -313,8 +312,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
                     } catch (IllegalArgumentException ignored) {
                     }
 
-                    final UniValueNode.Adapter.ViaString adapter = new UniValueNode.Adapter.ViaString(base);
-                    return new UniValueNode<>(serializationAdapter, adapter);
+                    return new UniValueNode<>(serializationAdapter, base, ValueType.STRING);
                 }));
     }
 
