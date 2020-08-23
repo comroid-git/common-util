@@ -7,6 +7,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UniValueNode<T> extends UniNode {
+    public static final UniValueNode<Void> NULL = new UniValueNode<>(null, Reference.empty(), ValueType.VOID);
+
+    public static <T> UniValueNode<T> empty() {
+        //noinspection unchecked
+        return (UniValueNode<T>) NULL;
+    }
+
     private final Reference<T> baseReference;
     private final ValueType<T> targetType;
 
@@ -14,10 +21,6 @@ public class UniValueNode<T> extends UniNode {
         super(seriLib, Type.VALUE);
         this.baseReference = baseReference;
         this.targetType = targetType;
-    }
-
-    public static <T> UniValueNode<T> nullNode() {
-        return (UniValueNode<T>) Null.instance;
     }
 
     @Override
@@ -174,6 +177,16 @@ public class UniValueNode<T> extends UniNode {
         return as(ValueType.CHARACTER);
     }
 
+    @Deprecated
+    public static <T> UniValueNode<T> nullNode() {
+        return empty();
+    }
+
+    @Override
+    public boolean isNull() {
+        return baseReference.isNull();
+    }
+
     public interface Adapter<T> extends UniNode.Adapter {
         @Nullable <R> R get(ValueType<R> as);
 
@@ -209,14 +222,6 @@ public class UniValueNode<T> extends UniNode {
             public String toString() {
                 return String.format("\"%s\"", sub.get());
             }
-        }
-    }
-
-    static final class Null extends UniValueNode<Void> {
-        private static final UniValueNode<?> instance = new Null();
-
-        private Null() {
-            super(null, Reference.empty(), ValueType.VOID);
         }
     }
 }

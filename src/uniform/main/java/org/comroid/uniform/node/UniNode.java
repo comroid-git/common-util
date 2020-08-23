@@ -53,7 +53,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
     }
 
     public boolean isNull() {
-        return this instanceof UniValueNode.Null;
+        return unsupported("IS_NULL", Type.VALUE);
     }
 
     protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {

@@ -78,7 +78,7 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
 
     public final UniNode createUniNode(Object node) {
         if (node == null)
-            UniValueNode.nullNode();
+            UniValueNode.empty();
 
         if (node instanceof CharSequence) {
             return parse(node == null ? null : node.toString());

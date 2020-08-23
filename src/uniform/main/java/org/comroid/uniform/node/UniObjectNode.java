@@ -67,37 +67,36 @@ public final class UniObjectNode extends UniNode {
     public @NotNull UniNode get(final String fieldName) {
         if (fieldName.isEmpty())
             return this;
-        return makeValueNode(fieldName)
-                .filter(UniNode::isNotNull)
-                .orElseGet(UniValueNode::nullNode);
+        return makeValueNode(fieldName).orElseGet(UniValueNode::empty);
     }
 
     private Processor<UniNode> makeValueNode(String fieldName) {
-        class Accessor extends Reference.Support.Base<String> {
-            private final String key;
-            private final UniObjectNode par;
+        return computeNode(fieldName, () -> new KeyAccessor(fieldName));
+    }
 
-            private Accessor(String key) {
-                super(true);
+    private final class KeyAccessor extends Reference.Support.Base<String> {
+        private final String fieldName;
 
-                this.par = UniObjectNode.this;
+        protected KeyAccessor(String fieldName) {
+            super(true);
 
-                this.key = key;
-            }
-
-            @Nullable
-            @Override
-            protected String doGet() {
-                return unwrapDST(adapter.get(key));
-            }
-
-            @Override
-            protected boolean doSet(String newValue) {
-                return adapter.put(key, newValue) != newValue;
-            }
+            this.fieldName = fieldName;
         }
 
-        return computeNode(fieldName, () -> new Accessor(fieldName));
+        @Override
+        protected String doGet() {
+            return String.valueOf(adapter.getOrDefault(fieldName, null));
+        }
+
+        @Override
+        protected boolean doSet(String value) {
+            return adapter.put(fieldName, value) != value;
+        }
+
+        @Override
+        public boolean isOutdated() {
+            return true;
+        }
     }
 
     @Override

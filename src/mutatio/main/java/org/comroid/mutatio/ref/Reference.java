@@ -257,6 +257,8 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
                 super(parent);
 
                 this.mutable = mutable;
+
+                outdate();
             }
 
             protected abstract T doGet();
