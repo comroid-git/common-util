@@ -21,6 +21,7 @@ public final class ValueType<R> implements HeldType<R> {
             = new ValueType<>("short", Short::parseShort);
     public static final ValueType<String> STRING
             = new ValueType<>("String", Function.identity());
+
     public static final ValueType<Void> VOID
             = new ValueType<>("Void", it -> null);
 

@@ -8,14 +8,18 @@ import org.jetbrains.annotations.Nullable;
 
 public class UniValueNode<T> extends UniNode {
     public static final UniValueNode<Void> NULL = new UniValueNode<>(null, Reference.empty(), ValueType.VOID);
-
-    public static <T> UniValueNode<T> empty() {
-        //noinspection unchecked
-        return (UniValueNode<T>) NULL;
-    }
-
     private final Reference<T> baseReference;
     private final ValueType<T> targetType;
+
+    @Override
+    public Object getBaseNode() {
+        return baseReference.get();
+    }
+
+    @Override
+    public boolean isNull() {
+        return baseReference.isNull();
+    }
 
     public UniValueNode(SerializationAdapter<?, ?, ?> seriLib, Reference<T> baseReference, ValueType<T> targetType) {
         super(seriLib, Type.VALUE);
@@ -23,14 +27,25 @@ public class UniValueNode<T> extends UniNode {
         this.targetType = targetType;
     }
 
-    @Override
-    public @NotNull UniNode get(int index) {
-        return unsupported("GET_INDEX", Type.ARRAY);
+    public static <T> UniValueNode<T> empty() {
+        //noinspection unchecked
+        return (UniValueNode<T>) NULL;
+    }
+
+    private static String unwrapString(String str) {
+        if (str.startsWith("\"") && str.endsWith("\""))
+            return str.substring(1, str.length() - 1);
+        return str;
+    }
+
+    @Deprecated
+    public static <T> UniValueNode<T> nullNode() {
+        return empty();
     }
 
     @Override
-    public Object getBaseNode() {
-        return baseReference.get();
+    public @NotNull UniNode get(int index) {
+        return unsupported("GET_INDEX", Type.ARRAY);
     }
 
     @Override
@@ -102,7 +117,10 @@ public class UniValueNode<T> extends UniNode {
 
     @Override
     public <R> R as(ValueType<R> type) {
-        return baseReference.into(it -> targetType.convert(it, type));
+        return baseReference
+                .map(String::valueOf)
+                .map(UniValueNode::unwrapString)
+                .into(it -> ValueType.STRING.convert(it, type));
     }
 
     @Override
@@ -175,16 +193,6 @@ public class UniValueNode<T> extends UniNode {
         }
 
         return as(ValueType.CHARACTER);
-    }
-
-    @Deprecated
-    public static <T> UniValueNode<T> nullNode() {
-        return empty();
-    }
-
-    @Override
-    public boolean isNull() {
-        return baseReference.isNull();
     }
 
     public interface Adapter<T> extends UniNode.Adapter {
