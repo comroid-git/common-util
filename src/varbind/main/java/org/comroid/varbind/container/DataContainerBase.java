@@ -200,6 +200,23 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
     }
 
     @Override
+    public <T> @Nullable T put(VarBind<? extends S, T, ?, ?> bind, final T value) {
+        final Reference<Span<T>> extRef = getExtractionReference(bind.getFieldName());
+        T prev = extRef.into(Span::get);
+
+        extRef.compute(span -> {
+            if (span == null)
+                return Span.<T>make()
+                .initialValues(value)
+                .span();
+            span.add(value);
+            return span;
+        });
+
+        return prev;
+    }
+
+    @Override
     public <R, T> @Nullable R put(VarBind<? extends S, T, ?, R> bind, Function<R, T> parser, R value) {
         final T apply = parser.apply(value);
         final R prev = getComputedReference(bind).get();

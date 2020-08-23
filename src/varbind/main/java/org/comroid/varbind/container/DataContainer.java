@@ -58,9 +58,7 @@ public interface DataContainer<S extends DataContainer<? super S> & SelfDeclared
 
     UniObjectNode toObjectNode(UniObjectNode node);
 
-    default <T> @Nullable T put(VarBind<? extends S, T, ?, T> bind, T value) {
-        return put(bind, Function.identity(), value);
-    }
+    <T> @Nullable T put(VarBind<? extends S, T, ?, ?> bind, T value);
 
     <T, X> @Nullable T put(VarBind<? extends S, X, ?, T> bind, Function<T, X> parser, T value);
 
