@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import org.comroid.common.exception.AssertionException;
@@ -17,8 +18,10 @@ import org.comroid.uniform.node.UniValueNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.AbstractMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
-import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -26,7 +29,7 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
     private final ObjectMapper objectMapper;
 
     public JacksonAdapter(String mimeType, ObjectMapper objectMapper) {
-        super(mimeType, ObjectNode.class, ArrayNode.class);
+        super(mimeType, ObjectNode.class, JsonNodeFactory.instance::objectNode, ArrayNode.class, JsonNodeFactory.instance::arrayNode);
 
         this.objectMapper = objectMapper;
     }
@@ -68,17 +71,12 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
     }
 
     private UniValueNode<String> createValueNode(ValueNode dataString) {
-        return new UniValueNode<>(this, new UniValueNode.Adapter.ViaString(new Reference.Support.Base<String>(true) {
+        return new UniValueNode<>(this, new UniValueNode.Adapter.ViaString(new Reference.Support.Base<String>(false) {
             private final ValueNode base = dataString;
 
             @Override
             protected String doGet() {
-                return null;
-            }
-
-            @Override
-            protected boolean doSet(String value) {
-                return false; // todo
+                return base.asText();
             }
         }));
     }
@@ -93,12 +91,16 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
 
             @Override
             public @NotNull Set<Entry<String, Object>> entrySet() {
-                /*
-                return StreamSupport.stream(baseNode.spliterator(), false)
-                        .map(node -> new )
-                        .collect(Collectors.toSet());
-                 */
-                return null; // todo
+                final Iterator<String> keys = baseNode.fieldNames();
+                final Set<Entry<String, Object>> yield = new HashSet<>();
+
+                while (keys.hasNext()) {
+                    final String key = keys.next();
+
+                    yield.add(new SimpleImmutableEntry<>(key, baseNode.get(key)));
+                }
+
+                return yield;
             }
         });
     }

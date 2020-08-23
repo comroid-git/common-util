@@ -75,9 +75,12 @@ public final class UniObjectNode extends UniNode {
     private Processor<UniNode> makeValueNode(String fieldName) {
         class Accessor extends Reference.Support.Base<String> {
             private final String key;
+            private final UniObjectNode par;
 
             private Accessor(String key) {
                 super(true);
+
+                this.par = UniObjectNode.this;
 
                 this.key = key;
             }

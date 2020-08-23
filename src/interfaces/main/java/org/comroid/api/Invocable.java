@@ -82,10 +82,10 @@ public interface Invocable<T> {
                     .filter(it -> ReflectionHelper.matchingFootprint(it.getParameterTypes(), params))
                     .findAny()
                     .map(it -> Invocable.<T>ofConstructor(Polyfill.uncheckedCast(it)))
-                    .orElseThrow(() -> new NoSuchElementException("No Matching constructor could be found!"));
+                    .orElseThrow(() -> new NoSuchElementException("No suitable constructor could be found!"));
         } else {
             return ofConstructor(ReflectionHelper.findConstructor(type, params)
-                    .orElseThrow(() -> new NoSuchElementException("No matching constructor found")));
+                    .orElseThrow(() -> new NoSuchElementException("No suitable constructor found")));
         }
     }
 
@@ -272,7 +272,6 @@ public interface Invocable<T> {
     @Internal
     final class Support {
         private static final Invocable<?> Empty = constant(null);
-        private static final Class<?>[] NoClasses = new Class[0];
 
         private static final class OfProvider<T> implements Invocable<T> {
             private final Provider<T> provider;
@@ -289,7 +288,7 @@ public interface Invocable<T> {
 
             @Override
             public Class<?>[] parameterTypesOrdered() {
-                return NoClasses;
+                return new Class[0];
             }
         }
 
@@ -387,7 +386,7 @@ public interface Invocable<T> {
 
             @Override
             public Class<?>[] parameterTypesOrdered() {
-                return NoClasses;
+                return new Class[0];
             }
         }
 

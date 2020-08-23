@@ -298,8 +298,7 @@ public abstract class UniNode implements Specifiable<UniNode> {
             String fieldName,
             Supplier<Reference<String>> referenceSupplier
     ) {
-        final Reference<String> base
-                = baseAccessors.computeIfAbsent(fieldName, key -> referenceSupplier.get());
+        final Reference<String> base = baseAccessors.computeIfAbsent(fieldName, key -> referenceSupplier.get());
         return wrappedAccessors.computeIfAbsent(fieldName, key -> base.process()
                 .map(str -> {
                     try {
