@@ -70,6 +70,11 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return new Support.Default<>(mutable, initialValue);
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    static <T> Reference<T> optional(Optional<T> optional) {
+        return provided(() -> optional.orElse(null));
+    }
+
     @Override
     @Nullable T get();
 
@@ -232,7 +237,8 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
     }
 
     @Deprecated
-    interface Settable<T> extends Reference<T> {}
+    interface Settable<T> extends Reference<T> {
+    }
 
     @Internal
     final class Support {
@@ -305,7 +311,6 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         }
 
 
-
         public static class Default<T> extends Base<T> {
             protected Default(boolean mutable, T initialValue) {
                 super(mutable);
@@ -330,16 +335,16 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
             private final Consumer<T> setter;
             private final Supplier<T> getter;
 
+            @Override
+            public boolean isOutdated() {
+                return true;
+            }
+
             public Rebound(Consumer<T> setter, Supplier<T> getter) {
                 super(true);
 
                 this.setter = setter;
                 this.getter = getter;
-            }
-
-            @Override
-            public boolean isOutdated() {
-                return true;
             }
 
             @Override
@@ -359,16 +364,16 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
             private final BooleanSupplier condition;
             private final Supplier<T> supplier;
 
+            @Override
+            public boolean isOutdated() {
+                return true;
+            }
+
             public Conditional(BooleanSupplier condition, Supplier<T> supplier) {
                 super(false);
 
                 this.condition = condition;
                 this.supplier = supplier;
-            }
-
-            @Override
-            public boolean isOutdated() {
-                return true;
             }
 
             @Override
