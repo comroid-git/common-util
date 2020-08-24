@@ -193,8 +193,8 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
      * @return The new value if it could be set, else the previous value.
      */
     default T compute(Function<T, T> computor) {
-        set(computor.apply(get()));
-
+        if (!set(into(computor)))
+            throw new UnsupportedOperationException("Could not set value");
         return get();
     }
 
@@ -202,9 +202,8 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
      * @return The new value if it could be set, else the previous value.
      */
     default T computeIfPresent(Function<T, T> computor) {
-        if (!isNull())
-            set(computor.apply(get()));
-
+        if (!isNull() && !set(into(computor)))
+            throw new UnsupportedOperationException("Could not set value");
         return get();
     }
 
@@ -212,9 +211,8 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
      * @return The new value if it could be set, else the previous value.
      */
     default T computeIfAbsent(Supplier<T> supplier) {
-        if (isNull())
-            set(supplier.get());
-
+        if (isNull() && !set(supplier.get()))
+            throw new UnsupportedOperationException("Could not set value");
         return get();
     }
 
@@ -290,7 +288,6 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
             public final boolean set(T value) {
                 if (isImmutable())
                     return false;
-
                 return doSet(value) & (update(value) == value);
             }
 
