@@ -1,5 +1,6 @@
 package org.comroid.common;
 
+import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,11 +11,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface Disposable extends AutoCloseable, PropertyHolder {
+    @NonExtendable
     default Set<? super AutoCloseable> getCloseables() {
         //noinspection unchecked
         return ((Set<? super AutoCloseable>) getPropertyCache().computeIfAbsent("disposable-children", HashSet::new));
     }
 
+    @NonExtendable
     default void addChildren(AutoCloseable child) {
         getCloseables().add(child);
     }
@@ -25,10 +28,12 @@ public interface Disposable extends AutoCloseable, PropertyHolder {
     }
 
     @Override
+    @NonExtendable
     default void close() throws MultipleExceptions {
         disposeThrow();
     }
 
+    @NonExtendable
     default List<? extends Throwable> dispose() {
         return Collections.unmodifiableList(Stream.concat(
                 getCloseables().stream().map(AutoCloseable.class::cast),
@@ -47,6 +52,7 @@ public interface Disposable extends AutoCloseable, PropertyHolder {
                 .collect(Collectors.toList()));
     }
 
+    @NonExtendable
     default void disposeThrow() throws MultipleExceptions {
         final List<? extends Throwable> throwables = dispose();
 
