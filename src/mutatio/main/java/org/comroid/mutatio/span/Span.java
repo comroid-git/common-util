@@ -4,6 +4,7 @@ import org.comroid.api.Polyfill;
 import org.comroid.mutatio.cache.CachedValue;
 import org.comroid.mutatio.pipe.BasicPipe;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.jetbrains.annotations.Contract;
@@ -239,6 +240,10 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
 
             return modifyPolicy.canInitialize(it) && storage.add(it);
         }
+    }
+
+    public Processor<T> process(int index) {
+        return getReference(index).process();
     }
 
     @Override
