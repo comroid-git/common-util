@@ -269,7 +269,7 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
             this.bind = uncheckedCast(bind);
             this.accessor = getExtractionReference(bind)
                     .process()
-                    .map(extr -> this.bind.process(DataContainerBase.this.self(), extr));
+                    .map(extr -> this.bind.process(self(), extr));
         }
 
         @Override
