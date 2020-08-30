@@ -3,6 +3,7 @@ package org.comroid.varbind.multipart;
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
 import org.comroid.api.UUIDContainer;
+import org.comroid.common.info.MessageSupplier;
 import org.comroid.mutatio.span.Span;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 
@@ -29,7 +30,11 @@ public final class FinishedBind {
 
         @Override
         public R finish(Span<R> parts) {
-            return parts.get();
+            return as(PartialBind.Base.class)
+                    .map(base -> base.isRequired()
+                            ? parts.requireNonNull(MessageSupplier.format("Could not find value for bind %s", base.getFieldName()))
+                            : parts.get())
+                    .orElseGet(parts);
         }
     }
 
@@ -49,9 +54,9 @@ public final class FinishedBind {
 
         @Override
         public C finish(Span<R> parts) {
-            return collectionSupplier == null
-                    ? Polyfill.uncheckedCast(parts)
-                    : parts.stream().collect(Collectors.toCollection(collectionSupplier));
+            if (collectionSupplier != null)
+                return parts.stream().collect(Collectors.toCollection(collectionSupplier));
+            return Polyfill.uncheckedCast(parts);
         }
     }
 
