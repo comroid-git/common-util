@@ -1,6 +1,7 @@
 package org.comroid.spellbind;
 
 import org.comroid.api.*;
+import org.comroid.common.exception.AssertionException;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 import org.comroid.trie.TrieMap;
@@ -74,6 +75,10 @@ public class SpellCore<T extends TypeFragment<? super T>>
                     .invokeRethrow(args);
 
         String methodString = methodString(method);
+
+        if (method.getName().equals("self") && method.getParameterCount() == 0)
+            return self();
+
         Invocable<?> invocable = methods.get(methodString);
 
         if (invocable != null)
