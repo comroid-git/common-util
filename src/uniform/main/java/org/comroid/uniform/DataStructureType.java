@@ -85,7 +85,7 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
         public Obj(
                 Class<OBJ> objClass, Supplier<? extends OBJ> objectSupplier
         ) {
-            super(objClass, Primitive.ARRAY);
+            super(objClass, Primitive.OBJECT);
 
             //todo fix & improve
             this.constructor = Polyfill.uncheckedCast(Invocable.ofProvider(Provider.of(objectSupplier)));
