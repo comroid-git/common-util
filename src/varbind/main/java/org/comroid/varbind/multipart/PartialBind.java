@@ -11,7 +11,7 @@ import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.container.DataContainer;
 
 public final class PartialBind {
-    public interface BindFragment extends TypeFragment<BindFragment>, Specifiable<BindFragment> {
+    public interface BindFragment extends TypeFragment<BindFragment> {
     }
 
     @Partial
