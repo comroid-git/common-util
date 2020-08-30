@@ -58,7 +58,7 @@ public final class GroupBind<T extends DataContainer<? super T>> implements Iter
             String groupName,
             Class<? extends T> constructorClass
     ) {
-        this(serializationAdapter, groupName, Invocable.ofConstructor(constructorClass));
+        this(serializationAdapter, groupName, Invocable.ofConstructor(constructorClass, UniObjectNode.class));
     }
 
     public GroupBind(

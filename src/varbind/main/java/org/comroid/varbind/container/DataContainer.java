@@ -125,5 +125,10 @@ public interface DataContainer<S extends DataContainer<? super S> & SelfDeclared
         default <T> String cacheBind(VarBind<? extends S, ?, ?, ?> bind) {
             return getUnderlyingVarCarrier().cacheBind(bind);
         }
+
+        @Override
+        default <T> @Nullable T put(VarBind<? extends S, T, ?, ?> bind, T value) {
+            return getUnderlyingVarCarrier().put(bind, value);
+        }
     }
 }

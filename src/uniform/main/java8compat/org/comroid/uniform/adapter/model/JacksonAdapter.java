@@ -19,9 +19,7 @@ import org.comroid.uniform.node.UniValueNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, ObjectNode, ArrayNode> {
     private final ObjectMapper objectMapper;
@@ -84,7 +82,7 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
         return new UniObjectNode(this, new UniObjectNode.Adapter<ObjectNode>(node) {
             @Override
             public Object put(String key, Object value) {
-                return baseNode.put(key, String.valueOf(value));
+                return baseNode.put(key, wrapAsNode(value));
             }
 
             @Override
@@ -105,6 +103,51 @@ public abstract class JacksonAdapter extends SerializationAdapter<JsonNode, Obje
 
     @Override
     public UniArrayNode createUniArrayNode(ArrayNode node) {
-        throw new UnsupportedOperationException();
+        return new UniArrayNode(this, new UniArrayNode.Adapter(node) {
+            @Override
+            public int size() {
+                return node.size();
+            }
+
+            @Override
+            public Object get(int index) {
+                return node.get(index);
+            }
+
+            @Override
+            public Object set(int index, Object element) {
+                return node.set(index, wrapAsNode(element));
+            }
+
+            @Override
+            public void add(int index, Object element) {
+                if (node.size() >= index || node.size() < index)
+                    node.add(wrapAsNode(element));
+                else node.set(index, wrapAsNode(element));
+            }
+
+            @Override
+            public Object remove(int index) {
+                return null;
+            }
+        });
+    }
+
+    public final JsonNode wrapAsNode(Object element) {
+        if (element instanceof JsonNode)
+            return (JsonNode) element;
+        if (element instanceof Map) {
+            final ObjectNode obj = JsonNodeFactory.instance.objectNode();
+            ((Map<?, ?>) element).forEach((k, v) -> obj.set(String.valueOf(k), wrapAsNode(v)));
+            return obj;
+        }
+        if (element instanceof Collection) {
+            final ArrayNode arr = JsonNodeFactory.instance.arrayNode();
+            ((Collection<?>) element).forEach(e -> arr.add(wrapAsNode(e)));
+            return arr;
+        }
+        if (element instanceof String)
+            return JsonNodeFactory.instance.textNode((String) element);
+        return wrapAsNode(String.valueOf(element)); //todo Improve
     }
 }

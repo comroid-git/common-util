@@ -94,7 +94,7 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
         }
 
         if (!getRootBind().isValidData(data))
-            throw new IllegalArgumentException("Data is invalid");
+            throw new IllegalArgumentException("Data is invalid: " + data);
 
         final HashSet<VarBind<? extends S, Object, ?, Object>> changed = new HashSet<>();
 

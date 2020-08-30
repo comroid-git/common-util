@@ -136,7 +136,6 @@ public final class UniObjectNode extends UniNode {
     @Override
     public @NotNull UniArrayNode putArray(String key) {
         final UniArrayNode arrayNode = serializationAdapter.createUniArrayNode();
-
         adapter.put(key, arrayNode.getBaseNode());
         return arrayNode;
     }

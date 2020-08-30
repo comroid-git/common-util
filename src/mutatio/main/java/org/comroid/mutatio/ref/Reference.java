@@ -269,7 +269,8 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
 
             @OverrideOnly
             protected boolean doSet(T value) {
-                return false;
+                atom.set(value);
+                return true;
             }
 
             @Nullable
@@ -288,7 +289,14 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
             public final boolean set(T value) {
                 if (isImmutable())
                     return false;
-                return doSet(value) & (update(value) == value);
+                
+                boolean doSet = doSet(value);
+                if (doSet) {
+                    atom.set(value);
+                    return update(value) == value;
+                }
+
+                return false;
             }
 
             @Override
