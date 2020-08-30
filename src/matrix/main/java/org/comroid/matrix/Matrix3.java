@@ -8,10 +8,11 @@ import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface Matrix3<X, Y, Z, V> extends Matrix<V, Matrix3.Entry<X, Y, Z, V>>, PartialMatrix.ThreeDim<X, Y, Z, V, Matrix3.Entry<X, Y, Z, V>> {
     static <X, Y, Z, V> Matrix3<X, Y, Z, V> create() {
-        return new Builder<X, Y, Z, V>(TrieMap.ofString()).build();
+        return new Builder<X, Y, Z, V>(new ConcurrentHashMap<>()).build();
     }
 
     static <X, Y, Z, V> Matrix3<X, Y, Z, V> using(PartialMatrix.ThreeDim<X, Y, Z, V, Matrix3.Entry<X, Y, Z, V>> capability) {

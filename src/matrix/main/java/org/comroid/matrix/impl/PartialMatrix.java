@@ -28,7 +28,7 @@ public final class PartialMatrix<V, E extends Matrix.Entry<V>> extends AbstractM
 
         V get(X x, Y y);
 
-        V put(X x, Y y, V value);
+        boolean put(X x, Y y, V value);
 
         V compute(X x, Y y, BiFunction<String, ? super V, ? extends V> computor);
 
@@ -49,7 +49,7 @@ public final class PartialMatrix<V, E extends Matrix.Entry<V>> extends AbstractM
 
         V get(X x, Y y, Z z);
 
-        V put(X x, Y y, Z z, V value);
+        boolean put(X x, Y y, Z z, V value);
 
         V compute(X x, Y y, Z z, BiFunction<String, ? super V, ? extends V> computor);
 

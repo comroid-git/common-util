@@ -81,7 +81,7 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
         return stream(any -> true).map(Reference::get);
     }
 
-    Stream<KeyedReference<K, V>> stream(Predicate<K> filter);
+    Stream<? extends KeyedReference<K, V>> stream(Predicate<K> filter);
 
     @Override
     default Pipe<?, ? extends V> pipe() {
@@ -90,7 +90,7 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
                 .map(Map.Entry::getValue);
     }
 
-    Pipe<?, KeyedReference<K, V>> pipe(Predicate<K> filter);
+    Pipe<?, ? extends KeyedReference<K, V>> pipe(Predicate<K> filter);
 
     @Override
     default Pump<?, ? extends V> pump(Executor executor) {

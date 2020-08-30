@@ -101,7 +101,7 @@ public final class MatrixCapability {
         }
 
         @Override
-        public V put(X x, Y y, V value) {
+        public boolean put(X x, Y y, V value) {
             return put(generateCoordinate(x, y), value);
         }
 
@@ -189,7 +189,7 @@ public final class MatrixCapability {
         }
 
         @Override
-        public V put(X x, Y y, Z z, V value) {
+        public boolean put(X x, Y y, Z z, V value) {
             return put(generateCoordinate(x, y, z), value);
         }
 

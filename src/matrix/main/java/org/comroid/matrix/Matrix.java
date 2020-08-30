@@ -2,10 +2,9 @@ package org.comroid.matrix;
 
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
-import org.comroid.common.info.Valued;
 import org.comroid.common.ref.Named;
 import org.comroid.matrix.impl.PartialMatrix;
-import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.ReferenceMap;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeFragment<Matrix<V, E>>, ReferenceMap<String, V, E> {
+public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeFragment<Matrix<V, E>>, ReferenceMap<String, V> {
     static <V, E extends Matrix.Entry<V>> TypeFragmentProvider<Matrix<V, E>> fragmentProvider() {
         return new TypeFragmentProvider<Matrix<V, E>>() {
             @Override
@@ -35,7 +34,7 @@ public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeF
     @Nullable
     V get(String coordinate);
 
-    V put(String coordinate, V value);
+    boolean put(String coordinate, V value);
 
     @Nullable
     V compute(String coordinate, BiFunction<String, ? super V, ? extends V> computor);
@@ -54,18 +53,17 @@ public interface Matrix<V, E extends Matrix.Entry<V>> extends Iterable<E>, TypeF
     @NotNull
     E getEntryAt(String coordinate, @Nullable V initialValue);
 
-    interface Entry<V> extends Reference<V>, Named, Valued<V> {
+    interface Entry<V> extends KeyedReference<String, V>, Named {
         String getCoordinate();
 
         @Override
         default String getName() {
-            return getCoordinate();
+            return String.format("%s -> %s", getCoordinate(), getValue());
         }
 
         @Override
-        @Nullable
-        default V getValue() {
-            return get();
+        default String getKey() {
+            return getCoordinate();
         }
     }
 }

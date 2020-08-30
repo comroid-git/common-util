@@ -29,7 +29,11 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
     default boolean isNull() {
         return test(Objects::isNull);
     }
+    default boolean isNonNull() {
+        return test(Objects::nonNull);
+    }
 
+    @Deprecated
     default boolean isPresent() {
         return test(Objects::nonNull);
     }

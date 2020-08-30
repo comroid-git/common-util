@@ -1,11 +1,15 @@
 package org.comroid.commandline;
 
+import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class BlockParser {
-    public final TrieMap<String, String> yields = TrieMap.ofString();
+    public final Map<String, KeyedReference<String, String>> yields = new ConcurrentHashMap<>();
 
     private String prevName = null;
 
@@ -45,7 +49,7 @@ public class BlockParser {
 
     @NotNull
     private Reference<String> compute(String name) {
-        final Reference<String> ref = yields.getReference(name, true);
+        final Reference<String> ref = yields.computeIfAbsent(name, KeyedReference::create);
         if (ref.isNull())
             ref.set(name);
         return ref;

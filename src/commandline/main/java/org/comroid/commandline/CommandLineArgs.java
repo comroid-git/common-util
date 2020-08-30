@@ -1,17 +1,17 @@
 package org.comroid.commandline;
 
+import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.ref.ReferenceMap;
 import org.comroid.trie.TrieMap;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public final class CommandLineArgs implements ReferenceMap<String, String, Reference<String>> {
-    private final TrieMap<String, String> values;
-
-    private CommandLineArgs(TrieMap<String, String> values) {
-        this.values = values;
+public final class CommandLineArgs extends ReferenceMap.Support.Basic<String, String> {
+    private CommandLineArgs(Map<String, KeyedReference<String, String>> values) {
+        super(values);
     }
 
     public synchronized static CommandLineArgs parse(String[] args) {
@@ -29,16 +29,10 @@ public final class CommandLineArgs implements ReferenceMap<String, String, Refer
     }
 
     public boolean hasKey(String key) {
-        return values.containsKey(key);
+        return containsKey(key);
     }
 
-    @Override
-    public Reference<String> getReference(String key, boolean createIfAbsent) {
-        return values.getReference(key, createIfAbsent);
-    }
-
-    @Override
-    public ReferenceIndex<Map.Entry<String, String>> entryIndex() {
-        return values.entryIndex();
+    public boolean hasKeyValue(String key) {
+        return getReference(key).isNonNull();
     }
 }

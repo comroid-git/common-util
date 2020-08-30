@@ -8,10 +8,11 @@ import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>>, PartialMatrix.TwoDim<X, Y, V, Matrix2.Entry<X, Y, V>> {
     static <X, Y, V> Matrix2<X, Y, V> create() {
-        return new Builder<X, Y, V>(TrieMap.ofString()).build();
+        return new Builder<X, Y, V>(new ConcurrentHashMap<>()).build();
     }
 
     static <X, Y, V> Matrix2<X, Y, V> using(PartialMatrix.TwoDim<X, Y, V, Matrix2.Entry<X, Y, V>> capability) {
