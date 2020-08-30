@@ -3,6 +3,7 @@ package org.comroid.varbind.container;
 import org.comroid.api.Builder;
 import org.comroid.api.Polyfill;
 import org.comroid.api.SelfDeclared;
+import org.comroid.mutatio.ref.FutureReference;
 import org.comroid.varbind.bind.VarBind;
 
 import java.util.HashMap;
@@ -24,10 +25,16 @@ public abstract class DataContainerBuilder<S extends DataContainerBuilder<S, T>,
         return Polyfill.uncheckedCast(this);
     }
 
+    @SuppressWarnings("RedundantSuppression") // false positive LOL
     @Override
     public final T build() {
-        //noinspection unchecked
-        return mergeVarCarrier(new DataContainerBase<T>((Map) values, type));
+        final FutureReference<T> selfRef = new FutureReference<>();
+
+        //noinspection unchecked,rawtypes
+        T t = mergeVarCarrier(new DataContainerBase<T>((Map) values, type, selfRef));
+        selfRef.future.complete(t);
+
+        return t;
     }
 
     protected abstract T mergeVarCarrier(DataContainer<? super T> dataContainer);

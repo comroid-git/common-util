@@ -21,7 +21,7 @@ public final class PartialBind {
         boolean isRequired();
 
         default FINAL getFrom(UniObjectNode node) {
-            return getFrom(null, node);
+            return getFrom(Polyfill.uncheckedCast(self()), node);
         }
 
         default FINAL getFrom(final MEMBEROF dependencyObject, UniObjectNode node) {

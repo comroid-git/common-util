@@ -33,15 +33,7 @@ public class FileConfiguration extends DataContainerBase<FileConfiguration> impl
             SerializationAdapter<?, ?, ?> serializationAdapter,
             FileHandle file
     ) {
-        this(serializationAdapter, null, file);
-    }
-
-    public FileConfiguration(
-            SerializationAdapter<?, ?, ?> serializationAdapter,
-            @Nullable Class<? extends FileConfiguration> containingClass,
-            FileHandle file
-    ) {
-        super(null, containingClass);
+        super(null);
 
         this.serializationAdapter = serializationAdapter;
         this.file = file;

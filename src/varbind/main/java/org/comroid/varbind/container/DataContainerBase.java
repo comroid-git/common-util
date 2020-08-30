@@ -1,5 +1,6 @@
 package org.comroid.varbind.container;
 
+import org.comroid.api.Polyfill;
 import org.comroid.api.SelfDeclared;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
@@ -14,6 +15,7 @@ import org.comroid.varbind.annotation.RootBind;
 import org.comroid.varbind.bind.GroupBind;
 import org.comroid.varbind.bind.VarBind;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +23,7 @@ import java.lang.annotation.ElementType;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
@@ -34,6 +37,7 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
     private final Map<String, Reference<Object>> computed = new ConcurrentHashMap<>();
     private final Set<VarBind<? extends S, Object, ?, Object>> initiallySet;
     private final Class<? extends S> myType;
+    private final Supplier<S> selfSupplier;
 
     @Override
     public final GroupBind<S> getRootBind() {
@@ -48,26 +52,43 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
     public DataContainerBase(
             @Nullable UniObjectNode initialData
     ) {
-        this(initialData, null);
+        this(initialData, null, null);
     }
 
+    @Contract("_, null, !null -> fail; _, !null, null -> fail")
     public DataContainerBase(
             @Nullable UniObjectNode initialData,
-            @Nullable Class<? extends DataContainer<? super S>> containingClass
+            Class<? extends DataContainer<? super S>> containingClass,
+            Supplier<S> selfSupplier
     ) {
+        if ((containingClass == null) != (selfSupplier == null))
+            throw new IllegalArgumentException("Not both containingClass and selfSupplier have been provided!");
+
         this.myType = (Class<? extends S>) (containingClass == null ? getClass() : containingClass);
+        this.selfSupplier = selfSupplier;
         this.rootBind = findRootBind(myType);
         this.initiallySet = unmodifiableSet(updateVars(initialData));
     }
 
-    DataContainerBase(
-            Map<VarBind<? extends S, Object, ?, Object>, Object> initialValues,
-            Class<? extends DataContainer<? super S>> containingClass
+    @Contract("_, null, !null -> fail; _, !null, null -> fail")
+    public DataContainerBase(
+            @NotNull Map<VarBind<? extends S, Object, ?, Object>, Object> initialValues,
+            Class<? extends DataContainer<? super S>> containingClass,
+            Supplier<S> selfSupplier
     ) {
+        if ((containingClass == null) != (selfSupplier == null))
+            throw new IllegalArgumentException("Not both containingClass and selfSupplier have been provided!");
+
         this.myType = (Class<? extends S>) (containingClass == null ? getClass() : containingClass);
+        this.selfSupplier = selfSupplier;
         this.rootBind = findRootBind(myType);
         this.initiallySet = unmodifiableSet(initialValues.keySet());
         initialValues.forEach((bind, value) -> getExtractionReference(bind).set(Span.singleton(value)));
+    }
+
+    @Override
+    public S self() {
+        return selfSupplier == null ? Polyfill.uncheckedCast(this) : selfSupplier.get();
     }
 
     @Internal
@@ -268,7 +289,6 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
 
             this.bind = uncheckedCast(bind);
             this.accessor = getExtractionReference(bind)
-                    .process()
                     .map(extr -> this.bind.process(self(), extr));
         }
 
