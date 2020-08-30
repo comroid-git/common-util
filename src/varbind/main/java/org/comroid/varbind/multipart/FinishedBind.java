@@ -29,9 +29,7 @@ public final class FinishedBind {
 
         @Override
         public R finish(Span<R> parts) {
-            return as(PartialBind.Base.class)
-                    .map(base -> parts.get())
-                    .orElseGet(parts);
+            return parts.get();
         }
     }
 
@@ -51,7 +49,8 @@ public final class FinishedBind {
 
         @Override
         public C finish(Span<R> parts) {
-            return collectionSupplier == null ? Polyfill.uncheckedCast(parts)
+            return collectionSupplier == null
+                    ? Polyfill.uncheckedCast(parts)
                     : parts.stream().collect(Collectors.toCollection(collectionSupplier));
         }
     }
