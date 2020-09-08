@@ -563,7 +563,7 @@ public final class REST<D> {
         }
 
         public final <ID> CompletableFuture<Span<T>> execute$autoCache(
-                VarBind<?, Object, ?, ID> identifyBind, Cache<ID, ? super T> cache
+                VarBind<?, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache
         ) {
             return execute$body().thenApply(node -> {
                 if (node.isObjectNode()) {
@@ -580,7 +580,7 @@ public final class REST<D> {
             });
         }
 
-        private <ID> T cacheProduce(VarBind<?, Object, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
+        private <ID> T cacheProduce(VarBind<?, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
             ID id = identifyBind.getFrom(obj);
 
             if (id == null) {
@@ -588,11 +588,15 @@ public final class REST<D> {
             }
 
             if (cache.containsKey(id)) {
-                //noinspection unchecked
-                cache.getReference(id, false) // should be present
-                        .compute(old -> (T) (
-                                (DataContainer<?>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
-                        ).updateFrom(obj));
+                try {
+                    //noinspection unchecked
+                    cache.getReference(id, false) // should be present
+                            .compute(old -> (T) (
+                                    (DataContainer<?>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
+                            ).updateFrom(obj));
+                } catch (NullPointerException npe) {
+                    throw new AssertionError("Reference was not present; should have been", npe);
+                }
             } else {
                 cache.getReference(id, true)
                         .set(tProducer.autoInvoke(obj));
