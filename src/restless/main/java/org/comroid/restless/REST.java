@@ -7,6 +7,7 @@ import org.comroid.api.Polyfill;
 import org.comroid.common.io.FileHandle;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.span.Span;
+import org.comroid.restless.body.BodyBuilderType;
 import org.comroid.restless.endpoint.AccessibleEndpoint;
 import org.comroid.restless.endpoint.CompleteEndpoint;
 import org.comroid.restless.endpoint.RatelimitedEndpoint;
@@ -33,6 +34,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -455,45 +457,51 @@ public final class REST<D> {
             return String.format("%s @ %s", method.name(), endpoint.getSpec());
         }
 
-        public final Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
+        public Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
             this.expectedCode = code;
 
             return this;
         }
 
-        public final Request<T> endpoint(CompleteEndpoint endpoint) {
+        public Request<T> endpoint(CompleteEndpoint endpoint) {
             this.endpoint = endpoint;
 
             return this;
         }
 
-        public final Request<T> endpoint(AccessibleEndpoint endpoint, Object... args) {
+        public Request<T> endpoint(AccessibleEndpoint endpoint, Object... args) {
             return endpoint(endpoint.complete(args));
         }
 
-        public final Request<T> method(REST.Method method) {
+        public Request<T> method(REST.Method method) {
             this.method = method;
 
             return this;
         }
 
-        public final Request<T> body(String body) {
+        public Request<T> body(String body) {
             this.body = body;
 
             return this;
         }
 
-        public final Request<T> addHeader(String name, String value) {
+        public <B extends UniNode> Request<T> buildBody(BodyBuilderType<B> type, Consumer<B> bodyBuilder) {
+            final B body = type.apply(serializationAdapter);
+            bodyBuilder.accept(body);
+            return body(body.toString());
+        }
+
+        public Request<T> addHeader(String name, String value) {
             this.headers.add(new Header(name, value));
 
             return this;
         }
 
-        public final boolean removeHeaders(Predicate<Header> filter) {
+        public boolean removeHeaders(Predicate<Header> filter) {
             return headers.removeIf(filter);
         }
 
-        public final synchronized CompletableFuture<REST.Response> execute() {
+        public synchronized CompletableFuture<REST.Response> execute() {
             if (!execution.isDone()) {
                 logger.at(Level.FINE)
                         .log("Executing request %s @ %s");
@@ -512,17 +520,17 @@ public final class REST<D> {
             return execution;
         }
 
-        public final CompletableFuture<Integer> execute$statusCode() {
+        public CompletableFuture<Integer> execute$statusCode() {
             return execute().thenApply(Response::getStatusCode);
         }
 
-        public final CompletableFuture<UniNode> execute$body() {
+        public CompletableFuture<UniNode> execute$body() {
             return execute()
                     .thenApply(Response::getBody)
                     .thenApply(Processor::get);
         }
 
-        public final CompletableFuture<Span<T>> execute$deserialize() {
+        public CompletableFuture<Span<T>> execute$deserialize() {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
@@ -542,17 +550,17 @@ public final class REST<D> {
             });
         }
 
-        public final CompletableFuture<T> execute$deserializeSingle() {
+        public CompletableFuture<T> execute$deserializeSingle() {
             return execute$deserialize().thenApply(Span::requireNonNull);
         }
 
-        public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
+        public <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> span.stream()
                     .map(remapper)
                     .collect(Span.collector()));
         }
 
-        public final <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
+        public <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> {
                 if (!span.isSingle()) {
                     throw new IllegalArgumentException("Span too large");
@@ -562,7 +570,7 @@ public final class REST<D> {
             });
         }
 
-        public final <ID> CompletableFuture<Span<T>> execute$autoCache(
+        public <ID> CompletableFuture<Span<T>> execute$autoCache(
                 VarBind<?, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache
         ) {
             return execute$body().thenApply(node -> {
