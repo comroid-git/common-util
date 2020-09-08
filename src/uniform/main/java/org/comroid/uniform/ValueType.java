@@ -3,28 +3,30 @@ package org.comroid.uniform;
 import org.comroid.api.Junction;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
-public final class ValueType<R> implements HeldType<R> {
+public final class ValueType<R> implements HeldType<R>, Predicate<Object> {
     public static final ValueType<Boolean> BOOLEAN
-            = new ValueType<>("boolean", Boolean::parseBoolean);
+            = new ValueType<>(Boolean.class, "boolean", Boolean::parseBoolean);
     public static final ValueType<Character> CHARACTER
-            = new ValueType<>("char", str -> str.toCharArray()[0]);
+            = new ValueType<>(Character.class, "char", str -> str.toCharArray()[0]);
     public static final ValueType<Double> DOUBLE
-            = new ValueType<>("double", Double::parseDouble);
+            = new ValueType<>(Double.class, "double", Double::parseDouble);
     public static final ValueType<Float> FLOAT
-            = new ValueType<>("float", Float::parseFloat);
+            = new ValueType<>(Float.class, "float", Float::parseFloat);
     public static final ValueType<Integer> INTEGER
-            = new ValueType<>("int", Integer::parseInt);
+            = new ValueType<>(Integer.class, "int", Integer::parseInt);
     public static final ValueType<Long> LONG
-            = new ValueType<>("long", Long::parseLong);
+            = new ValueType<>(Long.class, "long", Long::parseLong);
     public static final ValueType<Short> SHORT
-            = new ValueType<>("short", Short::parseShort);
+            = new ValueType<>(Short.class, "short", Short::parseShort);
     public static final ValueType<String> STRING
-            = new ValueType<>("String", Function.identity());
+            = new ValueType<>(String.class, "String", Function.identity());
 
     public static final ValueType<Void> VOID
-            = new ValueType<>("Void", it -> null);
+            = new ValueType<>(Void.class, "Void", it -> null);
 
+    private final Class<R> type;
     private final String name;
     private final Junction<String, R> converter;
 
@@ -43,9 +45,14 @@ public final class ValueType<R> implements HeldType<R> {
         return converter;
     }
 
-    public ValueType(String name, Function<String, R> mapper) {
+    public ValueType(Class<R> type, String name, Function<String, R> mapper) {
+        this.type = type;
         this.name = name;
         this.converter = Junction.ofString(mapper);
+    }
+
+    public static <T> ValueType<T> typeOf(T value) {
+        return null;
     }
 
     @Override
@@ -56,5 +63,10 @@ public final class ValueType<R> implements HeldType<R> {
     @Override
     public String toString() {
         return String.format("ValueType{%s}", name);
+    }
+
+    @Override
+    public boolean test(Object it) {
+        return type.isInstance(it);
     }
 }

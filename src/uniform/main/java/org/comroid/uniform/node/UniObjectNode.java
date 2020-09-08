@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,6 +45,10 @@ public final class UniObjectNode extends UniNode {
         }
 
         return new UniObjectNode(adapter, new MergedAdapter(map));
+    }
+
+    public static UniObjectNode dummy() {
+        return ofMap(null, new HashMap<>());
     }
 
     @Override
