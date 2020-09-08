@@ -1,5 +1,6 @@
 package org.comroid.varbind.multipart;
 
+import org.comroid.api.HeldType;
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
 import org.comroid.api.UUIDContainer;
@@ -19,6 +20,7 @@ public final class BasicMultipart {
     public static final class Base<SELF extends DataContainer<? super SELF>, EXTR, REMAP, FINAL> extends UUIDContainer.Base implements PartialBind.Base<SELF, EXTR, REMAP, FINAL> {
         private static final Invocable<? super BasicMultipart.Base> constructor = Invocable.ofConstructor(BasicMultipart.Base.class);
         private final String fieldName;
+        private final HeldType<EXTR> heldType;
         private final boolean required;
 
         @Override
@@ -27,12 +29,18 @@ public final class BasicMultipart {
         }
 
         @Override
+        public HeldType<EXTR> getHeldType() {
+            return heldType;
+        }
+
+        @Override
         public boolean isRequired() {
             return required;
         }
 
-        public Base(String fieldName, boolean required) {
+        public Base(String fieldName, HeldType<EXTR> heldType, boolean required) {
             this.fieldName = fieldName;
+            this.heldType = heldType;
             this.required = required;
         }
     }
