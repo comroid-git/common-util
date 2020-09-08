@@ -77,6 +77,10 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
 
     boolean containsValue(V value);
 
+    default Stream<? extends KeyedReference<K, V>> streamRefs() {
+        return stream(any -> true);
+    }
+
     default Stream<? extends V> stream() {
         return stream(any -> true).map(Reference::get);
     }
