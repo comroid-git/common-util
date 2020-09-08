@@ -54,6 +54,14 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return unsupported("IS_NULL", Type.VALUE);
     }
 
+    public final String getMimeType() {
+        return serializationAdapter.getMimeType();
+    }
+
+    public boolean isNotNull() {
+        return !isNull();
+    }
+
     protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
         this.serializationAdapter = serializationAdapter;
         this.type = type;
@@ -88,6 +96,10 @@ public abstract class UniNode implements Specifiable<UniNode> {
 
     public boolean has(int index) {
         return size() < index;
+    }
+
+    public boolean has(Named idBox) {
+        return has(idBox.getName());
     }
 
     public abstract boolean has(String fieldName);
@@ -330,14 +342,6 @@ public abstract class UniNode implements Specifiable<UniNode> {
                 .anyMatch(dst -> dst.typeClass().isInstance(value)) && type != ValueType.VOID)
             return put(key, ValueType.VOID, Polyfill.uncheckedCast(value));
         return null;
-    }
-
-    public final String getMimeType() {
-        return serializationAdapter.getMimeType();
-    }
-
-    public boolean isNotNull() {
-        return !isNull();
     }
 
     public enum Type {

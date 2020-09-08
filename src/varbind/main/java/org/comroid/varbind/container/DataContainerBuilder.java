@@ -35,7 +35,7 @@ public final class DataContainerBuilder<T extends DataContainerBase<? super T>> 
     }
 
     public <V> DataContainerBuilder<T> setValue(VarBind<?, V, ?, ?> field, V value) {
-        data.put(field.getFieldName(), ValueType.typeOf(value), value);
+        data.put(field, value);
         return this;
     }
 }
