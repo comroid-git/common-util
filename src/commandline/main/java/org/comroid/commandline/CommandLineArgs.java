@@ -32,7 +32,11 @@ public final class CommandLineArgs extends ReferenceMap.Support.Basic<String, St
         return containsKey(key);
     }
 
-    public boolean hasKeyValue(String key) {
+    public boolean hasName(String key) {
+        return !key.isEmpty() && (hasKey(key) || hasFlag(key.charAt(0)));
+    }
+
+    public boolean hasValueAt(String key) {
         return getReference(key).isNonNull();
     }
 }
