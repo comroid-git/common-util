@@ -1,8 +1,6 @@
 package org.comroid.util;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 
 public final class MultithreadUtil {
     public static <T> CompletableFuture<T> submitQuickTask(
@@ -23,5 +21,20 @@ public final class MultithreadUtil {
         });
 
         return future;
+    }
+
+    public static CompletionStage<Void> futureAfter(long time, TimeUnit unit) {
+        return futureAfter(null, time, unit);
+    }
+
+    public static <T> CompletionStage<T> futureAfter(T value, long time, TimeUnit unit) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(TimeUnit.MILLISECONDS.convert(time, unit));
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return value;
+        });
     }
 }
