@@ -204,7 +204,7 @@ public final class BindBuilder<SELF extends DataContainer<? super SELF>, EXTR, R
 
     @Override
     public VarBind<SELF, EXTR, REMAP, FINAL> build() {
-        final PartialBind.Base<SELF, EXTR, REMAP, FINAL> core = baseProvider.getInstanceSupplier().autoInvoke(fieldName, required);
+        final PartialBind.Base<SELF, EXTR, REMAP, FINAL> core = baseProvider.getInstanceSupplier().autoInvoke(fieldName, required, valueType);
         final SpellCore.Builder<VarBind<SELF, EXTR, REMAP, FINAL>> builder = SpellCore
                 .<VarBind<SELF, EXTR, REMAP, FINAL>>builder(uncheckedCast(VarBind.class), core)
                 .addFragment(groupedProvider)

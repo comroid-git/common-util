@@ -29,27 +29,21 @@ public final class ValueType<R> implements HeldType<R>, Predicate<Object> {
 
     private final Class<R> type;
     private final String name;
-    private final Junction<String, R> converter;
-
-    @Deprecated
-    public Function<String, R> getMapper() {
-        return getConverter()::forward;
-    }
-
+    private final Function<String, R> converter;
     @Override
     public String getName() {
         return name;
     }
 
     @Override
-    public Junction<String, R> getConverter() {
+    public Function<String, R> getConverter() {
         return converter;
     }
 
     public ValueType(Class<R> type, String name, Function<String, R> mapper) {
         this.type = type;
         this.name = name;
-        this.converter = Junction.ofString(mapper);
+        this.converter = mapper;
     }
 
     public static <T> ValueType<T> typeOf(T value) {
@@ -58,7 +52,7 @@ public final class ValueType<R> implements HeldType<R>, Predicate<Object> {
 
     @Override
     public <T> T convert(R value, HeldType<T> toType) {
-        return toType.getConverter().forward(value.toString());
+        return toType.getConverter().apply(value.toString());
     }
 
     @Override
