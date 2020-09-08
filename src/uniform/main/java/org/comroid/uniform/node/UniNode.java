@@ -1,12 +1,10 @@
 package org.comroid.uniform.node;
 
-import org.comroid.api.Polyfill;
-import org.comroid.api.Specifiable;
+import org.comroid.api.*;
 import org.comroid.common.info.MessageSupplier;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.uniform.DataStructureType;
-import org.comroid.uniform.HeldType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.Contract;
@@ -107,6 +105,10 @@ public abstract class UniNode implements Specifiable<UniNode> {
         if (o instanceof UniNode)
             return o.toString();
         return String.valueOf(o);
+    }
+
+    public @NotNull <B extends Named & ValuePointer<T>, T> UniNode put(B idBox, T value) {
+        return put(idBox.getName(), idBox.getHeldType(), value);
     }
 
     public @NotNull <T> UniNode put(String key, HeldType<T> type, T value) throws UnsupportedOperationException {

@@ -1,12 +1,13 @@
 package org.comroid.uniform.node;
 
+import org.comroid.api.Named;
+import org.comroid.api.ValuePointer;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
-import org.comroid.uniform.HeldType;
+import org.comroid.api.HeldType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.HashMap;

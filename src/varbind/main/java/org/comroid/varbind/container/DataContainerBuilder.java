@@ -8,7 +8,7 @@ import org.comroid.util.ArrayUtil;
 import org.comroid.varbind.bind.VarBind;
 
 public final class DataContainerBuilder<T extends DataContainerBase<? super T>> implements Builder<T> {
-    public final UniObjectNode data = UniObjectNode.dummy();
+    public final UniObjectNode data;
     private final Invocable<? extends T> invocable;
     private final Object[] otherArgs;
 
@@ -16,7 +16,16 @@ public final class DataContainerBuilder<T extends DataContainerBase<? super T>> 
             Class<? extends T> type,
             Object... otherArgs
     ) {
+        this(type, UniObjectNode.dummy(), otherArgs);
+    }
+
+    public DataContainerBuilder(
+            Class<? extends T> type,
+            UniObjectNode data,
+            Object... otherArgs
+    ) {
         this.invocable = Invocable.ofClass(type);
+        this.data = data;
         this.otherArgs = otherArgs;
     }
 

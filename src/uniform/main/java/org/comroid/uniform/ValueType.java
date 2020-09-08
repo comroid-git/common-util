@@ -1,5 +1,6 @@
 package org.comroid.uniform;
 
+import org.comroid.api.HeldType;
 import org.comroid.api.Junction;
 
 import java.util.function.Function;

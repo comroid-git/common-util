@@ -1,7 +1,7 @@
 package org.comroid.common.io;
 
 import org.comroid.common.os.OSBasedFileMover;
-import org.comroid.common.ref.Named;
+import org.comroid.api.Named;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;

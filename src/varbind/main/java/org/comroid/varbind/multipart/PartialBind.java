@@ -1,7 +1,7 @@
 package org.comroid.varbind.multipart;
 
 import org.comroid.api.Polyfill;
-import org.comroid.api.Specifiable;
+import org.comroid.api.Named;
 import org.comroid.mutatio.span.Span;
 import org.comroid.spellbind.annotation.Partial;
 import org.comroid.spellbind.model.TypeFragment;
@@ -15,8 +15,13 @@ public final class PartialBind {
     }
 
     @Partial
-    public interface Base<MEMBEROF extends DataContainer<? super MEMBEROF>, EXTR, REMAP, FINAL> extends BindFragment {
+    public interface Base<MEMBEROF extends DataContainer<? super MEMBEROF>, EXTR, REMAP, FINAL> extends BindFragment, Named { // todo !! important !! extends ValuePointer
         String getFieldName();
+
+        @Override
+        default String getName() {
+            return getFieldName();
+        }
 
         boolean isRequired();
 

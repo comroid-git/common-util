@@ -2,7 +2,7 @@ package org.comroid.uniform.node;
 
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
-import org.comroid.uniform.HeldType;
+import org.comroid.api.HeldType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
