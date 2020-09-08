@@ -13,16 +13,15 @@ import java.util.Objects;
 public abstract class DataContainerBuilder<S extends DataContainerBuilder<S, T>, T extends DataContainer<? super T>>
         implements Builder<T>, SelfDeclared<S> {
     private final Map<VarBind<? super T, Object, ?, Object>, Object> values = new HashMap<>();
-    private final Class<T> type;
+    private final Class<? extends T> type;
 
-    public DataContainerBuilder(Class<T> type) {
+    public DataContainerBuilder(Class<? extends T> type) {
         this.type = Objects.requireNonNull(type, "Type cannot be null");
     }
 
     public final <V> S with(VarBind<? super T, V, ?, ?> bind, V value) {
         values.put(Polyfill.uncheckedCast(bind), value);
-
-        return Polyfill.uncheckedCast(this);
+        return self();
     }
 
     @SuppressWarnings("RedundantSuppression") // false positive LOL
