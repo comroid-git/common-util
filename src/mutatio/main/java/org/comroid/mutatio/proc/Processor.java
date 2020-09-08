@@ -67,20 +67,9 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return new Support.Filtered<>(this, predicate);
     }
 
-    default <R> Processor<R> flatMap(Class<R> type) {
-        return filter(type::isInstance).map(type::cast);
-    }
-
     @Override
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
         return new Support.Remapped<>(this, mapper, null);
-    }
-
-    default Processor<T> peek(Consumer<? super T> action) {
-        return new Support.Remapped<>(this, it -> {
-            action.accept(it);
-            return it;
-        }, Function.identity());
     }
 
     @Override
@@ -93,19 +82,9 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
         return flatMap(mapper, null);
     }
 
-    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper, Function<R, T> backwardsConverter) {
-        return new Support.ReferenceFlatMapped<>(this, mapper, backwardsConverter);
-    }
-
     @Override
     default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper) {
         return flatMapOptional(mapper, null);
-    }
-
-    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper, Function<R, T> backwardsConverter) {
-        return flatMap(mapper
-                .andThen(Optional::get)
-                .andThen(Reference::constant), backwardsConverter);
     }
 
     default Processor<T> or(final Supplier<T> other) {

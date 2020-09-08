@@ -116,12 +116,25 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return requireNonNull("Assertion Failure");
     }
 
+    default <EX extends Throwable> T orElseThrow(Supplier<EX> exceptionSupplier) throws EX {
+        if (isNull())
+            throw exceptionSupplier.get();
+        return requireNonNull("Assertion Failure");
+    }
+
     default Provider<T> provider() {
         return Provider.of(this);
     }
 
     default Invocable<T> invocable() {
         return Invocable.ofProvider(Provider.of(this));
+    }
+
+    default Processor<T> peek(Consumer<? super T> action) {
+        return new Processor.Support.Remapped<>(this, it -> {
+            action.accept(it);
+            return it;
+        }, Function.identity());
     }
 
     default Processor<T> process() {
@@ -226,6 +239,10 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return new Processor.Support.Filtered<>(this, predicate);
     }
 
+    default <R> Processor<R> flatMap(Class<R> type) {
+        return filter(type::isInstance).map(type::cast);
+    }
+
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
         return new Processor.Support.Remapped<>(this, mapper, null);
     }
@@ -234,8 +251,18 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return new Processor.Support.ReferenceFlatMapped<>(this, mapper, null);
     }
 
+    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper, Function<R, T> backwardsConverter) {
+        return new Processor.Support.ReferenceFlatMapped<>(this, mapper, backwardsConverter);
+    }
+
     default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper) {
         return flatMap(mapper.andThen(opt -> opt.map(Reference::constant).orElseGet(Reference::empty)));
+    }
+
+    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper, Function<R, T> backwardsConverter) {
+        return flatMap(mapper
+                .andThen(Optional::get)
+                .andThen(Reference::constant), backwardsConverter);
     }
 
     @Deprecated
