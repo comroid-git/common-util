@@ -1,10 +1,14 @@
 package org.comroid.restless.server;
 
 import com.sun.net.httpserver.Headers;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.restless.HTTPStatusCodes;
 import org.comroid.restless.REST;
+import org.comroid.uniform.ValueType;
 import org.comroid.uniform.node.UniNode;
-import org.jetbrains.annotations.ApiStatus.Internal;
+import org.comroid.uniform.node.UniObjectNode;
+
+import java.util.stream.Stream;
 
 public interface EndpointHandler {
     default boolean supports(REST.Method method) {
@@ -27,7 +31,15 @@ public interface EndpointHandler {
         if (!supports(method))
             throw new RestEndpointException(HTTPStatusCodes.METHOD_NOT_ALLOWED, "Method not supported: " + method.name());
 
-        final UniNode data = server.getSerializationAdapter().createUniNode(body);
+        final UniNode data = Processor.ofConstant(server.getSerializationAdapter().createUniNode(body))
+                .orElseGet(() -> {
+                    // try to wrap http form data
+                    UniObjectNode node = server.getSerializationAdapter().createUniObjectNode();
+                    Stream.of(body.split("&"))
+                            .map(pair -> pair.split("="))
+                            .forEach(field -> node.put(field[0], ValueType.STRING, field[1]));
+                    return node;
+                });
 
         switch (method) {
             case GET:
