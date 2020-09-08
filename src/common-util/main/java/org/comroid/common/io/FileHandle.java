@@ -32,6 +32,7 @@ public final class FileHandle extends File implements Named {
 
     public List<String> getLines() {
         final List<String> yields = new ArrayList<>();
+        validateExists();
 
         try (
                 FileReader fr = new FileReader(this);
@@ -62,6 +63,7 @@ public final class FileHandle extends File implements Named {
     }
 
     public void setContent(String content) {
+        validateExists();
         try (FileWriter writer = new FileWriter(this, false)) {
             writer.write(content);
         } catch (IOException e) {

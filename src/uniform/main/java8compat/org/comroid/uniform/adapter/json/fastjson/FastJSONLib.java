@@ -44,8 +44,6 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
                 case Array:
                     return arrayType;
             }
-        } else {
-            throw new IllegalArgumentException("String is not valid JSON");
         }
 
         return null;
@@ -56,7 +54,7 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
         final DataStructureType<SerializationAdapter<JSON, JSONObject, JSONArray>, JSON, ? extends JSON> type = typeOfData(data);
 
         if (type == null)
-            throw new IllegalArgumentException("String is not valid JSON");
+            throw new IllegalArgumentException("String is not valid JSON: " + data);
 
         switch (type.typ) {
             case OBJECT:

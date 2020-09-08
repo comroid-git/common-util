@@ -80,7 +80,9 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
         if (node == null)
             UniValueNode.empty();
 
-        if (node instanceof CharSequence) {
+        if (node instanceof String) {
+            if (((String) node).isEmpty())
+                return null;
             return parse(node == null ? null : node.toString());
         }
 

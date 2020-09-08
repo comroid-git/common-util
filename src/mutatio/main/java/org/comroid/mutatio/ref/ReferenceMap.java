@@ -56,19 +56,19 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
     ReferenceIndex<? extends Map.Entry<K, V>> entryIndex();
 
     default V get(K key) {
-        return getReference(key).get();
+        return getReference(key, true).get();
     }
 
     default Optional<V> wrap(K key) {
-        return getReference(key).wrap();
+        return getReference(key, true).wrap();
     }
 
     default @NotNull V requireNonNull(K key) {
-        return getReference(key).requireNonNull();
+        return getReference(key, true).requireNonNull();
     }
 
     default @NotNull V requireNonNull(K key, String message) {
-        return getReference(key).requireNonNull(message);
+        return getReference(key, true).requireNonNull(message);
     }
 
     int size();
