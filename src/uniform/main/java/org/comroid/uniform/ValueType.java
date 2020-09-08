@@ -2,11 +2,16 @@ package org.comroid.uniform;
 
 import org.comroid.api.HeldType;
 import org.comroid.api.Junction;
+import org.comroid.api.Polyfill;
+import org.comroid.mutatio.span.Span;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class ValueType<R> implements HeldType<R>, Predicate<Object> {
+    public static final Set<ValueType<?>> values = new HashSet<>();
     public static final ValueType<Boolean> BOOLEAN
             = new ValueType<>(Boolean.class, "boolean", Boolean::parseBoolean);
     public static final ValueType<Character> CHARACTER
@@ -44,10 +49,16 @@ public final class ValueType<R> implements HeldType<R>, Predicate<Object> {
         this.type = type;
         this.name = name;
         this.converter = mapper;
+
+        values.add(this);
     }
 
     public static <T> ValueType<T> typeOf(T value) {
-        return null;
+        return values.stream()
+                .filter(it -> it.test(value))
+                .findAny()
+                .map(Polyfill::<ValueType<T>>uncheckedCast)
+                .orElse(null);
     }
 
     @Override
