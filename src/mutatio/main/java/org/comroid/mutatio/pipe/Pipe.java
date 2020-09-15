@@ -107,6 +107,10 @@ public interface Pipe<O> extends ReferenceIndex<O>, Consumer<Reference<Object>>,
         return addStage(StageAdapter.filter(predicate));
     }
 
+    default <R> Pipe<R> map(Class<R> target) {
+        return filter(target::isInstance).map(target::cast);
+    }
+
     default <R> Pipe<R> map(Function<? super O, ? extends R> mapper) {
         return addStage(StageAdapter.map(mapper));
     }
