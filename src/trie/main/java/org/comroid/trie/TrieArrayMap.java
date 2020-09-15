@@ -7,8 +7,6 @@ import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -63,7 +61,7 @@ public final class TrieArrayMap<K, V> extends TrieStage<K, V> implements TrieMap
     }
 
     @Override
-    public Pipe<?, KeyedReference<K, V>> pipe(Predicate<K> filter) {
+    public Pipe<KeyedReference<K, V>> pipe(Predicate<K> filter) {
         return null;
     }
 

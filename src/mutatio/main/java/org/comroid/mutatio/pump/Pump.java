@@ -9,26 +9,27 @@ import org.comroid.mutatio.ref.ReferenceIndex;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 
-public interface Pump<O, T> extends Pipe<O, T>, ExecutorBound {
-    static <T> Pump<T, T> create() {
+public interface Pump<T> extends Pipe<T>, ExecutorBound {
+    static <T> Pump<T> create() {
         return create(Runnable::run);
     }
 
-    static <T> Pump<T, T> create(Executor executor) {
+    static <T> Pump<T> create(Executor executor) {
         return new BasicPump<>(executor, ReferenceIndex.create());
     }
 
-    static <T> Pump<?, T> of(Collection<T> collection) {
-        final Pump<T, T> pump = create();
+    static <T> Pump<T> of(Collection<T> collection) {
+        final Pump<T> pump = create();
         collection.stream()
                 .map(Reference::constant)
+                .map(ref -> ref.map(Object.class::cast))
                 .forEach(pump);
 
         return pump;
     }
 
     @Override
-    <R> Pump<T, R> addStage(StageAdapter<T, R> stage);
+    <R> Pump<R> addStage(StageAdapter<T, R> stage);
 
-    <R> Pump<T, R> addStage(Executor executor, StageAdapter<T, R> stage);
+    <R> Pump<R> addStage(Executor executor, StageAdapter<T, R> stage);
 }

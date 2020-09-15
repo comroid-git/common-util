@@ -283,7 +283,7 @@ public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, R
     }
 
     @Override
-    public Pipe<T, T> pipe() {
+    public Pipe<T> pipe() {
         return new BasicPipe<>(this, 512);
     }
 

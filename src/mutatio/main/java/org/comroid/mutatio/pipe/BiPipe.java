@@ -6,7 +6,7 @@ import org.comroid.util.Pair;
 import java.util.function.*;
 
 public final class BiPipe<A, B, X, Y> extends BasicPipe<Pair<A, B>, Pair<X, Y>> {
-    <T> BiPipe(Pipe<?, A> base, Function<A, B> bMapper) {
+    <T> BiPipe(Pipe<A> base, Function<A, B> bMapper) {
         super(base.map(a -> new Pair<>(a, bMapper.apply(a))));
     }
 
@@ -49,7 +49,7 @@ public final class BiPipe<A, B, X, Y> extends BasicPipe<Pair<A, B>, Pair<X, Y>> 
                 .map(pair -> new Pair<>(pair.getFirst(), mapper.apply(pair.getSecond()).get())));
     }
 
-    public <R> Pipe<Pair<X, Y>, R> merge(BiFunction<X, Y, R> mergeFunction) {
+    public <R> Pipe<R> merge(BiFunction<X, Y, R> mergeFunction) {
         return map(pair -> mergeFunction.apply(pair.getFirst(), pair.getSecond()));
     }
 
@@ -62,7 +62,7 @@ public final class BiPipe<A, B, X, Y> extends BasicPipe<Pair<A, B>, Pair<X, Y>> 
         forEach(pair -> action.accept(pair.getFirst(), pair.getSecond()));
     }
 
-    public Pipe<?, X> drop() {
+    public Pipe<X> drop() {
         return map(Pair::getFirst);
     }
 }

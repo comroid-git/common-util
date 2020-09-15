@@ -58,12 +58,12 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
     }
 
     @Override
-    default Pipe<?, T> pipe() {
+    default Pipe<T> pipe() {
         return new BasicPipe<>(this);
     }
 
     @Override
-    default Pump<?, T> pump(Executor executor) {
+    default Pump<T> pump(Executor executor) {
         return new BasicPump<>(executor, this);
     }
 
@@ -112,7 +112,7 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
             }
 
             @Override
-            public Pipe<?, T> pipe() {
+            public Pipe<T> pipe() {
                 return Pipe.of(underlying);
             }
 

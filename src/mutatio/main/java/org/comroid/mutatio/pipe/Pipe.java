@@ -17,70 +17,73 @@ import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, AutoCloseable {
-    StageAdapter<I, O> getAdapter();
+@SuppressWarnings("TypeParameterExplicitlyExtendsObject")
+public interface Pipe<O> extends ReferenceIndex<O>, Consumer<Reference<Object>>, AutoCloseable {
+    StageAdapter<? extends Object, O> getAdapter();
 
     default boolean isSorted() {
         return false;
     }
 
-    static <T> Pipe<T, T> create() {
+    static <T> Pipe<T> create() {
         return new BasicPipe<>(ReferenceIndex.create());
     }
 
     @SafeVarargs
-    static <T> Pipe<T, T> of(T... values) {
+    static <T> Pipe<T> of(T... values) {
         return of(Arrays.asList(values));
     }
 
-    static <T> Pipe<T, T> of(Collection<T> collection) {
-        final Pipe<T, T> pipe = create();
+    static <T> Pipe<T> of(Collection<T> collection) {
+        final Pipe<T> pipe = create();
         collection.stream()
                 .map(Reference::constant)
+                .map(ref -> ref.map(Object.class::cast))
                 .forEach(pipe);
 
         return pipe;
     }
 
-    static <T> Pipe<?, T> ofStream(Stream<T> stream) {
-        final Pipe<T, T> pipe = create();
+    static <T> Pipe<T> ofStream(Stream<T> stream) {
+        final Pipe<T> pipe = create();
         stream.iterator().forEachRemaining(pipe::add);
         return pipe;
     }
 
-    static <T> Collector<Pump<?, T>, List<Pump<?, T>>, Pipe<?, T>> resultingPipeCollector(Executor executor) {
-        class ResultingPipeCollector implements Collector<Pump<?, T>, List<Pump<?, T>>, Pipe<?, T>> {
-            private final Pump<T, T> yield = Pump.create(executor);
-            private final Supplier<List<Pump<?, T>>> supplier = ArrayList::new;
-            private final BiConsumer<List<Pump<?, T>>, Pump<?, T>> accumulator = List::add;
-            private final BinaryOperator<List<Pump<?, T>>> combiner = (l, r) -> {
+    static <T> Collector<Pump<T>, List<Pump<T>>, Pipe<T>> resultingPipeCollector(Executor executor) {
+        class ResultingPipeCollector implements Collector<Pump<T>, List<Pump<T>>, Pipe<T>> {
+            private final Pump<T> yield = Pump.create(executor);
+            private final Supplier<List<Pump<T>>> supplier = ArrayList::new;
+            private final BiConsumer<List<Pump<T>>, Pump<T>> accumulator = List::add;
+            private final BinaryOperator<List<Pump<T>>> combiner = (l, r) -> {
                 l.addAll(r);
                 return l;
             };
-            private final Function<List<Pump<?, T>>, Pipe<?, T>> finisher = pipes -> {
+            private final Function<List<Pump<T>>, Pipe<T>> finisher = pipes -> {
                 pipes.forEach(pump -> pump
                         .map(Reference::constant)
+                        .map(ref -> ref.map(Object.class::cast))
                         .peek(yield));
                 return yield;
             };
 
             @Override
-            public Supplier<List<Pump<?, T>>> supplier() {
+            public Supplier<List<Pump<T>>> supplier() {
                 return supplier;
             }
 
             @Override
-            public BiConsumer<List<Pump<?, T>>, Pump<?, T>> accumulator() {
+            public BiConsumer<List<Pump<T>>, Pump<T>> accumulator() {
                 return accumulator;
             }
 
             @Override
-            public BinaryOperator<List<Pump<?, T>>> combiner() {
+            public BinaryOperator<List<Pump<T>>> combiner() {
                 return combiner;
             }
 
             @Override
-            public Function<List<Pump<?, T>>, Pipe<?, T>> finisher() {
+            public Function<List<Pump<T>>, Pipe<T>> finisher() {
                 return finisher;
             }
 
@@ -98,21 +101,21 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, A
         return span().unwrap();
     }
 
-    <R> Pipe<O, R> addStage(StageAdapter<O, R> stage);
+    <R> Pipe<R> addStage(StageAdapter<O, R> stage);
 
-    default Pipe<O, O> filter(Predicate<? super O> predicate) {
+    default Pipe<O> filter(Predicate<? super O> predicate) {
         return addStage(StageAdapter.filter(predicate));
     }
 
-    default <R> Pipe<O, R> map(Function<? super O, ? extends R> mapper) {
+    default <R> Pipe<R> map(Function<? super O, ? extends R> mapper) {
         return addStage(StageAdapter.map(mapper));
     }
 
-    default <R> Pipe<O, R> flatMap(Function<? super O, ? extends Reference<? extends R>> mapper) {
+    default <R> Pipe<R> flatMap(Function<? super O, ? extends Reference<? extends R>> mapper) {
         return addStage(StageAdapter.flatMap(mapper));
     }
 
-    default Pipe<O, O> peek(Consumer<? super O> action) {
+    default Pipe<O> peek(Consumer<? super O> action) {
         return addStage(StageAdapter.peek(action));
     }
 
@@ -120,23 +123,23 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, A
         addStage(StageAdapter.peek(action)).unwrap();
     }
 
-    default Pipe<O, O> distinct() {
+    default Pipe<O> distinct() {
         return addStage(StageAdapter.distinct());
     }
 
-    default Pipe<O, O> limit(long maxSize) {
+    default Pipe<O> limit(long maxSize) {
         return addStage(StageAdapter.limit(maxSize));
     }
 
-    default Pipe<O, O> skip(long skip) {
+    default Pipe<O> skip(long skip) {
         return addStage(StageAdapter.skip(skip));
     }
 
-    default Pipe<O, O> sorted() {
+    default Pipe<O> sorted() {
         return sorted(Polyfill.uncheckedCast(Comparator.naturalOrder()));
     }
 
-    default Pipe<O, O> sorted(Comparator<? super O> comparator) {
+    default Pipe<O> sorted(Comparator<? super O> comparator) {
         return new SortedResultingPipe<>(this, comparator);
     }
 
@@ -156,7 +159,7 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, A
     }
 
     @Override
-    default Pump<I, O> pump(Executor executor) {
+    default Pump<O> pump(Executor executor) {
         return new BasicPump<>(executor, this.map(Polyfill::uncheckedCast));
     }
 
@@ -166,7 +169,7 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, A
      * Only meant for use from a {@link Pump} instance.
      */
     @Override
-    default void accept(Reference<I> input) {
+    default void accept(Reference<Object> input) {
         throw new UnsupportedOperationException("Method #accept is only meant for use from a Pump instance");
     }
 
@@ -187,7 +190,7 @@ public interface Pipe<I, O> extends ReferenceIndex<O>, Consumer<Reference<I>>, A
         }
 
         final OnceCompletingStage stage = new OnceCompletingStage();
-        final Pipe<O, O> resulting = addStage(stage);
+        final Pipe<O> resulting = addStage(stage);
         stage.future.thenRun(ThrowingRunnable.handling(resulting::close, null));
 
         return stage.future;

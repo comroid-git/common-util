@@ -57,7 +57,7 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
     }
 
     @Override
-    public Pipe<?, ? extends KeyedReference<String, V>> pipe(Predicate<String> filter) {
+    public Pipe<? extends KeyedReference<String, V>> pipe(Predicate<String> filter) {
         return entryIndex.pipe();
     }
 

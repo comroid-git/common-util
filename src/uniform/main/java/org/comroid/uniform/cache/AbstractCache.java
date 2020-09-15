@@ -46,7 +46,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public Pipe<?, ? extends KeyedReference<K, V>> pipe(Predicate<K> filter) {
+    public Pipe<? extends KeyedReference<K, V>> pipe(Predicate<K> filter) {
         return cache.pipe(filter);
     }
 

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SortedResultingPipe<T> extends BasicPipe<T, T> implements Pipe<T, T> {
+public class SortedResultingPipe<T> extends BasicPipe<T, T> implements Pipe<T> {
     private final Comparator<? super T> comparator;
 
     @Override
@@ -16,7 +16,7 @@ public class SortedResultingPipe<T> extends BasicPipe<T, T> implements Pipe<T, T
         return true;
     }
 
-    public SortedResultingPipe(Pipe<?, T> base, Comparator<? super T> comparator) {
+    public SortedResultingPipe(Pipe<T> base, Comparator<? super T> comparator) {
         super(base);
         this.comparator = comparator;
     }

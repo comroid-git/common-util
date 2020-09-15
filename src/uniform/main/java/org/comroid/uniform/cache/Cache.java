@@ -12,7 +12,7 @@ public interface Cache<K, V> extends Iterable<CacheReference<K, V>>, ReferenceMa
     <R> Processor<R> accessor(K key, String name, Processor.Advancer<V, ? extends R> advancer);
 
     @Override
-    default Pipe<?, V> pipe() {
+    default Pipe<V> pipe() {
         return pipe(any -> true).map(org.comroid.mutatio.ref.Reference::get);
     }
 

@@ -141,7 +141,7 @@ public interface Reference<T> extends CachedValue<T>, Supplier<T> {
         return Processor.ofReference(this);
     }
 
-    default Pipe<T, T> pipe() {
+    default Pipe<T> pipe() {
         return Pipe.of(get());
     }
 

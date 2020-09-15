@@ -25,7 +25,7 @@ public class PumpTests {
 
     @Test
     public void testBasicOperations() throws InterruptedException {
-        final Pump<String, String> remapOp = (Pump<String, String>) Pump.<String>create()
+        final Pump<String> remapOp = (Pump<String>) Pump.<String>create()
                 .map(String::toLowerCase);
         controlGroup.stream()
                 .map(Reference::constant)
@@ -33,7 +33,7 @@ public class PumpTests {
         for (int i = 0; i < controlGroup.size(); i++)
             Assert.assertEquals("index " + i, controlGroup.get(i).toLowerCase(), remapOp.get(i));
 
-        final Pump<String, String> filterOp = (Pump<String, String>) Pump.<String>create()
+        final Pump<String> filterOp = (Pump<String>) Pump.<String>create()
                 .filter(str -> str.chars()
                         .map(Character::toLowerCase)
                         .allMatch(c -> c != 'a'));
@@ -46,7 +46,7 @@ public class PumpTests {
                     .map(String::toLowerCase)
                     .ifPresent(str -> Assert.assertFalse(str.contains("a")));
 
-        final Pump<String, String> filterMapOp = (Pump<String, String>) Pump.<String>create()
+        final Pump<String> filterMapOp = (Pump<String>) Pump.<String>create()
                 .map(String::toLowerCase)
                 .filter(str -> str.chars()
                         .allMatch(c -> c != 'a'));
