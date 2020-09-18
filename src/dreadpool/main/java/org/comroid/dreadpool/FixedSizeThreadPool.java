@@ -23,7 +23,7 @@ public final class FixedSizeThreadPool extends ScheduledThreadPoolExecutor imple
         return (ThreadErrorHandler) super.getRejectedExecutionHandler();
     }
 
-    public FixedSizeThreadPool(
+    FixedSizeThreadPool(
             int corePoolSize, WorkerFactory threadFactory, ThreadErrorHandler handler
     ) {
         super(corePoolSize, threadFactory, handler);

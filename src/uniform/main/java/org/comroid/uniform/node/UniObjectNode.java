@@ -1,19 +1,20 @@
 package org.comroid.uniform.node;
 
-import org.comroid.mutatio.ref.OutdateableReference.SettableOfSupplier;
-import org.comroid.trie.TrieMap;
-import org.comroid.uniform.DataStructureType;
+import org.comroid.api.Named;
+import org.comroid.api.ValuePointer;
+import org.comroid.mutatio.proc.Processor;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.api.HeldType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public final class UniObjectNode extends UniNode {
-    private final Map<String, UniValueNode<String>> valueAdapters = TrieMap.ofString();
     private final Adapter adapter;
 
     @Override
@@ -47,6 +48,10 @@ public final class UniObjectNode extends UniNode {
         return new UniObjectNode(adapter, new MergedAdapter(map));
     }
 
+    public static UniObjectNode dummy() {
+        return ofMap(null, new HashMap<>());
+    }
+
     @Override
     public @NotNull UniNode get(int index) {
         return unsupported("GET_INDEX", Type.ARRAY);
@@ -59,45 +64,63 @@ public final class UniObjectNode extends UniNode {
 
     @Override
     public boolean has(String fieldName) {
+        if (fieldName.isEmpty())
+            return true;
         return adapter.containsKey(fieldName);
     }
 
     @Override
-    public @NotNull UniNode get(String fieldName) {
-        final Object value = adapter.get(fieldName);
+    public @NotNull UniNode get(final String fieldName) {
+        if (fieldName.isEmpty())
+            return this;
+        return makeValueNode(fieldName).orElseGet(UniValueNode::empty);
+    }
 
-        if (value == null) {
-            return UniValueNode.nullNode();
+    private Processor<UniNode> makeValueNode(String fieldName) {
+        return computeNode(fieldName, () -> new KeyAccessor(fieldName));
+    }
+
+    private final class KeyAccessor extends Reference.Support.Base<String> {
+        private final String fieldName;
+
+        protected KeyAccessor(String fieldName) {
+            super(true);
+
+            this.fieldName = fieldName;
         }
 
-        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
-                .map(DataStructureType::typeClass)
-                .noneMatch(type -> type.isInstance(value))) {
-            return valueAdapters.computeIfAbsent(fieldName, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
-                    .process()
-                    .map(String::valueOf)
-                    .snapshot()));
-        } else {
-            return serializationAdapter.createUniNode(value);
+        @Override
+        protected String doGet() {
+            return String.valueOf(adapter.getOrDefault(fieldName, null));
+        }
+
+        @Override
+        protected boolean doSet(String value) {
+            return adapter.put(fieldName, value) != value;
+        }
+
+        @Override
+        public boolean isOutdated() {
+            return true;
         }
     }
 
     @Override
-    public @NotNull <T> UniValueNode<String> put(String key, ValueType<T> type, T value) {
-        if (adapter.containsKey(key)) {
-            Object at = adapter.get(key);
-            if (at instanceof UniValueNode) {
-                adapter.put(key, value);
-                //noinspection unchecked
-                return (UniValueNode<String>) at;
-            }
-        }
+    public @NotNull <T> UniNode put(String key, HeldType<T> type, T value) {
+        UniNode node = unwrapNode(key, type, value);
+        if (node != null)
+            return node;
 
-        adapter.put(key, value);
-        return valueAdapters.computeIfAbsent(key, k -> generateValueNode(new SettableOfSupplier<>(() -> value)
-                .process()
-                .map(String::valueOf)
-                .snapshot()));
+        if (type == ValueType.VOID) {
+            adapter.put(key, value);
+            return get(key);
+        } else {
+            final String put = type.convert(value, ValueType.STRING);
+
+            final UniNode vn = makeValueNode(key).requireNonNull("Missing Node");
+            vn.set(put);
+            return vn;
+        }
     }
 
     @Override
@@ -119,7 +142,6 @@ public final class UniObjectNode extends UniNode {
     @Override
     public @NotNull UniArrayNode putArray(String key) {
         final UniArrayNode arrayNode = serializationAdapter.createUniArrayNode();
-
         adapter.put(key, arrayNode.getBaseNode());
         return arrayNode;
     }

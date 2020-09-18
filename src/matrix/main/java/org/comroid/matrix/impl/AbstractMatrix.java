@@ -2,25 +2,31 @@ package org.comroid.matrix.impl;
 
 import org.comroid.api.UUIDContainer;
 import org.comroid.matrix.Matrix;
-import org.comroid.trie.TrieMap;
+import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.ref.KeyedReference;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDContainer implements Matrix<V, E> {
+public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDContainer.Base implements Matrix<V, E> {
     private final Map<String, E> entries;
+    private final EntryIndex entryIndex = new EntryIndex();
 
     protected AbstractMatrix() {
-        this(TrieMap.ofString());
+        this(new ConcurrentHashMap<>());
     }
 
     protected AbstractMatrix(Map<String, E> underlying) {
-        this.entries = Optional.ofNullable(underlying).orElseGet(TrieMap::ofString);
+        this.entries = Optional.ofNullable(underlying).orElseGet(ConcurrentHashMap::new);
     }
 
     protected abstract @NotNull E createEntry(String key, @Nullable V initialValue);
@@ -31,12 +37,57 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
     }
 
     @Override
-    public V put(String coordinate, V newValue) {
+    public int size() {
+        return entries.size();
+    }
+
+    @Override
+    public boolean containsKey(String key) {
+        return entries.containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(V value) {
+        return stream().anyMatch(value::equals);
+    }
+
+    @Override
+    public Stream<? extends KeyedReference<String, V>> stream(Predicate<String> filter) {
+        return entryIndex.stream();
+    }
+
+    @Override
+    public Pipe<? extends KeyedReference<String, V>> pipe(Predicate<String> filter) {
+        return entryIndex.pipe();
+    }
+
+    @Override
+    public void forEach(BiConsumer<String, V> action) {
+        biPipe().forEach(action);
+    }
+
+    @Override
+    public void clear() {
+        entries.clear();
+    }
+
+    @Override
+    public boolean put(String coordinate, V newValue) {
         final E entry = getEntryAt(coordinate, null);
         V old = entry.getValue();
         entry.set(newValue);
 
-        return old;
+        return old != newValue;
+    }
+
+    @Override
+    public @Nullable KeyedReference<String, V> getReference(String key, boolean createIfAbsent) {
+        return entries.get(key);
+    }
+
+    @Override
+    public ReferenceIndex<? extends Map.Entry<String, V>> entryIndex() {
+        return entryIndex;
     }
 
     @Override
@@ -87,9 +138,63 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
         return entries.computeIfAbsent(coordinate, key -> createEntry(key, supplier.apply(key))).get();
     }
 
+    @Override
+    public @Nullable V remove(String coordinate) {
+        final E entry = entries.get(coordinate);
+        V prev;
+
+        if (entry == null || (prev = entry.getValue()) == null)
+            return null;
+        if (entry.set(null))
+            return prev;
+        else throw new UnsupportedOperationException("Could not unset entry");
+    }
+
+
     @NotNull
     @Override
     public Iterator<E> iterator() {
         return entries.values().iterator();
+    }
+
+    @Override
+    public boolean isNull(String coordinate) {
+        return getEntryAt(coordinate, null).isNull();
+    }
+
+    private final class EntryIndex implements ReferenceIndex<E> {
+        private final Map<Integer, Reference<E>> accessors = new ConcurrentHashMap<>();
+
+        @Override
+        public List<E> unwrap() {
+            return new ArrayList<>(entries.values());
+        }
+
+        @Override
+        public int size() {
+            return entries.size();
+        }
+
+        @Override
+        public boolean add(E item) {
+            return put(item.getCoordinate(), item.getValue());
+        }
+
+        @Override
+        public boolean remove(E item) {
+            return AbstractMatrix.this.remove(item.getCoordinate()) != item.getValue();
+        }
+
+        @Override
+        public void clear() {
+            AbstractMatrix.this.clear();
+        }
+
+        @Override
+        public Reference<E> getReference(int index) {
+            return accessors.computeIfAbsent(index, k -> Reference
+                    .provided(this::unwrap)
+                    .map(list -> list.get(k)));
+        }
     }
 }

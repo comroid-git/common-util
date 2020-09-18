@@ -12,19 +12,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
-public class FileConfiguration extends DataContainerBase<Object> implements FileProcessor {
+public class FileConfiguration extends DataContainerBase<FileConfiguration> implements FileProcessor {
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final FileHandle file;
-    private final Collection<AutoCloseable> children = new ArrayList<>();
-
-    {
-        try {
-            reloadData();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not load data", e);
-        }
-    }
+    private final UUID uuid = UUID.randomUUID();
 
     @Override
     public final FileHandle getFile() {
@@ -32,46 +25,39 @@ public class FileConfiguration extends DataContainerBase<Object> implements File
     }
 
     @Override
-    public Collection<? extends AutoCloseable> getChildren() {
-        return children;
+    public UUID getUUID() {
+        return uuid;
     }
 
     public FileConfiguration(
             SerializationAdapter<?, ?, ?> serializationAdapter,
             FileHandle file
     ) {
-        this(serializationAdapter, null, file);
-    }
-
-    public FileConfiguration(
-            SerializationAdapter<?, ?, ?> serializationAdapter,
-            @Nullable Class<? extends FileConfiguration> containingClass,
-            FileHandle file
-    ) {
-        super(null, null, containingClass);
+        super(null);
 
         this.serializationAdapter = serializationAdapter;
         this.file = file;
+
+        reloadData();
     }
 
     @Override
-    public void addChildren(AutoCloseable child) {
-        children.add(child);
-    }
-
-    @Override
-    public final void storeData() throws IOException {
+    public final int storeData() throws IOException {
         final UniObjectNode data = toObjectNode(serializationAdapter);
 
         try (FileWriter fw = new FileWriter(file, false)) {
             fw.append(data.toString());
         }
+
+        return 1;
     }
 
     @Override
-    public final void reloadData() throws IOException {
+    public final int reloadData() {
         final UniNode data = serializationAdapter.createUniNode(file.getContent());
 
         updateFrom(data.asObjectNode());
+
+        return 1;
     }
 }

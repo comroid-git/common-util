@@ -3,6 +3,7 @@ package org.comroid.varbind.multipart;
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
 import org.comroid.api.UUIDContainer;
+import org.comroid.common.info.MessageSupplier;
 import org.comroid.mutatio.span.Span;
 import org.comroid.spellbind.model.TypeFragmentProvider;
 
@@ -19,7 +20,7 @@ public final class FinishedBind {
         return new FragmentProviders.IntoCollection<>();
     }
 
-    public static final class SingleResult<R> extends UUIDContainer implements PartialBind.Finisher<R, R> {
+    public static final class SingleResult<R> extends UUIDContainer.Base implements PartialBind.Finisher<R, R> {
         private static final Invocable<? super SingleResult<?>> constructor = Invocable.ofConstructor(SingleResult.class);
 
         @Override
@@ -30,13 +31,14 @@ public final class FinishedBind {
         @Override
         public R finish(Span<R> parts) {
             return as(PartialBind.Base.class)
-                    .filter(PartialBind.Base::isRequired)
-                    .map(base -> parts.requireNonNull())
+                    .map(base -> base.isRequired()
+                            ? parts.requireNonNull(MessageSupplier.format("Could not find value for bind %s", base.getFieldName()))
+                            : parts.get())
                     .orElseGet(parts);
         }
     }
 
-    public static class IntoCollection<R, C extends Collection<R>> extends UUIDContainer implements PartialBind.Finisher<R, C> {
+    public static class IntoCollection<R, C extends Collection<R>> extends UUIDContainer.Base implements PartialBind.Finisher<R, C> {
         private static final Invocable<? super IntoCollection<?, ?>> constructor = Invocable.ofConstructor(IntoCollection.class);
 
         private final Supplier<C> collectionSupplier;
@@ -52,8 +54,9 @@ public final class FinishedBind {
 
         @Override
         public C finish(Span<R> parts) {
-            return collectionSupplier == null ? Polyfill.uncheckedCast(parts)
-                    : parts.stream().collect(Collectors.toCollection(collectionSupplier));
+            if (collectionSupplier != null)
+                return parts.stream().collect(Collectors.toCollection(collectionSupplier));
+            return Polyfill.uncheckedCast(parts);
         }
     }
 

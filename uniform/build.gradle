@@ -9,13 +9,17 @@ ext {
 
 configurations {
     main
-    java8compat.extendsFrom main
-    java11compat.extendsFrom main
+    java8compat {
+        extendsFrom main
+    }
+    java11compat {
+        extendsFrom main
+    }
 }
 
 sourceSets {
-    java8compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java8compat")
-    java11compat.java.srcDirs = files("$rootDir/src/$artifactName/main/java11compat")
+    java8compat.java.srcDirs = files("$parent.projectDir/src/$artifactName/main/java8compat")
+    java11compat.java.srcDirs = files("$parent.projectDir/src/$artifactName/main/java11compat")
 }
 
 compileJava8compatJava {
@@ -29,13 +33,9 @@ compileJava11compatJava {
 }
 
 jar {
-    dependsOn = ['compileJava8compatJava', 'compileJava11compatJava']
-    tasks.findByName('compileJava8compatJava').mustRunAfter('compileJava')
-    tasks.findByName('compileJava11compatJava').mustRunAfter('compileJava')
-
-    from files(tasks.findByName('compileJava').destinationDir,
-            tasks.findByName('compileJava8compatJava').destinationDir,
-            tasks.findByName('compileJava11compatJava').destinationDir)
+    from files(sourceSets.main.output.classesDirs,
+            sourceSets.java8compat.output.classesDirs,
+            sourceSets.java11compat.output.classesDirs)
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -44,9 +44,9 @@ dependencies {
     java8compatCompileOnly 'org.jetbrains:annotations:19.0.0'
     java11compatCompileOnly 'org.jetbrains:annotations:19.0.0'
 
-    api project(':common-util')
-    java8compatCompileOnly project(':uniform')
-    java11compatCompileOnly project(':uniform')
+    api project(':common-util:common-util')
+    java8compatCompileOnly project(':common-util:uniform')
+    java11compatCompileOnly project(':common-util:uniform')
 
     // json adapter dependencies
     java8compatCompileOnly 'com.alibaba:fastjson:1.2.71'
@@ -58,7 +58,8 @@ dependencies {
     java11compatImplementation 'com.google.flogger:flogger:0.5.1'
 
     java8compatCompileOnly 'com.alibaba:fastjson:1.2.71'
-    java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
+    java8compatCompileOnly 'com.fasterxml.jackson.core:jackson-databind:2.11.2'
+    java8compatCompileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.11.2'
     java8compatCompileOnly 'org.json:json:20200518'
 
     testImplementation sourceSets.java8compat.output.classesDirs
@@ -66,5 +67,5 @@ dependencies {
     testImplementation 'com.alibaba:fastjson:1.2.70'
 }
 
-apply from: "$rootDir/gradle/publishing.gradle"
+apply from: "$parent.projectDir/gradle/publishing.gradle"
 

@@ -1,13 +1,10 @@
 package org.comroid.common.io;
 
 import org.comroid.common.os.OSBasedFileMover;
-import org.comroid.common.ref.Named;
+import org.comroid.api.Named;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +32,7 @@ public final class FileHandle extends File implements Named {
 
     public List<String> getLines() {
         final List<String> yields = new ArrayList<>();
+        validateExists();
 
         try (
                 FileReader fr = new FileReader(this);
@@ -49,7 +47,28 @@ public final class FileHandle extends File implements Named {
     }
 
     public String getContent() {
+        return getContent(false);
+    }
+
+    public String getContent(boolean createIfAbsent) {
+        if (!exists() && createIfAbsent) {
+            try {
+                createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         return String.join("", getLines());
+    }
+
+    public void setContent(String content) {
+        validateExists();
+        try (FileWriter writer = new FileWriter(this, false)) {
+            writer.write(content);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public FileHandle(File file) {
@@ -64,6 +83,20 @@ public final class FileHandle extends File implements Named {
         super(absolutePath);
 
         this.dir = dir;
+    }
+
+    public static String guessMimeTypeFromName(String name) {
+        String ext = "*";
+
+        if (name.contains("."))
+            ext = name.substring(name.lastIndexOf('.'));
+        return String.format("*/%s", ext); // todo: improve
+    }
+
+    public static FileHandle of(File file) {
+        if (file instanceof FileHandle)
+            return (FileHandle) file;
+        return new FileHandle(file);
     }
 
     public FileHandle createSubFile(String name) {

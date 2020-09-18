@@ -2,7 +2,6 @@ package org.comroid.mutatio.proc;
 
 import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.ApiStatus.Internal;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -10,17 +9,16 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Cloneable through {@link #process()}.
  */
 public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
-    default boolean isPresent() {
-        return get() != null;
-    }
+    Optional<Reference<?>> getParent();
 
     static <T> Processor<T> ofReference(Reference<T> reference) {
-        return new Support.OfReference<>(reference);
+        return new Support.Default<>(reference);
     }
 
     static <T> Processor<T> empty() {
@@ -39,11 +37,21 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
     }
 
     static <T> Processor<T> providedOptional(Supplier<Optional<T>> supplier) {
-        return new Support.OfReference<>(Reference.provided(() -> supplier.get().orElse(null)));
+        return new Support.Default<>(Reference.provided(() -> supplier.get().orElse(null)));
     }
 
-    @Override
-    @Nullable T get();
+    default Stream<Reference<?>> upstream() {
+        return Stream.concat(
+                Stream.of(this),
+                getParent()
+                        .map(ref -> {
+                            if (ref instanceof Processor)
+                                return ((Processor<?>) ref).upstream();
+                            else return Stream.of(ref);
+                        })
+                        .orElseGet(Stream::empty)
+        );
+    }
 
     /**
      * Consumes the processor and terminates.
@@ -55,112 +63,186 @@ public interface Processor<T> extends Reference<T>, Cloneable, AutoCloseable {
     }
 
     @Override
-    default Processor<T> process() {
-        return Processor.ofReference(this);
-    }
-
     default Processor<T> filter(Predicate<? super T> predicate) {
         return new Support.Filtered<>(this, predicate);
     }
 
+    @Override
     default <R> Processor<R> map(Function<? super T, ? extends R> mapper) {
-        return new Support.Remapped<>(this, mapper);
+        return new Support.Remapped<>(this, mapper, null);
     }
 
-    default Processor<T> peek(Consumer<? super T> action) {
-        return new Support.Remapped<>(this, it -> {
-            action.accept(it);
-            return it;
-        });
+    @Override
+    default Processor<T> process() {
+        return this;
     }
 
-    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<R>> mapper) {
-        return new Support.ReferenceFlatMapped<>(this, mapper);
+    @Override
+    default <R> Processor<R> flatMap(Function<? super T, ? extends Reference<? extends R>> mapper) {
+        return flatMap(mapper, null);
     }
 
-    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<R>> mapper) {
-        return flatMap(mapper
-                .andThen(Optional::get)
-                .andThen(Reference::constant));
+    @Override
+    default <R> Processor<R> flatMapOptional(Function<? super T, ? extends Optional<? extends R>> mapper) {
+        return flatMapOptional(mapper, null);
     }
 
-    default Settable<T> snapshot() {
-        return Settable.create(get());
+    default Processor<T> or(final Supplier<T> other) {
+        return new Support.Or<>(this, other);
+    }
+
+    @FunctionalInterface
+    interface Advancer<I, O> {
+        Processor<O> advance(Processor<I> ref);
     }
 
     @Internal
     final class Support {
-        private static final Processor<?> EMPTY = new OfReference<>(Reference.empty());
+        public static final Processor<?> EMPTY = new Default<>(Reference.empty());
 
-        private static final class OfReference<T> implements Processor<T> {
-            private final Reference<T> underlying;
+        public static abstract class Base<I, O> extends Reference.Support.Base<O> implements Processor<O> {
+            protected final Reference<I> parent;
+            private final Predicate<O> setter;
 
-            private OfReference(Reference<T> underlying) {
-                this.underlying = underlying;
+            @Override
+            public Optional<Reference<?>> getParent() {
+                return Optional.of(parent);
             }
 
-            @Nullable
             @Override
-            public T get() {
-                return underlying.get();
+            public boolean isMutable() {
+                return parent.isMutable() || setter != null;
+            }
+
+            protected Base(Reference<I> parent) {
+                this(parent, (Predicate<O>) null);
+            }
+
+            protected Base(Reference<I> parent, Function<O, I> backwardsConverter) {
+                this(
+                        parent,
+                        (backwardsConverter != null && parent.isMutable())
+                                ? ((Predicate<O>) it -> parent.set(backwardsConverter.apply(it)))
+                                : null
+                );
+            }
+
+            protected Base(Reference<I> parent, Predicate<O> setter) {
+                super(Objects.requireNonNull(parent, "Parent missing"), setter != null);
+
+                this.parent = parent;
+                this.setter = setter;
+            }
+
+            @Override
+            protected boolean doSet(O value) {
+                assert setter != null : "isMutable check wrong";
+                return setter.test(value);
+            }
+
+            @Override
+            public String toString() {
+                return String.format("ProcessorBase{atom=%s, outdated=%s}", atom, isOutdated());
             }
         }
 
-        private static final class Remapped<T, R> implements Processor<R> {
-            private final Reference<T> underlying;
-            private final Function<? super T, ? extends R> remapper;
+        public static class Default<T> extends Base<T, T> {
+            public Default(Reference<T> parent) {
+                super(parent);
+            }
 
-            private Remapped(Processor<T> base, Function<? super T, ? extends R> remapper) {
-                this.underlying = base;
+            @Override
+            protected T doGet() {
+                return parent.get();
+            }
+        }
+
+        public static final class Filtered<T> extends Base<T, T> {
+            private final Predicate<? super T> filter;
+
+            public Filtered(Reference<T> base, Predicate<? super T> filter) {
+                super(base, Function.identity());
+
+                this.filter = filter;
+            }
+
+            @Override
+            protected T doGet() {
+                final T value = parent.get();
+
+                if (value != null && filter.test(value))
+                    return value;
+                return null;
+            }
+        }
+
+        public static final class Remapped<I, O> extends Base<I, O> {
+            private final Function<? super I, ? extends O> remapper;
+
+            public <R> Remapped(
+                    Reference<I> base,
+                    Function<? super I, ? extends O> remapper,
+                    Function<O, I> backwardsConverter
+            ) {
+                super(base, backwardsConverter);
+
                 this.remapper = remapper;
             }
 
-            @Nullable
             @Override
-            public R get() {
-                final T get = underlying.get();
+            protected O doGet() {
+                final I in = parent.get();
 
-                if (get != null)
-                    return remapper.apply(get);
-
+                if (in != null)
+                    return remapper.apply(in);
                 return null;
             }
         }
 
-        private static final class Filtered<T> implements Processor<T> {
-            private final Processor<T> underlying;
-            private final Predicate<? super T> predicate;
+        public static final class ReferenceFlatMapped<I, O> extends Base<I, O> {
+            private final Function<? super I, ? extends Reference<? extends O>> remapper;
 
-            private Filtered(Processor<T> underlying, Predicate<? super T> predicate) {
-                this.underlying = underlying;
-                this.predicate = predicate;
+            public ReferenceFlatMapped(
+                    Reference<I> base,
+                    Function<? super I, ? extends Reference<? extends O>> remapper,
+                    Function<O, I> backwardsConverter
+            ) {
+                super(base, backwardsConverter);
+
+                this.remapper = remapper;
             }
 
-            @Nullable
             @Override
-            public T get() {
-                T result = underlying.get();
+            protected O doGet() {
+                final I in = parent.get();
 
-                if (predicate.test(result))
-                    return result;
-
+                if (in != null)
+                    return remapper.apply(in).orElse(null);
                 return null;
             }
         }
 
-        private static final class ReferenceFlatMapped<T, R> implements Processor<R> {
-            private final Reference<T> base;
-            private final Function<? super T, ? extends Reference<R>> mapper;
+        public static final class Or<T> extends Base<T, T> {
+            private final Supplier<T> other;
 
-            public ReferenceFlatMapped(Reference<T> base, Function<? super T, ? extends Reference<R>> mapper) {
-                this.base = base;
-                this.mapper = mapper;
+            public Or(Reference<T> base, Supplier<T> other) {
+                super(base, Function.identity());
+
+                this.other = other;
             }
 
-            @Nullable
             @Override
-            public R get() {
-                return mapper.apply(base.get()).get();
+            public boolean isOutdated() {
+                return true;
+            }
+
+            @Override
+            protected T doGet() {
+                final T in = parent.get();
+
+                if (in == null)
+                    return other.get();
+                return in;
             }
         }
     }

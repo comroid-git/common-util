@@ -1,8 +1,10 @@
 package org.comroid.mutatio.span;
 
 import org.comroid.api.Polyfill;
+import org.comroid.mutatio.cache.CachedValue;
 import org.comroid.mutatio.pipe.BasicPipe;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.jetbrains.annotations.Contract;
@@ -16,7 +18,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
 
-public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
+public class Span<T> extends CachedValue.Abstract<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
     public static final int UNFIXED_SIZE = -1;
     public static final DefaultModifyPolicy DEFAULT_MODIFY_POLICY = DefaultModifyPolicy.SKIP_NULLS;
     private static final Span<?> EMPTY = new Span<>(ReferenceIndex.empty(), DefaultModifyPolicy.IMMUTABLE);
@@ -43,6 +45,11 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
         return fixedCapacity != UNFIXED_SIZE;
     }
 
+    @Override
+    public boolean isMutable() {
+        return false;
+    }
+
     public Span() {
         this(ReferenceIndex.create(), UNFIXED_SIZE, DEFAULT_MODIFY_POLICY);
     }
@@ -60,6 +67,8 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
     }
 
     protected Span(ReferenceIndex<? extends T> data, int fixedCapacity, ModifyPolicy modifyPolicy) {
+        super(null);
+
         //noinspection unchecked
         this.storage = (ReferenceIndex<T>) data;
         this.fixedCapacity = fixedCapacity;
@@ -175,9 +184,8 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
 
     @Override
     public List<T> unwrap() {
-        List<T> yields = new ArrayList<>();
-        forEach(yields::add);
-        return yields;
+        //noinspection unchecked
+        return Arrays.asList((T[]) toArray());
     }
 
     @Override
@@ -196,13 +204,11 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
 
     @NotNull
     @Override
-    @SuppressWarnings("NullableProblems") // false positive
     public final Object[] toArray() {
         return toArray(new Object[0], Function.identity());
     }
 
     @Override
-    @SuppressWarnings("NullableProblems") // false positive
     public final <R> @NotNull R[] toArray(@NotNull R[] dummy) {
         //noinspection unchecked
         return toArray(dummy, it -> (R) it);
@@ -234,6 +240,10 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
 
             return modifyPolicy.canInitialize(it) && storage.add(it);
         }
+    }
+
+    public Processor<T> process(int index) {
+        return getReference(index).process();
     }
 
     @Override
@@ -273,8 +283,13 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
     }
 
     @Override
-    public Pipe<?, T> pipe() {
+    public Pipe<T> pipe() {
         return new BasicPipe<>(this, 512);
+    }
+
+    @Override
+    public void rebind(Supplier<T> behind) {
+        throw new UnsupportedOperationException("Cannot rebind Span");
     }
 
     @Override
@@ -329,6 +344,12 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
 
             return null;
         }
+    }
+
+    public final @NotNull T requireSingle() {
+        if (!isSingle())
+            throw new AssertionError("Span does not hold exactly one element!");
+        return requireNonNull();
     }
 
     @Override
@@ -608,8 +629,6 @@ public class Span<T> implements Collection<T>, ReferenceIndex<T>, Reference<T> {
             while (!modifyPolicy.canIterate(next)) {
                 if (nextIndex + 1 >= dataSnapshot.length)
                     return false;
-
-                tryAcquireNext();
             }
 
             previousIndex = nextIndex;

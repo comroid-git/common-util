@@ -10,10 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.function.IntBinaryOperator;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface ReferenceIndex<T> extends Pipeable<T> {
@@ -62,12 +58,12 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
     }
 
     @Override
-    default Pipe<?, T> pipe() {
+    default Pipe<T> pipe() {
         return new BasicPipe<>(this);
     }
 
     @Override
-    default Pump<?, T> pump(Executor executor) {
+    default Pump<T> pump(Executor executor) {
         return new BasicPump<>(executor, this);
     }
 
@@ -116,7 +112,7 @@ public interface ReferenceIndex<T> extends Pipeable<T> {
             }
 
             @Override
-            public Pipe<?, T> pipe() {
+            public Pipe<T> pipe() {
                 return Pipe.of(underlying);
             }
 

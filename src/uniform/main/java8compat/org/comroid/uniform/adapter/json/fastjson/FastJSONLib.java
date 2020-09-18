@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
 import org.comroid.annotations.Instance;
+import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.node.UniArrayNode;
 import org.comroid.uniform.node.UniNode;
@@ -25,10 +26,8 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
     }
 
     @Override
-    public UniNode parse(@Nullable String data) {
+    public DataStructureType<SerializationAdapter<JSON, JSONObject, JSONArray>, JSON, ? extends JSON> typeOfData(String data) {
         final JSONValidator validator = JSONValidator.from(data);
-
-        UniNode node = null;
 
         if (validator.validate()) {
             final JSONValidator.Type type = validator.getType();
@@ -41,19 +40,30 @@ public final class FastJSONLib extends SerializationAdapter<JSON, JSONObject, JS
 
             switch (type) {
                 case Object:
-                    node = createUniObjectNode(JSONObject.parseObject(data));
-                    break;
+                    return objectType;
                 case Array:
-                    node = createUniArrayNode(JSONArray.parseArray(data));
-                    break;
-                case Value:
-                    throw new IllegalArgumentException("Cannot parse JSON Value");
+                    return arrayType;
             }
-        } else {
-            throw new IllegalArgumentException("String is not valid JSON");
         }
 
-        return Objects.requireNonNull(node, "Node is null");
+        return null;
+    }
+
+    @Override
+    public UniNode parse(@Nullable String data) {
+        final DataStructureType<SerializationAdapter<JSON, JSONObject, JSONArray>, JSON, ? extends JSON> type = typeOfData(data);
+
+        if (type == null)
+            throw new IllegalArgumentException("String is not valid JSON: " + data);
+
+        switch (type.typ) {
+            case OBJECT:
+                return createUniObjectNode(JSONObject.parseObject(data));
+            case ARRAY:
+                return createUniArrayNode(JSONArray.parseArray(data));
+        }
+
+        throw new IllegalArgumentException("Cannot parse JSON Value");
     }
 
     @Override

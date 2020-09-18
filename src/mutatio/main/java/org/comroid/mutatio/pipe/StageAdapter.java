@@ -1,5 +1,6 @@
 package org.comroid.mutatio.pipe;
 
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
 
 import java.util.HashSet;
@@ -8,7 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface StageAdapter<O, T> extends Function<O, T>, Predicate<O> {
+public interface StageAdapter<O, T> {
     static <T> StageAdapter<T, T> filter(Predicate<? super T> predicate) {
         return new Support.Filter<>(predicate);
     }
@@ -82,42 +83,17 @@ public interface StageAdapter<O, T> extends Function<O, T>, Predicate<O> {
 
             @Override
             public boolean test(T t) {
-                if (c++ >= skip)
-                    return true;
-
-                return false;
+                return c++ >= skip;
             }
         }
 
         return filter(new Skipper(skip));
     }
 
-    @Override
-    default T apply(O other) {
-        return null;
-    }
-
-    @Override
-    default boolean test(O other) {
-        return false;
-    }
+    Reference<T> advance(Reference<O> ref);
 
     final class Support {
-        private interface Ident<T> extends StageAdapter<T, T> {
-            @Override
-            default T apply(T other) {
-                return other;
-            }
-        }
-
-        private interface Any<O, T> extends StageAdapter<O, T> {
-            @Override
-            default boolean test(O other) {
-                return true;
-            }
-        }
-
-        private static final class Filter<T> implements Ident<T> {
+        private static final class Filter<T> implements StageAdapter<T, T> {
             private final Predicate<? super T> predicate;
 
             public Filter(Predicate<? super T> predicate) {
@@ -125,12 +101,12 @@ public interface StageAdapter<O, T> extends Function<O, T>, Predicate<O> {
             }
 
             @Override
-            public boolean test(T other) {
-                return predicate.test(other);
+            public Reference<T> advance(Reference<T> ref) {
+                return new Processor.Support.Filtered<>(ref, predicate);
             }
         }
 
-        private static final class Map<O, T> implements Any<O, T> {
+        private static final class Map<O, T> implements StageAdapter<O, T> {
             private final Function<? super O, ? extends T> mapper;
 
             public Map(Function<? super O, ? extends T> mapper) {
@@ -138,8 +114,8 @@ public interface StageAdapter<O, T> extends Function<O, T>, Predicate<O> {
             }
 
             @Override
-            public T apply(O other) {
-                return mapper.apply(other);
+            public Reference<T> advance(Reference<O> ref) {
+                return new Processor.Support.Remapped<>(ref, mapper, null);
             }
         }
     }

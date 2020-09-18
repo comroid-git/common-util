@@ -2,56 +2,36 @@ package org.comroid.matrix;
 
 import org.comroid.api.Polyfill;
 import org.comroid.matrix.impl.MatrixCapability;
+import org.comroid.matrix.impl.PartialMatrix;
 import org.comroid.spellbind.SpellCore;
 import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.concurrent.ConcurrentHashMap;
 
-public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>> {
+public interface Matrix2<X, Y, V> extends Matrix<V, Matrix2.Entry<X, Y, V>>, PartialMatrix.TwoDim<X, Y, V, Matrix2.Entry<X, Y, V>> {
     static <X, Y, V> Matrix2<X, Y, V> create() {
-        return new Builder<X, Y, V>(TrieMap.ofString()).build();
+        return new Builder<X, Y, V>(new ConcurrentHashMap<>()).build();
     }
 
-    default boolean containsKey(X x, Y y) {
-        return containsCoordinate(generateCoordinate(x, y));
+    static <X, Y, V> Matrix2<X, Y, V> using(PartialMatrix.TwoDim<X, Y, V, Matrix2.Entry<X, Y, V>> capability) {
+        return SpellCore.<Matrix2<X, Y, V>>builder(
+                Polyfill.uncheckedCast(Matrix2.class),
+                capability
+        )
+                .addFragment(Matrix.fragmentProvider())
+                .build();
     }
 
-    default boolean isNull(X x, Y y) {
-        return isNull(generateCoordinate(x, y));
-    }
-
-    default V get(X x, Y y) {
-        return getEntryAt(generateCoordinate(x, y), null).get();
-    }
-
-    default V put(X x, Y y, V value) {
-        return put(generateCoordinate(x, y), value);
-    }
-
-    default V compute(X x, Y y, BiFunction<String, ? super V, ? extends V> computor) {
-        return compute(generateCoordinate(x, y), computor);
-    }
-
-    default V computeIfPresent(X x, Y y, BiFunction<String, ? super V, ? extends V> computor) {
-        return computeIfPresent(generateCoordinate(x, y), computor);
-    }
-
-    default V computeIfAbsent(X x, Y y, Function<String, ? extends V> supplier) {
-        return computeIfAbsent(generateCoordinate(x, y), supplier);
-    }
-
-    default String generateCoordinate(X x, Y y) {
-        return String.format("%s-%s", x, y);
+    @Override
+    default boolean isNull(String coordinate) {
+        return getEntryAt(coordinate, null).isNull();
     }
 
     interface Entry<X, Y, V> extends Matrix.Entry<V> {
-        @Nullable
         X getX();
 
-        @Nullable
         Y getY();
     }
 

@@ -2,42 +2,54 @@ package org.comroid.uniform.cache;
 
 import org.comroid.api.Provider;
 import org.comroid.mutatio.pipe.Pipe;
+import org.comroid.mutatio.proc.Processor;
+import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.span.Span;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class BasicCache<K, V> implements Cache<K, V> {
+public class BasicCache<K, V> extends AbstractCache<K, V> {
     public static final int DEFAULT_LARGE_THRESHOLD = 250;
     private final @Nullable Provider.Now<V> emptyValueProvider;
-    private final Map<K, Reference<K, V>> cache;
+    private final Map<K, CacheReference<K, V>> cache;
     private final int largeThreshold;
 
     public BasicCache() {
         this(DEFAULT_LARGE_THRESHOLD);
     }
 
+    @Override
+    protected CacheReference<K, V> advanceIntoCacheRef(Reference<V> reference) {
+        return null; //todo
+    }
+
     public BasicCache(int largeThreshold) {
         this(largeThreshold, new ConcurrentHashMap<>());
     }
 
-    protected BasicCache(Map<K, Reference<K, V>> map) {
+    protected BasicCache(Map<K, CacheReference<K, V>> map) {
         this(DEFAULT_LARGE_THRESHOLD, map);
     }
 
-    protected BasicCache(int largeThreshold, Map<K, Reference<K, V>> map) {
+    protected BasicCache(int largeThreshold, Map<K, CacheReference<K, V>> map) {
         this(largeThreshold, map, null);
     }
 
     protected BasicCache(int largeThreshold,
-                         Map<K, Reference<K, V>> map,
+                         Map<K, CacheReference<K, V>> map,
                          @Nullable Provider.Now<V> emptyValueProvider) {
+        super();
+
         this.largeThreshold = largeThreshold;
         this.cache = map;
         this.emptyValueProvider = emptyValueProvider;
@@ -48,64 +60,19 @@ public class BasicCache<K, V> implements Cache<K, V> {
         return super.toString();
     }
 
+    @Override
+    public <R> Processor<R> accessor(K key, String name, Processor.Advancer<V, ? extends R> advancer) {
+        return null;
+    }
+
     @NotNull
     @Override
-    public Iterator<Map.Entry<K, V>> iterator() {
-        return stream().map(ref -> new AbstractMap.SimpleEntry<K, V>(ref.getKey(), ref.get()) {
-            @Override
-            public V setValue(V value) {
-                return getReference(getKey(), false).set(value);
-            }
-        })
-                .map(it -> (Map.Entry<K, V>) it)
-                .collect(Span.collector())
-                .iterator();
+    public Iterator<CacheReference<K, V>> iterator() {
+        return null;
     }
 
     @Override
-    public boolean containsKey(K key) {
-        return cache.containsKey(key);
-    }
+    public void clear() {
 
-    @Override
-    public boolean containsValue(V value) {
-        return stream().anyMatch(ref -> ref.process()
-                .test(value::equals));
-    }
-
-    @Override
-    public boolean large() {
-        return size() < largeThreshold;
-    }
-
-    @Override
-    public int size() {
-        return cache.size();
-    }
-
-    @Override
-    public final Stream<Reference<K, V>> stream(Predicate<K> filter) {
-        return (large()
-                ? cache.entrySet().parallelStream()
-                : cache.entrySet().stream()
-        ).filter(entry -> filter.test(entry.getKey()))
-                .map(Map.Entry::getValue);
-    }
-
-    @Override
-    public Pipe<?, Reference<K, V>> pipe(Predicate<K> filter) {
-        return Pipe.of(cache.entrySet())
-                .filter(entry -> filter.test(entry.getKey()))
-                .map(Map.Entry::getValue);
-    }
-
-    @Override
-    public @NotNull Reference<K, V> getReference(K key, boolean createIfAbsent) {
-        return createIfAbsent
-                ? cache.computeIfAbsent(key, Reference::new)
-                : cache.getOrDefault(key,
-                emptyValueProvider == null
-                        ? Reference.create()
-                        : Reference.constant(key, emptyValueProvider.now()));
     }
 }

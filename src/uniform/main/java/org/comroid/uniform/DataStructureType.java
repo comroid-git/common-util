@@ -1,17 +1,18 @@
 package org.comroid.uniform;
 
 import org.comroid.api.Invocable;
+import org.comroid.api.Polyfill;
+import org.comroid.api.Provider;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 import java.util.function.Supplier;
 
 public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS, TAR extends BAS> implements Supplier<TAR> {
     public final Primitive typ;
     protected final Class<TAR> tarClass;
-    private final Invocable<TAR> constructor;
 
     protected DataStructureType(Class<TAR> tarClass, Primitive typ) {
         this.tarClass = tarClass;
-        this.constructor = Invocable.ofConstructor(tarClass);
         this.typ = typ;
     }
 
@@ -61,8 +62,9 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
     }
 
     @Override
+    @OverrideOnly
     public TAR get() {
-        return constructor.invokeRethrow();
+        return null;
     }
 
     public enum Primitive {
@@ -72,18 +74,53 @@ public class DataStructureType<SERI extends SerializationAdapter<BAS, ?, ?>, BAS
 
     public static class Obj<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
             extends DataStructureType<SERI, BAS, OBJ> {
+        private final Invocable<OBJ> constructor;
+
         public Obj(Class<OBJ> objClass) {
             super(objClass, Primitive.OBJECT);
+
+            this.constructor = Invocable.ofConstructor(tarClass);
+        }
+
+        public Obj(
+                Class<OBJ> objClass, Supplier<? extends OBJ> objectSupplier
+        ) {
+            super(objClass, Primitive.OBJECT);
+
+            //todo fix & improve
+            this.constructor = Polyfill.uncheckedCast(Invocable.ofProvider(Provider.of(objectSupplier)));
+        }
+
+        @Override
+        public OBJ get() {
+            return constructor.autoInvoke();
         }
     }
 
     public static class Arr<SERI extends SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ extends BAS, ARR extends BAS>
             extends DataStructureType<SERI, BAS, ARR> {
+        private final Invocable<ARR> constructor;
 
         public Arr(
                 Class<ARR> arrClass
         ) {
             super(arrClass, Primitive.ARRAY);
+
+            this.constructor = Invocable.ofConstructor(tarClass);
+        }
+
+        public Arr(
+                Class<ARR> arrClass, Supplier<? extends ARR> arraySupplier
+        ) {
+            super(arrClass, Primitive.ARRAY);
+
+            //todo fix & improve
+            this.constructor = Polyfill.uncheckedCast(Invocable.ofProvider(Provider.of(arraySupplier)));
+        }
+
+        @Override
+        public ARR get() {
+            return constructor.autoInvoke();
         }
     }
 }

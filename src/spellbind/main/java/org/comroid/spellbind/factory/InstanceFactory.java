@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 public final class InstanceFactory<T extends TypeFragment<? super T>, D>
         implements Invocable.TypeMap<T>, Dependent<D> {
-    private final OutdateableReference<Class<?>[]> requiredTypes = new OutdateableReference<>();
+    private final Reference<Class<?>[]> requiredTypes = Reference.create();
     private final Class<T> mainInterface;
     private final Reference<? extends T> coreObject;
     private final @Nullable D dependent;
@@ -52,7 +52,7 @@ public final class InstanceFactory<T extends TypeFragment<? super T>, D>
 
     @Override
     public Class<?>[] parameterTypesOrdered() {
-        return requiredTypes.compute(() -> streamParamTypes().distinct().toArray(Class[]::new));
+        return requiredTypes.compute(arr -> streamParamTypes().distinct().toArray(Class[]::new));
     }
 
     @NotNull

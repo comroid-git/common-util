@@ -36,7 +36,7 @@ public class BindBuilderTest {
 
     @Test
     public void testSingleIdentities() {
-        final VarBind<String, Dummy, String, String> bind
+        final VarBind<Object, String, String, String> bind
                 = group.createBind("name")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
@@ -62,7 +62,7 @@ public class BindBuilderTest {
 
     @Test
     public void testSingleRemapped() {
-        final VarBind<String, Dummy, String, String> bind
+        final VarBind<Object, String, String, String> bind
                 = group.createBind("name")
                 .extractAs(ValueType.STRING)
                 .andRemap(BindBuilderTest::reverse)
@@ -88,7 +88,7 @@ public class BindBuilderTest {
 
     @Test
     public void testSingleResolved() {
-        final VarBind<String, Dummy, String, String> bind
+        final VarBind<Object, String, String, String> bind
                 = group.createBind("name")
                 .extractAs(ValueType.STRING)
                 .andResolve((str, dummy) -> dummy.modify(str))
@@ -116,7 +116,7 @@ public class BindBuilderTest {
 
     @Test
     public void testListedSimple() {
-        final VarBind<String, Dummy, String, ArrayList<String>> bind
+        final VarBind<Object, String, String, ArrayList<String>> bind
                 = group.createBind("name")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
@@ -130,7 +130,7 @@ public class BindBuilderTest {
 
     @Test
     public void testListedRemapped() {
-        final VarBind<String, Dummy, String, ArrayList<String>> bind
+        final VarBind<Object, String, String, ArrayList<String>> bind
                 = group.createBind("name")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
@@ -144,7 +144,7 @@ public class BindBuilderTest {
 
     @Test
     public void testListedResolved() {
-        final VarBind<String, Dummy, String, ArrayList<String>> bind
+        final VarBind<Object, String, String, ArrayList<String>> bind
                 = group.createBind("name")
                 .extractAs(ValueType.STRING)
                 .asIdentities()
@@ -158,7 +158,7 @@ public class BindBuilderTest {
 
     @Test(expected = NullPointerException.class)
     public void testNullAsDependency() {
-        final VarBind<String, Dummy, String, String> bind
+        final VarBind<Object, String, String, String> bind
                 = group.createBind("name")
                 .extractAs(ValueType.STRING)
                 .andResolve((str, dummy) -> dummy.modify(str))
@@ -170,7 +170,7 @@ public class BindBuilderTest {
         bind.remap("", null);
     }
 
-    public void validateMembers(final VarBind<?, ?, ?, ?> bind) {
+    public void validateMembers(final VarBind<Object, ?, ?, ?> bind) {
         Assert.assertTrue(bind.as(PartialBind.Base.class).isPresent());
         Assert.assertTrue(bind.as(PartialBind.Grouped.class).isPresent());
         Assert.assertTrue(bind.as(PartialBind.Extractor.class).isPresent());

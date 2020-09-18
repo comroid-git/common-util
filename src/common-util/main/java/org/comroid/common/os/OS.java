@@ -1,6 +1,6 @@
 package org.comroid.common.os;
 
-import org.comroid.common.ref.Named;
+import org.comroid.api.Named;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;

@@ -1,9 +1,10 @@
 package org.comroid.uniform.node;
 
-import org.comroid.api.Specifiable;
+import org.comroid.api.*;
 import org.comroid.common.info.MessageSupplier;
 import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.uniform.DataStructureType;
 import org.comroid.uniform.SerializationAdapter;
 import org.comroid.uniform.ValueType;
 import org.jetbrains.annotations.Contract;
@@ -11,11 +12,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public abstract class UniNode implements Specifiable<UniNode> {
     protected final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Type type;
+    private final Map<String, Reference<String>> baseAccessors = new ConcurrentHashMap<>();
+    private final Map<String, Processor<UniNode>> wrappedAccessors = new ConcurrentHashMap<>();
 
     public String getSerializedString() {
         return toString();
@@ -44,7 +51,15 @@ public abstract class UniNode implements Specifiable<UniNode> {
     }
 
     public boolean isNull() {
-        return this instanceof UniValueNode.Null;
+        return unsupported("IS_NULL", Type.VALUE);
+    }
+
+    public final String getMimeType() {
+        return serializationAdapter.getMimeType();
+    }
+
+    public boolean isNotNull() {
+        return !isNull();
     }
 
     protected UniNode(SerializationAdapter<?, ?, ?> serializationAdapter, Type type) {
@@ -83,18 +98,32 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return size() < index;
     }
 
+    public boolean has(Named idBox) {
+        return has(idBox.getName());
+    }
+
     public abstract boolean has(String fieldName);
 
     // todo: add helper methods
-    public @NotNull <T> UniValueNode<String> add(ValueType<T> type, T value) throws UnsupportedOperationException {
+    public @NotNull <T> UniNode add(HeldType<T> type, T value) throws UnsupportedOperationException {
         return put(size(), type, value);
     }
 
-    public @NotNull <T> UniValueNode<String> put(int index, ValueType<T> type, T value) throws UnsupportedOperationException {
+    public @NotNull <T> UniNode put(int index, HeldType<T> type, T value) throws UnsupportedOperationException {
         return unsupported("PUT_INDEX", Type.ARRAY);
     }
 
-    public @NotNull <T> UniValueNode<String> put(String key, ValueType<T> type, T value) throws UnsupportedOperationException {
+    protected String unwrapDST(Object o) {
+        if (o instanceof UniNode)
+            return o.toString();
+        return String.valueOf(o);
+    }
+
+    public @NotNull <B extends Named & ValuePointer<T>, T> UniNode put(B idBox, T value) {
+        return put(idBox.getName(), idBox.getHeldType(), value);
+    }
+
+    public @NotNull <T> UniNode put(String key, HeldType<T> type, T value) throws UnsupportedOperationException {
         return unsupported("PUT_KEY", Type.OBJECT);
     }
 
@@ -278,10 +307,41 @@ public abstract class UniNode implements Specifiable<UniNode> {
         return getBaseNode().toString();
     }
 
-    @NotNull
-    protected UniValueNode<String> generateValueNode(Reference.Settable<String> stringReference) {
-        final UniValueNode.Adapter.ViaString valueAdapter = new UniValueNode.Adapter.ViaString(stringReference);
-        return new UniValueNode<>(serializationAdapter, valueAdapter);
+    protected Processor<UniNode> computeNode(
+            String fieldName,
+            Supplier<Reference<String>> referenceSupplier
+    ) {
+        final Reference<String> base = baseAccessors.computeIfAbsent(fieldName, key -> referenceSupplier.get());
+        return wrappedAccessors.computeIfAbsent(fieldName, key -> base.process()
+                .map(str -> {
+                    try {
+                        DataStructureType<? extends SerializationAdapter<?, ?, ?>, ?, ?> dst = serializationAdapter.typeOfData(str);
+
+                        if (dst != null) switch (dst.typ) {
+                            case OBJECT:
+                                return serializationAdapter.parse(str).asObjectNode();
+                            case ARRAY:
+                                return serializationAdapter.parse(str).asArrayNode();
+                        }
+                    } catch (IllegalArgumentException ignored) {
+                    }
+
+                    return new UniValueNode<>(serializationAdapter, base, ValueType.STRING);
+                }));
+    }
+
+    protected void set(Object value) {
+        unsupported("SET", Type.VALUE);
+    }
+
+    @Nullable
+    protected <T> UniNode unwrapNode(String key, HeldType<T> type, T value) {
+        if (value instanceof UniNode)
+            return put(key, ValueType.VOID, Polyfill.uncheckedCast(((UniNode) value).getBaseNode()));
+        if (Stream.of(serializationAdapter.objectType, serializationAdapter.arrayType)
+                .anyMatch(dst -> dst.typeClass().isInstance(value)) && type != ValueType.VOID)
+            return put(key, ValueType.VOID, Polyfill.uncheckedCast(value));
+        return null;
     }
 
     public enum Type {

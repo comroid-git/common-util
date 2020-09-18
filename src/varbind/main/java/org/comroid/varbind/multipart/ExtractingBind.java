@@ -25,7 +25,7 @@ public final class ExtractingBind {
         return new FragmentProviders.ToUniArray();
     }
 
-    public static final class ToValueType<E extends Serializable> extends UUIDContainer implements PartialBind.Extractor<E> {
+    public static final class ToValueType<E extends Serializable> extends UUIDContainer.Base implements PartialBind.Extractor<E> {
         private static final Invocable<? super ToValueType<?>> constructor = Invocable.ofConstructor(ToValueType.class);
 
         private final ValueType<E> valueType;
@@ -36,24 +36,26 @@ public final class ExtractingBind {
 
         @Override
         public Span<E> extract(UniNode from) {
-            final String fieldName = as(PartialBind.Base.class)
-                    .map(PartialBind.Base::getFieldName)
-                    .orElseThrow(() -> new AssertionError("Missing Base attribute"));
+            final String fieldName = as(PartialBind.Base.class, "Missing Base attribute").getFieldName();
 
             return as(PartialBind.Finisher.class)
-                    .map(PartialBind.Finisher::isListing)
-                    .map(lists -> {
-                        if (lists) return from.get(fieldName)
-                                .asNodeList()
-                                .stream()
-                                .map(node -> node.as(valueType))
-                                .collect(Span.collector());
-                        else return Span.immutable(from.get(fieldName).as(valueType));
+                    .map(bind -> {
+                        final UniNode target = from.get(fieldName);
+                        if (bind.isListing())
+                            return target
+                                    .asNodeList()
+                                    .stream()
+                                    .map(node -> node.as(valueType))
+                                    .collect(Span.collector());
+                        else {
+                            final E as = target.as(valueType);
+                            return Span.immutable(as);
+                        }
                     }).orElseThrow(() -> new AssertionError("Missing Finisher attribute"));
         }
     }
 
-    public static final class ToUniObject extends UUIDContainer implements PartialBind.Extractor<UniObjectNode> {
+    public static final class ToUniObject extends UUIDContainer.Base implements PartialBind.Extractor<UniObjectNode> {
         private static final Invocable<? super ToUniObject> constructor = Invocable.ofConstructor(ToUniObject.class);
 
         @Override
@@ -74,7 +76,7 @@ public final class ExtractingBind {
         }
     }
 
-    public static final class ToUniArray extends UUIDContainer implements PartialBind.Extractor<UniArrayNode> {
+    public static final class ToUniArray extends UUIDContainer.Base implements PartialBind.Extractor<UniArrayNode> {
         private static final Invocable<? super ToUniArray> constructor = Invocable.ofConstructor(ToUniArray.class);
 
         @Override

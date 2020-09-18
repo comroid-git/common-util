@@ -1,16 +1,17 @@
 package org.comroid.commandline;
 
+import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.Reference;
+import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.ref.ReferenceMap;
+import org.comroid.trie.TrieMap;
 
-import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public final class CommandLineArgs implements ReferenceMap<String, String, Reference<String>> {
-    private final Map<String, Reference<String>> values;
-
-    private CommandLineArgs(Map<String, Reference<String>> values) {
-        this.values = values;
+public final class CommandLineArgs extends ReferenceMap.Support.Basic<String, String> {
+    private CommandLineArgs(Map<String, KeyedReference<String, String>> values) {
+        super(values);
     }
 
     public synchronized static CommandLineArgs parse(String[] args) {
@@ -20,7 +21,7 @@ public final class CommandLineArgs implements ReferenceMap<String, String, Refer
             parser.append(args[i]);
         }
 
-        return new CommandLineArgs(Collections.unmodifiableMap(parser.yields));
+        return new CommandLineArgs(parser.yields);
     }
 
     public boolean hasFlag(char c) {
@@ -28,13 +29,14 @@ public final class CommandLineArgs implements ReferenceMap<String, String, Refer
     }
 
     public boolean hasKey(String key) {
-        return values.containsKey(key);
+        return containsKey(key);
     }
 
-    @Override
-    public Reference<String> getReference(String key, boolean createIfAbsent) {
-        return createIfAbsent
-                ? values.computeIfAbsent(key, k -> Reference.empty())
-                : values.getOrDefault(key, Reference.empty());
+    public boolean hasName(String key) {
+        return !key.isEmpty() && (hasKey(key) || hasFlag(key.charAt(0)));
+    }
+
+    public boolean hasValueAt(String key) {
+        return getReference(key).isNonNull();
     }
 }

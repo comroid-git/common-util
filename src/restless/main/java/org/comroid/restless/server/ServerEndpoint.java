@@ -69,8 +69,8 @@ public interface ServerEndpoint extends AccessibleEndpoint, EndpointHandler {
             }
 
             @Override
-            public REST.Response executeMethod(REST.Method method, Headers headers, String[] urlParams, UniNode body) {
-                return handler.executeMethod(method, headers, urlParams, body);
+            public REST.Response executeMethod(RestServer server, REST.Method method, Headers headers, String[] urlParams, String body) throws RestEndpointException {
+                return handler.executeMethod(server, method, headers, urlParams, body);
             }
         }
     }

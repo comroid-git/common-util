@@ -1,6 +1,6 @@
 package org.comroid.common.io;
 
-import org.comroid.common.ref.Named;
+import org.comroid.api.Named;
 
 import java.io.File;
 

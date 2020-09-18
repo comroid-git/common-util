@@ -7,21 +7,40 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UniValueNode<T> extends UniNode {
-    private final Adapter<T> adapter;
+    public static final UniValueNode<Void> NULL = new UniValueNode<>(null, Reference.empty(), ValueType.VOID);
+    private final Reference<T> baseReference;
+    private final ValueType<T> targetType;
 
     @Override
-    public final Object getBaseNode() {
-        return asRaw(null);
+    public Object getBaseNode() {
+        return baseReference.get();
     }
 
-    public UniValueNode(SerializationAdapter<?, ?, ?> serializationAdapter, Adapter<T> adapter) {
-        super(serializationAdapter, Type.VALUE);
-
-        this.adapter = adapter;
+    @Override
+    public boolean isNull() {
+        return baseReference.isNull();
     }
 
+    public UniValueNode(SerializationAdapter<?, ?, ?> seriLib, Reference<T> baseReference, ValueType<T> targetType) {
+        super(seriLib, Type.VALUE);
+        this.baseReference = baseReference;
+        this.targetType = targetType;
+    }
+
+    public static <T> UniValueNode<T> empty() {
+        //noinspection unchecked
+        return (UniValueNode<T>) NULL;
+    }
+
+    private static String unwrapString(String str) {
+        if (str.startsWith("\"") && str.endsWith("\""))
+            return str.substring(1, str.length() - 1);
+        return str;
+    }
+
+    @Deprecated
     public static <T> UniValueNode<T> nullNode() {
-        return (UniValueNode<T>) Null.instance;
+        return empty();
     }
 
     @Override
@@ -45,12 +64,20 @@ public class UniValueNode<T> extends UniNode {
     }
 
     @Override
-    public UniValueNode copyFrom(@NotNull UniNode it) {
+    protected void set(Object value) {
+        baseReference.set(
+                ValueType.STRING.convert(
+                        String.valueOf(value), targetType)
+        );
+    }
+
+    @Override
+    public UniValueNode<T> copyFrom(@NotNull UniNode it) {
         if (it instanceof UniValueNode) {
-            this.adapter.set(it.asString(null));
+            baseReference.set(it.as(targetType));
             return this;
         }
-        return unsupported("COPY_FROM", Type.VALUE);
+        return unsupported("COPY_FROM_" + it.getType().name(), Type.VALUE);
     }
 
     @Override
@@ -90,7 +117,10 @@ public class UniValueNode<T> extends UniNode {
 
     @Override
     public <R> R as(ValueType<R> type) {
-        return adapter.get(type);
+        return baseReference
+                .map(String::valueOf)
+                .map(UniValueNode::unwrapString)
+                .into(it -> ValueType.STRING.convert(it, type));
     }
 
     @Override
@@ -99,7 +129,7 @@ public class UniValueNode<T> extends UniNode {
             return fallback;
         }
 
-        return adapter.get(ValueType.STRING);
+        return as(ValueType.STRING);
     }
 
     @Override
@@ -108,7 +138,7 @@ public class UniValueNode<T> extends UniNode {
             return fallback;
         }
 
-        return adapter.get(ValueType.BOOLEAN);
+        return as(ValueType.BOOLEAN);
     }
 
     @Override
@@ -117,7 +147,7 @@ public class UniValueNode<T> extends UniNode {
             return fallback;
         }
 
-        return adapter.get(ValueType.INTEGER);
+        return as(ValueType.INTEGER);
     }
 
     @Override
@@ -126,7 +156,7 @@ public class UniValueNode<T> extends UniNode {
             return fallback;
         }
 
-        return adapter.get(ValueType.LONG);
+        return as(ValueType.LONG);
     }
 
     @Override
@@ -135,7 +165,7 @@ public class UniValueNode<T> extends UniNode {
             return fallback;
         }
 
-        return adapter.get(ValueType.DOUBLE);
+        return as(ValueType.DOUBLE);
     }
 
     @Override
@@ -144,7 +174,7 @@ public class UniValueNode<T> extends UniNode {
             return fallback;
         }
 
-        return adapter.get(ValueType.FLOAT);
+        return as(ValueType.FLOAT);
     }
 
     @Override
@@ -153,7 +183,7 @@ public class UniValueNode<T> extends UniNode {
             return fallback;
         }
 
-        return adapter.get(ValueType.SHORT);
+        return as(ValueType.SHORT);
     }
 
     @Override
@@ -162,7 +192,7 @@ public class UniValueNode<T> extends UniNode {
             return fallback;
         }
 
-        return adapter.get(ValueType.CHARACTER);
+        return as(ValueType.CHARACTER);
     }
 
     public interface Adapter<T> extends UniNode.Adapter {
@@ -171,14 +201,14 @@ public class UniValueNode<T> extends UniNode {
         @Nullable String set(String value);
 
         final class ViaString implements Adapter<String> {
-            private final Reference.Settable<String> sub;
+            private final Reference<String> sub;
 
             @Override
             public Object getBaseNode() {
                 return null;
             }
 
-            public ViaString(Reference.Settable<String> sub) {
+            public ViaString(Reference<String> sub) {
                 this.sub = sub;
             }
 
@@ -186,47 +216,20 @@ public class UniValueNode<T> extends UniNode {
             public <R> @Nullable R get(ValueType<R> as) {
                 final String from = sub.get();
                 if (from != null)
-                    return as.apply(from);
+                    return as.getConverter().apply(from);
                 return null;
             }
 
             @Override
             public @Nullable String set(String value) {
-                return sub.set(value);
+                sub.set(value);
+                return null;
             }
 
             @Override
             public String toString() {
                 return String.format("\"%s\"", sub.get());
             }
-        }
-    }
-
-    static final class Null extends UniValueNode<Void> {
-        private static final UniValueNode<?> instance = new Null();
-
-        private Null() {
-            super(null, new UniValueNode.Adapter<Void>() {
-                @Override
-                public Object getBaseNode() {
-                    return instance;
-                }
-
-                @Override
-                public <R> @Nullable R get(ValueType<R> as) {
-                    return null;
-                }
-
-                @Override
-                public @Nullable String set(String value) {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public String toString() {
-                    return null;
-                }
-            });
         }
     }
 }

@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 public final class StaticCache {
     private static final Map<Object, StaticCache> staticCache = new ConcurrentHashMap<>();
-    private final Map<String, Object> cache = TrieMap.ofString();
+    private final Map<String, Object> cache = new ConcurrentHashMap<>();
     private final Object owner;
 
     private StaticCache(Object owner) {

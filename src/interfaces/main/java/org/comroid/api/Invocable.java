@@ -11,10 +11,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -82,15 +79,19 @@ public interface Invocable<T> {
                     .filter(it -> ReflectionHelper.matchingFootprint(it.getParameterTypes(), params))
                     .findAny()
                     .map(it -> Invocable.<T>ofConstructor(Polyfill.uncheckedCast(it)))
-                    .orElseThrow(() -> new NoSuchElementException("No Matching constructor could be found!"));
+                    .orElseThrow(() -> new NoSuchElementException("No suitable constructor could be found!"));
         } else {
             return ofConstructor(ReflectionHelper.findConstructor(type, params)
-                    .orElseThrow(() -> new NoSuchElementException("No matching constructor found")));
+                    .orElseThrow(() -> new NoSuchElementException("No suitable constructor found")));
         }
     }
 
     static <T> Invocable<T> ofConstructor(Constructor<T> constructor) {
         return new Support.OfConstructor<>(constructor);
+    }
+
+    static <T> Invocable<T> ofClass(Class<? extends T> type) {
+        return new Support.OfClass<>(type);
     }
 
     static <T> Invocable<T> paramReturning(Class<T> type) {
@@ -109,16 +110,16 @@ public interface Invocable<T> {
 
     Class<?>[] parameterTypesOrdered();
 
-    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException;
+    @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
-    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException {
+    default T invokeAutoOrder(Object... args) throws InvocationTargetException, IllegalAccessException, InstantiationException {
         return invoke(ReflectionHelper.arrange(args, parameterTypesOrdered()));
     }
 
     default T invokeRethrow(Object... args) {
         try {
             return invoke(args);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -126,7 +127,7 @@ public interface Invocable<T> {
     default <X extends Throwable> T invokeRethrow(Function<ReflectiveOperationException, X> remapper, Object... args) throws X {
         try {
             return invoke(args);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             throw remapper.apply(e);
         }
     }
@@ -134,7 +135,7 @@ public interface Invocable<T> {
     default T autoInvoke(Object... args) {
         try {
             return invokeAutoOrder(args);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -209,7 +210,7 @@ public interface Invocable<T> {
 
                 @Nullable
                 @Override
-                public T invoke(Map<Class<?>, Object> args) throws InvocationTargetException, IllegalAccessException {
+                public T invoke(Map<Class<?>, Object> args) throws InvocationTargetException, IllegalAccessException, InstantiationException {
                     if (underlying instanceof Support.OfMethod) {
                         final Method method = ((Support.OfMethod<T>) underlying).method;
                         final Class<?>[] param = method.getParameterTypes();
@@ -236,11 +237,11 @@ public interface Invocable<T> {
         }
 
         @Override
-        default @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
+        default @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException, InstantiationException {
             return invoke(mapArgs(args));
         }
 
-        @Nullable T invoke(Map<Class<?>, Object> args) throws InvocationTargetException, IllegalAccessException;
+        @Nullable T invoke(Map<Class<?>, Object> args) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
         @Target(ElementType.PARAMETER)
         @Retention(RetentionPolicy.RUNTIME)
@@ -272,7 +273,6 @@ public interface Invocable<T> {
     @Internal
     final class Support {
         private static final Invocable<?> Empty = constant(null);
-        private static final Class<?>[] NoClasses = new Class[0];
 
         private static final class OfProvider<T> implements Invocable<T> {
             private final Provider<T> provider;
@@ -289,7 +289,7 @@ public interface Invocable<T> {
 
             @Override
             public Class<?>[] parameterTypesOrdered() {
-                return NoClasses;
+                return new Class[0];
             }
         }
 
@@ -387,7 +387,7 @@ public interface Invocable<T> {
 
             @Override
             public Class<?>[] parameterTypesOrdered() {
-                return NoClasses;
+                return new Class[0];
             }
         }
 
@@ -419,6 +419,34 @@ public interface Invocable<T> {
             @Override
             public Class<?>[] parameterTypesOrdered() {
                 return argTypeArr;
+            }
+        }
+
+        private final static class OfClass<T> implements Invocable<T> {
+            private final Class<? extends T> type;
+
+            private OfClass(Class<? extends T> type) {
+                this.type = type;
+            }
+
+            @Override
+            public Class<?>[] parameterTypesOrdered() {
+                return Stream.of(type.getConstructors())
+                        .min(Comparator.comparingInt(Constructor::getParameterCount))
+                        .map(Constructor::getParameterTypes)
+                        .orElseGet(() -> new Class[0]);
+            }
+
+            @Override
+            public @Nullable T invoke(Object... args) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+                final Constructor<? extends T> constructor = ReflectionHelper
+                        .findConstructor(type, ReflectionHelper.types(args))
+                        .orElse(null);
+
+                if (constructor == null)
+                    return null;
+                final Object[] arranged = ReflectionHelper.arrange(args, constructor.getParameterTypes());
+                return constructor.newInstance(arranged);
             }
         }
     }

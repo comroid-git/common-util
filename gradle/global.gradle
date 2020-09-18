@@ -13,10 +13,10 @@ tasks.withType(Javadoc) {
 }
 
 sourceSets {
-    main.java.srcDirs = files("$rootDir/src/$artifactName/main/java")
-    main.resources.srcDirs = files("$rootDir/src/$artifactName/main/resources")
-    test.java.srcDirs = files("$rootDir/src/$artifactName/test/java")
-    test.resources.srcDirs = files("$rootDir/src/$artifactName/test/resources")
+    main.java.srcDirs = files("$parent.projectDir/src/$artifactName/main/java")
+    main.resources.srcDirs = files("$parent.projectDir/src/$artifactName/main/resources")
+    test.java.srcDirs = files("$parent.projectDir/src/$artifactName/test/java")
+    test.resources.srcDirs = files("$parent.projectDir/src/$artifactName/test/resources")
 }
 
 task sourcesJar(type: Jar) {
@@ -60,8 +60,13 @@ repositories {
 }
 
 dependencies {
-    if (project.name != 'interfaces')
-        api project(':interfaces')
+    if (project.name != 'interfaces') {
+        if (System.getenv().containsKey("TEAMCITY")) {
+            api project(':interfaces')
+        } else {
+            api project(':common-util:interfaces')
+        }
+    }
 
     implementation 'com.google.flogger:flogger:0.5.1'
 
@@ -70,4 +75,5 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     testImplementation 'org.easymock:easymock:4.1'
     testImplementation 'org.codehaus.groovy:groovy:3.0.0-rc-2'
+    testImplementation 'com.google.flogger:flogger-system-backend:0.5.1'
 }

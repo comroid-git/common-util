@@ -8,10 +8,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-public class BasicPipe<O, T> implements Pipe<O, T> {
+public class BasicPipe<O, T> implements Pipe<T> {
     public static final int AUTOEMPTY_DISABLED = -1;
     protected final ReferenceIndex<O> refs;
-    private final Collection<Pipe<T, ?>> subs = new ArrayList<>();
+    private final Collection<Pipe<?>> subs = new ArrayList<>();
     private final StageAdapter<O, T> adapter;
     private final int autoEmptyLimit;
     private final Map<Integer, Reference<T>> accessors = new ConcurrentHashMap<>();
@@ -22,7 +22,6 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
         return adapter;
     }
 
-    @Override
     public final Collection<? extends AutoCloseable> getChildren() {
         return Collections.unmodifiableList(children);
     }
@@ -46,13 +45,12 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
         this.autoEmptyLimit = autoEmptyLimit;
     }
 
-    @Override
     public final void addChildren(AutoCloseable child) {
         children.add(child);
     }
 
     @Override
-    public <R> Pipe<T, R> addStage(StageAdapter<T, R> stage) {
+    public <R> Pipe<R> addStage(StageAdapter<T, R> stage) {
         return new BasicPipe<>(this, stage);
     }
 
@@ -81,21 +79,23 @@ public class BasicPipe<O, T> implements Pipe<O, T> {
     }
 
     @Override
-    public void accept(O other) {
-        refs.add(other);
+    public void accept(Reference<Object> other) {
+        refs.add(other.into(Polyfill::<O>uncheckedCast));
     }
 
     @Override
-    public Pipe<?, T> pipe() {
+    public Pipe<T> pipe() {
         return new BasicPipe<>(refs);
     }
 
     @Override
     public Reference<T> getReference(int index) {
-        return accessors.computeIfAbsent(index, key -> Reference.conditional(
-                () -> (index >= 0 || refs.size() >= index)
-                        && adapter.test(refs.get(index)),
-                () -> adapter.apply(refs.get(index))
-        ));
+        return accessors.computeIfAbsent(index, key -> adapter.advance(refs.getReference(index)));
+    }
+
+    @Override
+    public void close() throws Exception {
+        for (AutoCloseable child : getChildren())
+            child.close();
     }
 }

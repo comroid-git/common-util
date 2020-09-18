@@ -20,6 +20,10 @@ public interface Junction<A, B> {
         };
     }
 
+    static <T> Junction<String, T> ofString(Function<String, T> parser) {
+        return of(parser, String::valueOf);
+    }
+
     static <T> Junction<T, T> identity() {
         return of(Function.identity(), Function.identity());
     }

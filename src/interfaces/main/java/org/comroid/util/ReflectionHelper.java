@@ -172,6 +172,7 @@ public final class ReflectionHelper {
         for (int i = 0; i < typesOrdered.length; i++) {
             int finalli = i;
             yields[i] = Stream.of(args)
+                    .filter(Objects::nonNull)
                     .filter(it -> typeCompat(typesOrdered[finalli], it.getClass()))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
@@ -270,5 +271,20 @@ public final class ReflectionHelper {
         }
 
         return true;
+    }
+
+    public static <T> @Nullable T forceGetField(Object from, String fieldName) {
+        final Class<?> kls = from.getClass();
+
+        try {
+            final Field field = kls.getDeclaredField(fieldName);
+
+            if (!field.isAccessible())
+                field.setAccessible(true);
+
+            return Polyfill.uncheckedCast(field.get(from));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return null;
+        }
     }
 }

@@ -4,7 +4,10 @@ import com.google.common.flogger.FluentLogger;
 import com.sun.net.httpserver.Headers;
 import org.comroid.api.Invocable;
 import org.comroid.api.Polyfill;
+import org.comroid.common.io.FileHandle;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.span.Span;
+import org.comroid.restless.body.BodyBuilderType;
 import org.comroid.restless.endpoint.AccessibleEndpoint;
 import org.comroid.restless.endpoint.CompleteEndpoint;
 import org.comroid.restless.endpoint.RatelimitedEndpoint;
@@ -18,25 +21,33 @@ import org.comroid.varbind.bind.VarBind;
 import org.comroid.varbind.container.DataContainer;
 import org.comroid.varbind.container.DataContainerBase;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
+
+import static org.comroid.mutatio.proc.Processor.ofConstant;
 
 public final class REST<D> {
     public static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final HttpAdapter httpAdapter;
     private final SerializationAdapter<?, ?, ?> serializationAdapter;
     private final Ratelimiter ratelimiter;
-    private final @Nullable D dependencyObject;
     private final Executor executor;
+    private final D dependency;
 
     public HttpAdapter getHttpAdapter() {
         return httpAdapter;
@@ -50,10 +61,6 @@ public final class REST<D> {
         return ratelimiter;
     }
 
-    public Optional<D> getDependencyObject() {
-        return Optional.ofNullable(dependencyObject);
-    }
-
     public final Executor getExecutor() {
         return executor;
     }
@@ -62,29 +69,37 @@ public final class REST<D> {
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter
     ) {
-        this(httpAdapter, serializationAdapter, ForkJoinPool.commonPool(), null);
+        this(httpAdapter, serializationAdapter, (D) null);
     }
 
     public REST(
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
-            @Nullable D dependencyObject
+            D dependency
+            ) {
+        this(httpAdapter, serializationAdapter, dependency, ForkJoinPool.commonPool());
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            Executor requestExecutor
     ) {
-        this(httpAdapter, serializationAdapter, ForkJoinPool.commonPool(), dependencyObject);
+        this(httpAdapter, serializationAdapter, null, requestExecutor);
     }
 
     public REST(
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
-            Executor requestExecutor,
-            @Nullable D dependencyObject
+            D dependency,
+            Executor requestExecutor
     ) {
         this(
                 httpAdapter,
                 serializationAdapter,
+                dependency,
                 requestExecutor,
-                Ratelimiter.INSTANT,
-                dependencyObject
+                Ratelimiter.INSTANT
         );
     }
 
@@ -92,15 +107,24 @@ public final class REST<D> {
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             ScheduledExecutorService scheduledExecutorService,
-            @Nullable D dependencyObject,
+            RatelimitedEndpoint... pool
+    ) {
+        this(httpAdapter, serializationAdapter, null, scheduledExecutorService, pool);
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            D dependency,
+            ScheduledExecutorService scheduledExecutorService,
             RatelimitedEndpoint... pool
     ) {
         this(
                 httpAdapter,
                 serializationAdapter,
+                dependency,
                 scheduledExecutorService,
-                Ratelimiter.ofPool(scheduledExecutorService, pool),
-                dependencyObject
+                Ratelimiter.ofPool(scheduledExecutorService, pool)
         );
     }
 
@@ -108,25 +132,34 @@ public final class REST<D> {
             HttpAdapter httpAdapter,
             SerializationAdapter<?, ?, ?> serializationAdapter,
             Executor requestExecutor,
-            Ratelimiter ratelimiter,
-            @Nullable D dependencyObject
+            Ratelimiter ratelimiter
+    ) {
+        this(httpAdapter, serializationAdapter, null, requestExecutor, ratelimiter);
+    }
+
+    public REST(
+            HttpAdapter httpAdapter,
+            SerializationAdapter<?, ?, ?> serializationAdapter,
+            D dependency,
+            Executor requestExecutor,
+            Ratelimiter ratelimiter
     ) {
         this.httpAdapter = Objects.requireNonNull(httpAdapter, "HttpAdapter");
         this.serializationAdapter = Objects.requireNonNull(serializationAdapter, "SerializationAdapter");
+        this.dependency = dependency;
         this.executor = Objects.requireNonNull(requestExecutor, "RequestExecutor");
         this.ratelimiter = Objects.requireNonNull(ratelimiter, "Ratelimiter");
-        this.dependencyObject = dependencyObject;
     }
 
     public Request<UniObjectNode> request() {
         return new Request<>(Invocable.paramReturning(UniObjectNode.class));
     }
 
-    public <T extends DataContainer<? extends D>> Request<T> request(Class<T> type) {
+    public <T extends DataContainer<? super T>> Request<T> request(Class<T> type) {
         return request(DataContainerBase.findRootBind(type));
     }
 
-    public <T extends DataContainer<? extends D>> Request<T> request(GroupBind<T, D> group) {
+    public <T extends DataContainer<? super T>> Request<T> request(GroupBind<T> group) {
         //noinspection unchecked
         return request((Invocable<T>) Polyfill.uncheckedCast(group.getConstructor()
                 .orElseThrow(() -> new NoSuchElementException("No constructor applied to GroupBind"))));
@@ -208,30 +241,178 @@ public final class REST<D> {
 
     public static class Response {
         private final int statusCode;
-        private final UniNode body;
-        private final Header.List headers = new Header.List();
+        private final String mimeType;
+        private final @Nullable UniNode body;
+        private final @Nullable FileHandle file;
+        private final Header.List headers;
 
         public int getStatusCode() {
             return statusCode;
         }
 
-        public UniNode getBody() {
-            return body;
+        public String getMimeType() {
+            return mimeType;
+        }
+
+        public Processor<UniNode> getBody() {
+            return ofConstant(body);
+        }
+
+        public Processor<FileHandle> getFile() {
+            return ofConstant(file);
         }
 
         public Header.List getHeaders() {
             return headers;
         }
 
-        public Response(int statusCode, UniNode body) {
-            this.statusCode = statusCode;
-            this.body = body;
+        /**
+         * Creates an empty response and no extra headers.
+         *
+         * @param statusCode the status code
+         * @see Response#Response(int, Header.List) superloaded
+         */
+        public Response(
+                int statusCode
+        ) {
+            this(statusCode, new Header.List());
         }
 
+        /**
+         * Creates an empty response, using mimeType {@code *\/*} and the given extra {@code headers}.
+         *
+         * @param statusCode the status code
+         * @param headers    the response headers
+         */
+        public Response(
+                int statusCode,
+                Header.List headers
+        ) {
+            this.statusCode = statusCode;
+            this.mimeType = "*/*";
+            this.body = null;
+            this.file = null;
+            this.headers = headers;
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code body}.
+         *
+         * @param statusCode the status code
+         * @param body       the response body
+         * @see Response#Response(int, UniNode, Header.List) superloaded
+         */
+        public Response(
+                int statusCode,
+                UniNode body
+        ) {
+            this(statusCode, body, new Header.List());
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code body} and the given extra {@code headers}.
+         *
+         * @param statusCode the status code
+         * @param body       the response body
+         * @param headers    the response headers
+         */
+        public Response(
+                int statusCode,
+                UniNode body,
+                Header.List headers
+        ) {
+            this.statusCode = statusCode;
+            this.body = Objects.requireNonNull(body, "body");
+            this.mimeType = body.getMimeType();
+            this.file = null;
+            this.headers = Objects.requireNonNull(headers, "headers list");
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code file} as response.
+         * A {@code mimeType} parameter is required.
+         *
+         * @param statusCode the status code
+         * @param mimeType   the mimeType of the response file
+         * @param file       the file to send in response
+         * @see Response#Response(int, String, File, Header.List) superloaded
+         */
+        public Response(
+                int statusCode,
+                String mimeType,
+                File file
+        ) {
+            this(statusCode, mimeType, file, new Header.List());
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code file} as response and the given extra {@code headers}.
+         * This constructor tries to {@linkplain FileHandle#guessMimeTypeFromName(String) guess the mime type} of the file.
+         *
+         * @param statusCode the status code
+         * @param file       the file to send in response
+         * @param headers    the response headers
+         * @see Response#Response(int, String, File, Header.List) superloaded
+         */
+        public Response(
+                int statusCode,
+                File file,
+                Header.List headers
+        ) {
+            this(statusCode, FileHandle.guessMimeTypeFromName(file.getName()), file, headers);
+        }
+
+        /**
+         * Creates a non-empty response, using the given {@code file} as response and the given extra {@code headers}.
+         * A {@code mimeType} parameter is required.
+         *
+         * @param statusCode the status code
+         * @param mimeType   the mimeType of the response file
+         * @param file       the file to send in response
+         * @param headers    the response headers
+         */
+        public Response(
+                int statusCode,
+                String mimeType,
+                File file,
+                Header.List headers
+        ) {
+            this.statusCode = statusCode;
+            this.mimeType = Objects.requireNonNull(mimeType, "mimeType");
+            this.body = null;
+            this.file = FileHandle.of(Objects.requireNonNull(file, "file"));
+            this.headers = Objects.requireNonNull(headers, "headers list");
+        }
+
+        /**
+         * Creates any kind of response.
+         *
+         * @param statusCode the status code
+         * @param mimeType   the mimeType of the response file
+         * @param file       the file to send in response
+         * @param headers    the response headers
+         */
+        @Internal
+        public Response(
+                int statusCode,
+                String mimeType,
+                @Nullable UniNode body,
+                @Nullable File file,
+                Header.List headers
+        ) {
+            this.statusCode = statusCode;
+            this.mimeType = mimeType;
+            this.body = body;
+            this.file = ofConstant(file).into(FileHandle::of);
+            this.headers = headers;
+        }
+
+        @Deprecated
         public Response(REST rest, int statusCode, String body) {
             this(statusCode, rest.serializationAdapter.createUniNode(body));
         }
 
+        @Deprecated
         public static Response empty(SerializationAdapter seriLib, @MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
             return new Response(code, seriLib.createUniNode(null));
         }
@@ -262,7 +443,7 @@ public final class REST<D> {
             return headers;
         }
 
-        public REST<D> getREST() {
+        public REST getREST() {
             return REST.this;
         }
 
@@ -276,45 +457,51 @@ public final class REST<D> {
             return String.format("%s @ %s", method.name(), endpoint.getSpec());
         }
 
-        public final Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
+        public Request<T> expect(@MagicConstant(valuesFromClass = HTTPStatusCodes.class) int code) {
             this.expectedCode = code;
 
             return this;
         }
 
-        public final Request<T> endpoint(CompleteEndpoint endpoint) {
+        public Request<T> endpoint(CompleteEndpoint endpoint) {
             this.endpoint = endpoint;
 
             return this;
         }
 
-        public final Request<T> endpoint(AccessibleEndpoint endpoint, Object... args) {
+        public Request<T> endpoint(AccessibleEndpoint endpoint, Object... args) {
             return endpoint(endpoint.complete(args));
         }
 
-        public final Request<T> method(REST.Method method) {
+        public Request<T> method(REST.Method method) {
             this.method = method;
 
             return this;
         }
 
-        public final Request<T> body(String body) {
+        public Request<T> body(String body) {
             this.body = body;
 
             return this;
         }
 
-        public final Request<T> addHeader(String name, String value) {
+        public <B extends UniNode> Request<T> buildBody(BodyBuilderType<B> type, Consumer<B> bodyBuilder) {
+            final B body = type.apply(serializationAdapter);
+            bodyBuilder.accept(body);
+            return body(body.toString());
+        }
+
+        public Request<T> addHeader(String name, String value) {
             this.headers.add(new Header(name, value));
 
             return this;
         }
 
-        public final boolean removeHeaders(Predicate<Header> filter) {
+        public boolean removeHeaders(Predicate<Header> filter) {
             return headers.removeIf(filter);
         }
 
-        public final synchronized CompletableFuture<REST.Response> execute() {
+        public synchronized CompletableFuture<REST.Response> execute() {
             if (!execution.isDone()) {
                 logger.at(Level.FINE)
                         .log("Executing request %s @ %s");
@@ -333,25 +520,27 @@ public final class REST<D> {
             return execution;
         }
 
-        public final CompletableFuture<Integer> execute$statusCode() {
+        public CompletableFuture<Integer> execute$statusCode() {
             return execute().thenApply(Response::getStatusCode);
         }
 
-        public final CompletableFuture<UniNode> execute$body() {
-            return execute().thenApply(Response::getBody);
+        public CompletableFuture<UniNode> execute$body() {
+            return execute()
+                    .thenApply(Response::getBody)
+                    .thenApply(Processor::get);
         }
 
-        public final CompletableFuture<Span<T>> execute$deserialize() {
+        public CompletableFuture<Span<T>> execute$deserialize() {
             return execute$body().thenApply(node -> {
                 switch (node.getType()) {
                     case OBJECT:
-                        return Span.singleton(tProducer.autoInvoke(dependencyObject, node.asObjectNode()));
+                        return Span.singleton(tProducer.autoInvoke(dependency, node.asObjectNode()));
                     case ARRAY:
                         return node.asArrayNode()
                                 .asNodeList()
                                 .stream()
                                 .map(UniNode::asObjectNode)
-                                .map(sub -> tProducer.autoInvoke(dependencyObject, sub))
+                                .map(tProducer::autoInvoke)
                                 .collect(Span.collector());
                     case VALUE:
                         throw new AssertionError("Cannot deserialize from UniValueNode");
@@ -361,17 +550,17 @@ public final class REST<D> {
             });
         }
 
-        public final CompletableFuture<T> execute$deserializeSingle() {
+        public CompletableFuture<T> execute$deserializeSingle() {
             return execute$deserialize().thenApply(Span::requireNonNull);
         }
 
-        public final <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
+        public <R> CompletableFuture<Span<R>> execute$map(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> span.stream()
                     .map(remapper)
                     .collect(Span.collector()));
         }
 
-        public final <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
+        public <R> CompletableFuture<R> execute$mapSingle(Function<T, R> remapper) {
             return execute$deserialize().thenApply(span -> {
                 if (!span.isSingle()) {
                     throw new IllegalArgumentException("Span too large");
@@ -381,8 +570,8 @@ public final class REST<D> {
             });
         }
 
-        public final <ID> CompletableFuture<Span<T>> execute$autoCache(
-                VarBind<?, ? super D, ?, ID> identifyBind, Cache<ID, ? super T> cache
+        public <ID> CompletableFuture<Span<T>> execute$autoCache(
+                VarBind<?, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache
         ) {
             return execute$body().thenApply(node -> {
                 if (node.isObjectNode()) {
@@ -399,7 +588,7 @@ public final class REST<D> {
             });
         }
 
-        private <ID> T cacheProduce(VarBind<?, ? super D, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
+        private <ID> T cacheProduce(VarBind<?, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
             ID id = identifyBind.getFrom(obj);
 
             if (id == null) {
@@ -407,14 +596,18 @@ public final class REST<D> {
             }
 
             if (cache.containsKey(id)) {
-                //noinspection unchecked
-                cache.getReference(id, false) // should be present
-                        .compute(old -> (T) (
-                                (DataContainer<D>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
-                        ).updateFrom(obj));
+                try {
+                    //noinspection unchecked
+                    cache.getReference(id, false) // should be present
+                            .compute(old -> (T) (
+                                    (DataContainer<?>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
+                            ).updateFrom(obj));
+                } catch (NullPointerException npe) {
+                    throw new AssertionError("Reference was not present; should have been", npe);
+                }
             } else {
                 cache.getReference(id, true)
-                        .set(tProducer.autoInvoke(dependencyObject, obj));
+                        .set(tProducer.autoInvoke(obj));
             }
 
             //noinspection unchecked

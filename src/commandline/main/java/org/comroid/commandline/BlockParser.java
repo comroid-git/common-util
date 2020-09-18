@@ -1,19 +1,21 @@
 package org.comroid.commandline;
 
+import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BlockParser {
-    public final Map<String, Reference.Settable<String>> yields = TrieMap.ofString();
+    public final Map<String, KeyedReference<String, String>> yields = new ConcurrentHashMap<>();
 
     private String prevName = null;
 
     public void append(String arg) {
         final int len = arg.length();
-        final String name = arg.contains("-") ? arg.substring(arg.lastIndexOf('-') + 1) : arg;
+        final String name = arg.contains("-") ? arg.substring(arg.lastIndexOf('-', 2) + 1) : arg;
 
         if (arg.startsWith("-")) {
             if (!arg.startsWith("--")) {
@@ -35,7 +37,7 @@ public class BlockParser {
                 return;
             }
         } else if (prevName != null) {
-            final Reference.Settable<String> compute = compute(prevName);
+            final Reference<String> compute = compute(prevName);
             compute.set(arg);
             prevName = null;
         }
@@ -46,7 +48,10 @@ public class BlockParser {
     }
 
     @NotNull
-    private Reference.Settable<String> compute(String name) {
-        return yields.computeIfAbsent(name, Reference.Settable::create);
+    private Reference<String> compute(String name) {
+        final Reference<String> ref = yields.computeIfAbsent(name, KeyedReference::create);
+        if (ref.isNull())
+            ref.set(name);
+        return ref;
     }
 }

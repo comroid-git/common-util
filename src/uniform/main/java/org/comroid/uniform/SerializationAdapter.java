@@ -8,11 +8,12 @@ import org.comroid.uniform.node.UniValueNode;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS> {
+    public final String mimeType;
     public final DataStructureType.Arr<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> arrayType;
     public final DataStructureType.Obj<SerializationAdapter<BAS, OBJ, ARR>, BAS, OBJ, ARR> objectType;
-    private final String mimeType;
 
     public final String getMimeType() {
         return mimeType;
@@ -21,7 +22,18 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     protected SerializationAdapter(
             String mimeType, Class<OBJ> objClass, Class<ARR> arrClass
     ) {
-        this(mimeType, new DataStructureType.Obj<>(objClass), new DataStructureType.Arr<>(arrClass));
+        this(mimeType, objClass, null, arrClass, null);
+    }
+
+    protected SerializationAdapter(
+            String mimeType, Class<OBJ> objClass, Supplier<? extends OBJ> objectSupplier, Class<ARR> arrClass, Supplier<? extends ARR> arraySupplier
+    ) {
+        this(mimeType, objectSupplier != null
+                        ? new DataStructureType.Obj<>(objClass, objectSupplier)
+                        : new DataStructureType.Obj<>(objClass),
+                arraySupplier != null
+                        ? new DataStructureType.Arr<>(arrClass, arraySupplier)
+                        : new DataStructureType.Arr<>(arrClass));
 
         Objects.requireNonNull(objClass, "Object class cannot be null");
     }
@@ -34,10 +46,6 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
         this.mimeType = mimeType;
         this.objectType = objectType;
         this.arrayType = arrayType;
-    }
-
-    public static SerializationAdapter<?, ?, ?> autodetect() {
-        throw new UnsupportedOperationException();
     }
 
     public final UniNode readFile(FileHandle file) {
@@ -57,12 +65,10 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
     public <TAR extends BAS> DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR> typeOf(
             TAR node
     ) {
-        if (objectType.typeClass()
-                .isInstance(node)) {
+        if (objectType.typeClass().isInstance(node)) {
             return (DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR>) objectType;
         }
-        if (arrayType.typeClass()
-                .isInstance(node)) {
+        if (arrayType.typeClass().isInstance(node)) {
             return (DataStructureType<SerializationAdapter<BAS, OBJ, ARR>, BAS, TAR>) arrayType;
         }
 
@@ -72,9 +78,11 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
 
     public final UniNode createUniNode(Object node) {
         if (node == null)
-            UniValueNode.nullNode();
+            UniValueNode.empty();
 
-        if (node instanceof CharSequence) {
+        if (node instanceof String) {
+            if (((String) node).isEmpty())
+                return null;
             return parse(node == null ? null : node.toString());
         }
 
@@ -93,6 +101,8 @@ public abstract class SerializationAdapter<BAS, OBJ extends BAS, ARR extends BAS
                         .getName()
         ));
     }
+
+    public abstract DataStructureType<? extends SerializationAdapter<BAS, OBJ, ARR>, BAS, ? extends BAS> typeOfData(String data);
 
     public abstract UniNode parse(@Nullable String data);
 
