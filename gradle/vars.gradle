@@ -1,6 +1,8 @@
 import static java.lang.System.getenv
 
 ext {
+    isAutoDeploy = getenv().containsKey("TEAMCITY") || getenv().containsKey("JITPACK");
+
     artifactName = project.name.equals('util') ? 'common-util' : project.name
     projectDescription = ''
     userbase = 'comroid-git'

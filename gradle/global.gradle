@@ -61,7 +61,7 @@ repositories {
 
 dependencies {
     if (project.name != 'interfaces') {
-        if (System.getenv().containsKey("TEAMCITY")) {
+        if (isAutoDeploy) {
             api project(':interfaces')
         } else {
             api project(':common-util:interfaces')

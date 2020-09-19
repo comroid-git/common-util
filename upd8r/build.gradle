@@ -8,7 +8,11 @@ ext {
 }
 
 dependencies {
-    api project(":common-util:common-util")
+    if (isAutoDeploy) {
+        api project(":common-util")
+    } else {
+        api project(":common-util:common-util")
+    }
 
     implementation 'com.alibaba:fastjson:1.2.71'
     implementation 'com.squareup.okhttp3:okhttp:4.7.2'

@@ -44,9 +44,15 @@ dependencies {
     java8compatCompileOnly 'org.jetbrains:annotations:19.0.0'
     java11compatCompileOnly 'org.jetbrains:annotations:19.0.0'
 
-    api project(':common-util:common-util')
-    java8compatCompileOnly project(':common-util:uniform')
-    java11compatCompileOnly project(':common-util:uniform')
+    if (isAutoDeploy) {
+        api project(':common-util')
+        java8compatCompileOnly project(':uniform')
+        java11compatCompileOnly project(':uniform')
+    } else {
+        api project(':common-util:common-util')
+        java8compatCompileOnly project(':common-util:uniform')
+        java11compatCompileOnly project(':common-util:uniform')
+    }
 
     // json adapter dependencies
     java8compatCompileOnly 'com.alibaba:fastjson:1.2.71'

@@ -8,8 +8,13 @@ ext {
 }
 
 dependencies {
-    api project(":common-util:common-util")
-    api project(":common-util:spellbind")
+    if (isAutoDeploy) {
+        api project(":common-util")
+        api project(":spellbind")
+    } else {
+        api project(":common-util:common-util")
+        api project(":common-util:spellbind")
+    }
 }
 
 apply from: "$parent.projectDir/gradle/publishing.gradle"

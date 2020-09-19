@@ -8,7 +8,11 @@ ext {
 }
 
 dependencies {
-    api project(":common-util:common-util")
+    if (isAutoDeploy) {
+        api project(":common-util")
+    } else {
+        api project(":common-util:common-util")
+    }
 }
 
 apply from: "$parent.projectDir/gradle/publishing.gradle"
