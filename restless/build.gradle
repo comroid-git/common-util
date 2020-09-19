@@ -82,6 +82,8 @@ dependencies {
         api project(':common-util:dreadpool')
         java8compatImplementation project(':common-util:dreadpool')
         java11compatImplementation project(':common-util:dreadpool')
+        testRuntimeOnly project(':common-util:listnr')
+        testRuntimeOnly project(':common-util:dreadpool')
     }
 
     // http adapter dependencies
@@ -93,8 +95,6 @@ dependencies {
 
     testImplementation sourceSets.java8compat.output.classesDirs
     testImplementation sourceSets.java11compat.output.classesDirs
-    testRuntimeOnly project(':common-util:listnr')
-    testRuntimeOnly project(':common-util:dreadpool')
     testRuntimeOnly 'com.squareup.okhttp3:okhttp:4.5.0'
     testImplementation 'com.alibaba:fastjson:1.2.71'
 }
