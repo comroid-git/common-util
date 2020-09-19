@@ -8,9 +8,15 @@ ext {
 }
 
 dependencies {
-    api project(':common-util:uniform')
-    api project(':common-util:mutatio')
-    api project(':common-util:spellbind')
+    if (isAutoDeploy) {
+        api project(':uniform')
+        api project(':mutatio')
+        api project(':spellbind')
+    } else {
+        api project(':common-util:uniform')
+        api project(':common-util:mutatio')
+        api project(':common-util:spellbind')
+    }
 
     testImplementation 'com.alibaba:fastjson:1.2.71'
 }
