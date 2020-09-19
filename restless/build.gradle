@@ -41,7 +41,7 @@ jar {
 }
 
 dependencies {
-    java8compatCompileOnly 'org.jetbrains:annotations:19.0.0'
+    java8compatCompileOnly 'org.jetbrains:annotations:20.1.0'
     java11compatCompileOnly 'org.jetbrains:annotations:19.0.0'
 
     if (isAutoDeploy) {
