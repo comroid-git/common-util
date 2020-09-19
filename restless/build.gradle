@@ -87,7 +87,7 @@ dependencies {
     }
 
     // http adapter dependencies
-    java8compatCompileOnly 'com.squareup.okhttp3:okhttp:4.7.2'
+    java8compatCompileOnly 'com.squareup.okhttp3:okhttp:4.9.0'
 
     implementation 'com.google.flogger:flogger:0.5.1'
     java8compatImplementation 'com.google.flogger:flogger:0.5.1'
@@ -95,7 +95,7 @@ dependencies {
 
     testImplementation sourceSets.java8compat.output.classesDirs
     testImplementation sourceSets.java11compat.output.classesDirs
-    testRuntimeOnly 'com.squareup.okhttp3:okhttp:4.5.0'
+    testRuntimeOnly 'com.squareup.okhttp3:okhttp:4.9.0'
     testImplementation 'com.alibaba:fastjson:1.2.71'
 }
 
