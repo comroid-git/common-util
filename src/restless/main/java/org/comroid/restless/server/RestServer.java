@@ -218,7 +218,7 @@ public class RestServer implements Closeable {
                 REST.Method requestMethod,
                 Headers responseHeaders,
                 Headers requestHeaders,
-                String requestBody) throws RestEndpointException, IOException {
+                String requestBody) throws Throwable {
             final Iterator<ServerEndpoint> iter = endpoints.pipe()
                     // endpoints that accept the request uri
                     .filter(endpoint -> endpoint.test(requestURI))
@@ -226,7 +226,7 @@ public class RestServer implements Closeable {
                     .sorted(Comparator.comparingInt(endpoint -> endpoint.isMemberAccess(requestURI) ? 1 : -1))
                     .span()
                     .iterator();
-            RestEndpointException lastException = null;
+            Throwable lastException = null;
             Response response = dummyResponse;
 
             if (!iter.hasNext()) {
@@ -248,9 +248,12 @@ public class RestServer implements Closeable {
                     try {
                         logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
                         response = endpoint.executeMethod(RestServer.this, requestMethod, requestHeaders, args, requestBody);
-                    } catch (RestEndpointException reex) {
+                    } catch (Throwable reex) {
                         lastException = reex;
                     }
+
+                    if (lastException instanceof RestEndpointException)
+                        throw lastException;
 
                     if (response == dummyResponse) {
                         logger.at(Level.WARNING)
