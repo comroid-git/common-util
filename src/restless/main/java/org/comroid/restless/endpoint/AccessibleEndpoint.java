@@ -95,14 +95,15 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
         }
 
         final String[] regExpGroups = getRegExpGroups();
-        final String replacer = replacer(regExpGroups);
+        String replacer = replacer(regExpGroups);
+        Pattern pattern = getPattern();
 
         if (regExpGroups.length == 0)
-            return replacer.equals(url);
-        else return getPattern()
-                .matcher(url)
-                .replaceAll(replacer)
-                .equals(url);
+            return pattern.matcher(url).matches() && replacer.equals(url);
+        else {
+            Matcher matcher = pattern.matcher(url);
+            return matcher.matches() && matcher.replaceAll(replacer).equals(url);
+        }
     }
 
     @NonExtendable
