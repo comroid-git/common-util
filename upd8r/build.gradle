@@ -15,7 +15,7 @@ dependencies {
     }
 
     implementation 'com.alibaba:fastjson:1.2.71'
-    implementation 'com.squareup.okhttp3:okhttp:4.7.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.0'
 }
 
 apply from: "$parent.projectDir/gradle/publishing.gradle"
