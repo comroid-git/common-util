@@ -23,10 +23,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
 
     String[] getRegExpGroups();
 
-    default Pattern getPattern() {
-        // todo: Inspect overhead
-        return StaticCache.access(this, "pattern", this::buildUrlPattern);
-    }
+    Pattern getPattern();
 
     default int getParameterCount() {
         return getRegExpGroups().length;
