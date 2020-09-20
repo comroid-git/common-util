@@ -253,7 +253,9 @@ public class RestServer implements Closeable {
                     }
 
                     if (response == dummyResponse) {
-                        logger.at(Level.INFO).log("Handler could not complete normally, attempting next handler...", response);
+                        logger.at(Level.WARNING)
+                                .withCause(lastException)
+                                .log("Handler could not complete normally, attempting next handler...", response);
                         continue;
                     }
 
