@@ -607,7 +607,7 @@ public final class REST<D> {
                 }
             } else {
                 cache.getReference(id, true)
-                        .set(tProducer.autoInvoke(obj));
+                        .set(tProducer.autoInvoke(dependency, obj));
             }
 
             //noinspection unchecked
