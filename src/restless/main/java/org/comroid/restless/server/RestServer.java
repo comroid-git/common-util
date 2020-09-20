@@ -238,6 +238,8 @@ public class RestServer implements Closeable {
             while (iter.hasNext()) {
                 final ServerEndpoint endpoint = iter.next();
 
+                logger.at(Level.INFO).log("Attempting to use endpoint %s", endpoint.getUrlExtension());
+
                 if (endpoint.supports(requestMethod)) {
                     final String[] args = endpoint.extractArgs(requestURI);
                     logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
