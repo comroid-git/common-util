@@ -227,7 +227,7 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
         T prev = extRef.into(Span::get);
 
         extRef.compute(span -> {
-            if (span == null)
+            if (span == null || span.isFixedSize())
                 return Span.<T>make()
                         .initialValues(value)
                         .span();
