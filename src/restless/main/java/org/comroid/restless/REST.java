@@ -569,7 +569,7 @@ public final class REST<D> {
         }
 
         public <ID> CompletableFuture<Span<T>> execute$autoCache(
-                VarBind<?, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache
+                VarBind<?, ?, ?, ID> identifyBind, Cache<ID, T> cache
         ) {
             return execute$body().thenApply(node -> {
                 if (node.isObjectNode()) {
@@ -586,30 +586,22 @@ public final class REST<D> {
             });
         }
 
-        private <ID> T cacheProduce(VarBind<?, ?, ?, ID> identifyBind, Cache<ID, ? super T> cache, UniObjectNode obj) {
+        private <ID> T cacheProduce(VarBind<?, ?, ?, ID> identifyBind, Cache<ID, T> cache, UniObjectNode obj) {
             ID id = identifyBind.getFrom(obj);
 
             if (id == null) {
                 throw new IllegalArgumentException("Invalid Data: Could not resolve identifying Bind");
             }
 
-            if (cache.containsKey(id)) {
-                try {
-                    //noinspection unchecked
-                    cache.getReference(id, false) // should be present
-                            .compute(old -> (T) ((DataContainer<?>) Objects
-                                    .requireNonNull(old, "Assert failed: Cache did not contain object"))
-                                    .updateFrom(obj));
-                } catch (NullPointerException npe) {
-                    throw new AssertionError("Reference was not present; should have been", npe);
-                }
-            } else {
-                cache.getReference(id, true)
-                        .set(tProducer.autoInvoke(dependency, obj));
-            }
+            return cache.getReference(id, true)
+                    .compute(old -> {
+                        if (old instanceof DataContainer) {
+                            Polyfill.<DataContainer<? super T>>uncheckedCast(old).updateFrom(obj);
+                            return old;
+                        }
 
-            //noinspection unchecked
-            return (T) cache.requireNonNull(id, "Assert failed: Cache is still missing key " + id);
+                        return tProducer.autoInvoke(dependency, obj);
+                    });
         }
     }
 }
