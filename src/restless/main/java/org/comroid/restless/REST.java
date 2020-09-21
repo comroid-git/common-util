@@ -503,8 +503,7 @@ public final class REST<D> {
 
         public synchronized CompletableFuture<REST.Response> execute() {
             if (!execution.isDone()) {
-                logger.at(Level.FINE)
-                        .log("Executing request %s @ %s");
+                logger.at(Level.FINE).log("Executing request %s @ %s");
                 getREST().ratelimiter.apply(endpoint.getEndpoint(), this)
                         .thenComposeAsync(request -> httpAdapter.call(request, serializationAdapter.getMimeType()), executor)
                         .thenAcceptAsync(response -> {
@@ -598,9 +597,9 @@ public final class REST<D> {
                 try {
                     //noinspection unchecked
                     cache.getReference(id, false) // should be present
-                            .compute(old -> (T) (
-                                    (DataContainer<?>) Objects.requireNonNull(old, "Assert failed: Cache did not contain object")
-                            ).updateFrom(obj));
+                            .compute(old -> (T) ((DataContainer<?>) Objects
+                                    .requireNonNull(old, "Assert failed: Cache did not contain object"))
+                                    .updateFrom(obj));
                 } catch (NullPointerException npe) {
                     throw new AssertionError("Reference was not present; should have been", npe);
                 }

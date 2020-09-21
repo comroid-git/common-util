@@ -151,9 +151,9 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
 
             @Override
             public @Nullable KeyedReference<K, V> getReference(K key, boolean createIfAbsent) {
-                return !containsKey(key) && createIfAbsent
-                        ? refMap.computeIfAbsent(key, KeyedReference::create)
-                        : refMap.get(key);
+                if (!containsKey(key) && createIfAbsent)
+                    return refMap.computeIfAbsent(key, KeyedReference::create);
+                return refMap.get(key);
             }
 
             @Override
@@ -198,9 +198,9 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
                 refMap.clear();
             }
 
-            private final Map<Integer, Reference<KeyedReference<K, V>>> indexAccessors = new ConcurrentHashMap<>();
-
             private final class EntryIndex implements ReferenceIndex<KeyedReference<K, V>> {
+                private final Map<Integer, Reference<KeyedReference<K, V>>> indexAccessors = new ConcurrentHashMap<>();
+
                 @Override
                 public List<KeyedReference<K, V>> unwrap() {
                     return new ArrayList<>(refMap.values());

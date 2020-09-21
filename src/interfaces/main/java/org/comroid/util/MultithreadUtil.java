@@ -23,11 +23,11 @@ public final class MultithreadUtil {
         return future;
     }
 
-    public static CompletionStage<Void> futureAfter(long time, TimeUnit unit) {
+    public static CompletableFuture<Void> futureAfter(long time, TimeUnit unit) {
         return futureAfter(null, time, unit);
     }
 
-    public static <T> CompletionStage<T> futureAfter(T value, long time, TimeUnit unit) {
+    public static <T> CompletableFuture<T> futureAfter(T value, long time, TimeUnit unit) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Thread.sleep(TimeUnit.MILLISECONDS.convert(time, unit));
