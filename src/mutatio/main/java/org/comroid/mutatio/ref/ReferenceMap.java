@@ -3,6 +3,7 @@ package org.comroid.mutatio.ref;
 import org.comroid.mutatio.pipe.BiPipe;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.Pipeable;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.pump.Pump;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +62,10 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
 
     default Optional<V> wrap(K key) {
         return getReference(key, true).wrap();
+    }
+
+    default Processor<V> process(K key) {
+        return getReference(key, true).process();
     }
 
     default @NotNull V requireNonNull(K key) {
