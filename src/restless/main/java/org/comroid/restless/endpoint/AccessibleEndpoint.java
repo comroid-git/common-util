@@ -59,8 +59,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
 
         final String format = String.format(getFullUrl(), args);
 
-        if (test(format) || (format.startsWith("localhost")
-                | format.matches("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")))
+        if (test(format))
             return format;
 
         throw new IllegalArgumentException("Generated spec is invalid");
