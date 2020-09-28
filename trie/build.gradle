@@ -11,7 +11,7 @@ dependencies {
     if (isAutoDeploy) {
         api project(":mutatio")
     } else {
-        api project(":common-util:mutatio")
+        api project(":guardian:mutatio")
     }
 }
 

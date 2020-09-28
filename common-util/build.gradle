@@ -13,7 +13,7 @@ dependencies {
         api project(":mutatio")
     } else {
         api project(":common-util:trie")
-        api project(":common-util:mutatio")
+        api project(":guardian:mutatio")
     }
 }
 
