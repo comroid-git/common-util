@@ -43,6 +43,15 @@ public final class BasicMultipart {
             this.heldType = heldType;
             this.required = required;
         }
+
+        @Override
+        public String toString() {
+            return String.format("VarBind %s%s {heldType=%s, required=%s}",
+                    as(Grouped.class).map(g -> g.group.getName() + '.').orElse(""),
+                    fieldName,
+                    heldType,
+                    required);
+        }
     }
 
     public static final class Grouped<SELF extends DataContainer<? super SELF>> extends UUIDContainer.Base implements PartialBind.Grouped<SELF> {

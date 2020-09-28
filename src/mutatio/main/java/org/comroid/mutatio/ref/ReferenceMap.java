@@ -3,6 +3,7 @@ package org.comroid.mutatio.ref;
 import org.comroid.mutatio.pipe.BiPipe;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.pipe.Pipeable;
+import org.comroid.mutatio.proc.Processor;
 import org.comroid.mutatio.pump.Pump;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +62,10 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
 
     default Optional<V> wrap(K key) {
         return getReference(key, true).wrap();
+    }
+
+    default Processor<V> process(K key) {
+        return getReference(key, true).process();
     }
 
     default @NotNull V requireNonNull(K key) {
@@ -151,9 +156,9 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
 
             @Override
             public @Nullable KeyedReference<K, V> getReference(K key, boolean createIfAbsent) {
-                return !containsKey(key) && createIfAbsent
-                        ? refMap.computeIfAbsent(key, KeyedReference::create)
-                        : refMap.get(key);
+                if (!containsKey(key) && createIfAbsent)
+                    return refMap.computeIfAbsent(key, KeyedReference::create);
+                return refMap.get(key);
             }
 
             @Override
@@ -198,9 +203,9 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
                 refMap.clear();
             }
 
-            private final Map<Integer, Reference<KeyedReference<K, V>>> indexAccessors = new ConcurrentHashMap<>();
-
             private final class EntryIndex implements ReferenceIndex<KeyedReference<K, V>> {
+                private final Map<Integer, Reference<KeyedReference<K, V>>> indexAccessors = new ConcurrentHashMap<>();
+
                 @Override
                 public List<KeyedReference<K, V>> unwrap() {
                     return new ArrayList<>(refMap.values());

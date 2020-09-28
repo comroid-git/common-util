@@ -5,6 +5,7 @@ import org.comroid.common.ref.StaticCache;
 import org.comroid.restless.server.EndpointHandler;
 import org.comroid.restless.server.ServerEndpoint;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.ApiStatus.NonExtendable;
 
 import java.net.URI;
 import java.net.URL;
@@ -22,10 +23,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
 
     String[] getRegExpGroups();
 
-    default Pattern getPattern() {
-        // todo: Inspect overhead
-        return StaticCache.access(this, "pattern", this::buildUrlPattern);
-    }
+    Pattern getPattern();
 
     default int getParameterCount() {
         return getRegExpGroups().length;
@@ -48,10 +46,12 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
         return -1;
     }
 
+    @NonExtendable
     default CompleteEndpoint complete(Object... args) throws IllegalArgumentException {
         return CompleteEndpoint.of(this, string(args));
     }
 
+    @NonExtendable
     default String string(Object... args) throws IllegalArgumentException {
         if (args.length != getParameterCount()) {
             throw new IllegalArgumentException("Invalid argument count");
@@ -65,23 +65,28 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
         throw new IllegalArgumentException("Generated spec is invalid");
     }
 
+    @NonExtendable
     default URL url(Object... args) throws IllegalArgumentException {
         return Polyfill.url(string(args));
     }
 
+    @NonExtendable
     default URI uri(Object... args) throws IllegalArgumentException {
         return Polyfill.uri(string(args));
     }
 
+    @NonExtendable
     default boolean test(URL url) {
         return test(url.toExternalForm());
     }
 
+    @NonExtendable
     default boolean test(URI uri) {
         return test(uri.toString());
     }
 
     @Override
+    @NonExtendable
     default boolean test(String url) {
         if (this instanceof ServerEndpoint
                 && ((ServerEndpoint) this).allowMemberAccess()
@@ -90,24 +95,28 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
         }
 
         final String[] regExpGroups = getRegExpGroups();
-        final String replacer = replacer(regExpGroups);
+        String replacer = replacer(regExpGroups);
+        Pattern pattern = getPattern();
 
         if (regExpGroups.length == 0)
-            return replacer.equals(url);
-        else return getPattern()
-                .matcher(url)
-                .replaceAll(replacer)
-                .equals(url);
+            return pattern.matcher(url).matches() && replacer.equals(url);
+        else {
+            Matcher matcher = pattern.matcher(url);
+            return matcher.matches() && matcher.replaceAll(replacer).equals(url);
+        }
     }
 
+    @NonExtendable
     default String[] extractArgs(URL url) {
         return extractArgs(url.toExternalForm());
     }
 
+    @NonExtendable
     default String[] extractArgs(URI uri) {
         return extractArgs(uri.toString());
     }
 
+    @NonExtendable
     default String[] extractArgs(String requestUrl) {
         if (this instanceof ServerEndpoint
                 && ((ServerEndpoint) this).allowMemberAccess()
@@ -132,6 +141,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
     }
 
     @Internal
+    @NonExtendable
     default String replacer(String[] groups) {
         // todo: Inspect overhead
         return StaticCache.access(this, "replacer", () -> {
@@ -152,6 +162,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
     }
 
     @Internal
+    @NonExtendable
     default Pattern buildUrlPattern() {
         final String[] regExpGroups = getRegExpGroups();
 
@@ -162,6 +173,7 @@ public interface AccessibleEndpoint extends RatelimitedEndpoint, Predicate<Strin
         return Pattern.compile(getFullUrl().replace("%s", "(.*)"));
     }
 
+    @NonExtendable
     default ServerEndpoint attachHandler(EndpointHandler handler) {
         return ServerEndpoint.combined(this, handler);
     }

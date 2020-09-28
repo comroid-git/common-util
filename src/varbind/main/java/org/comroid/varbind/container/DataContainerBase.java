@@ -86,11 +86,6 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
         initialValues.forEach((bind, value) -> getExtractionReference(bind).set(Span.singleton(value)));
     }
 
-    @Override
-    public S self() {
-        return selfSupplier == null ? Polyfill.uncheckedCast(this) : selfSupplier.get();
-    }
-
     @Internal
     public static <T extends DataContainer<? super T>> GroupBind<T> findRootBind(Class<? extends T> inClass) {
         final Location location = ReflectionHelper.findAnnotation(Location.class, inClass, ElementType.TYPE).orElse(null);
@@ -107,6 +102,11 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
         return groups.next();
     }
 
+    @Override
+    public S self() {
+        return selfSupplier == null ? Polyfill.uncheckedCast(this) : selfSupplier.get();
+    }
+
     private Set<VarBind<? extends S, Object, ?, Object>> updateVars(
             @Nullable UniObjectNode data
     ) {
@@ -114,12 +114,13 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
             return emptySet();
         }
 
-        if (!getRootBind().isValidData(data))
-            throw new IllegalArgumentException("Data is invalid: " + data);
+        final GroupBind<S> rootBind = getRootBind();
+        if (!rootBind.isValidData(data))
+            throw new IllegalArgumentException(String.format("Data is invalid for type '%s': %s", rootBind, data));
 
         final HashSet<VarBind<? extends S, Object, ?, Object>> changed = new HashSet<>();
 
-        getRootBind().streamAllChildren()
+        rootBind.streamAllChildren()
                 .map(it -> (VarBind<? extends S, Object, ?, Object>) it)
                 .filter(bind -> data.has(bind.getFieldName()))
                 .map(it -> (VarBind<? extends S, Object, Object, Object>) it)
@@ -226,10 +227,10 @@ public class DataContainerBase<S extends DataContainer<? super S> & SelfDeclared
         T prev = extRef.into(Span::get);
 
         extRef.compute(span -> {
-            if (span == null)
+            if (span == null || span.isFixedSize())
                 return Span.<T>make()
-                .initialValues(value)
-                .span();
+                        .initialValues(value)
+                        .span();
             span.add(value);
             return span;
         });

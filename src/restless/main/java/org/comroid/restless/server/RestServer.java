@@ -218,7 +218,7 @@ public class RestServer implements Closeable {
                 REST.Method requestMethod,
                 Headers responseHeaders,
                 Headers requestHeaders,
-                String requestBody) throws RestEndpointException, IOException {
+                String requestBody) throws Throwable {
             final Iterator<ServerEndpoint> iter = endpoints.pipe()
                     // endpoints that accept the request uri
                     .filter(endpoint -> endpoint.test(requestURI))
@@ -226,7 +226,7 @@ public class RestServer implements Closeable {
                     .sorted(Comparator.comparingInt(endpoint -> endpoint.isMemberAccess(requestURI) ? 1 : -1))
                     .span()
                     .iterator();
-            RestEndpointException lastException = null;
+            Throwable lastException = null;
             Response response = dummyResponse;
 
             if (!iter.hasNext()) {
@@ -238,9 +238,11 @@ public class RestServer implements Closeable {
             while (iter.hasNext()) {
                 final ServerEndpoint endpoint = iter.next();
 
+                logger.at(Level.INFO).log("Attempting to use endpoint %s", endpoint.getUrlExtension());
+
                 if (endpoint.supports(requestMethod)) {
                     final String[] args = endpoint.extractArgs(requestURI);
-                    logger.at(Level.INFO).log("Extracted parameters: %s", Arrays.toString(args));
+                    logger.at(Level.INFO).log("Extracted parameters: %s", lazy(() -> Arrays.toString(args)));
 
                     if (args.length != endpoint.getParameterCount() && !endpoint.allowMemberAccess())
                         throw new RestEndpointException(BAD_REQUEST, "Invalid argument Count");
@@ -248,12 +250,17 @@ public class RestServer implements Closeable {
                     try {
                         logger.at(Level.INFO).log("Executing Handler for method: %s", requestMethod);
                         response = endpoint.executeMethod(RestServer.this, requestMethod, requestHeaders, args, requestBody);
-                    } catch (RestEndpointException reex) {
+                    } catch (Throwable reex) {
                         lastException = reex;
                     }
 
+                    if (lastException instanceof RestEndpointException)
+                        throw lastException;
+
                     if (response == dummyResponse) {
-                        logger.at(Level.INFO).log("Handler could not complete normally, attempting next handler...", response);
+                        logger.at(Level.WARNING)
+                                .withCause(lastException)
+                                .log("Handler could not complete normally, attempting next handler...", response);
                         continue;
                     }
 
