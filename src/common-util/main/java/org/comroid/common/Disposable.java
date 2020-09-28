@@ -18,8 +18,9 @@ public interface Disposable extends AutoCloseable, PropertyHolder {
     }
 
     @NonExtendable
-    default void addChildren(AutoCloseable child) {
-        getCloseables().add(child);
+    default void addChildren(AutoCloseable... childs) {
+        for (AutoCloseable child : childs)
+            getCloseables().add(child);
     }
 
     @OverrideOnly
