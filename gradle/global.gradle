@@ -62,7 +62,7 @@ repositories {
 dependencies {
     if (project.name != 'interfaces') {
         if (isAutoDeploy) {
-            api 'com.github.comroid-git:api:9272928043' //todo Fix version (jitpack problem)
+            api 'com.github.comroid-git:api:master-SNAPSHOT'
         } else {
             api project(':api')
         }
