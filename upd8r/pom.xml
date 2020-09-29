@@ -35,14 +35,14 @@
   <dependencies>
     <dependency>
       <groupId>org.comroid</groupId>
-      <artifactId>interfaces</artifactId>
+      <artifactId>api</artifactId>
       <version>0.10.2-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.comroid</groupId>
-      <artifactId>common-util</artifactId>
-      <version>1.5.5-SNAPSHOT</version>
+      <artifactId>core</artifactId>
+      <version>0.10.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
-      <version>4.7.2</version>
+      <version>4.9.0</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>
