@@ -4,7 +4,6 @@ import org.comroid.api.*;
 import org.comroid.common.exception.AssertionException;
 import org.comroid.spellbind.model.TypeFragment;
 import org.comroid.spellbind.model.TypeFragmentProvider;
-import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
 

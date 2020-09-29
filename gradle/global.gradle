@@ -62,9 +62,11 @@ repositories {
 dependencies {
     if (project.name != 'interfaces') {
         if (isAutoDeploy) {
+            // todo add guardian core dependency
             api 'com.github.comroid-git:api:master-SNAPSHOT'
         } else {
             api project(':api')
+            api project(":guardian:core")
         }
     }
 

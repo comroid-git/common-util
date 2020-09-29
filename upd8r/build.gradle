@@ -8,12 +8,6 @@ ext {
 }
 
 dependencies {
-    if (isAutoDeploy) {
-        api 'com.github.comroid-git:util:master-SNAPSHOT'
-    } else {
-        api project(":util")
-    }
-
     implementation 'com.alibaba:fastjson:1.2.71'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
 }

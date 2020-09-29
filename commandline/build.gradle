@@ -7,12 +7,4 @@ ext {
     projectDescription = "Command Line Tools"
 }
 
-dependencies {
-    if (isAutoDeploy) {
-        api 'com.github.comroid-git:util:master-SNAPSHOT'
-    } else {
-        api project(":util")
-    }
-}
-
 apply from: "$parent.projectDir/gradle/publishing.gradle"

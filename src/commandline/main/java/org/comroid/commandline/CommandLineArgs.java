@@ -4,7 +4,6 @@ import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.Reference;
 import org.comroid.mutatio.ref.ReferenceIndex;
 import org.comroid.mutatio.ref.ReferenceMap;
-import org.comroid.trie.TrieMap;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
