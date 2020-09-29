@@ -4,7 +4,6 @@ rootProject.name = 'common-util'
 include(':interfaces')
 
 // generic tools
-include(':trie')
 include(':common-util')
 include(':commandline')
 

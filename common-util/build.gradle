@@ -9,10 +9,8 @@ ext {
 
 dependencies {
     if (isAutoDeploy) {
-        api project(":trie")
         implementation 'com.github.comroid-git.guardian-framework:mutatio:master-SNAPSHOT'
     } else {
-        api project(":common-util:trie")
         api project(":guardian:mutatio")
     }
 }
