@@ -9,10 +9,10 @@ ext {
 
 dependencies {
     if (isAutoDeploy) {
-        api project(":common-util")
+        api 'com.github.comroid-git:util:master-SNAPSHOT'
         api project(":spellbind")
     } else {
-        api project(":common-util:common-util")
+        api project(":util")
         api project(":common-util:spellbind")
     }
 }
