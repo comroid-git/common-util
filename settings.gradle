@@ -3,12 +3,8 @@ rootProject.name = 'common-util'
 // commonly repeated interfaces
 include(':interfaces')
 
-// generic tools
-include(':commandline')
-
 // jvm tools
 include(':dreadpool')
-include(':spellbind')
 include(':listnr')
 include(':matrix')
 include(':upd8r')
