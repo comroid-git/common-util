@@ -4,7 +4,6 @@ import org.comroid.api.Polyfill;
 import org.comroid.matrix.impl.MatrixCapability;
 import org.comroid.matrix.impl.PartialMatrix;
 import org.comroid.spellbind.SpellCore;
-import org.comroid.trie.TrieMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
