@@ -1,8 +1,8 @@
 package org.comroid.matrix;
 
 import org.comroid.api.Invocable;
-import org.comroid.api.Polyfill;
 import org.comroid.api.Named;
+import org.comroid.api.Polyfill;
 import org.comroid.matrix.impl.PartialMatrix;
 import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.ReferenceMap;

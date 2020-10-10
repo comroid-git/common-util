@@ -38,7 +38,8 @@ public final class TrieArrayMap<K, V> extends TrieStage<K, V> implements TrieMap
     }
 
     @Override
-    public @Nullable KeyedReference<K, V> getReference(K key, boolean createIfAbsent) {
+    public @Nullable
+    KeyedReference<K, V> getReference(K key, boolean createIfAbsent) {
         Objects.requireNonNull(key, "Key");
 
         final String keyConverted = getKeyConverter().forward(key);

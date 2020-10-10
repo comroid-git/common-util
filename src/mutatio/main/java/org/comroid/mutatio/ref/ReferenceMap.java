@@ -52,7 +52,8 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
      * @return A {@link Reference}, or {@code null}
      */
     @Contract("null, _ -> fail; !null, false -> _; !null, true -> !null")
-    @Nullable KeyedReference<K, V> getReference(K key, boolean createIfAbsent);
+    @Nullable
+    KeyedReference<K, V> getReference(K key, boolean createIfAbsent);
 
     ReferenceIndex<? extends Map.Entry<K, V>> entryIndex();
 
@@ -68,11 +69,13 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
         return getReference(key, true).process();
     }
 
-    default @NotNull V requireNonNull(K key) {
+    default @NotNull
+    V requireNonNull(K key) {
         return getReference(key, true).requireNonNull();
     }
 
-    default @NotNull V requireNonNull(K key, String message) {
+    default @NotNull
+    V requireNonNull(K key, String message) {
         return getReference(key, true).requireNonNull(message);
     }
 
@@ -123,21 +126,24 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
     /**
      * @return The new value if it could be set, else the previous value.
      */
-    default @Nullable V compute(K key, Function<V, V> computor) {
+    default @Nullable
+    V compute(K key, Function<V, V> computor) {
         return getReference(key, true).compute(computor);
     }
 
     /**
      * @return The new value if it could be set, else the previous value.
      */
-    default @Nullable V computeIfPresent(K key, Function<V, V> computor) {
+    default @Nullable
+    V computeIfPresent(K key, Function<V, V> computor) {
         return getReference(key, true).computeIfPresent(computor);
     }
 
     /**
      * @return The new value if it could be set, else the previous value.
      */
-    default @Nullable V computeIfAbsent(K key, Supplier<V> supplier) {
+    default @Nullable
+    V computeIfAbsent(K key, Supplier<V> supplier) {
         return getReference(key, true).computeIfAbsent(supplier);
     }
 
@@ -155,7 +161,8 @@ public interface ReferenceMap<K, V> extends Pipeable<V> {
             }
 
             @Override
-            public @Nullable KeyedReference<K, V> getReference(K key, boolean createIfAbsent) {
+            public @Nullable
+            KeyedReference<K, V> getReference(K key, boolean createIfAbsent) {
                 if (!containsKey(key) && createIfAbsent)
                     return refMap.computeIfAbsent(key, KeyedReference::create);
                 return refMap.get(key);

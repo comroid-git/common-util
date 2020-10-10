@@ -43,7 +43,7 @@ public class TrieMapTest {
     // 75 as the maximum average timeout
     @Test
     public void testPerformance() {
-        runPerformanceTest(new HashMap<String, UUID>(){{
+        runPerformanceTest(new HashMap<String, UUID>() {{
             final UUID uuid = UUID.randomUUID();
 
             put(uuid.toString(), uuid);

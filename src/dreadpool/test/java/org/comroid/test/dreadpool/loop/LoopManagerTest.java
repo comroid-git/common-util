@@ -4,7 +4,6 @@ import org.comroid.dreadpool.loop.WhileDo;
 import org.comroid.dreadpool.loop.manager.Loop;
 import org.comroid.dreadpool.loop.manager.LoopManager;
 import org.junit.Before;
-import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +87,7 @@ public class LoopManagerTest {
         loopManager = LoopManager.start(1);
     }
 
-//todo broken
+    //todo broken
     public void test() {
         loopManager.queue(lowPrioLoop1);
         loopManager.queue(higPrioLoop1);

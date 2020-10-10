@@ -12,8 +12,9 @@ public class TrieStage<K, V> {
     protected final K key;
     protected final String keyRep;
     protected final KeyedReference<K, V> reference;
-    protected final TrieMap<K,V> base;
-    protected final @Nullable TrieStage<K, V> parent;
+    protected final TrieMap<K, V> base;
+    protected final @Nullable
+    TrieStage<K, V> parent;
 
     protected TrieStage(K myKey, String keyRep) {
         if (!(this instanceof TrieMap))
@@ -26,7 +27,7 @@ public class TrieStage<K, V> {
         this.reference = KeyedReference.create(myKey);
     }
 
-    protected TrieStage(TrieMap<K,V> base, TrieStage<K, V> parent, K myKey, String keyRep) {
+    protected TrieStage(TrieMap<K, V> base, TrieStage<K, V> parent, K myKey, String keyRep) {
         this.base = base;
         this.parent = parent;
         this.key = myKey;
@@ -34,7 +35,8 @@ public class TrieStage<K, V> {
         this.reference = KeyedReference.create(myKey);
     }
 
-    protected @Nullable KeyedReference<K, V> getReference(
+    protected @Nullable
+    KeyedReference<K, V> getReference(
             String stringKey,
             char[] chars,
             int index,
