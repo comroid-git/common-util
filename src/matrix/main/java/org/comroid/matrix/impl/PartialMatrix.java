@@ -1,6 +1,7 @@
 package org.comroid.matrix.impl;
 
 import org.comroid.matrix.Matrix;
+import org.comroid.mutatio.ref.Reference;
 import org.comroid.spellbind.model.TypeFragment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +29,12 @@ public final class PartialMatrix<V, E extends Matrix.Entry<V>> extends AbstractM
 
         V get(X x, Y y);
 
+        default Reference<V> getReference(X x, Y y) {
+            return getReference(x, y, true);
+        }
+
+        Reference<V> getReference(X x, Y y, boolean createIfAbsent);
+
         boolean put(X x, Y y, V value);
 
         V compute(X x, Y y, BiFunction<String, ? super V, ? extends V> computor);
@@ -48,6 +55,12 @@ public final class PartialMatrix<V, E extends Matrix.Entry<V>> extends AbstractM
         boolean isNull(X x, Y y, Z z);
 
         V get(X x, Y y, Z z);
+
+        default Reference<V> getReference(X x, Y y, Z z) {
+            return getReference(x, y, z, true);
+        }
+
+        Reference<V> getReference(X x, Y y, Z z, boolean createIfAbsent);
 
         boolean put(X x, Y y, Z z, V value);
 

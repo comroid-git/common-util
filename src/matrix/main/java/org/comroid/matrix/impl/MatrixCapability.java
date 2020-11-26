@@ -101,6 +101,11 @@ public final class MatrixCapability {
         }
 
         @Override
+        public Reference<V> getReference(X x, Y y, boolean createIfAbsent) {
+            return getReference(generateCoordinate(x, y), createIfAbsent);
+        }
+
+        @Override
         public boolean put(X x, Y y, V value) {
             return put(generateCoordinate(x, y), value);
         }
@@ -186,6 +191,11 @@ public final class MatrixCapability {
         @Override
         public V get(X x, Y y, Z z) {
             return get(generateCoordinate(x, y, z));
+        }
+
+        @Override
+        public Reference<V> getReference(X x, Y y, Z z, boolean createIfAbsent) {
+            return getReference(generateCoordinate(x, y, z), createIfAbsent);
         }
 
         @Override
