@@ -86,7 +86,7 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
     }
 
     @Override
-    public ReferenceIndex<? extends Map.Entry<String, V>> entryIndex() {
+    public ReferenceIndex<? extends KeyedReference<String, V>> entryIndex() {
         return entryIndex;
     }
 
