@@ -191,6 +191,11 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
         }
 
         @Override
+        public Stream<? extends Reference<E>> streamRefs() {
+            return accessors.values().stream();
+        }
+
+        @Override
         public Reference<E> getReference(int index) {
             return accessors.computeIfAbsent(index, k -> Reference
                     .provided(this::unwrap)
