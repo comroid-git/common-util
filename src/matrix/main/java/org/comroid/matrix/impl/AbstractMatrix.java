@@ -62,7 +62,7 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
     }
 
     @Override
-    public void forEach(BiConsumer<String, V> action) {
+    public void forEach(BiConsumer<? super String, ? super V> action) {
         biPipe().forEach(action);
     }
 
