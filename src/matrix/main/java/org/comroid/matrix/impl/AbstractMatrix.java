@@ -29,6 +29,11 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
         this.entries = Optional.ofNullable(underlying).orElseGet(ConcurrentHashMap::new);
     }
 
+    @Override
+    public Stream<? extends KeyedReference<String, V>> streamRefs() {
+        return entries.values().stream();
+    }
+
     protected abstract @NotNull E createEntry(String key, @Nullable V initialValue);
 
     @Override
@@ -49,11 +54,6 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
     @Override
     public boolean containsValue(V value) {
         return stream().anyMatch(value::equals);
-    }
-
-    @Override
-    public Stream<? extends KeyedReference<String, V>> stream(Predicate<String> filter) {
-        return entryIndex.stream();
     }
 
     @Override
