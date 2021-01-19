@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 
 public final class LoopManager implements Closeable {
     public static final ThreadGroup THREAD_GROUP = new ThreadGroup("LoopManager");
-    final Object lock = Polyfill.selfawareLock();
+    final Object lock = Polyfill.selfawareObject();
     private final Queue<Loop<?>> queue = new PriorityQueue<>();
     private Set<LoopWorker> workers;
 

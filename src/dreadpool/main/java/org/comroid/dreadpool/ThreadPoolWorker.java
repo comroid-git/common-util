@@ -15,7 +15,7 @@ import static java.lang.System.nanoTime;
 public class ThreadPoolWorker extends Worker implements Executor, Comparable<ThreadPoolWorker> {
     public static final int ERR_STACKSIZE = 5;
     public static final Comparator<ThreadPoolWorker> WORKER_COMPARATOR = Comparator.comparingLong(ThreadPoolWorker::lastOp);
-    private final Object lock = Polyfill.selfawareLock();
+    private final Object lock = Polyfill.selfawareObject();
     private final Queue<Runnable> queue = new LinkedBlockingQueue<>();
     private final int errStack = 0;
     ThreadPool threadPool;
