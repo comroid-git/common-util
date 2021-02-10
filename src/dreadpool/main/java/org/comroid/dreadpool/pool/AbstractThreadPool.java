@@ -2,20 +2,26 @@ package org.comroid.dreadpool.pool;
 
 import org.comroid.annotations.Blocking;
 import org.comroid.dreadpool.future.ScheduledCompletableFuture;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.TreeMap;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public abstract class AbstractThreadPool implements ThreadPool {
+    @Override
+    public @NotNull <V> ScheduledCompletableFuture<V> schedule(@NotNull Callable<V> callable, long delay, @NotNull TimeUnit unit) {
+        return queueTask(delay, unit, callable).future;
+    }
+
+    @Override
+    public void execute(@NotNull Runnable command) {
+        queueTask(0, MILLISECONDS, ThreadPool.voidCallable(command));
+    }
+
     private final ThreadGroup group;
     private final ThreadFactory threadFactory;
     private final Thread clock;
@@ -74,7 +80,7 @@ public abstract class AbstractThreadPool implements ThreadPool {
             this.cancelled = new AtomicBoolean(false);
             this.execution = currentTimeMillis() + MILLISECONDS.convert(delayTime, delayUnit);
             this.fullTask = fullTask;
-            this.future = new ScheduledCompletableFuture<>(execution, () -> cancelled.compareAndSet(false, true));
+            this.future = new ScheduledCompletableFuture<>(execution, () -> cancelled.compareAndSet(false, true), cancelled::get);
         }
 
         @Blocking

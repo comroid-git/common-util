@@ -1,5 +1,6 @@
 package org.comroid.dreadpool.pool;
 
+import org.comroid.dreadpool.future.ExecutionPump;
 import org.comroid.dreadpool.future.ScheduledCompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,21 +16,40 @@ public interface ThreadPool extends ScheduledExecutorService {
 
     int getMaximumSize();
 
-    @NotNull
-    @Override
-    ScheduledCompletableFuture<?> schedule(@NotNull Runnable command, long delay, @NotNull TimeUnit unit);
+    static Callable<Void> voidCallable(final Runnable command) {
+        return () -> {
+            command.run();
+            return null;
+        };
+    }
 
     @NotNull
     @Override
-    <V> ScheduledCompletableFuture<V> schedule(@NotNull Callable<V> callable, long delay, @NotNull TimeUnit unit);
+    default ScheduledCompletableFuture<?> schedule(@NotNull Runnable command, long delay, @NotNull TimeUnit unit) {
+        return schedule(voidCallable(command), delay, unit);
+    }
 
     @NotNull
     @Override
-    ScheduledCompletableFuture<?> scheduleAtFixedRate(@NotNull Runnable command, long initialDelay, long period, @NotNull TimeUnit unit);
+    <R> ScheduledCompletableFuture<R> schedule(@NotNull Callable<R> callable, long delay, @NotNull TimeUnit unit);
 
     @NotNull
     @Override
-    ScheduledCompletableFuture<?> scheduleWithFixedDelay(@NotNull Runnable command, long initialDelay, long delay, @NotNull TimeUnit unit);
+    default ExecutionPump<?> scheduleAtFixedRate(@NotNull Runnable command, long initialDelay, long period, @NotNull TimeUnit unit) {
+        return scheduleAtFixedRate(voidCallable(command), initialDelay, period, unit);
+    }
+
+    @NotNull
+    <R> ExecutionPump<R> scheduleAtFixedRate(@NotNull Callable<R> command, long initialDelay, long period, @NotNull TimeUnit unit);
+
+    @NotNull
+    @Override
+    default ExecutionPump<?> scheduleWithFixedDelay(@NotNull Runnable command, long initialDelay, long delay, @NotNull TimeUnit unit) {
+        return scheduleWithFixedDelay(voidCallable(command), initialDelay, delay, unit);
+    }
+
+    @NotNull
+    <R> ExecutionPump<R> scheduleWithFixedDelay(@NotNull Callable<R> command, long initialDelay, long delay, @NotNull TimeUnit unit);
 
     @NotNull
     @Override

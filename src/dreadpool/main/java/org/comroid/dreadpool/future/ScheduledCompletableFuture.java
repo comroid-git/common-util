@@ -14,24 +14,25 @@ import java.util.function.BooleanSupplier;
 import static java.time.Instant.now;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public final class ScheduledCompletableFuture<T> extends CompletableFuture<T> implements ScheduledFuture<T> {
-    private static final Comparator<Delayed> COMPARATOR = Comparator.comparingLong(it -> it.getDelay(MILLISECONDS));
+public final class ScheduledCompletableFuture<T> extends CompletableFuture<T> implements ExecutionFuture<T> {
     private final Instant targetTime;
     private final BooleanSupplier cancellation;
+    private final BooleanSupplier isCancelled;
 
-    public ScheduledCompletableFuture(long targetTime, BooleanSupplier cancellation) {
+    @Override
+    public boolean isCancelled() {
+        return isCancelled.getAsBoolean() || super.isCancelled();
+    }
+
+    @Override
+    public Instant getTargetTime() {
+        return targetTime;
+    }
+
+    public ScheduledCompletableFuture(long targetTime, BooleanSupplier cancellation, BooleanSupplier isCancelled) {
         this.targetTime = Instant.ofEpochMilli(targetTime);
         this.cancellation = cancellation;
-    }
-
-    @Override
-    public long getDelay(@NotNull TimeUnit unit) {
-        return unit.convert(Duration.between(now(), targetTime).toMillis(), MILLISECONDS);
-    }
-
-    @Override
-    public int compareTo(@NotNull Delayed other) {
-        return COMPARATOR.compare(this, other);
+        this.isCancelled = isCancelled;
     }
 
     @Override
