@@ -1,7 +1,6 @@
 package org.comroid.test.dreadpool;
 
 import org.comroid.api.UUIDContainer;
-import org.comroid.dreadpool.ThreadPool;
 import org.junit.Before;
 import org.junit.Test;
 

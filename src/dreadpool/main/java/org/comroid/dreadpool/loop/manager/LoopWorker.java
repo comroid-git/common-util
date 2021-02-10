@@ -1,7 +1,6 @@
 package org.comroid.dreadpool.loop.manager;
 
 import com.google.common.flogger.FluentLogger;
-import org.comroid.dreadpool.Worker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
