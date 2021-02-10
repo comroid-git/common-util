@@ -1,23 +1,40 @@
 package org.comroid.dreadpool.pool;
 
+import org.apache.logging.log4j.Logger;
 import org.comroid.dreadpool.future.ExecutionFuture;
 import org.comroid.dreadpool.future.ExecutionPump;
 import org.comroid.dreadpool.future.ScheduledCompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static java.lang.System.currentTimeMillis;
 
-public abstract class AbstractThreadPool implements ThreadPool {
+public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool {
     private final ThreadGroup group;
     private final ThreadFactory threadFactory;
-    private final Thread clock;
+    private final Logger logger;
     private final int maxSize;
+    private final Thread clock;
+    private final AtomicBoolean isShuttingDown;
+    private final AtomicBoolean isTerminated;
     private final PriorityBlockingQueue<BoxedTask> tasks;
+    private final PriorityQueue<W> workers;
+
+    @Override
+    public boolean isShutdown() {
+        return isShuttingDown.get();
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return isTerminated.get();
+    }
 
     @Override
     public final ThreadGroup getThreadGroup() {
@@ -34,14 +51,89 @@ public abstract class AbstractThreadPool implements ThreadPool {
         return maxSize;
     }
 
+    @NotNull
+    private List<Runnable> getAwaitingExecutionTasks() {
+        return workers.stream()
+                .flatMap(Worker::streamWork)
+                .collect(Collectors.toList());
+    }
+
     public AbstractThreadPool(ThreadGroup group, ThreadFactory threadFactory, int maxSize) {
+        this(group, threadFactory, null, maxSize);
+    }
+
+    public AbstractThreadPool(ThreadGroup group, ThreadFactory threadFactory, Logger logger, int maxSize) {
         this.group = group;
         this.threadFactory = threadFactory;
-        this.clock = new Thread(group, new ClockTask());
+        this.logger = logger;
         this.maxSize = maxSize;
+        this.clock = new Thread(group, new ClockTask());
+        this.isShuttingDown = new AtomicBoolean(false);
+        this.isTerminated = new AtomicBoolean(false);
         this.tasks = new PriorityBlockingQueue<>(0, BoxedTask.COMPARATOR);
+        this.workers = new PriorityQueue<>(Worker.COMPARATOR);
 
         clock.start();
+    }
+
+    @Override
+    public void execute(@NotNull Runnable command) {
+        W worker = null;
+        if (workers.size() < maxSize && allBusy()) {
+            worker = createWorker();
+            if (worker == null)
+                throw new RuntimeException("Unable to create new Worker");
+            workers.add(worker);
+        }
+        while (worker == null || worker.isBusy())
+            worker = workers.poll();
+        worker.accept(command);
+    }
+
+    private boolean allBusy() {
+        return workers.stream().allMatch(Worker::isBusy);
+    }
+
+    @Override
+    public Consumer<Throwable> getExceptionHandler(final String message) {
+        if (logger == null)
+            throw new AbstractMethodError();
+        return thr -> logger.error(message, thr);
+    }
+
+    @Override
+    public void shutdown() {
+        isShuttingDown.set(true);
+        isTerminated.set(false);
+        clock.stop();
+        tasks.clear();
+        workers.forEach(Worker::close);
+    }
+
+    @NotNull
+    @Override
+    public List<Runnable> shutdownNow() {
+        isShuttingDown.set(true);
+        isTerminated.set(false);
+        clock.stop();
+        tasks.clear();
+        List<Runnable> awaited = getAwaitingExecutionTasks();
+        workers.forEach(Worker::close);
+        return awaited;
+    }
+
+    @Override
+    public boolean awaitTermination(long timeout, @NotNull TimeUnit unit) throws InterruptedException {
+        try {
+            CompletableFuture.supplyAsync(this::shutdownNow)
+                    .thenAccept(tasks -> tasks.forEach(Runnable::run))
+                    .get(timeout, unit);
+            return true;
+        } catch (ExecutionException e) {
+            throw new InterruptedException("Interrupted by Exception: " + e.toString());
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     @Override
@@ -59,10 +151,15 @@ public abstract class AbstractThreadPool implements ThreadPool {
         return queueTask(new BoxedTask.FixedDelay<>(this, initialDelay, delay, unit, command));
     }
 
+    protected abstract W createWorker();
+
     protected abstract Runnable prefabTask(Runnable fullTask);
 
     @NotNull
     private <T, EF extends ExecutionFuture<T>> EF queueTask(BoxedTask<T, EF> task) {
+        if (isShuttingDown.get())
+            throw new IllegalStateException("ThreadPool is shutting down");
+
         synchronized (tasks) {
             if (tasks.add(task))
                 tasks.notify();
