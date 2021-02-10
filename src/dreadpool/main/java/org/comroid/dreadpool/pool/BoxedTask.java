@@ -63,7 +63,7 @@ public abstract class BoxedTask<T, EF extends ExecutionFuture<T>> {
 
         @Override
         protected boolean isDue() {
-            return execution < currentTimeMillis();
+            return execution < currentTimeMillis() && !isCancelled();
         }
 
         Simple(ThreadPool pool, long delay, TimeUnit unit, Callable<T> fullTask) {

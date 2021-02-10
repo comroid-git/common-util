@@ -20,8 +20,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public interface ThreadPool extends ScheduledExecutorService {
     ThreadGroup getThreadGroup();
 
-    ThreadFactory getThreadFactory();
-
     int getMaximumSize();
 
     static Callable<Void> voidCallable(final Runnable command) {

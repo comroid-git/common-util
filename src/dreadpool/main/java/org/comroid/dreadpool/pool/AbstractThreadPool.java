@@ -16,9 +16,8 @@ import java.util.stream.Collectors;
 import static java.lang.System.currentTimeMillis;
 
 public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool {
+    protected final Logger logger;
     private final ThreadGroup group;
-    private final ThreadFactory threadFactory;
-    private final Logger logger;
     private final int maxSize;
     private final Thread clock;
     private final AtomicBoolean isShuttingDown;
@@ -42,11 +41,6 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
     }
 
     @Override
-    public final ThreadFactory getThreadFactory() {
-        return threadFactory;
-    }
-
-    @Override
     public int getMaximumSize() {
         return maxSize;
     }
@@ -58,19 +52,18 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
                 .collect(Collectors.toList());
     }
 
-    public AbstractThreadPool(ThreadGroup group, ThreadFactory threadFactory, int maxSize) {
-        this(group, threadFactory, null, maxSize);
+    public AbstractThreadPool(ThreadGroup group, int maxSize) {
+        this(group, null, maxSize);
     }
 
-    public AbstractThreadPool(ThreadGroup group, ThreadFactory threadFactory, Logger logger, int maxSize) {
+    public AbstractThreadPool(ThreadGroup group, Logger logger, int maxSize) {
         this.group = group;
-        this.threadFactory = threadFactory;
         this.logger = logger;
         this.maxSize = maxSize;
         this.clock = new Thread(group, new ClockTask());
         this.isShuttingDown = new AtomicBoolean(false);
         this.isTerminated = new AtomicBoolean(false);
-        this.tasks = new PriorityBlockingQueue<>(0, BoxedTask.COMPARATOR);
+        this.tasks = new PriorityBlockingQueue<>(1, BoxedTask.COMPARATOR);
         this.workers = new PriorityQueue<>(Worker.COMPARATOR);
 
         clock.start();

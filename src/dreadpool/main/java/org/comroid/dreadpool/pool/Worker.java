@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 import static java.lang.System.nanoTime;
 
-public abstract class Worker implements Consumer<Runnable>, UncheckedCloseable {
+public class Worker implements Consumer<Runnable>, UncheckedCloseable {
     public static final Comparator<Worker> COMPARATOR = Comparator.comparing(Worker::getWorkerState);
     private static final Logger logger = LogManager.getLogger();
     private final Reference<State> state;
@@ -33,7 +33,7 @@ public abstract class Worker implements Consumer<Runnable>, UncheckedCloseable {
     public Worker(ThreadGroup group, String name) {
         this.thread = new Thread(group, new WorkerClock(), name);
         this.state = Reference.create(State.IDLE);
-        this.work = new PriorityBlockingQueue<>(0, WorkerTask.COMPARATOR);
+        this.work = new PriorityBlockingQueue<>(1, WorkerTask.COMPARATOR);
 
         thread.start();
     }
