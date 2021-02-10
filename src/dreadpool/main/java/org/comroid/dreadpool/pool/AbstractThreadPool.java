@@ -1,32 +1,26 @@
 package org.comroid.dreadpool.pool;
 
-import org.comroid.annotations.Blocking;
+import org.comroid.dreadpool.future.ExecutionFuture;
+import org.comroid.dreadpool.future.ExecutionPump;
 import org.comroid.dreadpool.future.ScheduledCompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.TreeMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.currentTimeMillis;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public abstract class AbstractThreadPool implements ThreadPool {
-    @Override
-    public @NotNull <V> ScheduledCompletableFuture<V> schedule(@NotNull Callable<V> callable, long delay, @NotNull TimeUnit unit) {
-        return queueTask(delay, unit, callable).future;
-    }
-
-    @Override
-    public void execute(@NotNull Runnable command) {
-        queueTask(0, MILLISECONDS, ThreadPool.voidCallable(command));
-    }
-
     private final ThreadGroup group;
     private final ThreadFactory threadFactory;
     private final Thread clock;
     private final int maxSize;
-    private final TreeMap<Long, Collection<TaskBox>> tasks;
+    private final TreeMap<Long, Collection<BoxedTask>> tasks;
 
     @Override
     public final ThreadGroup getThreadGroup() {
@@ -53,51 +47,32 @@ public abstract class AbstractThreadPool implements ThreadPool {
         clock.start();
     }
 
+    @Override
+    public @NotNull <V> ScheduledCompletableFuture<V> schedule(@NotNull Callable<V> command, long delay, @NotNull TimeUnit unit) {
+        return addBox(new BoxedTask.Simple<>(this, delay, unit, command)).future;
+    }
+
+    @Override
+    public @NotNull <R> ExecutionPump<R> scheduleAtFixedRate(@NotNull Callable<R> command, long initialDelay, long rate, @NotNull TimeUnit unit) {
+        return addBox(new BoxedTask.FixedRate<>(this, initialDelay, rate, unit, command)).future;
+    }
+
+    @Override
+    public @NotNull <R> ExecutionPump<R> scheduleWithFixedDelay(@NotNull Callable<R> command, long initialDelay, long delay, @NotNull TimeUnit unit) {
+        return addBox(new BoxedTask.FixedDelay<>(this, initialDelay, delay, unit, command)).future;
+    }
+
     protected abstract Runnable prefabTask(Runnable fullTask);
 
-    private synchronized <T> TaskBox<T> queueTask(long delay, TimeUnit unit, Callable<T> task) {
-        final TaskBox<T> box = new TaskBox<>(delay, unit, task);
-        final Collection<TaskBox> boxes = computeList(box.execution);
+    @NotNull
+    private <T, EF extends ExecutionFuture<T>> BoxedTask<T, EF> addBox(BoxedTask<T, EF> box) {
+        Collection<BoxedTask> boxes = computeList(box.getTargetTime());
         boxes.add(box);
         return box;
     }
 
-    private Collection<TaskBox> computeList(long key) {
+    private Collection<BoxedTask> computeList(long key) {
         return tasks.computeIfAbsent(key, k -> new ArrayList<>());
-    }
-
-    private static final class TaskBox<T> {
-        private final AtomicBoolean cancelled;
-        private final long execution;
-        private final Callable<T> fullTask;
-        private final ScheduledCompletableFuture<T> future;
-
-        private boolean isCancelled() {
-            return cancelled.get();
-        }
-
-        private TaskBox(long delayTime, TimeUnit delayUnit, Callable<T> fullTask) {
-            this.cancelled = new AtomicBoolean(false);
-            this.execution = currentTimeMillis() + MILLISECONDS.convert(delayTime, delayUnit);
-            this.fullTask = fullTask;
-            this.future = new ScheduledCompletableFuture<>(execution, () -> cancelled.compareAndSet(false, true), cancelled::get);
-        }
-
-        @Blocking
-        private void execute(final long time) {
-            if (future.isDone())
-                throw new IllegalStateException("Task has already been executed!");
-            if (execution > time || isCancelled())
-                return;
-            T yield = null;
-            try {
-                yield = fullTask.call();
-            } catch (Exception ex) {
-                future.completeExceptionally(ex);
-            } finally {
-                future.complete(yield);
-            }
-        }
     }
 
     private final class ClockTask implements Runnable {
@@ -107,13 +82,13 @@ public abstract class AbstractThreadPool implements ThreadPool {
             while (true) {
                 final long now = currentTimeMillis();
 
-                Collection<TaskBox> boxes;
+                Collection<BoxedTask> boxes;
                 while (tasks.firstKey() <= now) {
                     boxes = tasks.pollFirstEntry().getValue();
 
                     if (boxes.size() == 0)
                         continue;
-                    for (TaskBox task : boxes)
+                    for (BoxedTask task : boxes)
                         execute(() -> task.execute(now));
                 }
             }

@@ -8,6 +8,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public interface ThreadPool extends ScheduledExecutorService {
     ThreadGroup getThreadGroup();
@@ -62,4 +65,11 @@ public interface ThreadPool extends ScheduledExecutorService {
     @NotNull
     @Override
     ScheduledCompletableFuture<?> submit(@NotNull Runnable task);
+
+    Consumer<Throwable> getExceptionHandler(String name);
+
+    @Override
+    default void execute(@NotNull Runnable command) {
+        schedule(ThreadPool.voidCallable(command), 0, MILLISECONDS);
+    }
 }

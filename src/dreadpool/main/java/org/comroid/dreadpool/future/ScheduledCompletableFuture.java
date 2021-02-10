@@ -1,18 +1,8 @@
 package org.comroid.dreadpool.future;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.time.Duration;
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
-
-import static java.time.Instant.now;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public final class ScheduledCompletableFuture<T> extends CompletableFuture<T> implements ExecutionFuture<T> {
     private final Instant targetTime;
@@ -33,6 +23,23 @@ public final class ScheduledCompletableFuture<T> extends CompletableFuture<T> im
         this.targetTime = Instant.ofEpochMilli(targetTime);
         this.cancellation = cancellation;
         this.isCancelled = isCancelled;
+    }
+
+    @Override
+    public void pushValue(T value) {
+        validateUndone();
+        complete(value);
+    }
+
+    @Override
+    public void pushException(Exception ex) {
+        validateUndone();
+        completeExceptionally(ex);
+    }
+
+    private void validateUndone() {
+        if (isDone())
+            throw new IllegalStateException("Task has already been executed!");
     }
 
     @Override

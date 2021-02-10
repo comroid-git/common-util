@@ -1,5 +1,6 @@
 package org.comroid.dreadpool.future;
 
+import org.comroid.api.Specifiable;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -16,6 +17,10 @@ public interface ExecutionFuture<T> extends ScheduledFuture<T> {
     Comparator<Delayed> COMPARATOR = Comparator.comparingLong(it -> it.getDelay(MILLISECONDS));
 
     Instant getTargetTime();
+
+    void pushValue(T value);
+
+    void pushException(Exception ex);
 
     default Duration getRemainingDuration() {
         return Duration.between(now(), getTargetTime());
