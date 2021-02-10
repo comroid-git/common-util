@@ -7,6 +7,7 @@ import org.comroid.dreadpool.future.ScheduledCompletableFuture;
 import org.comroid.mutatio.ref.Reference;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
+import java.util.Comparator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,6 +17,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Internal
 public abstract class BoxedTask<T, EF extends ExecutionFuture<T>> {
+    public static final Comparator<BoxedTask> COMPARATOR = Comparator.comparingLong(BoxedTask::getTargetTime);
     protected final ThreadPool pool;
     protected final AtomicBoolean cancelled;
     protected final Callable<T> fullTask;

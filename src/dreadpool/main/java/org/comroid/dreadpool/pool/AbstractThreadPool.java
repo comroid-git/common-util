@@ -5,11 +5,8 @@ import org.comroid.dreadpool.future.ExecutionPump;
 import org.comroid.dreadpool.future.ScheduledCompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +17,7 @@ public abstract class AbstractThreadPool implements ThreadPool {
     private final ThreadFactory threadFactory;
     private final Thread clock;
     private final int maxSize;
-    private final TreeMap<Long, Collection<BoxedTask>> tasks;
+    private final PriorityBlockingQueue<BoxedTask> tasks;
 
     @Override
     public final ThreadGroup getThreadGroup() {
@@ -42,37 +39,35 @@ public abstract class AbstractThreadPool implements ThreadPool {
         this.threadFactory = threadFactory;
         this.clock = new Thread(group, new ClockTask());
         this.maxSize = maxSize;
-        this.tasks = new TreeMap<>(Comparator.naturalOrder());
+        this.tasks = new PriorityBlockingQueue<>(0, BoxedTask.COMPARATOR);
 
         clock.start();
     }
 
     @Override
     public @NotNull <V> ScheduledCompletableFuture<V> schedule(@NotNull Callable<V> command, long delay, @NotNull TimeUnit unit) {
-        return addBox(new BoxedTask.Simple<>(this, delay, unit, command)).future;
+        return queueTask(new BoxedTask.Simple<>(this, delay, unit, command));
     }
 
     @Override
     public @NotNull <R> ExecutionPump<R> scheduleAtFixedRate(@NotNull Callable<R> command, long initialDelay, long rate, @NotNull TimeUnit unit) {
-        return addBox(new BoxedTask.FixedRate<>(this, initialDelay, rate, unit, command)).future;
+        return queueTask(new BoxedTask.FixedRate<>(this, initialDelay, rate, unit, command));
     }
 
     @Override
     public @NotNull <R> ExecutionPump<R> scheduleWithFixedDelay(@NotNull Callable<R> command, long initialDelay, long delay, @NotNull TimeUnit unit) {
-        return addBox(new BoxedTask.FixedDelay<>(this, initialDelay, delay, unit, command)).future;
+        return queueTask(new BoxedTask.FixedDelay<>(this, initialDelay, delay, unit, command));
     }
 
     protected abstract Runnable prefabTask(Runnable fullTask);
 
     @NotNull
-    private <T, EF extends ExecutionFuture<T>> BoxedTask<T, EF> addBox(BoxedTask<T, EF> box) {
-        Collection<BoxedTask> boxes = computeList(box.getTargetTime());
-        boxes.add(box);
-        return box;
-    }
-
-    private Collection<BoxedTask> computeList(long key) {
-        return tasks.computeIfAbsent(key, k -> new ArrayList<>());
+    private <T, EF extends ExecutionFuture<T>> EF queueTask(BoxedTask<T, EF> task) {
+        synchronized (tasks) {
+            if (tasks.add(task))
+                tasks.notify();
+            return task.future;
+        }
     }
 
     private final class ClockTask implements Runnable {
@@ -80,18 +75,26 @@ public abstract class AbstractThreadPool implements ThreadPool {
         public void run() {
             //noinspection InfiniteLoopStatement
             while (true) {
-                final long now = currentTimeMillis();
+                synchronized (tasks) {
+                    while (tasks.isEmpty()) {
+                        try {
+                            tasks.wait();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException("Clock failed to wait", e);
+                        }
+                    }
 
-                Collection<BoxedTask> boxes;
-                while (tasks.firstKey() <= now) {
-                    boxes = tasks.pollFirstEntry().getValue();
-
-                    if (boxes.size() == 0)
-                        continue;
-                    for (BoxedTask task : boxes)
-                        execute(() -> task.execute(now));
+                    long now = currentTimeMillis();
+                    BoxedTask task;
+                    while ((task = tasks.peek()) != null && task.getTargetTime() <= now)
+                        if (tasks.remove(task))
+                            doExecute(task, now);
                 }
             }
+        }
+
+        private void doExecute(final BoxedTask task, final long time) {
+            execute(() -> task.execute(time));
         }
     }
 }
