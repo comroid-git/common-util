@@ -17,7 +17,7 @@ public class BasicThreadPool extends AbstractThreadPool<Worker> {
 
     @Override
     protected final synchronized Worker createWorker() {
-        return new Worker(getThreadGroup(), String.format("worker-%d", counter.incrementAndGet()));
+        return new Worker(this, String.format("%s-worker-%d", getThreadGroup().getName(), counter.incrementAndGet()));
     }
 
     @Override

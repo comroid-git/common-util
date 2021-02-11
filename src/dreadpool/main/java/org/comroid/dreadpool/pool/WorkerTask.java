@@ -20,4 +20,9 @@ final class WorkerTask implements Runnable {
     public void run() {
         task.run();
     }
+
+    @Override
+    public String toString() {
+        return String.format("WorkerTask{<%s>@%d}", task.toString(), execution);
+    }
 }

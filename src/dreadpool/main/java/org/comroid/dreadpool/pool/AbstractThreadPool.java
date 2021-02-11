@@ -26,12 +26,12 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
     private final PriorityQueue<W> workers;
 
     @Override
-    public boolean isShutdown() {
+    public final boolean isShutdown() {
         return isShuttingDown.get();
     }
 
     @Override
-    public boolean isTerminated() {
+    public final boolean isTerminated() {
         return isTerminated.get();
     }
 
@@ -41,7 +41,7 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
     }
 
     @Override
-    public int getMaximumSize() {
+    public final int getMaximumSize() {
         return maxSize;
     }
 
@@ -70,7 +70,7 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
     }
 
     @Override
-    public void execute(@NotNull Runnable command) {
+    public final void execute(@NotNull Runnable command) {
         W worker = null;
         if (workers.size() < maxSize && allBusy()) {
             worker = createWorker();
@@ -79,8 +79,8 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
             workers.add(worker);
         }
         while (worker == null || worker.isBusy())
-            worker = workers.poll();
-        worker.accept(command);
+            worker = workers.peek();
+        worker.accept(prefabTask(command));
     }
 
     private boolean allBusy() {
@@ -88,14 +88,14 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
     }
 
     @Override
-    public Consumer<Throwable> getExceptionHandler(final String message) {
+    public final Consumer<Throwable> getExceptionHandler(final String message) {
         if (logger == null)
             throw new AbstractMethodError();
         return thr -> logger.error(message, thr);
     }
 
     @Override
-    public void shutdown() {
+    public final void shutdown() {
         isShuttingDown.set(true);
         isTerminated.set(false);
         clock.stop();
@@ -105,7 +105,7 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
 
     @NotNull
     @Override
-    public List<Runnable> shutdownNow() {
+    public final List<Runnable> shutdownNow() {
         isShuttingDown.set(true);
         isTerminated.set(false);
         clock.stop();
@@ -116,7 +116,7 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
     }
 
     @Override
-    public boolean awaitTermination(long timeout, @NotNull TimeUnit unit) throws InterruptedException {
+    public final boolean awaitTermination(long timeout, @NotNull TimeUnit unit) throws InterruptedException {
         try {
             CompletableFuture.supplyAsync(this::shutdownNow)
                     .thenAccept(tasks -> tasks.forEach(Runnable::run))
@@ -130,17 +130,17 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
     }
 
     @Override
-    public @NotNull <V> ScheduledCompletableFuture<V> schedule(@NotNull Callable<V> command, long delay, @NotNull TimeUnit unit) {
+    public final @NotNull <V> ScheduledCompletableFuture<V> schedule(@NotNull Callable<V> command, long delay, @NotNull TimeUnit unit) {
         return queueTask(new BoxedTask.Simple<>(this, delay, unit, command));
     }
 
     @Override
-    public @NotNull <R> ExecutionPump<R> scheduleAtFixedRate(@NotNull Callable<R> command, long initialDelay, long rate, @NotNull TimeUnit unit) {
+    public final @NotNull <R> ExecutionPump<R> scheduleAtFixedRate(@NotNull Callable<R> command, long initialDelay, long rate, @NotNull TimeUnit unit) {
         return queueTask(new BoxedTask.FixedRate<>(this, initialDelay, rate, unit, command));
     }
 
     @Override
-    public @NotNull <R> ExecutionPump<R> scheduleWithFixedDelay(@NotNull Callable<R> command, long initialDelay, long delay, @NotNull TimeUnit unit) {
+    public final @NotNull <R> ExecutionPump<R> scheduleWithFixedDelay(@NotNull Callable<R> command, long initialDelay, long delay, @NotNull TimeUnit unit) {
         return queueTask(new BoxedTask.FixedDelay<>(this, initialDelay, delay, unit, command));
     }
 
@@ -168,7 +168,7 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
                 synchronized (tasks) {
                     while (tasks.isEmpty()) {
                         try {
-                            tasks.wait();
+                            tasks.wait(50);
                         } catch (InterruptedException e) {
                             throw new RuntimeException("Clock failed to wait", e);
                         }

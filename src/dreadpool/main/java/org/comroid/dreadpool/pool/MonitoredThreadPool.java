@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class MonitoredThreadPool extends BasicThreadPool {
-    private final Timer timer = new Timer();
+    private final Timer timer = new Timer("ThreadPoolMonitor");
     private final int warnTimeout;
     private final int terminateTimeout;
 
@@ -23,38 +23,44 @@ public final class MonitoredThreadPool extends BasicThreadPool {
 
     @Override
     protected Runnable prefabTask(Runnable fullTask) {
-        return new TimeoutTask(fullTask);
+        return new MonitoredTask(fullTask);
     }
 
-    private class TimeoutTask implements Runnable {
+    private class MonitoredTask implements Runnable {
         private final Runnable task;
 
-        public TimeoutTask(Runnable task) {
+        public MonitoredTask(Runnable task) {
             this.task = task;
         }
 
         @Override
         public void run() {
+            final String threadName = Thread.currentThread().getName();
             try {
                 TimerTask warn = new TimerTask() {
                     @Override
                     public void run() {
                         logger.warn("Thread {} - Warning: Execution <{}> is not responding for {} seconds...",
-                                Thread.currentThread().getName(), task.getClass().getSimpleName(), warnTimeout);
+                                threadName, task.getClass().getSimpleName(), warnTimeout);
                     }
                 };
                 timer.schedule(warn, TimeUnit.SECONDS.toMillis(warnTimeout));
                 CompletableFuture.supplyAsync(() -> {
                     task.run();
+                    warn.cancel();
                     return null;
-                }, MonitoredThreadPool.this)
-                        .get(terminateTimeout, TimeUnit.SECONDS);
+                }).get(terminateTimeout, TimeUnit.SECONDS);
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException | TimeoutException e) {
                 logger.error("Thread {} - Stopped Execution <{}> as it exceeded timeout ({} seconds)",
-                        Thread.currentThread().getName(), task.getClass().getSimpleName(), terminateTimeout);
+                        threadName, task.getClass().getSimpleName(), terminateTimeout);
             }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("MonitoredTask{<%s>}", task.toString());
         }
     }
 }

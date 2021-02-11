@@ -3,6 +3,7 @@ package org.comroid.dreadpool.pool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.comroid.api.IntEnum;
+import org.comroid.api.Named;
 import org.comroid.api.Rewrapper;
 import org.comroid.api.UncheckedCloseable;
 import org.comroid.mutatio.ref.Reference;
@@ -15,12 +16,13 @@ import java.util.stream.Stream;
 
 import static java.lang.System.nanoTime;
 
-public class Worker implements Consumer<Runnable>, UncheckedCloseable {
+public class Worker implements Named, Consumer<Runnable>, UncheckedCloseable {
     public static final Comparator<Worker> COMPARATOR = Comparator.comparing(Worker::getWorkerState);
     private static final Logger logger = LogManager.getLogger();
+    private final ThreadPool pool;
+    private final Thread thread;
     private final Reference<State> state;
     private final PriorityBlockingQueue<WorkerTask> work;
-    private final Thread thread;
 
     public Worker.State getWorkerState() {
         return state.assertion("State not found");
@@ -30,8 +32,14 @@ public class Worker implements Consumer<Runnable>, UncheckedCloseable {
         return getWorkerState() == State.WORKING;
     }
 
-    public Worker(ThreadGroup group, String name) {
-        this.thread = new Thread(group, new WorkerClock(), name);
+    @Override
+    public String getName() {
+        return thread.getName();
+    }
+
+    public Worker(ThreadPool pool, String name) {
+        this.pool = pool;
+        this.thread = new Thread(pool.getThreadGroup(), new WorkerClock(), name);
         this.state = Reference.create(State.IDLE);
         this.work = new PriorityBlockingQueue<>(1, WorkerTask.COMPARATOR);
 
@@ -80,19 +88,28 @@ public class Worker implements Consumer<Runnable>, UncheckedCloseable {
     private final class WorkerClock implements Runnable {
         @Override
         public void run() {
+            final String threadName = Thread.currentThread().getName();
             //noinspection InfiniteLoopStatement
             while (true) {
                 synchronized (work) {
                     while (work.isEmpty()) {
                         try {
-                            work.wait();
+                            logger.debug("WorkerClock.run - wait");
+                            work.wait(50);
                         } catch (InterruptedException e) {
                             throw new RuntimeException("Worker failed to wait", e);
                         }
                     }
 
-                    while (!work.isEmpty())
-                        work.poll().run();
+                    while (!work.isEmpty()) {
+                        state.set(State.WORKING);
+                        logger.debug("WorkerClock.run - poll");
+                        WorkerTask task = work.poll();
+                        logger.trace("Worker <{}> executing task {}", threadName, task);
+                        logger.debug("WorkerClock.run - run");
+                        task.run();
+                        state.set(State.IDLE);
+                    }
                 }
             }
         }
