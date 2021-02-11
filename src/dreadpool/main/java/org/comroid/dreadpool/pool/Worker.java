@@ -16,8 +16,8 @@ import java.util.stream.Stream;
 
 import static java.lang.System.nanoTime;
 
-public class Worker implements Named, Consumer<Runnable>, UncheckedCloseable {
-    public static final Comparator<Worker> COMPARATOR = Comparator.comparing(Worker::getWorkerState);
+public class Worker implements Named, Consumer<Runnable>, UncheckedCloseable, Comparable<Worker> {
+    public static final Comparator<Worker> COMPARATOR = Comparator.comparing(Worker::getWorkerState).reversed();
     private static final Logger logger = LogManager.getLogger();
     private final ThreadPool pool;
     private final Thread thread;
@@ -35,6 +35,12 @@ public class Worker implements Named, Consumer<Runnable>, UncheckedCloseable {
     @Override
     public String getName() {
         return thread.getName();
+    }
+
+    public int getQueueSize() {
+        char[] chars = getName().toCharArray();
+        return Integer.parseInt(String.valueOf(chars[chars.length-1]));
+        //return work.size();
     }
 
     public Worker(ThreadPool pool, String name) {
@@ -65,20 +71,20 @@ public class Worker implements Named, Consumer<Runnable>, UncheckedCloseable {
         return work.stream();
     }
 
+    @Override
+    public String toString() {
+        return String.format("Worker{%s @ <%s>[%s], %s, q=%d}",
+                thread.getName(), pool.getThreadGroup().getName(), pool.getClass().getSimpleName(), getWorkerState(), getQueueSize());
+    }
+
+    @Override
+    public int compareTo(@NotNull Worker other) {
+        return COMPARATOR.compare(this, other);
+    }
+
     public enum State implements IntEnum, Comparable<State> {
-        IDLE(0),
-        WORKING(1);
-
-        private final int value;
-
-        @Override
-        public @NotNull Integer getValue() {
-            return value;
-        }
-
-        State(int value) {
-            this.value = value;
-        }
+        IDLE,
+        WORKING;
 
         public static Rewrapper<State> valueOf(int value) {
             return IntEnum.valueOf(value, State.class);
@@ -94,7 +100,6 @@ public class Worker implements Named, Consumer<Runnable>, UncheckedCloseable {
                 synchronized (work) {
                     while (work.isEmpty()) {
                         try {
-                            logger.debug("WorkerClock.run - wait");
                             work.wait(50);
                         } catch (InterruptedException e) {
                             throw new RuntimeException("Worker failed to wait", e);
@@ -103,10 +108,8 @@ public class Worker implements Named, Consumer<Runnable>, UncheckedCloseable {
 
                     while (!work.isEmpty()) {
                         state.set(State.WORKING);
-                        logger.debug("WorkerClock.run - poll");
                         WorkerTask task = work.poll();
                         logger.trace("Worker <{}> executing task {}", threadName, task);
-                        logger.debug("WorkerClock.run - run");
                         task.run();
                         state.set(State.IDLE);
                     }

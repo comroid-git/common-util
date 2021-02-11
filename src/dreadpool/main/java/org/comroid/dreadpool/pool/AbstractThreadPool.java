@@ -70,7 +70,7 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
     }
 
     @Override
-    public final void execute(@NotNull Runnable command) {
+    public synchronized final void execute(@NotNull Runnable command) {
         W worker = null;
         if (workers.size() < maxSize && allBusy()) {
             worker = createWorker();
@@ -78,8 +78,13 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
                 throw new RuntimeException("Unable to create new Worker");
             workers.add(worker);
         }
+        int skip = 0;
         while (worker == null || worker.isBusy())
-            worker = workers.peek();
+            worker = workers.stream()
+                    .sorted()
+                    .skip(skip++)
+                    .findFirst()
+                    .orElse(null);
         worker.accept(prefabTask(command));
     }
 
