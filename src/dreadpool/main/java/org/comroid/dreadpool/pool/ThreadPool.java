@@ -1,5 +1,6 @@
 package org.comroid.dreadpool.pool;
 
+import org.comroid.api.Named;
 import org.comroid.api.Rewrapper;
 import org.comroid.api.ThrowingFunction;
 import org.comroid.api.ThrowingPredicate;
@@ -11,13 +12,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public interface ThreadPool extends ScheduledExecutorService {
+public interface ThreadPool extends ScheduledExecutorService, Named {
+    @Override
+    default String getName() {
+        return "pool-" + getThreadGroup().getName();
+    }
+
     ThreadGroup getThreadGroup();
 
     int getMaximumSize();

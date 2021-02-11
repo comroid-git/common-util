@@ -76,6 +76,7 @@ public abstract class AbstractThreadPool<W extends Worker> implements ThreadPool
             worker = createWorker();
             if (worker == null)
                 throw new RuntimeException("Unable to create new Worker");
+            logger.debug("Pool <{}> created new Worker <{}>", this, worker);
             workers.add(worker);
         }
         int skip = 0;
