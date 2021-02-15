@@ -7,12 +7,4 @@ ext {
     projectDescription = "Event Handling solution"
 }
 
-dependencies {
-    if (isAutoDeploy) {
-        api project(":spellbind")
-    } else {
-        api project(":guardian:spellbind")
-    }
-}
-
 apply from: "$parent.projectDir/gradle/publishing.gradle"

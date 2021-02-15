@@ -7,12 +7,4 @@ ext {
     projectDescription = "Lightning-fast matrix-like structures in Java 8"
 }
 
-dependencies {
-    if (isAutoDeploy) {
-        api project(":spellbind")
-    } else {
-        api project(":guardian:spellbind")
-    }
-}
-
 apply from: "$parent.projectDir/gradle/publishing.gradle"

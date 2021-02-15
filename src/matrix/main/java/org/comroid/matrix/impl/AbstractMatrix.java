@@ -2,6 +2,7 @@ package org.comroid.matrix.impl;
 
 import org.comroid.api.UUIDContainer;
 import org.comroid.matrix.Matrix;
+import org.comroid.mutatio.cache.ValueCache;
 import org.comroid.mutatio.pipe.Pipe;
 import org.comroid.mutatio.ref.KeyedReference;
 import org.comroid.mutatio.ref.Reference;
@@ -17,7 +18,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDContainer.Base implements Matrix<V, E> {
+public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends ValueCache.Abstract<Void> implements Matrix<V, E> {
     private final Map<String, E> entries;
     private final EntryIndex entryIndex = new EntryIndex();
 
@@ -26,6 +27,8 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
     }
 
     protected AbstractMatrix(Map<String, E> underlying) {
+        super(null);
+
         this.entries = Optional.ofNullable(underlying).orElseGet(ConcurrentHashMap::new);
     }
 
@@ -162,8 +165,12 @@ public abstract class AbstractMatrix<V, E extends Matrix.Entry<V>> extends UUIDC
         return getEntryAt(coordinate, null).isNull();
     }
 
-    private final class EntryIndex implements ReferenceIndex<E> {
+    private final class EntryIndex extends ValueCache.Abstract<Void> implements ReferenceIndex<E> {
         private final Map<Integer, Reference<E>> accessors = new ConcurrentHashMap<>();
+
+        protected EntryIndex() {
+            super(AbstractMatrix.this);
+        }
 
         @Override
         public List<E> unwrap() {
