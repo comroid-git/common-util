@@ -44,30 +44,19 @@ task javadocJar(type: Jar) {
 compileJava.options.encoding = 'UTF-8'
 
 repositories {
+    maven { url 'https://maven.comroid.org' }
     mavenLocal()
-    maven {
-        url "https://maven.jetbrains.space/comroid/release"
-        credentials.username "Anonymous.User"
-        credentials.password "anonymous"
-    }
-    maven {
-        url "https://maven.jetbrains.space/comroid/repo"
-        credentials.username "Anonymous.User"
-        credentials.password "anonymous"
-    }
     jcenter()
     maven { url 'https://www.jitpack.io' }
 }
 
 dependencies {
-    if (project.name != 'interfaces') {
-        if (isAutoDeploy) {
-            // todo add guardian core dependency
-            api 'com.github.comroid-git:api:master-SNAPSHOT'
-        } else {
-            api project(':api')
-            api project(":guardian:core")
-        }
+    if (isAutoDeploy) {
+        api 'org.comroid:api:0.+'
+        api 'org.comroid:guardian-core:0.+'
+    } else {
+        api project(':api')
+        api project(":guardian:core")
     }
 
     // logging dependencies
