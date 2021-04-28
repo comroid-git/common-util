@@ -1,0 +1,34 @@
+version: 2
+registries:
+  maven-repository-maven-jetbrains-space-comroid-snapshot:
+    type: maven-repository
+    url: https://maven.jetbrains.space/comroid/snapshot
+    username: Anonymous.User
+    password: "${{secrets.MAVEN_REPOSITORY_MAVEN_JETBRAINS_SPACE_COMROID_SNAPSHOT_PASSWORD}}"
+  maven-repository-maven-jetbrains-space-comroid-release:
+    type: maven-repository
+    url: https://maven.jetbrains.space/comroid/release
+    username: Anonymous.User
+    password: "${{secrets.MAVEN_REPOSITORY_MAVEN_JETBRAINS_SPACE_COMROID_RELEASE_PASSWORD}}"
+  maven-repository-maven-jetbrains-space-comroid-repo:
+    type: maven-repository
+    url: https://maven.jetbrains.space/comroid/repo
+    username: Anonymous.User
+    password: "${{secrets.MAVEN_REPOSITORY_MAVEN_JETBRAINS_SPACE_COMROID_REPO_PASSWORD}}"
+
+updates:
+- package-ecosystem: gradle
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "00:00"
+    timezone: Europe/Berlin
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: com.alibaba:fastjson
+    versions:
+    - 1.2.75
+  registries:
+  - maven-repository-maven-jetbrains-space-comroid-snapshot
+  - maven-repository-maven-jetbrains-space-comroid-release
+  - maven-repository-maven-jetbrains-space-comroid-repo
